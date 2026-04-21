@@ -1,39 +1,71 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background-color: #f5f5f5;
   color: #222;
 }
 
 /* 顶部导航 */
 nav {
-  background: #111;
-  padding: 15px;
+  background: #000;
+  padding: 16px;
   text-align: center;
 }
 
 nav a {
-  color: white;
+  color: #fff;
   margin: 0 15px;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 nav a:hover {
   opacity: 0.7;
 }
 
-/* 页面主体 */
+/* 头部 */
+header {
+  padding: 80px 20px;
+  text-align: center;
+  background: #fff;
+}
+
+header h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+header p {
+  font-size: 18px;
+  color: #666;
+}
+
+/* 主体内容 */
 main {
   max-width: 800px;
-  margin: 80px auto;
+  margin: 60px auto;
   padding: 0 20px;
+}
+
+section {
+  margin-bottom: 60px;
   text-align: center;
 }
 
-h1 {
-  font-size: 36px;
+h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
 }
 
 p {
-  line-height: 1.6;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #444;
+}
+
+/* 页脚 */
+footer {
+  text-align: center;
+  padding: 40px;
+  color: #888;
 }
