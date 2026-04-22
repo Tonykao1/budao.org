@@ -2,89 +2,136 @@
 
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <title>童行 - 步道</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 40px 20px;
-            text-align: center;
-        }
+<meta charset="UTF-8">
+<title>童行 - 步道</title>
+<link rel="stylesheet" href="style.css">
 
-```
-    .card {
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 40px;
-    }
+<style>
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 40px 20px;
+    text-align: center;
+}
 
-    .card img {
-        width: 200px;
-        border-radius: 8px;
-    }
+.card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 40px;
+}
 
-    .buttons a {
-        display: inline-block;
-        margin: 10px;
-        padding: 8px 16px;
-        background: black;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-    }
+.card img {
+    width: 200px;
+    border-radius: 8px;
+}
 
-    iframe {
-        margin-top: 15px;
-        width: 100%;
-        height: 400px;
-        border: none;
-    }
+.buttons button {
+    margin: 10px;
+    padding: 8px 16px;
+    background: black;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* 弹窗 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+}
+
+.modal-content {
+    position: relative;
+    margin: 5% auto;
+    width: 80%;
+    height: 80%;
+    background: #fff;
+}
+
+.modal iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 28px;
+    cursor: pointer;
+}
 </style>
-```
 
 </head>
 
 <body>
 
 <nav>
-    <a href="/">首页</a>
-    <a href="/about.html">超级星期六</a>
-    <a href="/tongxing.html">童行</a>
-    <a href="/what.html">全球同工</a>
-    <a href="/contact.html">联系</a>
+<a href="/">首页</a>
+<a href="/about.html">超级星期六</a>
+<a href="/tongxing.html">童行</a>
+<a href="/what.html">全球同工</a>
+<a href="/contact.html">联系</a>
 </nav>
 
 <div class="container">
-    <h1>童行</h1>
-    <p>与孩子同行，在阅读中遇见光。</p>
+<h1>童行</h1>
+<p>与孩子同行，在阅读中遇见光。</p>
 
-```
 <!-- 卡片1 -->
+
 <div class="card">
-    <img src="images/dkd.jpg">
-    <h3>《大蝌蚪》</h3>
-    <p>“...,若不像小孩子，断不能进去。”</p>
+<img src="images/dkd.jpg">
+<h3>《大蝌蚪》</h3>
+<p>“...,若不像小孩子，断不能进去。”</p>
 
-    <div class="buttons">
-        <a href="#">阅读</a>
-        <a href="#">视频</a>
-        <a href="#">音频</a>
-    </div>
-
-    <!-- FlipHTML5 -->
-    <iframe src="https://online.fliphtml5.com/qkttd/ksju/"></iframe>
-
-    <!-- Bilibili -->
-    <iframe src="https://b23.tv/brW2o5Y"></iframe>
-
+<div class="buttons">
+<button onclick="openModal('https://online.fliphtml5.com/qkttd/ksju/')">阅读</button>
+<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=577359839&bvid=BV1jB4y1o7Qr&cid=1302435791&p=1')">视频</button>
 </div>
-```
+</div>
 
 </div>
 
+<!-- 弹窗 -->
+
+<div id="modal" class="modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal()">&times;</span>
+<iframe id="modalFrame"></iframe>
+</div>
+</div>
+
+<script>
+function openModal(url) {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("modalFrame").src = url;
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("modalFrame").src = "";
+}
+</script>
+<script>
+function openModal(url) {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("modalFrame").src = url;
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("modalFrame").src = "";
+}
+</script>
 </body>
 </html>
-
