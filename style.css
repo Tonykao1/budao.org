@@ -117,3 +117,39 @@ h1 {
     color: #d35400;
     margin-bottom: 20px;
 }
+.info-block {
+    max-width: 700px;
+    margin: 40px auto;
+    text-align: left;
+}
+
+/* 第一层（主信息） */
+.info-main div {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+/* 标签（地点/时间） */
+.label {
+    display: inline-block;
+    width: 50px;
+    color: #999;
+}
+
+/* 第二层（参数信息） */
+.info-secondary {
+    margin: 25px 0;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #d35400;
+    display: flex;
+    gap: 20px;
+}
+
+/* 第三层（说明） */
+.info-note {
+    font-size: 0.95em;
+    color: #777;
+    line-height: 1.6;
+}
