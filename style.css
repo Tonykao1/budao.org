@@ -153,3 +153,39 @@ h1 {
     color: #777;
     line-height: 1.6;
 }
+.info-art {
+    max-width: 700px;
+    margin: 60px auto;
+    text-align: left;
+    line-height: 1.8;
+}
+
+/* 地点（偏左，安静） */
+.line-location {
+    font-size: 1.05em;
+    color: #444;
+    margin-bottom: 25px;
+}
+
+/* 时间（轻微右移） */
+.line-time {
+    font-size: 1.3em;
+    margin-left: 40px;
+    margin-bottom: 25px;
+}
+
+/* 核心参数（最强） */
+.line-highlight {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #d35400;
+    margin-left: 20px;
+    margin-bottom: 30px;
+}
+
+/* 说明（收住） */
+.line-note {
+    font-size: 0.95em;
+    color: #777;
+    margin-left: 60px;
+}
