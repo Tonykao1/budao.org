@@ -253,14 +253,4 @@ h1 {
     font-size: 0.9em;
     color: #777;
 }
-.sub {
-    display: block;
-    margin-top: 10px;
-    font-size: 0.9em;
-    color: #555;
-}
-.note {
-    margin-top: 16px;
-    font-size: 0.9em;
-    color: #777;
-}
+
