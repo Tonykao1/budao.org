@@ -189,3 +189,67 @@ h1 {
     color: #777;
     margin-left: 60px;
 }
+.info-explode {
+    position: relative;
+    max-width: 800px;
+    height: 300px;
+    margin: 80px auto;
+}
+
+/* 所有元素默认绝对定位 */
+.info-explode .item {
+    position: absolute;
+    font-weight: 600;
+}
+
+/* 地点（块感） */
+.location {
+    top: 0;
+    left: 0;
+    font-size: 1.2em;
+    line-height: 1.4;
+}
+
+/* 时间（视觉核心） */
+.time {
+    top: 40px;
+    left: 250px;
+    font-size: 3em;
+    color: #d35400;
+}
+
+/* 时长 */
+.duration {
+    top: 110px;
+    left: 260px;
+    font-size: 1.2em;
+}
+
+/* 距离 */
+.distance {
+    top: 180px;
+    left: 120px;
+    font-size: 2em;
+}
+
+/* 爬升 */
+.climb {
+    top: 200px;
+    left: 300px;
+    font-size: 1.5em;
+}
+
+/* 难度 */
+.level {
+    top: 150px;
+    left: 20px;
+    font-size: 1.8em;
+}
+
+/* 说明 */
+.note {
+    top: 240px;
+    left: 200px;
+    font-size: 0.9em;
+    color: #777;
+}
