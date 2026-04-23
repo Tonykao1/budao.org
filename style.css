@@ -192,8 +192,9 @@ h1 {
 .info-explode {
     position: relative;
     max-width: 800px;
-    height: 300px;
+    height: 420px;   /* 👈 关键：加高 */
     margin: 80px auto;
+};
 }
 
 /* 所有元素默认绝对定位 */
