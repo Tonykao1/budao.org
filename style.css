@@ -105,3 +105,15 @@ h1 {
     margin: 0 auto;
     line-height: 1.4;
 }
+.title-main {
+    font-size: 2em;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.title-date {
+    font-size: 1.6em;
+    font-weight: 600;
+    color: #d35400;
+    margin-bottom: 20px;
+}
