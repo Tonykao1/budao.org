@@ -95,3 +95,6 @@ footer {
     position: relative;
     left: 0.2em;
 }
+.highlight-big {
+    font-size: 1.2em;
+}
