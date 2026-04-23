@@ -96,5 +96,7 @@ footer {
     left: 0.2em;
 }
 .highlight-big {
-    font-size: 1.2em;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #d35400;
 }
