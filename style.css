@@ -5,7 +5,7 @@ body {
   color: #222;
 }
 
-/* 顶部导航 */
+/* 导航 */
 nav {
   background: #000;
   padding: 16px;
@@ -19,346 +19,90 @@ nav a {
   font-size: 16px;
 }
 
-nav a:hover {
-  opacity: 0.7;
-}
-
-/* 头部 */
-header {
-  padding: 80px 20px;
-  text-align: center;
-  background: #fff;
-}
-
-header h1 {
-  font-size: 48px;
-  margin-bottom: 10px;
-}
-
-header p {
-  font-size: 18px;
-  color: #666;
-}
-
-/* 主体内容 */
+/* 主体 */
 main {
-  max-width: 800px;
+  max-width: 900px;
   margin: 60px auto;
-  padding: 0 20px;
-}
-
-section {
-  margin-bottom: 60px;
   text-align: center;
 }
 
-h2 {
-  font-size: 28px;
-  margin-bottom: 20px;
-}
-
-p {
-  font-size: 18px;
-  line-height: 1.8;
-  color: #444;
-}
-
-/* 页脚 */
-footer {
-  text-align: center;
-  padding: 40px;
-  color: #888;
-}
-.hero {
-  height: 70vh;
-  background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
-              url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee");
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.hero-content h1 {
-  color: #fff;
-  font-size: 64px;
-  margin-bottom: 20px;
-}
-
-.hero-content p {
-  color: #eee;
-  font-size: 20px;
-}
-.title-adjust {
-    position: relative;
-    left: 0.2em;
-}
-.highlight-big {
-    font-size: 1.15em;
-    font-weight: 600;
-    color: #d35400;
-}
-h1 {
-    max-width: 800px;
-    margin: 0 auto;
-    line-height: 1.4;
-}
+/* 标题 */
 .title-main {
-    font-size: 2em;
+    font-size: 32px;
     font-weight: 600;
     margin-bottom: 10px;
 }
 
 .title-date {
-    font-size: 1.6em;
+    font-size: 24px;
     font-weight: 600;
     color: #d35400;
-    margin-bottom: 20px;
-}
-.info-block {
-    max-width: 700px;
-    margin: 40px auto;
-    text-align: left;
+    margin-bottom: 60px;
 }
 
-/* 第一层（主信息） */
-.info-main div {
-    font-size: 1.1em;
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-}
-
-/* 标签（地点/时间） */
-.label {
-    display: inline-block;
-    width: 50px;
-    color: #999;
-}
-
-/* 第二层（参数信息） */
-.info-secondary {
-    margin: 25px 0;
-    font-size: 1.2em;
-    font-weight: 600;
-    color: #d35400;
-    display: flex;
-    gap: 20px;
-}
-
-/* 第三层（说明） */
-.info-note {
-    font-size: 0.95em;
-    color: #777;
-    line-height: 1.6;
-}
-.info-art {
-    max-width: 700px;
-    margin: 60px auto;
-    text-align: left;
-    line-height: 1.8;
-}
-
-/* 地点（偏左，安静） */
-.line-location {
-    font-size: 1.05em;
-    color: #444;
-    margin-bottom: 25px;
-}
-
-/* 时间（轻微右移） */
-.line-time {
-    font-size: 1.3em;
-    margin-left: 40px;
-    margin-bottom: 25px;
-}
-
-/* 核心参数（最强） */
-.line-highlight {
-    font-size: 1.5em;
-    font-weight: 600;
-    color: #d35400;
-    margin-left: 20px;
-    margin-bottom: 30px;
-}
-
-/* 说明（收住） */
-.line-note {
-    font-size: 0.95em;
-    color: #777;
-    margin-left: 60px;
-}
+/* 爆炸排版容器 */
 .info-explode {
     position: relative;
     max-width: 800px;
     height: 420px;
-    margin: 80px auto;
-}
-};
+    margin: 0 auto;
 }
 
-/* 所有元素默认绝对定位 */
+/* 所有元素 */
 .info-explode .item {
     position: absolute;
     font-weight: 600;
 }
 
-/* 地点（块感） */
+/* 地点 */
 .location {
     top: 0;
-    left: 0;
-    font-size: 1.2em;
+    left: 40px;
+    font-size: 18px;
     line-height: 1.4;
 }
 
-/* 时间（视觉核心） */
+/* 时间（核心） */
 .time {
-    top: 40px;
-    left: 250px;
-    font-size: 3em;
+    top: 60px;
+    left: 260px;
+    font-size: 48px;
     color: #d35400;
 }
 
 /* 时长 */
 .duration {
     top: 130px;
-    left: 260px;
-    font-size: 1.2em;
-}
-
-/* 距离 */
-.distance {
-    top: 180px;
-    left: 120px;
-    font-size: 2em;
-}
-
-/* 爬升 */
-.climb {
-    top: 200px;
-    left: 300px;
-    font-size: 1.5em;
+    left: 280px;
+    font-size: 18px;
+    color: #555;
 }
 
 /* 难度 */
 .level {
-    top: 150px;
-    left: 20px;
-    font-size: 1.8em;
+    top: 170px;
+    left: 60px;
+    font-size: 28px;
+}
+
+/* 距离 */
+.distance {
+    top: 210px;
+    left: 180px;
+    font-size: 36px;
+}
+
+/* 爬升 */
+.climb {
+    top: 220px;
+    left: 360px;
+    font-size: 24px;
 }
 
 /* 说明 */
 .note {
-    top: 270px;
-    left: 200px;
-    font-size: 0.9em;
+    top: 300px;
+    left: 240px;
+    font-size: 14px;
     color: #777;
-}
-/* ===== 路线信息（秩序区）===== */
-
-.route-info {
-    max-width: 640px;
-    margin: 120px auto 80px auto;
-    padding: 30px 40px;
-
-    background: #ffffff;
-    border: 1px solid #eee;
-    border-radius: 8px;
-
-    text-align: left;
-    line-height: 1.8;
-}
-
-/* 标题 */
-.route-title {
-    font-size: 14px;
-    color: #999;
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-}
-
-/* 地图来源 */
-.route-maplist {
-    font-size: 13px;
-    color: #bbb;
-    margin-bottom: 20px;
-}
-
-/* 核心地址 */
-.route-main {
-    font-size: 20px;
-    font-weight: 600;
-    color: #222;
-}
-
-/* 子说明 */
-.route-sub {
-    font-size: 14px;
-    color: #666;
-    margin-top: 4px;
-}
-
-/* 描述 */
-.route-desc {
-    margin-top: 20px;
-    font-size: 14px;
-    color: #555;
-}
-
-/* 图片 */
-.route-image {
-    width: 100%;
-    margin-top: 20px;
-    border-radius: 6px;
-}
-/* 路线卡片（秩序感） */
-.route-info {
-    max-width: 720px;
-    margin: 80px auto;
-    padding: 30px 40px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-}
-
-/* 标题 */
-.route-header {
-    font-size: 1.2em;
-    font-weight: 600;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-}
-
-/* 网格结构 */
-.route-grid {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    row-gap: 14px;
-    column-gap: 10px;
-    margin-bottom: 25px;
-}
-
-/* 单项 */
-.route-item {
-    display: contents;
-}
-
-/* 左标签 */
-.route-item .label {
-    color: #999;
-    font-size: 0.9em;
-}
-
-/* 右内容 */
-.route-item .value {
-    color: #222;
-    font-size: 1em;
-}
-
-/* 图片 */
-.route-image {
-    width: 100%;
-    border-radius: 8px;
-    margin-top: 10px;
 }
