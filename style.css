@@ -253,4 +253,60 @@ h1 {
     font-size: 0.9em;
     color: #777;
 }
+/* ===== 路线信息（秩序区）===== */
 
+.route-info {
+    max-width: 640px;
+    margin: 120px auto 80px auto;
+    padding: 30px 40px;
+
+    background: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+
+    text-align: left;
+    line-height: 1.8;
+}
+
+/* 标题 */
+.route-title {
+    font-size: 14px;
+    color: #999;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+/* 地图来源 */
+.route-maplist {
+    font-size: 13px;
+    color: #bbb;
+    margin-bottom: 20px;
+}
+
+/* 核心地址 */
+.route-main {
+    font-size: 20px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* 子说明 */
+.route-sub {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* 描述 */
+.route-desc {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+}
+
+/* 图片 */
+.route-image {
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 6px;
+}
