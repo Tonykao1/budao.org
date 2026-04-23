@@ -312,3 +312,53 @@ h1 {
     margin-top: 20px;
     border-radius: 6px;
 }
+/* 路线卡片（秩序感） */
+.route-info {
+    max-width: 720px;
+    margin: 80px auto;
+    padding: 30px 40px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+/* 标题 */
+.route-header {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+/* 网格结构 */
+.route-grid {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    row-gap: 14px;
+    column-gap: 10px;
+    margin-bottom: 25px;
+}
+
+/* 单项 */
+.route-item {
+    display: contents;
+}
+
+/* 左标签 */
+.route-item .label {
+    color: #999;
+    font-size: 0.9em;
+}
+
+/* 右内容 */
+.route-item .value {
+    color: #222;
+    font-size: 1em;
+}
+
+/* 图片 */
+.route-image {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}
