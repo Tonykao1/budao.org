@@ -57,10 +57,22 @@
      
 </main>
   <div class="action-right">
-        <img src="images/groupQR.jpg" class="group-qr">
+        <img src="images/groupQR.jpg" class="group-qr" onclick="openImage()">
         <div class="group-note">
             扫码进群，即完成报名
         </div>   
-    
+   <div class="image-modal" id="imageModal" onclick="closeImage()">
+    <img src="images/groupQR.jpg" class="image-modal-content">
+</div> 
+    <script>
+function openImage() {
+    document.getElementById("imageModal").style.display = "flex";
+}
+
+function closeImage() {
+    document.getElementById("imageModal").style.display = "none";
+}
+</script>
 </body>
+  
 </html>
