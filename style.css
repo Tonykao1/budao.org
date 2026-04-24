@@ -302,3 +302,21 @@ h1 {
 
     margin: 80px auto;
 }
+.action-left {
+    text-align: center;
+}
+
+.action-right {
+    text-align: center;
+}
+
+.group-qr {
+    width: 160px;
+    border-radius: 10px;
+}
+
+.group-note {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #999;
+}
