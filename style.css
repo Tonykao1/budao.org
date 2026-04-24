@@ -287,3 +287,10 @@ h1 {
     font-size: 0.9em;
     color: #999;
 }
+.group-entry {
+    margin: 120px auto 80px;
+    padding: 40px 20px;
+    background: #fafafa;
+    border-radius: 12px;
+    text-align: center;
+}
