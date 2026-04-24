@@ -294,3 +294,11 @@ h1 {
     border-radius: 12px;
     text-align: center;
 }
+.action-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 80px;
+
+    margin: 80px auto;
+}
