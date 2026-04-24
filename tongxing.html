@@ -140,9 +140,10 @@ function closeModal() {
     <script>
 function toggleAudio() {
     var audio = document.getElementById("audioPlayer");
-
+var btn = document.querySelector(".audio-btn");
     if (audio.paused) {
         audio.play();
+        btn.innerText = "⏸ 暂停音频";
     } else {
         audio.pause();
     }
