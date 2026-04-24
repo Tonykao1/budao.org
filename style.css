@@ -342,3 +342,6 @@ h1 {
     max-height: 90%;
     border-radius: 10px;
 }
+.group-qr {
+    cursor: pointer;
+}
