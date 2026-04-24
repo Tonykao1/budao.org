@@ -264,3 +264,26 @@ h1 {
     font-size: 0.9em;
     color: #777;
 }
+.group-entry {
+    margin: 120px auto 80px;
+    text-align: center;
+}
+
+.group-title {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.group-qr {
+    width: 260px;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.group-note {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #999;
+}
