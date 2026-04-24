@@ -53,11 +53,35 @@
 
     <div class="item note">
         木栈道 / 长者、儿童友好
+      </div>
+      
 </main>
+  <!-- 报名弹窗 -->
+<div class="modal" id="signupModal">
+
+    <div class="modal-content">
+
+        <span class="close-btn" onclick="closeModal()">×</span>
+
+        <h3>报名参加</h3>
+
+        <input type="text" placeholder="姓名">
+        <input type="text" placeholder="手机号">
+        <input type="text" placeholder="是否带人（可选）">
+
+        <button class="submit-btn">提交报名</button>
+
+        <div class="modal-note">
+            提交后，请扫码进入活动群
+        </div>
+
+    </div>
+
+</div>
 <div class="action-row">
 
     <div class="action-left">
-        <a href="#" target="_blank" class="signup-button">
+        <a href="javascript:void(0)" onclick="openModal()" class="signup-button">
             立即报名
         </a>
         <div class="signup-note">
@@ -73,3 +97,16 @@
     </div>
 
 </div>
+<!-- JS（必须在最底部） -->
+<script>
+function openModal() {
+    document.getElementById("signupModal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("signupModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>
