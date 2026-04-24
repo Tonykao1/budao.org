@@ -345,3 +345,10 @@ h1 {
 .group-qr {
     cursor: pointer;
 }
+.item {
+    transition: transform 0.2s ease;
+}
+
+.item:hover {
+    transform: scale(1.2);
+}
