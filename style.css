@@ -320,7 +320,3 @@ h1 {
     font-size: 0.9em;
     color: #999;
 }
-.action-row {
-    display: flex !important;
-    background: red !important;
-}
