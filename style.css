@@ -409,3 +409,14 @@ h1 {
     font-size: 14px;
     color: #999;
 }
+#introText {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-size: 26px;
+  letter-spacing: 4px;
+  opacity: 0;
+  transition: 2s;
+}
