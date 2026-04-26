@@ -388,3 +388,24 @@ h1 {
 .join-section {
     margin-top: 100px;
 }
+.contact-hero {
+    text-align: center;
+    margin: 140px auto;
+}
+
+.contact-hero h1 {
+    font-size: 34px;
+    margin-bottom: 50px;
+}
+
+.hero-line {
+    font-size: 22px;
+    line-height: 1.7;
+    margin-bottom: 70px;
+}
+
+.contact-note {
+    margin-top: 50px;
+    font-size: 14px;
+    color: #999;
+}
