@@ -360,3 +360,12 @@ h1 {
 
     text-align: center;
 }
+.join-section h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.join-section p {
+    color: #666;
+    margin-bottom: 20px;
+}
