@@ -2,21 +2,21 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>测试宇宙</title>
+<title>Plus Universe</title>
 
 <style>
-body {
-    margin: 0;
-    background: black;
-    overflow: hidden;
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
 }
-
 canvas {
-    display: block;
+  display: block;
 }
 </style>
-
 </head>
+
 <body>
 
 <canvas id="c"></canvas>
@@ -25,120 +25,87 @@ canvas {
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 
+// 适配屏幕
 function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 resize();
 window.addEventListener("resize", resize);
 
-// 创建“+”星星
-let stars = [];
-for (let i = 0; i < 150; i++) {
-    stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        speed: Math.random() * 0.6 + 0.2
-    });
-}
+// 鼠标位置（默认在中间）
+let mouseX = canvas.width / 2;
+let mouseY = canvas.height / 2;
 
-function draw() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "white";
-    ctx.font = "14px monospace";
-
-    stars.forEach(s => {
-        ctx.fillText("+", s.x, s.y);
-
-        s.y += s.speed;
-
-        if (s.y > canvas.height) {
-            s.y = 0;
-            s.x = Math.random() * canvas.width;
-        }
-    });
-
-    requestAnimationFrame(draw);
-}
-
-draw();
-<script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
-
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
-
-// 鼠标位置
-let mouse = { x: canvas.width/2, y: canvas.height/2 };
 window.addEventListener("mousemove", e => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
+  mouseX = e.clientX;
+  mouseY = e.clientY;
 });
 
-// 星星（+）
-let stars = [];
-const STAR_COUNT = 400; // 数量提升
+// 创建“+”粒子
+const stars = [];
+const COUNT = 300;
 
-for (let i = 0; i < STAR_COUNT; i++) {
-    stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 10 + 8,   // 层次
-        depth: Math.random()            // 远近
-    });
+for (let i = 0; i < COUNT; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.5,
+    vy: (Math.random() - 0.5) * 0.5,
+    size: Math.random() * 12 + 10,
+    alpha: Math.random() * 0.8 + 0.2
+  });
 }
 
-function draw() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// 动画
+function animate() {
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    stars.forEach(s => {
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
 
-        // 鼠标引力（柔和）
-        let dx = mouse.x - s.x;
-        let dy = mouse.y - s.y;
-        let dist = Math.sqrt(dx*dx + dy*dy);
+  for (let s of stars) {
 
-        if (dist < 150) {
-            s.vx += dx * 0.00005;
-            s.vy += dy * 0.00005;
-        }
+    // 鼠标轻微吸引
+    let dx = mouseX - s.x;
+    let dy = mouseY - s.y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
 
-        // 随机扰动（关键：破规律）
-        s.vx += (Math.random() - 0.5) * 0.02;
-        s.vy += (Math.random() - 0.5) * 0.02;
+    if (dist < 150) {
+      s.vx += dx * 0.0001;
+      s.vy += dy * 0.0001;
+    }
 
-        // 阻尼（避免失控）
-        s.vx *= 0.98;
-        s.vy *= 0.98;
+    // 随机扰动（打破规律）
+    s.vx += (Math.random() - 0.5) * 0.02;
+    s.vy += (Math.random() - 0.5) * 0.02;
 
-        s.x += s.vx;
-        s.y += s.vy;
+    // 阻尼
+    s.vx *= 0.99;
+    s.vy *= 0.99;
 
-        // 边界循环（宇宙连续感）
-        if (s.x < 0) s.x = canvas.width;
-        if (s.x > canvas.width) s.x = 0;
-        if (s.y < 0) s.y = canvas.height;
-        if (s.y > canvas.height) s.y = 0;
+    // 更新位置
+    s.x += s.vx;
+    s.y += s.vy;
 
-        // 透明度（远近层次）
-        ctx.fillStyle = "rgba(255,255,255," + (0.3 + s.depth * 0.7) + ")";
-        ctx.font = s.size + "px monospace";
+    // 边界循环
+    if (s.x < 0) s.x = canvas.width;
+    if (s.x > canvas.width) s.x = 0;
+    if (s.y < 0) s.y = canvas.height;
+    if (s.y > canvas.height) s.y = 0;
 
-        ctx.fillText("+", s.x, s.y);
-    });
+    // 绘制 "+"
+    ctx.fillStyle = "rgba(255,255,255," + s.alpha + ")";
+    ctx.font = s.size + "px monospace";
+    ctx.fillText("+", s.x, s.y);
+  }
 
-    requestAnimationFrame(draw);
+  requestAnimationFrame(animate);
 }
 
-draw();
+animate();
 </script>
+
+</body>
+</html>
