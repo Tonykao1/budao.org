@@ -140,23 +140,23 @@ animate();
 
 /* ===== 节奏控制（核心） ===== */
 
-// 6秒 → 才开始聚集（先让人“进入宇宙”）
+// 16秒 → 才开始聚集（先让人“进入宇宙”）
 setTimeout(() => {
   phase = 1;
 }, 6000);
 
-// 7秒 → 文字慢慢出现
+// 17秒 → 文字慢慢出现
 setTimeout(() => {
   document.getElementById("introText").style.opacity = 1;
 }, 7000);
 
-// 14秒 → 慢慢淡出
+// 20秒 → 慢慢淡出
 setTimeout(() => {
   document.body.style.transition = "opacity 3s";
   document.body.style.opacity = 0;
 }, 14000);
 
-// 17秒 → 进入主页
+// 30秒 → 进入主页
 setTimeout(() => {
   window.location.href = "/index.html"; // ⚠️ 改成你的主页路径
 }, 17000);
