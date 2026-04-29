@@ -212,13 +212,13 @@ h1 {
 .time {
     font-size: 3.2em;
     color: #d35400;
-    transform: translate(-50%, 80%) scale(1.8);
+    transform: translate(-50%, -80%) scale(1.8);
 }
 
 /* 时长 */
 .duration {
     font-size: 1.2em;
-    transform: translate(120%, -10%);
+    transform: translate(120%, 110%);
 }
 
 /* 距离 */
