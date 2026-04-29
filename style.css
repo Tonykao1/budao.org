@@ -219,6 +219,7 @@ h1 {
 /* 时长 */
 .duration {
     font-size: 1.2em;
+    transform: translate(120%, -10%);
 }
 
 /* 距离 */
