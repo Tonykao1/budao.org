@@ -12,7 +12,6 @@ html, body {
   overflow: hidden;
 }
 
-/* 中心文字 */
 #introText {
   position: absolute;
   top: 50%;
@@ -45,7 +44,6 @@ const ctx = canvas.getContext("2d");
 let phase = 0;
 let centerX, centerY;
 
-// 屏幕适配
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -56,7 +54,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// 鼠标（轻微影响）
+// 鼠标
 let mouseX = centerX;
 let mouseY = centerY;
 
@@ -65,19 +63,28 @@ window.addEventListener("mousemove", e => {
   mouseY = e.clientY;
 });
 
-// 星星（+）
+// ⭐ 星星（关键修改在这里）
 const stars = [];
 const COUNT = 400;
 
-for (let i = 0; i < COUNT; i++) {
-  stars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
+function createStar() {
+  // 从“圆形宇宙”生成
+  let angle = Math.random() * Math.PI * 2;
+  let radius = Math.random() * Math.max(canvas.width, canvas.height);
+
+  return {
+    x: centerX + Math.cos(angle) * radius,
+    y: centerY + Math.sin(angle) * radius,
     vx: (Math.random() - 0.5) * 0.4,
     vy: (Math.random() - 0.5) * 0.4,
     size: Math.random() * 12 + 10,
     alpha: Math.random() * 0.7 + 0.2
-  });
+  };
+}
+
+// 初始化
+for (let i = 0; i < COUNT; i++) {
+  stars.push(createStar());
 }
 
 // 动画
@@ -90,7 +97,6 @@ function animate() {
 
   for (let s of stars) {
 
-    // 阶段1：缓慢归向中心
     if (phase === 1) {
       let dx = centerX - s.x;
       let dy = centerY - s.y;
@@ -99,7 +105,7 @@ function animate() {
       s.vy += dy * 0.00025;
     }
 
-    // 鼠标轻微扰动
+    // 鼠标扰动
     let dx = mouseX - s.x;
     let dy = mouseY - s.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
@@ -109,36 +115,29 @@ function animate() {
       s.vy += dy * 0.00005;
     }
 
-    // 极弱随机扰动
+    // 随机扰动
     s.vx += (Math.random() - 0.5) * 0.008;
     s.vy += (Math.random() - 0.5) * 0.008;
 
-    // 阻尼
     s.vx *= 0.995;
     s.vy *= 0.995;
 
-    // 更新位置
     s.x += s.vx;
     s.y += s.vy;
 
-    // ✅ 核心修复：无边界宇宙（替代原来的“方形循环”）
-    let dxCenter = s.x - centerX;
-    let dyCenter = s.y - centerY;
-    let distCenter = Math.sqrt(dxCenter*dxCenter + dyCenter*dyCenter);
+    // ⭐ 超出范围 → 从宇宙边缘重生（仍然是“圆”）
+    let dxC = s.x - centerX;
+    let dyC = s.y - centerY;
+    let distC = Math.sqrt(dxC*dxC + dyC*dyC);
 
-    if (distCenter > Math.max(canvas.width, canvas.height)) {
-
-      let angle = Math.random() * Math.PI * 2;
-      let radius = Math.max(canvas.width, canvas.height);
-
-      s.x = centerX + Math.cos(angle) * radius;
-      s.y = centerY + Math.sin(angle) * radius;
-
-      s.vx = 0;
-      s.vy = 0;
+    if (distC > Math.max(canvas.width, canvas.height)) {
+      let newStar = createStar();
+      s.x = newStar.x;
+      s.y = newStar.y;
+      s.vx = newStar.vx;
+      s.vy = newStar.vy;
     }
 
-    // 绘制 "+"
     ctx.fillStyle = "rgba(255,255,255," + s.alpha + ")";
     ctx.font = s.size + "px monospace";
     ctx.fillText("+", s.x, s.y);
@@ -149,12 +148,8 @@ function animate() {
 
 animate();
 
-/* ===== 节奏控制 ===== */
-
-setTimeout(() => {
-  phase = 1;
-}, 6000);
-
+/* 节奏控制 */
+setTimeout(() => { phase = 1; }, 6000);
 setTimeout(() => {
   document.getElementById("introText").style.opacity = 1;
 }, 7000);
