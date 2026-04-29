@@ -27,7 +27,7 @@ html, body {
   font-weight: 300;
 }
 
-/* ⭐ 中心光层（关键） */
+/* 中心光层（不再用transition） */
 #lightBurst {
   position: fixed;
   top: 0;
@@ -36,18 +36,16 @@ html, body {
   height: 100%;
   pointer-events: none;
 
-  /* 初始几乎不可见 */
   background: radial-gradient(circle at center,
     rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0) 10%,
-    rgba(255,255,255,0.02) 20%,
-    rgba(255,255,255,0.05) 40%,
-    rgba(255,255,255,0.1) 70%,
-    rgba(255,255,255,0.2) 100%
+    rgba(255,255,255,0.02) 10%,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.1) 50%,
+    rgba(255,255,255,0.2) 80%,
+    rgba(255,255,255,0.35) 100%
   );
 
   opacity: 0;
-  transition: opacity 4s ease;
 }
 
 canvas {
@@ -69,6 +67,7 @@ const ctx = canvas.getContext("2d");
 let phase = 0;
 let centerX, centerY;
 
+// resize
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -81,7 +80,6 @@ window.addEventListener("resize", resize);
 // 鼠标
 let mouseX = centerX;
 let mouseY = centerY;
-
 window.addEventListener("mousemove", e => {
   mouseX = e.clientX;
   mouseY = e.clientY;
@@ -109,6 +107,10 @@ function createStar() {
 for (let i = 0; i < COUNT; i++) {
   stars.push(createStar());
 }
+
+// ⭐ 光进度控制
+let lightActive = false;
+let lightProgress = 0;
 
 // 动画
 function animate() {
@@ -151,9 +153,37 @@ function animate() {
     s.x += s.vx;
     s.y += s.vy;
 
-    ctx.fillStyle = "rgba(255,255,255," + s.alpha + ")";
+    // ⭐ 被光吞没（渐隐）
+    let dxC = s.x - centerX;
+    let dyC = s.y - centerY;
+    let distC = Math.sqrt(dxC*dxC + dyC*dyC);
+
+    let fade = Math.max(0, 1 - (lightProgress * 1.5));
+    let alpha = s.alpha * fade;
+
+    ctx.fillStyle = "rgba(255,255,255," + alpha + ")";
     ctx.font = s.size + "px monospace";
     ctx.fillText("+", s.x, s.y);
+  }
+
+  // ⭐ 光的“生长”（关键）
+  if (lightActive) {
+    lightProgress += 0.003;
+    if (lightProgress > 1) lightProgress = 1;
+
+    let inner = 0.2 + lightProgress * 0.6;
+    let outer = 0.3 + lightProgress * 0.7;
+
+    const light = document.getElementById("lightBurst");
+
+    light.style.opacity = lightProgress;
+
+    light.style.background =
+      `radial-gradient(circle at center,
+        rgba(255,255,255,${inner}) 0%,
+        rgba(255,255,255,${inner * 0.7}) 20%,
+        rgba(255,255,255,${outer * 0.4}) 50%,
+        rgba(255,255,255,${outer}) 100%)`;
   }
 
   requestAnimationFrame(animate);
@@ -168,26 +198,20 @@ setTimeout(() => {
   phase = 1;
 }, 5000);
 
-// 文字显现（接近顶点）
+// 文字显现
 setTimeout(() => {
   document.getElementById("introText").style.opacity = 1;
 }, 15000);
 
-// ⭐ 中心光爆发
+// 光开始（非常关键点）
 setTimeout(() => {
-  document.getElementById("lightBurst").style.opacity = 1;
-}, 18500);
-
-// ⭐ 再加强一次（更接近完全白）
-setTimeout(() => {
-  document.getElementById("lightBurst").style.background =
-    "radial-gradient(circle at center, white 0%, white 100%)";
-}, 21000);
+  lightActive = true;
+}, 19000);
 
 // 跳转
 setTimeout(() => {
   window.location.href = "/index.html";
-}, 24000);
+}, 26000);
 
 </script>
 
