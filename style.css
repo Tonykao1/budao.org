@@ -243,7 +243,8 @@ h1 {
 .note {
     font-size: 0.9em;
     color: #777;
-    transform: translate(-50%, 240%);
+    white-space: nowrap;
+    transform: translate(-50%, 340%);
 }
 .sub {
     display: block;
