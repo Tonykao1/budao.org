@@ -243,8 +243,9 @@ h1 {
 
 /* 说明 */
 .note {
-    font-size: 1.4em;
+    font-size: 0.9em;
     color: #777;
+    transform: translate(-50%, 240%);
 }
 .sub {
     display: block;
