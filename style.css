@@ -231,6 +231,7 @@ h1 {
 /* 爬升 */
 .climb {
     font-size: 1.5em;
+    transform: translate(120%, 120%);
 }
 
 /* 难度 */
