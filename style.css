@@ -213,6 +213,7 @@ h1 {
 .time {
     font-size: 3em;
     color: #d35400;
+    transform: translate(-50%, -60%) scale(1.6);
 }
 
 /* 时长 */
