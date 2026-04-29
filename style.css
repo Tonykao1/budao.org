@@ -207,6 +207,7 @@ h1 {
 .location {
     font-size: 1.2em;
     line-height: 1.4;
+    transform: translate(-180%, -160%);
 }
 
 /* 时间（视觉核心） */
