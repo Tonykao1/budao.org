@@ -225,6 +225,7 @@ h1 {
 /* 距离 */
 .distance {
     font-size: 2em;
+    transform: translate(-40%, 140%) scale(1.2);
 }
 
 /* 爬升 */
