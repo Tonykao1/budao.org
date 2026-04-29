@@ -191,8 +191,8 @@ h1 {
 }
 .info-explode {
     position: relative;
-    height: 420px;
-    margin: 80px auto;
+    height: 520px;
+    margin: 100px auto;
 }
 .info-explode .item {
     position: absolute;
