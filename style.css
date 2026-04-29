@@ -210,10 +210,10 @@ h1 {
 
 /* 时间（视觉核心） */
 .time {
-    font-size: 3.2em;
+    font-size: 3.4em;
     color: #d35400;
-    transform: translate(-50%, -80%) scale(1.8);
-    letter-spacing: 1px;
+    transform: translate(-50%, -50%) scale(2);
+    letter-spacing: 1.5px;
 }
 
 /* 时长 */
