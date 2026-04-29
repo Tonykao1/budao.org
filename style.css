@@ -189,6 +189,11 @@ h1 {
     color: #777;
     margin-left: 60px;
 }
+.info-explode {
+    position: relative;
+    height: 420px;
+    margin: 80px auto;
+}
 .info-explode .item {
     position: absolute;
     left: 50%;
