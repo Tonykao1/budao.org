@@ -189,11 +189,12 @@ h1 {
     color: #777;
     margin-left: 60px;
 }
-.info-explode {
-    position: relative;
-    max-width: 800px;
-    height: 300px;
-    margin: 80px auto;
+.info-explode .item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 600;
 }
 
 /* 所有元素默认绝对定位 */
