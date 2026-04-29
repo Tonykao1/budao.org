@@ -337,9 +337,6 @@ h1 {
     transition: transform 0.2s ease;
 }
 
-.item:hover {
-    transform: translate(-50%, -50%) scale(1.2);
-}
 .join-section {
     margin-top: 80px;
     padding: 40px 20px;
