@@ -77,6 +77,30 @@ function openImage() {
 function closeImage() {
     document.getElementById("imageModal").style.display = "none";
 }
+      <script>
+const targetTime = new Date("2026-05-02T09:00:00+08:00");
+
+function updateCountdown() {
+    const now = new Date();
+    const diff = targetTime - now;
+
+    const el = document.getElementById("countdownTimer");
+
+    if (diff <= 0) {
+        el.innerHTML = "已开始";
+        return;
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    el.innerHTML = hours + "小时 " + minutes + "分 " + seconds + "秒";
+}
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
+</script>
 </script>
 </body>
   
