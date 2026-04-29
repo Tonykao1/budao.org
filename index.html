@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Plus Universe</title>
+
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+/* ⭐ 首页 iframe（在最底层） */
+#homeFrame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  opacity: 0;
+  z-index: 1;
+}
+
+/* ⭐ 动画层 */
+#universeLayer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* 中心文字 */
+#introText {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-size: 30px;
+  letter-spacing: 8px;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 6s ease;
+  font-weight: 300;
+}
+
+/* 光层 */
+#lightBurst {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+canvas {
+  display: block;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ⭐ 首页预加载 -->
+<iframe id="homeFrame" src="/index.html"></iframe>
+
+<!-- ⭐ 当前动画层 -->
+<div id="universeLayer">
+  <div id="introText">创 始 成 终</div>
+  <div id="lightBurst"></div>
+  <canvas id="c"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let phase = 0;
+let centerX, centerY;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  centerX = canvas.width / 2;
+  centerY = canvas.height / 2;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 鼠标
+let mouseX = centerX;
+let mouseY = centerY;
+window.addEventListener("mousemove", e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+// 星星
+const stars = [];
+const COUNT = 720;
+const UNIVERSE_RADIUS = () => Math.max(canvas.width, canvas.height) * 3.5;
+
+function createStar() {
+  let angle = Math.random() * Math.PI * 2;
+  let radius = Math.random() * UNIVERSE_RADIUS();
+  return {
+    x: centerX + Math.cos(angle) * radius,
+    y: centerY + Math.sin(angle) * radius,
+    vx: 0,
+    vy: 0,
+    size: Math.random() * 12 + 10,
+    alpha: Math.random() * 0.7 + 0.2
+  };
+}
+
+for (let i = 0; i < COUNT; i++) {
+  stars.push(createStar());
+}
+
+// 光控制
+let lightActive = false;
+let lightProgress = 0;
+
+function animate() {
+  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let s of stars) {
+
+    if (phase === 1) {
+      let dx = centerX - s.x;
+      let dy = centerY - s.y;
+      let dist = Math.sqrt(dx*dx + dy*dy) + 0.1;
+      let force = 0.03 / dist;
+
+      s.vx += dx * force;
+      s.vy += dy * force;
+    }
+
+    s.vx += (Math.random() - 0.5) * 0.003;
+    s.vy += (Math.random() - 0.5) * 0.003;
+
+    s.vx *= 0.997;
+    s.vy *= 0.997;
+
+    s.x += s.vx;
+    s.y += s.vy;
+
+    let fade = Math.max(0, 1 - (lightProgress * 1.5));
+    let alpha = s.alpha * fade;
+
+    ctx.fillStyle = "rgba(255,255,255," + alpha + ")";
+    ctx.font = s.size + "px monospace";
+    ctx.fillText("+", s.x, s.y);
+  }
+
+  // 光
+  if (lightActive) {
+    lightProgress += 0.003;
+    if (lightProgress > 1) lightProgress = 1;
+
+    let inner = 0.2 + lightProgress * 0.6;
+    let outer = 0.3 + lightProgress * 0.7;
+
+    const light = document.getElementById("lightBurst");
+
+    light.style.opacity = lightProgress;
+
+    light.style.background =
+      `radial-gradient(circle at center,
+        rgba(255,255,255,${inner}) 0%,
+        rgba(255,255,255,${inner * 0.7}) 20%,
+        rgba(255,255,255,${outer * 0.4}) 50%,
+        rgba(255,255,255,${outer}) 100%)`;
+  }
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+/* ===== 节奏 ===== */
+
+setTimeout(() => { phase = 1; }, 5000);
+
+setTimeout(() => {
+  document.getElementById("introText").style.opacity = 1;
+}, 15000);
+
+setTimeout(() => {
+  lightActive = true;
+}, 19000);
+
+// ⭐ 关键：渐显首页（在光中出现）
+setTimeout(() => {
+  document.getElementById("homeFrame").style.transition = "opacity 4s ease";
+  document.getElementById("homeFrame").style.opacity = 1;
+}, 21000);
+
+// ⭐ 当前宇宙层淡出
+setTimeout(() => {
+  document.getElementById("universeLayer").style.transition = "opacity 3s ease";
+  document.getElementById("universeLayer").style.opacity = 0;
+}, 23000);
+
+</script>
+
+</body>
+</html>
