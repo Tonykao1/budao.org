@@ -442,7 +442,7 @@ h1 {
         0 0 10px rgba(255,255,255,0.3),
         0 0 20px rgba(255,255,255,0.2);
 
-    animation: rainbowFlow 30s linear infinite;
+    animation: rainbowFlow 300s linear infinite;
 }
 @keyframes rainbowFlow {
     0% {
