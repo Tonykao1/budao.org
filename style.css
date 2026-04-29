@@ -237,6 +237,7 @@ h1 {
 /* 难度 */
 .level {
     font-size: 1.8em;
+    transform: translate(-200%, 40%);
 }
 
 /* 说明 */
