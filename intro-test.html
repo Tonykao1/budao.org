@@ -12,15 +12,14 @@ html, body {
   overflow: hidden;
 }
 
-/* 中心文字 */
 #introText {
   position: absolute;
   top: 50%;
   width: 100%;
   text-align: center;
   color: white;
-  font-size: 30px;
-  letter-spacing: 8px;
+  font-size: 32px;
+  letter-spacing: 10px;
   opacity: 0;
   transform: translateY(-50%);
   transition: 4s;
@@ -42,47 +41,56 @@ canvas {
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 
-let phase = 0;
 let centerX, centerY;
+let phase = 0;
 
 // 屏幕适配
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-
   centerX = canvas.width / 2;
   centerY = canvas.height / 2;
 }
 resize();
 window.addEventListener("resize", resize);
 
-// 鼠标（轻微影响）
-let mouseX = centerX;
-let mouseY = centerY;
-
-window.addEventListener("mousemove", e => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
-
-// 星星（+）
+// 星体
 const stars = [];
 const COUNT = 400;
 
+// 从“宇宙外”生成
+function spawnStar() {
+  const angle = Math.random() * Math.PI * 2;
+  const radius = Math.max(canvas.width, canvas.height) * (0.6 + Math.random());
+
+  return {
+    x: centerX + Math.cos(angle) * radius,
+    y: centerY + Math.sin(angle) * radius,
+    vx: 0,
+    vy: 0,
+    size: Math.random() * 10 + 8,
+    alpha: Math.random() * 0.6 + 0.2
+  };
+}
+
 for (let i = 0; i < COUNT; i++) {
-  stars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    vx: (Math.random() - 0.5) * 0.4,
-    vy: (Math.random() - 0.5) * 0.4,
-    size: Math.random() * 12 + 10,
-    alpha: Math.random() * 0.7 + 0.2
-  });
+  stars.push(spawnStar());
 }
 
 // 动画
 function animate() {
-  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  ctx.fillStyle = "rgba(0,0,0,0.15)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 中心光
+  let gradient = ctx.createRadialGradient(
+    centerX, centerY, 0,
+    centerX, centerY, 250
+  );
+  gradient.addColorStop(0, "rgba(255,255,255,0.06)");
+  gradient.addColorStop(1, "rgba(0,0,0,0)");
+
+  ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.textAlign = "center";
@@ -90,44 +98,41 @@ function animate() {
 
   for (let s of stars) {
 
-    // 阶段1：缓慢归向中心（神圣感关键）
     if (phase === 1) {
       let dx = centerX - s.x;
       let dy = centerY - s.y;
 
-      s.vx += dx * 0.00025;
-      s.vy += dy * 0.00025;
+      s.vx += dx * 0.0004;
+      s.vy += dy * 0.0004;
     }
 
-    // 鼠标轻微扰动（非常弱）
-    let dx = mouseX - s.x;
-    let dy = mouseY - s.y;
-    let dist = Math.sqrt(dx*dx + dy*dy);
+    // 极弱随机
+    s.vx += (Math.random() - 0.5) * 0.01;
+    s.vy += (Math.random() - 0.5) * 0.01;
 
-    if (dist < 120) {
-      s.vx += dx * 0.00005;
-      s.vy += dy * 0.00005;
-    }
+    // 阻尼
+    s.vx *= 0.99;
+    s.vy *= 0.99;
 
-    // 极弱随机扰动（避免机械感）
-    s.vx += (Math.random() - 0.5) * 0.008;
-    s.vy += (Math.random() - 0.5) * 0.008;
-
-    // 阻尼（让运动更“沉”）
-    s.vx *= 0.995;
-    s.vy *= 0.995;
-
-    // 更新位置
     s.x += s.vx;
     s.y += s.vy;
 
-    // 边界循环
-    if (s.x < 0) s.x = canvas.width;
-    if (s.x > canvas.width) s.x = 0;
-    if (s.y < 0) s.y = canvas.height;
-    if (s.y > canvas.height) s.y = 0;
+    // ❗关键：不再wrap，改为“消失再生成”
+    let dist = Math.hypot(s.x - centerX, s.y - centerY);
 
-    // 绘制 "+"
+    // 到中心 → 消失重生
+    if (dist < 20 && phase === 1) {
+      Object.assign(s, spawnStar());
+      continue;
+    }
+
+    // 太远 → 重生（避免边界感）
+    if (dist > Math.max(canvas.width, canvas.height) * 1.5) {
+      Object.assign(s, spawnStar());
+      continue;
+    }
+
+    // 绘制
     ctx.fillStyle = "rgba(255,255,255," + s.alpha + ")";
     ctx.font = s.size + "px monospace";
     ctx.fillText("+", s.x, s.y);
@@ -138,29 +143,28 @@ function animate() {
 
 animate();
 
-/* ===== 节奏控制（核心） ===== */
+/* 节奏 */
 
-// 16秒 → 才开始聚集（先让人“进入宇宙”）
+// 6秒后开始归向中心
 setTimeout(() => {
   phase = 1;
 }, 6000);
 
-// 17秒 → 文字慢慢出现
+// 7秒文字显现
 setTimeout(() => {
   document.getElementById("introText").style.opacity = 1;
 }, 7000);
 
-// 20秒 → 慢慢淡出
+// 14秒淡出
 setTimeout(() => {
   document.body.style.transition = "opacity 3s";
   document.body.style.opacity = 0;
 }, 14000);
 
-// 30秒 → 进入主页
+// 17秒跳转
 setTimeout(() => {
-  window.location.href = "/index.html"; // ⚠️ 改成你的主页路径
+  window.location.href = "/index.html";
 }, 17000);
-
 </script>
 
 </body>
