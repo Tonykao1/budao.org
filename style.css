@@ -230,14 +230,14 @@ h1 {
 
 /* 爬升 */
 .climb {
-    font-size: 1.5em;
-    transform: translate(120%, 120%);
+    font-size: 1.6em;
+    transform: translate(160%, 180%);
 }
 
 /* 难度 */
 .level {
-    font-size: 1.8em;
-    transform: translate(-200%, 40%);
+    font-size: 1.9em;
+    transform: translate(-260%, 60%);
 }
 
 /* 说明 */
