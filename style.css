@@ -197,12 +197,6 @@ h1 {
     font-weight: 600;
 }
 
-/* 所有元素默认绝对定位 */
-.info-explode .item {
-    position: absolute;
-    font-weight: 600;
-}
-
 /* 地点（块感） */
 .location {
     font-size: 1.2em;
