@@ -71,7 +71,28 @@
 </div> 
 
  <script>
-function openImage() {
+// ====== 活动配置（以后只改这里） ======
+const eventConfig = {
+  date: "2026-05-09",
+  time: "13:00",
+  duration: 180,
+};
+
+// ====== 时间状态核心 ======
+function getEventState(config) {
+  const now = new Date();
+  const start = new Date(`${config.date}T${config.time}:00`);
+  const end = new Date(start.getTime() + config.duration * 60 * 1000);
+
+  if (now < start) {
+    return { state: "countdown", diff: start - now };
+  } else if (now >= start && now < end) {
+    return { state: "started", diff: end - now };
+  } else {
+    return { state: "ended", diff: 0 };
+  }
+}
+   function openImage() {
     document.getElementById("imageModal").style.display = "flex";
 }
 
