@@ -101,18 +101,8 @@ function closeImage() {
 }
 
 /* 倒计时 */
-const targetTime = new Date("2026-05-02T09:00:00+08:00");
-
-function updateCountdown() {
-    const now = new Date();
-    const diff = targetTime - now;
-
+function renderCountdown(diff) {
     const el = document.getElementById("countdownTimer");
-
-    if (diff <= 0) {
-        el.innerHTML = "已开始";
-        return;
-    }
 
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -121,8 +111,34 @@ function updateCountdown() {
     el.innerHTML = hours + "小时 " + minutes + "分 " + seconds + "秒";
 }
 
-setInterval(updateCountdown, 1000);
-updateCountdown();
+function renderStarted() {
+    const el = document.getElementById("countdownTimer");
+    el.innerHTML = "正在同行";
+}
+
+function renderEnded() {
+    const el = document.getElementById("countdownTimer");
+    el.innerHTML = "已完成此程";
+}
+
+function updateUI() {
+    const { state, diff } = getEventState(eventConfig);
+
+    if (state === "countdown") {
+        renderCountdown(diff);
+    }
+
+    if (state === "started") {
+        renderStarted();
+    }
+
+    if (state === "ended") {
+        renderEnded();
+    }
+}
+
+setInterval(updateUI, 1000);
+updateUI();
 </script>
 </body>
   
