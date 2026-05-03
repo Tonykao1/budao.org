@@ -1,1 +1,166 @@
-text
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>发起一次同行</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  background: #0b0b0b;
+  color: #fff;
+  padding: 40px;
+}
+
+h1 {
+  margin-bottom: 30px;
+}
+
+input, textarea {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #111;
+  border: 1px solid #333;
+  color: #fff;
+}
+
+button {
+  padding: 12px 20px;
+  background: #fff;
+  color: #000;
+  border: none;
+  cursor: pointer;
+}
+
+#output {
+  margin-top: 30px;
+  white-space: pre-wrap;
+  background: #000;
+  padding: 20px;
+  border: 1px solid #333;
+}
+</style>
+</head>
+
+<body>
+
+<h1>发起一次同行</h1>
+
+<input id="title" placeholder="步道名称">
+<input id="date" type="date">
+<input id="time" type="time">
+<input id="location" placeholder="集合地点">
+<input id="duration" placeholder="时长（分钟，例如180）">
+<input id="level" placeholder="难度">
+<textarea id="desc" placeholder="一句话说明"></textarea>
+<input id="map" placeholder="导航链接（Google / 高德）">
+<input id="image" placeholder="图片URL（例如 images/xxx.jpg）">
+
+<button onclick="generate()">生成页面代码</button>
+
+<pre id="output"></pre>
+
+<script>
+function generate() {
+
+  const title = document.getElementById("title").value;
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+  const location = document.getElementById("location").value;
+  const duration = document.getElementById("duration").value;
+  const level = document.getElementById("level").value;
+  const desc = document.getElementById("desc").value;
+  const map = document.getElementById("map").value;
+  const image = document.getElementById("image").value;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main>
+
+<h1>${title}</h1>
+
+<div>${date}</div>
+
+<div id="countdownTimer"></div>
+
+<div>${location}</div>
+<div>${time}集合</div>
+<div>${duration}分钟</div>
+<div>${level}</div>
+<div>${desc}</div>
+
+<a href="${map}" target="_blank">📍 进入起点</a>
+
+<img src="${image}" style="width:100%;margin-top:20px;">
+
+</main>
+
+<script>
+const eventConfig = {
+  date: "${date}",
+  time: "${time}",
+  duration: ${duration},
+};
+
+function getEventState(config) {
+  const now = new Date();
+  const start = new Date(\`\${config.date}T\${config.time}:00\`);
+  const end = new Date(start.getTime() + config.duration * 60 * 1000);
+
+  if (now < start) {
+    return { state: "countdown", diff: start - now };
+  } else if (now < end) {
+    return { state: "started", diff: end - now };
+  } else {
+    return { state: "ended", diff: 0 };
+  }
+}
+
+function render(diff, state) {
+  const el = document.getElementById("countdownTimer");
+
+  if (state === "countdown") {
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.innerHTML = h + "小时 " + m + "分 " + s + "秒";
+  }
+
+  if (state === "started") {
+    el.innerHTML = "正在同行";
+  }
+
+  if (state === "ended") {
+    el.innerHTML = "已完成此程";
+  }
+}
+
+function update() {
+  const { state, diff } = getEventState(eventConfig);
+  render(diff, state);
+}
+
+setInterval(update, 1000);
+update();
+</script>
+
+</body>
+</html>
+`;
+
+  document.getElementById("output").textContent = html;
+}
+</script>
+
+</body>
+</html>
