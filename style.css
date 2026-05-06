@@ -451,4 +451,21 @@ h1 {
     100% {
         background-position: 300% 50%;
     }
+}.campfire-link{
+    display:block;
+    text-align:center;
+    margin:100px auto 30px auto;
+
+    color:#777;
+    text-decoration:none;
+
+    letter-spacing:4px;
+    font-size:12px;
+
+    transition:0.4s;
+}
+
+.campfire-link:hover{
+    color:#111;
+    letter-spacing:6px;
 }
