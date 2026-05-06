@@ -1,0 +1,96 @@
+export default function YingHuoZhiDi() {
+  const messages = [
+    "一路上都悬念不断。",
+    "如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！",
+    "还有整体节奏，何时走动何时休息都计划得很精准啊。",
+    "恩典多多，收获满满。",
+    "今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！",
+    "7—88岁的徒步团太壮观了！",
+    "今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。",
+    "很巧妙的设计。",
+    "一个老少咸宜，充满喜乐的身心灵快乐之旅！",
+    "有幸参加了这次活动，都是意外的惊喜。",
+    "感谢弟兄们搭建的信心之道。",
+    "经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。",
+    "可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！",
+    "认识和不认识人的都在认真听故事。",
+    "感恩遇见。",
+    "用心带领，详尽的总结复盘，感恩。",
+    "感恩祂。",
+    "很棒的经历。",
+    "今天的安排，很舒适又得着。",
+    "感恩弟兄姐妹们彼此敞开的分享和陪伴！",
+    "很棒的体验，很有趣的经历。",
+    "当天去时候怕迟到，超速百分之十被罚。",
+    "强度一点都不大，感觉还没缓过来。",
+    "113层，2034个台阶，300米。"
+  ];
+
+  return (
+    <div className="min-h-screen bg-black text-stone-100 overflow-hidden relative">
+      {/* 背景光晕 */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,180,80,0.08),transparent_45%)]" />
+
+      {/* 星点 */}
+      <div className="absolute inset-0 opacity-30">
+        {[...Array(40)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-[2px] h-[2px] bg-white rounded-full animate-pulse"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDuration: `${3 + Math.random() * 5}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 max-w-3xl mx-auto px-8 py-24">
+        {/* 标题区域 */}
+        <div className="text-center mb-32">
+          <div className="text-sm tracking-[0.35em] text-stone-500 mb-6 uppercase">
+            Budao
+          </div>
+
+          <h1 className="text-5xl md:text-7xl font-light tracking-[0.08em] mb-8">
+            营火之地
+          </h1>
+
+          <p className="text-stone-400 text-lg md:text-xl leading-loose max-w-xl mx-auto font-light">
+            有些话，
+            <br />
+            只有走过的人才会说出来。
+          </p>
+        </div>
+
+        {/* 留言流 */}
+        <div className="space-y-32">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`opacity-90 ${
+                index % 2 === 0 ? "text-left" : "text-right"
+              }`}
+            >
+              <div
+                className={`inline-block max-w-2xl text-2xl md:text-3xl leading-relaxed font-light text-stone-200`}
+              >
+                “{message}”
+              </div>
+
+              <div className="mt-6 text-sm tracking-[0.25em] text-stone-600 uppercase">
+                一次同行之后
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 页面尾部 */}
+        <div className="text-center pt-40 pb-20 text-stone-600 text-sm tracking-[0.25em]">
+          THE FIRE IS STILL BURNING
+        </div>
+      </div>
+    </div>
+  );
+}
