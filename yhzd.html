@@ -168,56 +168,14 @@ body{
             只有走过的人才会说出来。
         </p>
     </div>
+<div id="messages-container"></div>
 
-    <div class="message">
-        “一路上都悬念不断。”
-        <small>一次同行之后</small>
-    </div>
 
-    <div class="message">
-        “如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！”
-        <small>一次同行之后</small>
-    </div>
 
-    <div class="message">
-        “7—88岁的徒步团太壮观了！”
-        <small>一次同行之后</small>
-    </div>
-
-    <div class="message">
-        “经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。”
-        <small>一次同行之后</small>
-    </div>
-
-    <div class="message">
-        “认识和不认识人的都在认真听故事。”
-        <small>一次同行之后</small>
-    </div>
-
-    <div class="message">
-        “可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！”
-        <small>一次同行之后</small>
-    </div>
-
-    <div class="message">
-        “感恩弟兄姐妹们彼此敞开的分享和陪伴！”
-        <small>一次同行之后</small>
-    </div>
-
-    <div class="message">
-        “当天去时候怕迟到，超速百分之十被罚。”
-        <small>一次同行之后</small>
-    </div>
-
-    <div class="footer">
-        THE FIRE IS STILL BURNING
-    </div>
-
-</div>
 
 <script>
 
-/* 生成星点 */
+/* 星点 */
 
 const stars = document.querySelector('.stars');
 
@@ -235,6 +193,94 @@ for(let i=0;i<80;i++){
 
     stars.appendChild(star);
 }
+
+
+/* 留言库 */
+
+const allMessages = [
+
+"一路上都悬念不断。",
+
+"如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！",
+
+"还有整体节奏，何时走动何时休息都计划得很精准啊。",
+
+"恩典多多，收获满满。",
+
+"今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！",
+
+"7—88岁的徒步团太壮观了！",
+
+"今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。",
+
+"很巧妙的设计。",
+
+"一个老少咸宜，充满喜乐的身心灵快乐之旅！",
+
+"有幸参加了这次活动，都是意外的惊喜。",
+
+"感谢弟兄们搭建的信心之道。",
+
+"经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。",
+
+"可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！",
+
+"认识和不认识人的都在认真听故事。",
+
+"感恩遇见。",
+
+"用心带领，详尽的总结复盘，感恩。",
+
+"感恩祂。",
+
+"很棒的经历。",
+
+"今天的安排，很舒适又得着。",
+
+"感恩弟兄姐妹们彼此敞开的分享和陪伴！",
+
+"很棒的体验，很有趣的经历。",
+
+"当天去时候怕迟到，超速百分之十被罚。",
+
+"强度一点都不大，感觉还没缓过来。",
+
+"113层，2034个台阶，300米。"
+
+];
+
+
+/* 随机排序 */
+
+const shuffled = allMessages.sort(() => 0.5 - Math.random());
+
+/* 每次显示8条 */
+
+const selected = shuffled.slice(0, 8);
+
+const container =
+document.getElementById('messages-container');
+
+
+selected.forEach((msg, index) => {
+
+    const div = document.createElement('div');
+
+    div.className = 'message';
+
+    if(index % 2 === 1){
+        div.style.marginLeft = 'auto';
+        div.style.textAlign = 'right';
+    }
+
+    div.innerHTML = `
+        “${msg}”
+        <small>一次同行之后</small>
+    `;
+
+    container.appendChild(div);
+
+});
 
 </script>
 
