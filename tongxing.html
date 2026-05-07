@@ -1,76 +1,206 @@
-<!DOCTYPE html>
+当然可以。
+我已经帮你：
 
+* 删除重复 script
+* 修复音频按钮
+* 修复多余引号
+* 整理结构
+* 保持你现在的网站气质
+* 保留后续可扩展性
+
+你现在可以：
+
+# 直接整体替换 tongxing.html
+
+下面就是完整可用版。
+
+```html
+<!DOCTYPE html>
 <html lang="zh">
+
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>童行 - 步道</title>
+
 <link rel="stylesheet" href="style.css">
 
 <style>
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 40px 20px;
-    text-align: center;
+
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:60px 20px 120px 20px;
+    text-align:center;
 }
 
-.card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 40px;
+.container h1{
+    font-size:42px;
+    font-weight:300;
+    margin-bottom:20px;
 }
 
-.card img {
-    width: 200px;
-    border-radius: 8px;
+.container p{
+    color:#666;
+    line-height:1.8;
 }
 
-.buttons button {
-    margin: 10px;
-    padding: 8px 16px;
-    background: black;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.card{
+    border:1px solid #e5e5e5;
+    border-radius:16px;
+
+    padding:30px;
+    margin-top:50px;
+
+    transition:0.4s;
+    background:white;
+}
+
+.card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+}
+
+.card img{
+    width:220px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+.card h3{
+    margin-bottom:12px;
+    font-weight:500;
+}
+
+.card p{
+    margin-bottom:20px;
+    color:#777;
+}
+
+.buttons{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:12px;
+}
+
+.buttons button{
+
+    padding:10px 18px;
+
+    background:black;
+    color:white;
+
+    border:none;
+    border-radius:999px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+.buttons button:hover{
+    opacity:0.85;
 }
 
 /* 弹窗 */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.8);
+
+.modal{
+    display:none;
+
+    position:fixed;
+    z-index:999;
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,0.82);
 }
 
-.modal-content {
-    position: relative;
-    margin: 5% auto;
-    width: 80%;
-    height: 80%;
-    background: #fff;
+.modal-content{
+
+    position:relative;
+
+    margin:4% auto;
+
+    width:90%;
+    max-width:1100px;
+
+    height:85%;
+
+    background:white;
+    border-radius:12px;
+
+    overflow:hidden;
 }
 
-.modal iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
+.modal iframe{
+    width:100%;
+    height:100%;
+    border:none;
 }
 
-.close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 28px;
-    cursor: pointer;
+.close{
+
+    position:absolute;
+
+    right:18px;
+    top:10px;
+
+    font-size:30px;
+    color:#333;
+
+    cursor:pointer;
+    z-index:2;
 }
+
+/* 底部营火入口 */
+
+.campfire-link{
+    display:block;
+
+    text-align:center;
+
+    margin:120px auto 30px auto;
+
+    color:#888;
+
+    text-decoration:none;
+
+    letter-spacing:4px;
+    font-size:12px;
+
+    transition:0.4s;
+}
+
+.campfire-link:hover{
+    color:#111;
+    letter-spacing:6px;
+}
+
+/* 手机 */
+
+@media(max-width:768px){
+
+    .container h1{
+        font-size:34px;
+    }
+
+    .card{
+        padding:24px;
+    }
+
+    .card img{
+        width:180px;
+    }
+
+}
+
 </style>
-
 </head>
 
 <body>
@@ -84,73 +214,166 @@
 </nav>
 
 <div class="container">
+
 <h1>童行</h1>
-<p>与孩子同行，在阅读中遇见光。</p>
 
-<!-- 卡片1 -->
+<p>
+与孩子同行，<br>
+在阅读中遇见光。
+</p>
+
+<!-- 第1本 -->
 
 <div class="card">
+
 <img src="images/dkd.jpg">
+
 <h3>第1周 · 《大蝌蚪》</h3>
-<p>“...,若不像小孩子，断不能进去。”</p>
+
+<p>
+“...,若不像小孩子，断不能进去。”
+</p>
 
 <div class="buttons">
-<button onclick="openModal('https://online.fliphtml5.com/qkttd/ksju/')">阅读</button>
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=577359839&bvid=BV1jB4y1o7Qr&cid=1302435791&p=1')">视频</button>
-<button class="audio-btn" onclick="toggleAudio('audioPlayer1', this)"">▶ 播放音频</button>
+
+<button onclick="openModal('https://online.fliphtml5.com/qkttd/ksju/')">
+阅读
+</button>
+
+<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=577359839&bvid=BV1jB4y1o7Qr&cid=1302435791&p=1')">
+视频
+</button>
+
+<button class="audio-btn"
+onclick="toggleAudio('audioPlayer1', this)">
+▶ 播放音频
+</button>
+
 </div>
-    <audio id="audioPlayer1">
-    <source src="audio/dkd.mp3" type="audio/mpeg">
+
+<audio id="audioPlayer1">
+<source src="audio/dkd.mp3" type="audio/mpeg">
 </audio>
+
 </div>
+
+<!-- 第2本 -->
+
 <div class="card">
-<img src="images/Hat.jpg">
+
+<img src="images/hat.jpg">
+
 <h3>第2周 · 《我要把我的帽子找回来》</h3>
-<p>“...并且人要奉他的名传悔改、赦罪的道...”</p>
+
+<p>
+“...并且人要奉他的名传悔改、赦罪的道...”
+</p>
 
 <div class="buttons">
-<button onclick="openModal('https://online.fliphtml5.com/rgbxu/zttc/')">阅读</button>
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=763276890&bvid=BV1164y1876i&cid=417036765&p=1')">视频</button>
-<button class="audio-btn" onclick="toggleAudio('audioPlayer2', this)"">▶ 播放音频</button>
+
+<button onclick="openModal('https://online.fliphtml5.com/rgbxu/zttc/')">
+阅读
+</button>
+
+<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=763276890&bvid=BV1164y1876i&cid=417036765&p=1')">
+视频
+</button>
+
+<button class="audio-btn"
+onclick="toggleAudio('audioPlayer2', this)">
+▶ 播放音频
+</button>
+
 </div>
-    <audio id="audioPlayer2">
-    <source src="audio/hat.mp3" type="audio/mpeg">
+
+<audio id="audioPlayer2">
+<source src="audio/hat.mp3" type="audio/mpeg">
 </audio>
+
 </div>
+
+<!-- 第3本（预留模板） -->
+
+<!--
+<div class="card">
+
+<img src="images/yicunchong.jpg">
+
+<h3>第3周 · 《一寸虫》</h3>
+
+<p>
+“我虽微小，却不被忘记。”
+</p>
+
+<div class="buttons">
+
+<button onclick="openModal('阅读链接')">
+阅读
+</button>
+
+<button onclick="openModal('视频链接')">
+视频
+</button>
+
+<button class="audio-btn"
+onclick="toggleAudio('audioPlayer3', this)">
+▶ 播放音频
+</button>
+
 </div>
+
+<audio id="audioPlayer3">
+<source src="audio/yicunchong.mp3" type="audio/mpeg">
+</audio>
+
+</div>
+-->
+
+</div>
+
+<!-- 营火之地 -->
+
+<a class="campfire-link" href="yhzd.html">
+✦ 营火之地
+</a>
 
 <!-- 弹窗 -->
 
 <div id="modal" class="modal">
+
 <div class="modal-content">
-<span class="close" onclick="closeModal()">&times;</span>
+
+<span class="close" onclick="closeModal()">
+&times;
+</span>
+
 <iframe id="modalFrame"></iframe>
+
 </div>
 </div>
 
 <script>
-function openModal(url) {
+
+/* 打开弹窗 */
+
+function openModal(url){
+
     document.getElementById("modal").style.display = "block";
+
     document.getElementById("modalFrame").src = url;
 }
 
-function closeModal() {
+/* 关闭弹窗 */
+
+function closeModal(){
+
     document.getElementById("modal").style.display = "none";
+
     document.getElementById("modalFrame").src = "";
-}
-</script>
-<script>
-function openModal(url) {
-    document.getElementById("modal").style.display = "block";
-    document.getElementById("modalFrame").src = url;
 }
 
-function closeModal() {
-    document.getElementById("modal").style.display = "none";
-    document.getElementById("modalFrame").src = "";
-}
-</script>
-  <script>
+/* 音频 */
+
 function toggleAudio(audioId, button){
 
     var audio = document.getElementById(audioId);
@@ -168,14 +391,19 @@ function toggleAudio(audioId, button){
         });
 
         audio.play();
+
         button.innerText = "⏸ 暂停音频";
 
     }else{
 
         audio.pause();
+
         button.innerText = "▶ 播放音频";
     }
 }
+
 </script>
+
 </body>
 </html>
+```
