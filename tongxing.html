@@ -97,9 +97,9 @@
 <div class="buttons">
 <button onclick="openModal('https://online.fliphtml5.com/qkttd/ksju/')">阅读</button>
 <button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=577359839&bvid=BV1jB4y1o7Qr&cid=1302435791&p=1')">视频</button>
-<button class="audio-btn" onclick="toggleAudio()">▶ 播放音频</button>
+<button class="audio-btn" onclick="toggleAudio('audioPlayer1', this)"">▶ 播放音频</button>
 </div>
-    <audio id="audioPlayer">
+    <audio id="audioPlayer1">
     <source src="audio/dkd.mp3" type="audio/mpeg">
 </audio>
 </div>
@@ -111,9 +111,9 @@
 <div class="buttons">
 <button onclick="openModal('https://online.fliphtml5.com/rgbxu/zttc/')">阅读</button>
 <button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=763276890&bvid=BV1164y1876i&cid=417036765&p=1')">视频</button>
-<button class="audio-btn" onclick="toggleAudio()">▶ 播放音频</button>
+<button class="audio-btn" onclick="toggleAudio('audioPlayer2', this)"">▶ 播放音频</button>
 </div>
-    <audio id="audioPlayer">
+    <audio id="audioPlayer2">
     <source src="audio/hat.mp3" type="audio/mpeg">
 </audio>
 </div>
@@ -150,16 +150,30 @@ function closeModal() {
     document.getElementById("modalFrame").src = "";
 }
 </script>
-    <script>
-function toggleAudio() {
-    var audio = document.getElementById("audioPlayer");
-var btn = document.querySelector(".audio-btn");
-    if (audio.paused) {
+  <script>
+function toggleAudio(audioId, button){
+
+    var audio = document.getElementById(audioId);
+
+    if(audio.paused){
+
+        // 暂停其他音频
+        document.querySelectorAll("audio").forEach(a => {
+            a.pause();
+        });
+
+        // 重置所有按钮
+        document.querySelectorAll(".audio-btn").forEach(btn => {
+            btn.innerText = "▶ 播放音频";
+        });
+
         audio.play();
-        btn.innerText = "⏸ 暂停音频";
-    } else {
+        button.innerText = "⏸ 暂停音频";
+
+    }else{
+
         audio.pause();
-        btn.innerText = "▶ 播放音频";
+        button.innerText = "▶ 播放音频";
     }
 }
 </script>
