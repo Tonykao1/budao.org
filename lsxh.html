@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>路上星火 - 步道</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:#f8f6f2;
+    color:#1d1d1d;
+    font-family:"PingFang SC","Helvetica Neue",sans-serif;
+}
+
+.container{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+    padding:80px 20px 140px 20px;
+}
+
+.hero{
+    text-align:center;
+    margin-bottom:120px;
+}
+
+.hero small{
+    letter-spacing:8px;
+    color:#999;
+    font-size:12px;
+}
+
+.hero h1{
+    font-size:64px;
+    font-weight:200;
+    margin-top:24px;
+    margin-bottom:32px;
+}
+
+.hero p{
+    max-width:760px;
+    margin:auto;
+    line-height:2;
+    color:#666;
+    font-size:18px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:40px;
+}
+
+.card{
+    background:white;
+    border-radius:24px;
+    overflow:hidden;
+    transition:0.4s;
+
+    box-shadow:
+    0 10px 40px rgba(0,0,0,0.04);
+}
+
+.card:hover{
+    transform:translateY(-6px);
+    box-shadow:
+    0 18px 60px rgba(0,0,0,0.08);
+}
+
+.card img{
+    width:100%;
+    height:260px;
+    object-fit:cover;
+    display:block;
+}
+
+.card-content{
+    padding:32px;
+}
+
+.card-location{
+    font-size:12px;
+    letter-spacing:4px;
+    color:#999;
+    margin-bottom:18px;
+}
+
+.card h2{
+    margin:0 0 18px 0;
+    font-weight:400;
+    font-size:30px;
+}
+
+.card p{
+    line-height:2;
+    color:#666;
+    margin-bottom:28px;
+}
+
+.card a{
+    text-decoration:none;
+    color:#111;
+    letter-spacing:2px;
+    font-size:13px;
+    transition:0.3s;
+}
+
+.card a:hover{
+    letter-spacing:4px;
+}
+
+.footer-note{
+    text-align:center;
+    margin-top:140px;
+    color:#999;
+    line-height:2;
+    font-size:14px;
+}
+
+.campfire-link{
+    display:block;
+    text-align:center;
+    margin:120px auto 0 auto;
+
+    color:#888;
+    text-decoration:none;
+
+    letter-spacing:4px;
+    font-size:12px;
+
+    transition:0.4s;
+}
+
+.campfire-link:hover{
+    color:#111;
+    letter-spacing:6px;
+}
+
+@media(max-width:768px){
+
+    .hero h1{
+        font-size:42px;
+    }
+
+    .hero p{
+        font-size:16px;
+    }
+
+    .card h2{
+        font-size:24px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<nav>
+<a href="/home.html">首页</a>
+<a href="/about.html">超级星期六</a>
+<a href="/tongxing.html">童行</a>
+<a href="/what.html">全球同工</a>
+<a href="/contact.html">联系</a>
+</nav>
+
+<div class="container">
+
+    <div class="hero">
+
+        <small>SPARKS ON THE ROAD</small>
+
+        <h1>路上星火</h1>
+
+        <p>
+            在世界不同角落，
+            仍有人默默用爱同行。<br>
+            他们正在陪伴孩子、照顾老人、
+            为陌生人预备热饭，
+            也在黑夜里继续点灯。
+        </p>
+
+    </div>
+
+    <div class="grid">
+
+        <!-- 卡片 1 -->
+
+        <div class="card">
+
+            <img src="images/angel-home.jpg" alt="天使之家">
+
+            <div class="card-content">
+
+                <div class="card-location">
+                    CHANGCHUN
+                </div>
+
+                <h2>天使之家</h2>
+
+                <p>
+                    有人持续陪伴自闭症儿童，
+                    也开始为更多家庭预备热饭。
+                    一间小食堂，
+                    正在让一些疲惫的人重新感受到被接纳。
+                </p>
+
+                <a href="mailto:hello@budao.org">
+                    与他们同行 →
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- 卡片 2 -->
+
+        <div class="card">
+
+            <img src="images/dalian-elder.jpg" alt="大连养老院">
+
+            <div class="card-content">
+
+                <div class="card-location">
+                    DALIAN
+                </div>
+
+                <h2>山海之间</h2>
+
+                <p>
+                    有人正在尝试，
+                    让农村老人不孤单地老去。
+                    他们陪伴、探访、做饭、聊天，
+                    也一起慢慢走过黄昏。
+                </p>
+
+                <a href="mailto:hello@budao.org">
+                    想了解更多 →
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer-note">
+        世界仍有微光。<br>
+        而有人，仍在路上。
+    </div>
+
+    <a class="campfire-link" href="yhzd.html">
+        ✦ 营火之地
+    </a>
+
+</div>
+
+</body>
+</html>
