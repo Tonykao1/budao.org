@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>路上星火 - 步道</title>
+
 <link rel="stylesheet" href="style.css">
 
 <style>
@@ -16,148 +19,272 @@ body{
     margin:0;
     background:#f5f2eb;
     color:#171717;
-    font-family:"PingFang SC","Helvetica Neue",sans-serif;
+
+    font-family:
+    "PingFang SC",
+    "Helvetica Neue",
+    sans-serif;
 }
+
+/* 页面主体 */
 
 .container{
+
     width:92%;
     max-width:1200px;
+
     margin:auto;
-    padding:120px 20px 180px 20px;
+
+    padding:80px 20px 180px 20px;
 }
 
+/* 顶部 */
+
+.hero{
+
+    text-align:center;
+
+    margin-bottom:90px;
+}
+
+.hero small{
+
+    font-size:11px;
+
+    letter-spacing:6px;
+
+    color:#9d968b;
+}
+
+.hero h1{
+
+    font-size:56px;
+
+    font-weight:200;
+
+    margin-top:24px;
+    margin-bottom:30px;
+
+    letter-spacing:0.08em;
+}
+
+.hero p{
+
+    max-width:720px;
+
+    margin:auto;
+
+    line-height:2.2;
+
+    color:#5f5b55;
+
+    font-size:17px;
+
+    font-weight:300;
+}
+
+/* 卡片区域 */
 
 .grid{
+
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
-    gap:46px;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(360px,1fr));
+
+    gap:36px;
+
+    align-items:start;
 }
 
+/* 卡片 */
+
 .card{
+
     background:white;
 
-    border-radius:30px;
+    border-radius:28px;
 
     overflow:hidden;
 
-    transition:0.45s;
+    transition:0.4s;
+
+    max-width:460px;
+
+    margin:auto;
 
     box-shadow:
     0 12px 40px rgba(0,0,0,0.04);
 }
 
 .card:hover{
-    transform:translateY(-6px);
+
+    transform:translateY(-5px);
 
     box-shadow:
-    0 25px 70px rgba(0,0,0,0.08);
+    0 24px 70px rgba(0,0,0,0.08);
 }
+
+/* 小图 */
 
 .card img{
-    display:none;
+
+    width:100%;
+
+    height:160px;
+
+    object-fit:cover;
+
+    display:block;
+
+    border-bottom:
+    1px solid #f0ece6;
 }
 
+/* 卡片内容 */
+
 .card-content{
-    padding:42px;
+
+    padding:34px;
 }
 
 .card-location{
+
     font-size:11px;
-    letter-spacing:5px;
+
+    letter-spacing:4px;
+
     color:#a49b90;
 
-    margin-bottom:22px;
+    margin-bottom:18px;
 }
 
 .card h2{
-    margin:0 0 26px 0;
 
-    font-size:38px;
+    margin:0 0 22px 0;
+
+    font-size:30px;
+
     font-weight:300;
 
     color:#171717;
 }
 
 .card p{
-    line-height:2.2;
+
+    line-height:2.1;
+
     color:#5f5b55;
 
-    margin-bottom:40px;
+    margin-bottom:34px;
 
-    font-size:16px;
+    font-size:15px;
+
     font-weight:300;
 }
 
 .card a{
+
     text-decoration:none;
 
     color:#171717;
 
     font-size:12px;
+
     letter-spacing:2px;
 
-    transition:0.35s;
+    transition:0.3s;
 }
 
 .card a:hover{
+
     letter-spacing:5px;
 }
 
+/* 页脚 */
+
 .footer-note{
+
     text-align:center;
 
-    margin-top:170px;
+    margin-top:140px;
 
     color:#8d8579;
 
-    line-height:2.4;
+    line-height:2.3;
+
     font-size:14px;
 
     font-weight:300;
 }
 
+/* 营火入口 */
+
 .campfire-link{
+
     display:block;
 
     text-align:center;
 
-    margin:140px auto 0 auto;
+    margin:120px auto 0 auto;
 
     color:#8d8579;
 
     text-decoration:none;
 
     letter-spacing:5px;
+
     font-size:12px;
 
-    transition:0.4s;
+    transition:0.35s;
 }
 
 .campfire-link:hover{
+
     color:#171717;
+
     letter-spacing:7px;
 }
+
+/* 手机 */
 
 @media(max-width:900px){
 
     .container{
-        padding-top:90px;
+        padding-top:60px;
+    }
+
+    .hero{
+        margin-bottom:70px;
+    }
+
+    .hero h1{
+        font-size:42px;
+    }
+
+    .hero p{
+        font-size:15px;
+        line-height:2;
     }
 
     .grid{
         grid-template-columns:1fr;
     }
 
+    .card{
+        max-width:100%;
+    }
+
     .card img{
-        height:260px;
+        height:150px;
     }
 
     .card-content{
-        padding:30px;
+        padding:28px;
     }
 
     .card h2{
-        font-size:30px;
+        font-size:26px;
     }
 
 }
@@ -177,6 +304,8 @@ body{
 
 <div class="container">
 
+    <!-- 顶部 -->
+
     <div class="hero">
 
         <small>SPARKS ON THE ROAD</small>
@@ -193,9 +322,11 @@ body{
 
     </div>
 
+    <!-- 卡片区域 -->
+
     <div class="grid">
 
-        <!-- 卡片 1 -->
+        <!-- 卡片1 -->
 
         <div class="card">
 
@@ -204,16 +335,19 @@ body{
             <div class="card-content">
 
                 <div class="card-location">
-                    长春·自闭症康复融合
+                    长春 · 自闭症康复融合
                 </div>
 
-                <h2>天使之家 小食堂</h2>
+                <h2>
+                    天使之家 小食堂
+                </h2>
 
                 <p>
-                    他们，始终搀拉陪伴
+                    他们，始终搀拉陪伴，
                     凭着爱心帮助来自“星星”的孩子们。
                     一间小食堂，
-                    每一口饭菜，都能品出人间的温暖。
+                    每一口饭菜，
+                    都能品出人间的温暖。
                 </p>
 
                 <a href="mailto:hello@budao.org">
@@ -224,7 +358,7 @@ body{
 
         </div>
 
-        <!-- 卡片 2 -->
+        <!-- 卡片2 -->
 
         <div class="card">
 
@@ -233,15 +367,18 @@ body{
             <div class="card-content">
 
                 <div class="card-location">
-                    大连·家庭式养老院
+                    大连 · 家庭式养老院
                 </div>
 
-                <h2>安然期颐养老服务中心</h2>
+                <h2>
+                    安然期颐养老服务中心
+                </h2>
 
                 <p>
                     他们正在以步行道，
                     让农村老人不再孤单地老去。
-                    从第一个人开始，直到如今，最多时二十多人，
+                    从第一个人开始，
+                    直到如今最多时二十多人，
                     穷尽所有，
                     只因祂有数算不尽的恩典与祝福。
                 </p>
@@ -256,10 +393,16 @@ body{
 
     </div>
 
+    <!-- 页脚 -->
+
     <div class="footer-note">
+
         世界仍有微光。<br>
         而有人，仍在路上。
+
     </div>
+
+    <!-- 营火入口 -->
 
     <a class="campfire-link" href="yhzd.html">
         ✦ 营火之地
