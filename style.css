@@ -617,4 +617,35 @@ h1 {
     margin:
     20px auto 60px auto !important;
 }
+.top-spark-link{
 
+    display:block;
+
+    text-align:center;
+
+    margin:0 auto 70px auto;
+
+    color:#666 !important;
+
+    text-decoration:none;
+
+    letter-spacing:5px;
+
+    font-size:16px;
+
+    font-weight:300;
+
+    opacity:0.7;
+
+    animation:
+    sparkBreath 3.5s ease-in-out infinite;
+
+    transition:0.4s;
+}
+
+.top-spark-link:hover{
+
+    color:#888 !important;
+
+    letter-spacing:7px;
+}
