@@ -533,7 +533,7 @@ h1 {
 
 .overlay-text{
 
-    color:white;
+    color:white !important;
 
     text-align:center;
 
