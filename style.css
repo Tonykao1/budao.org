@@ -600,7 +600,7 @@ h1 {
 
 .overlay-text{
 
-    color:#171717;
+    color:white;
 
     text-align:center;
 
@@ -609,5 +609,6 @@ h1 {
     font-size:14px;
     font-weight:400;
     font-weight:300;
-
+text-shadow:
+0 2px 10px rgba(0,0,0,0.4);
 }
