@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh">
 
@@ -125,7 +126,14 @@ body{
     0 24px 70px rgba(0,0,0,0.08);
 }
 
-/* 小图 */
+/* 图片 */
+
+.image-wrapper{
+
+    position:relative;
+
+    overflow:hidden;
+}
 
 .card img{
 
@@ -139,6 +147,62 @@ body{
 
     border-bottom:
     1px solid #f0ece6;
+}
+
+/* 磨砂层 */
+
+.card-overlay{
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100%;
+
+    background:
+    rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(6px);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+    overflow-y:auto;
+
+    opacity:0;
+
+    transition:0.45s;
+
+    padding:24px;
+
+    padding-top:24px;
+}
+
+/* 只有 hover 图片才出现 */
+
+.image-wrapper:hover .card-overlay{
+
+    opacity:1;
+}
+
+/* overlay文字 */
+
+.overlay-text{
+
+    color:#171717;
+
+    text-align:center;
+
+    line-height:2;
+
+    font-size:14px;
+
+    font-weight:400;
 }
 
 /* 卡片内容 */
@@ -254,15 +318,15 @@ body{
         padding-top:60px;
     }
 
-    .hero{
+    .lsxh-hero{
         margin-bottom:70px;
     }
 
-    .hero h1{
+    .lsxh-hero h1{
         font-size:42px;
     }
 
-    .hero p{
+    .lsxh-hero p{
         font-size:15px;
         line-height:2;
     }
@@ -328,28 +392,28 @@ body{
 
         <!-- 卡片1 -->
 
-      <div class="card clickable-card">
+        <div class="card">
 
             <div class="image-wrapper">
 
-    <img src="images/angel-home.jpg" alt="天使之家">
+                <img
+                src="images/angel-home.jpg"
+                alt="天使之家">
 
-    <div class="card-overlay">
+                <div class="card-overlay">
 
-        <div class="overlay-text">
+                    <div class="overlay-text">
 
-            “很多时候，
-            我们不是在改变孩子，
-            而是在学习，
-            如何真正接纳一个生命。”
+                        “很多时候，
+                        我们不是在改变孩子，
+                        而是在学习，
+                        如何真正接纳一个生命。”
 
-        </div>
+                    </div>
 
-    </div>
+                </div>
 
-</div>
-       
-</div>
+            </div>
 
             <div class="card-content">
 
@@ -379,30 +443,40 @@ body{
 
         <!-- 卡片2 -->
 
-        <div class="card clickable-card">
+        <div class="card">
 
-            <img src="images/dalian-elder.jpg" alt="安然期颐养老服务中心">
-            <div class="card-overlay">
+            <div class="image-wrapper">
 
-    <div class="overlay-text">
+                <img
+                src="images/dalian-elder.jpg"
+                alt="安然期颐养老服务中心">
 
-        “我们听从神的呼召建立教会，
-        传福音的时候就了解到村里的一位老人没有儿女，
-        我们就把他接到家中免费照顾，
-        因为箴言书说：怜悯贫穷的，就是借给耶和华，他的善行，耶和华必偿还。【箴19:17】
-        这句话成为神给我们的话语和带领，从此我们就开始做家庭式养老院接收信主老人，
-        受限于位置和手续问题，始终没有太大发展，
-        神就感动我们找房子，将近有一年左右，
-        最后在普兰店找到现在的房子。
-        虽然那时身上只有2000元，但是神一步步带领，我们也信靠神的话语，
-        祂如此带领也必为我们供应。
-        从第一个人开始，直到如今，最多时达到20多人，
-        我们不断经历神的恩典，看似走到尽头，但神总会开一条出路。
-        感谢神，因他有说不尽的恩典。”
+                <div class="card-overlay">
 
-    </div>
+                    <div class="overlay-text">
 
-</div>
+                        “我们听从神的呼召建立教会，
+                        传福音的时候就了解到村里的一位老人没有儿女，
+                        我们就把他接到家中免费照顾。
+
+                        因为箴言书说：
+                        怜悯贫穷的，
+                        就是借给耶和华，
+                        他的善行，
+                        耶和华必偿还。
+
+                        这句话成为神给我们的话语和带领，
+                        从此我们开始做家庭式养老院，
+                        接收信主老人。
+
+                        神一步步带领，
+                        我们也不断经历祂的恩典。”
+
+                    </div>
+
+                </div>
+
+            </div>
 
             <div class="card-content">
 
@@ -452,3 +526,4 @@ body{
 
 </body>
 </html>
+```
