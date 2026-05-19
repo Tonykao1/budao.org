@@ -737,3 +737,81 @@ h1 {
     }
 
 }
+/* 营火之地 */
+
+.campfire-link{
+
+    display:inline-block;
+
+    margin-bottom:18px;
+
+    text-decoration:none;
+
+    letter-spacing:5px;
+
+    font-size:15px;
+
+    font-weight:300;
+
+    background:
+    linear-gradient(
+    90deg,
+    #ff6b6b,
+    #ffd93d,
+    #6bcB77,
+    #4d96ff,
+    #b983ff,
+    #ff6b6b);
+
+    background-size:300%;
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:transparent;
+
+    animation:
+    campfireRainbow 8s linear infinite,
+    campfireBreath 3.5s ease-in-out infinite;
+
+    transition:0.4s;
+}
+
+.campfire-link:hover{
+
+    letter-spacing:7px;
+}
+
+/* 彩虹流动 */
+
+@keyframes campfireRainbow{
+
+    0%{
+        background-position:0%;
+    }
+
+    100%{
+        background-position:300%;
+    }
+
+}
+
+/* 呼吸 */
+
+@keyframes campfireBreath{
+
+    0%{
+        opacity:0.45;
+        transform:scale(1);
+    }
+
+    50%{
+        opacity:1;
+        transform:scale(1.05);
+    }
+
+    100%{
+        opacity:0.45;
+        transform:scale(1);
+    }
+
+}
