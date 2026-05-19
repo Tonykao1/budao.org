@@ -646,6 +646,8 @@ h1 {
 
 .route-countdown{
 
+    position:static;
+
     color:white;
 
     font-size:42px;
@@ -653,4 +655,6 @@ h1 {
     font-weight:200;
 
     letter-spacing:0.08em;
+
+    line-height:1.4;
 }
