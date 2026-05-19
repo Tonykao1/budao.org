@@ -217,7 +217,7 @@ h1 {
 .info-explode {
     position: relative;
     height: 520px;
-    margin: 40px auto 80px auto;
+    margin: 10px auto 80px auto;
 }
 .info-explode .item {
     position: absolute;
