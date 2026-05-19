@@ -186,10 +186,13 @@ h1 {
 }
 
 /* 地点（偏左，安静） */
-.line-location {
-    font-size: 1.05em;
-    color: #444;
-    margin-bottom: 25px;
+.location {
+
+    font-size: 1.45em;
+
+    line-height: 1.4;
+
+    transform: translate(-180%, -250%);
 }
 
 /* 时间（轻微右移） */
