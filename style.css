@@ -695,9 +695,24 @@ h1 {
 
     position:static;
 
-    background:none;
+    background:
+    linear-gradient(
+    90deg,
+    #ff6b6b,
+    #ffd93d,
+    #6bcB77,
+    #4d96ff,
+    #b983ff,
+    #ff6b6b);
 
-    color:white;
+    background-size:300%;
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:transparent;
+
+    animation:
+    rainbowMove 8s linear infinite;
 
     padding:0;
 
@@ -710,4 +725,15 @@ h1 {
     letter-spacing:0.08em;
 
     line-height:1.4;
+}
+@keyframes rainbowMove{
+
+    0%{
+        background-position:0%;
+    }
+
+    100%{
+        background-position:300%;
+    }
+
 }
