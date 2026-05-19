@@ -53,8 +53,16 @@ header h1 {
 }
 
 header p {
+
   font-size: 18px;
+
   color: #666;
+
+  letter-spacing: 6px;
+
+  font-weight: 300;
+
+  line-height: 2;
 }
 
 /* 主体内容 */
