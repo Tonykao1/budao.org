@@ -51,7 +51,12 @@
 <script>
 
 const audio = new Audio("music/14 Silent Night.mp3");
+audio.addEventListener("ended", () => {
 
+    isPlaying = false;
+
+    playBtn.classList.remove("playing");
+});
 const playBtn = document.getElementById("playBtn");
 
 let isPlaying = false;
