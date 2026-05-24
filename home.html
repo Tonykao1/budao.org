@@ -48,6 +48,30 @@
 </a>
   <p>© 2026 步道 budao.org</p>
 </footer>
+<script>
 
+const audio = new Audio("music/campfire.mp3");
+
+const playBtn = document.getElementById("playBtn");
+
+let isPlaying = false;
+
+playBtn.addEventListener("click", () => {
+
+    if(!isPlaying){
+
+        audio.play();
+
+        isPlaying = true;
+
+    }else{
+
+        audio.pause();
+
+        isPlaying = false;
+    }
+});
+
+</script>
 </body>
 </html>
