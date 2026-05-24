@@ -837,3 +837,14 @@ h1 {
 
     opacity:0.45;
 }
+#playBtn{
+
+    cursor:pointer;
+
+    transition:0.4s;
+}
+
+#playBtn:hover{
+
+    opacity:0.45;
+}
