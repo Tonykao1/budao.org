@@ -826,3 +826,14 @@ h1 {
     }
 
 }
+.word-btn{
+
+    transition:0.4s;
+
+    cursor:pointer;
+}
+
+.word-btn:hover{
+
+    opacity:0.45;
+}
