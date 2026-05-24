@@ -61,13 +61,13 @@ playBtn.addEventListener("click", () => {
     if(!isPlaying){
 
         audio.play();
-
+playBtn.classList.add("playing");
         isPlaying = true;
 
     }else{
 
         audio.pause();
-
+playBtn.classList.remove("playing");
         isPlaying = false;
     }
 });
