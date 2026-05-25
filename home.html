@@ -137,7 +137,19 @@ function playCurrentTrack(){
     return;
 }
 });
+const nextBtn = document.getElementById("nextBtn");
 
+nextBtn.addEventListener("click", () => {
+
+    currentTrack++;
+
+    if(currentTrack >= playlist.length){
+
+        currentTrack = 0;
+    }
+
+    playCurrentTrack();
+});
 </script>
 </body>
 </html>
