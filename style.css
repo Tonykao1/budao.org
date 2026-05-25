@@ -902,3 +902,16 @@ h1 {
         transform:scale(1);
     }
 }
+#prevBtn,
+#nextBtn{
+
+    cursor:pointer;
+
+    transition:0.4s;
+}
+
+#prevBtn:hover,
+#nextBtn:hover{
+
+    opacity:0.45;
+}
