@@ -122,7 +122,18 @@ audio.addEventListener("pause", () => {
     playBtn.classList.remove("playing");
 
     isPlaying = false;
+function playCurrentTrack(){
 
+    audio.src = playlist[currentTrack];
+
+    audio.load();
+
+    audio.play();
+
+    playBtn.classList.add("playing");
+
+    isPlaying = true;
+}
     return;
 }
 });
