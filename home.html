@@ -74,8 +74,9 @@ audio.addEventListener("ended", () => {
 
     audio.src = playlist[currentTrack];
 
-    audio.play();
-});
+audio.load();
+
+audio.play();
 const playBtn = document.getElementById("playBtn");
 
 let isPlaying = false;
