@@ -69,59 +69,12 @@ const audio = new Audio(playlist[currentTrack]);
 
 const playBtn = document.getElementById("playBtn");
 
+const nextBtn = document.getElementById("nextBtn");
+
 let isPlaying = false;
 
-/* 点击“走” */
+/* 播放当前曲目 */
 
-playBtn.addEventListener("click", () => {
-
-    if(!isPlaying){
-
-        audio.play();
-
-        playBtn.classList.add("playing");
-
-        isPlaying = true;
-
-    }else{
-
-        audio.pause();
-
-        playBtn.classList.remove("playing");
-
-        isPlaying = false;
-    }
-});
-
-/* 一首结束后自动下一首 */
-
-audio.addEventListener("ended", () => {
-
-    currentTrack++;
-
-    if(currentTrack >= playlist.length){
-
-        currentTrack = 0;
-    }
-
-    audio.src = playlist[currentTrack];
-
-    audio.load();
-
-    audio.play();
-});
-
-/* 如果全部停止 */
-
-audio.addEventListener("pause", () => {
-
-    if(currentTrack >= playlist.length){
-
-    currentTrack = 0;
-
-    playBtn.classList.remove("playing");
-
-    isPlaying = false;
 function playCurrentTrack(){
 
     audio.src = playlist[currentTrack];
@@ -134,10 +87,26 @@ function playCurrentTrack(){
 
     isPlaying = true;
 }
-    return;
-}
+
+/* 点击“走” */
+
+playBtn.addEventListener("click", () => {
+
+    if(!isPlaying){
+
+        playCurrentTrack();
+
+    }else{
+
+        audio.pause();
+
+        playBtn.classList.remove("playing");
+
+        isPlaying = false;
+    }
 });
-const nextBtn = document.getElementById("nextBtn");
+
+/* 点击“右” */
 
 nextBtn.addEventListener("click", () => {
 
@@ -150,6 +119,27 @@ nextBtn.addEventListener("click", () => {
 
     playCurrentTrack();
 });
+
+/* 一首结束后自动下一首 */
+
+audio.addEventListener("ended", () => {
+
+    currentTrack++;
+
+    if(currentTrack >= playlist.length){
+
+        currentTrack = 0;
+
+        playBtn.classList.remove("playing");
+
+        isPlaying = false;
+
+        return;
+    }
+
+    playCurrentTrack();
+});
+
 </script>
 </body>
 </html>
