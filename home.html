@@ -50,12 +50,31 @@
 </footer>
 <script>
 
-const audio = new Audio("music/14 Silent Night.mp3");
+const playlist = [
+
+    "music/1.mp3",
+
+    "music/2.mp3",
+
+    "music/3.mp3"
+
+];
+
+let currentTrack = 0;
+
+const audio = new Audio(playlist[currentTrack]);
 audio.addEventListener("ended", () => {
 
-    isPlaying = false;
+    currentTrack++;
 
-    playBtn.classList.remove("playing");
+    if(currentTrack >= playlist.length){
+
+        currentTrack = 0;
+    }
+
+    audio.src = playlist[currentTrack];
+
+    audio.play();
 });
 const playBtn = document.getElementById("playBtn");
 
