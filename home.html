@@ -112,12 +112,16 @@ audio.addEventListener("ended", () => {
 
 audio.addEventListener("pause", () => {
 
-    if(audio.ended === false){
+    if(currentTrack >= playlist.length){
 
-        playBtn.classList.remove("playing");
+    currentTrack = 0;
 
-        isPlaying = false;
-    }
+    playBtn.classList.remove("playing");
+
+    isPlaying = false;
+
+    return;
+}
 });
 
 </script>
