@@ -63,6 +63,35 @@ const playlist = [
 let currentTrack = 0;
 
 const audio = new Audio(playlist[currentTrack]);
+
+const playBtn = document.getElementById("playBtn");
+
+let isPlaying = false;
+
+/* 点击“走” */
+
+playBtn.addEventListener("click", () => {
+
+    if(!isPlaying){
+
+        audio.play();
+
+        playBtn.classList.add("playing");
+
+        isPlaying = true;
+
+    }else{
+
+        audio.pause();
+
+        playBtn.classList.remove("playing");
+
+        isPlaying = false;
+    }
+});
+
+/* 一首结束后自动下一首 */
+
 audio.addEventListener("ended", () => {
 
     currentTrack++;
@@ -74,25 +103,19 @@ audio.addEventListener("ended", () => {
 
     audio.src = playlist[currentTrack];
 
-audio.load();
+    audio.load();
 
-audio.play();
-const playBtn = document.getElementById("playBtn");
+    audio.play();
+});
 
-let isPlaying = false;
+/* 如果全部停止 */
 
-playBtn.addEventListener("click", () => {
+audio.addEventListener("pause", () => {
 
-    if(!isPlaying){
+    if(audio.ended === false){
 
-        audio.play();
-playBtn.classList.add("playing");
-        isPlaying = true;
+        playBtn.classList.remove("playing");
 
-    }else{
-
-        audio.pause();
-playBtn.classList.remove("playing");
         isPlaying = false;
     }
 });
