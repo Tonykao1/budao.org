@@ -66,7 +66,23 @@ const playlist = [
 let currentTrack = 0;
 
 const audio = new Audio(playlist[currentTrack]);
+navigator.mediaSession.metadata =
+new MediaMetadata({
 
+    title: "同行之声",
+
+    artist: "步道 budao",
+
+    album: "余生行走，不偏左右",
+
+    artwork: [
+        {
+            src: "images/MEDIA.jpeg",
+            sizes: "1024x1024",
+            type: "image/jpeg"
+        }
+    ]
+});
 const playBtn = document.getElementById("playBtn");
 
 const nextBtn = document.getElementById("nextBtn");
