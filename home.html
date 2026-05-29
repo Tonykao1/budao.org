@@ -89,6 +89,8 @@ const playBtn = document.getElementById("playBtn");
 
 const nextBtn = document.getElementById("nextBtn");
 
+const prevBtn = document.getElementById("prevBtn");
+
 let isPlaying = false;
 
 /* 播放当前曲目 */
@@ -137,7 +139,21 @@ nextBtn.addEventListener("click", () => {
 
     playCurrentTrack();
 });
+  
+/* 点击“左” */
+  
+prevBtn.addEventListener("click", () => {
 
+    currentTrack--;
+
+    if(currentTrack < 0){
+
+        currentTrack = playlist.length - 1;
+    }
+
+    playCurrentTrack();
+});
+  
 /* 一首结束后自动下一首 */
 
 audio.addEventListener("ended", () => {
