@@ -917,9 +917,9 @@ h1 {
 }
 #leaderTony{
     cursor:pointer;
-    transition:0.3s;
+    transition:all .3s ease;
 }
 
 #leaderTony:hover{
-    color:#666;
+    opacity:.6;
 }
