@@ -40,6 +40,34 @@
     </a>
 
 </div>
+  <div id="activityForm" style="display:none; margin-top:40px;">
+
+<h2>活动生成器</h2>
+
+<input type="text" placeholder="活动名称"><br><br>
+
+<input type="date"><br><br>
+
+<input type="time"><br><br>
+
+<input type="text" placeholder="集合地点"><br><br>
+
+<input type="text" placeholder="活动长度（公里）"><br><br>
+
+<input type="text" placeholder="累计爬升（米）"><br><br>
+
+<input type="text" placeholder="活动时长（小时）"><br><br>
+
+<input type="text" placeholder="活动难度"><br><br>
+
+<textarea placeholder="活动说明" rows="4" cols="40"></textarea><br><br>
+
+<input type="text" placeholder="活动图片地址"><br><br>
+
+<button>提交活动</button>
+
+</div>
+
 </main>
 <script>
 
@@ -48,9 +76,15 @@ document.getElementById("leaderTony")
 
     const password = prompt("请输入带领人密码");
 
-    if(password === "budao2026"){
+   if(password === "budao2026"){
 
-        alert("密码正确");
+```
+document.getElementById("activityForm")
+.style.display = "block";
+```
+
+}
+
 
     }else if(password !== null){
 
