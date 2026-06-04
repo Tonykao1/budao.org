@@ -40,39 +40,51 @@
     </a>
 
 </div>
-  <div id="activityForm" style="display:none; margin-top:40px;">
+<div id="activityForm" style="display:none; margin-top:40px;">
 
 <h2>线路生成器</h2>
 
-<input type="text" placeholder="线路名称"><br><br>
+<input id="routeName" type="text" placeholder="线路名称"><br><br>
 
-<input type="date"><br><br>
+<input id="activityDate" type="date"><br><br>
 
-<input type="time"><br><br>
+<input id="startTime" type="time"><br><br>
 
-<input type="text" placeholder="集合地点"><br><br>
+<input id="meetingPlace" type="text" placeholder="集合地点"><br><br>
 
-<input type="text" placeholder="线路长度（千米）"><br><br>
+<input id="distance" type="text" placeholder="距离（公里）"><br><br>
 
-<input type="text" placeholder="累计爬升（米）"><br><br>
+<input id="elevation" type="text" placeholder="累计爬升（米）"><br><br>
 
-<input type="text" placeholder="预计耗时（小时）"><br><br>
+<input id="duration" type="text" placeholder="预计耗时（小时）"><br><br>
 
-<input type="text" placeholder="难度等级"><br><br>
+<input id="difficulty" type="text" placeholder="难度等级"><br><br>
 
-<input type="text" placeholder="路面情况"><br><br>
+<input id="surface" type="text" placeholder="路面情况"><br><br>
 
-<input type="text" placeholder="准入门槛"><br><br>
+<input id="requirement" type="text" placeholder="准入门槛"><br><br>
 
-<input type="text" placeholder="装备要求"><br><br>
+<input id="equipment" type="text" placeholder="装备要求"><br><br>
 
-<textarea placeholder="路线说明" rows="4" cols="40"></textarea><br><br>
+<textarea id="description"
+placeholder="线路说明"
+rows="4"
+cols="40"></textarea><br><br>
 
-<input type="text" placeholder="集合地点图示"><br><br>
+<input id="mapImage"
+type="text"
+placeholder="集合地点图示"><br><br>
 
-<button>提交线路</button>
+<button id="publishBtn">
+发布线路
+</button>
 
 </div>
+
+<div id="cardPreview"
+style="display:none;margin-top:40px;">
+</div>
+
 
 </main>
 <script>
@@ -92,6 +104,63 @@ document.getElementById("leaderTony")
     alert("密码错误");
 
 }
+
+});
+document
+.getElementById("publishBtn")
+.addEventListener("click", () => {
+
+```
+const routeData = {
+
+    routeName:
+    document.getElementById("routeName").value,
+
+    activityDate:
+    document.getElementById("activityDate").value,
+
+    startTime:
+    document.getElementById("startTime").value,
+
+    meetingPlace:
+    document.getElementById("meetingPlace").value,
+
+    distance:
+    document.getElementById("distance").value,
+
+    elevation:
+    document.getElementById("elevation").value,
+
+    duration:
+    document.getElementById("duration").value,
+
+    difficulty:
+    document.getElementById("difficulty").value
+
+};
+
+const card = `
+<div class="route-card">
+
+<h3>${routeData.routeName}</h3>
+
+<p>
+${routeData.distance}km ｜ 
+${routeData.elevation}m ｜ 
+${routeData.duration}h
+</p>
+
+<p>${routeData.difficulty}</p>
+
+</div>
+`;
+
+document.getElementById("cardPreview")
+.innerHTML = card;
+
+document.getElementById("cardPreview")
+.style.display = "block";
+```
 
 });
 
