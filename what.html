@@ -1,10 +1,82 @@
 <!DOCTYPE html>
+
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>步道是什么</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>步道是什么</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+#leaderTony{
+    cursor:pointer;
+    transition:all .3s ease;
+}
+
+#leaderTony:hover{
+    opacity:.6;
+}
+
+.route-card{
+
+    max-width:420px;
+
+    margin:40px auto;
+
+    padding:24px;
+
+    border:1px solid #ddd;
+
+    border-radius:16px;
+
+    text-align:center;
+
+}
+
+.route-card h3{
+
+    margin-bottom:12px;
+
+}
+
+.route-card p{
+
+    margin:8px 0;
+
+}
+
+#activityForm{
+
+    max-width:600px;
+
+    margin:40px auto;
+
+}
+
+#activityForm input,
+#activityForm textarea{
+
+    width:100%;
+
+    padding:10px;
+
+    box-sizing:border-box;
+
+}
+
+#publishBtn{
+
+    padding:12px 24px;
+
+    cursor:pointer;
+
+}
+
+</style>
+
 </head>
+
 <body>
 
 <nav>
@@ -16,64 +88,145 @@
 </nav>
 
 <main>
-  <h1>铁磨铁，磨出刃</h1>
-  <p>祂对我们说话，</p>
-  <p>在不同国家，城市，社区，兴起更多肢体，以脚行道，一步一步回应恩典，传扬祝福。</p>
-  <p>成为一个，造就一个，让我们同心同行去“步道”！</p>
-  <p>美国 加州 湾区 ：Simon&Juliana</p>
-  <p>
-  中国 北京 顺义 ：
-  <span id="leaderTony">Tony夫妇&Vincent</span>
+
+<h1>铁磨铁，磨出刃</h1>
+
+<p>祂对我们说话，</p>
+
+<p>
+在不同国家，城市，社区，
+兴起更多肢体，
+以脚行道，
+一步一步回应恩典，
+传扬祝福。
 </p>
-  <p>中国 北京 昌平 ：Laurel</p>
+
+<p>
+成为一个，造就一个，
+让我们同心同行去“步道”！
+</p>
+
+<p>美国 加州 湾区 ：Simon&Juliana</p>
+
+<p>
+中国 北京 顺义 ：
+<span id="leaderTony">
+Tony夫妇&Vincent
+</span>
+</p>
+
+<p>
+中国 北京 昌平 ：Laurel
+</p>
+
 <div class="join-section">
 
-    <h2>成为带领人</h2>
+<h2>成为带领人</h2>
 
-    <p>
-        若你有感动与步道同工，
-        我们欢迎你成为带领人。
-    </p>
+<p>
+若你有感动与步道同工，
+我们欢迎你成为带领人。
+</p>
 
-    <a href="mailto:hello@budao.org?subject=加入步道同工&body=姓名：%0A电话：%0A所在城市：" class="join-button">
-        提交申请
-    </a>
+<a
+href="mailto:hello@budao.org?subject=加入步道同工&body=姓名：%0A电话：%0A所在城市："
+class="join-button">
+提交申请 </a>
 
 </div>
-<div id="activityForm" style="display:none; margin-top:40px;">
+
+<div id="activityForm" style="display:none;">
 
 <h2>线路生成器</h2>
 
-<input id="routeName" type="text" placeholder="线路名称"><br><br>
-
-<input id="activityDate" type="date"><br><br>
-
-<input id="startTime" type="time"><br><br>
-
-<input id="meetingPlace" type="text" placeholder="集合地点"><br><br>
-
-<input id="distance" type="text" placeholder="距离（公里）"><br><br>
-
-<input id="elevation" type="text" placeholder="累计爬升（米）"><br><br>
-
-<input id="duration" type="text" placeholder="预计耗时（小时）"><br><br>
-
-<input id="difficulty" type="text" placeholder="难度等级"><br><br>
-
-<input id="surface" type="text" placeholder="路面情况"><br><br>
-
-<input id="requirement" type="text" placeholder="准入门槛"><br><br>
-
-<input id="equipment" type="text" placeholder="装备要求"><br><br>
-
-<textarea id="description"
-placeholder="线路说明"
-rows="4"
-cols="40"></textarea><br><br>
-
-<input id="mapImage"
+<input
+id="routeName"
 type="text"
-placeholder="集合地点图示"><br><br>
+placeholder="线路名称">
+
+<br><br>
+
+<input
+id="activityDate"
+type="date">
+
+<br><br>
+
+<input
+id="startTime"
+type="time">
+
+<br><br>
+
+<input
+id="meetingPlace"
+type="text"
+placeholder="集合地点">
+
+<br><br>
+
+<input
+id="distance"
+type="text"
+placeholder="距离（公里）">
+
+<br><br>
+
+<input
+id="elevation"
+type="text"
+placeholder="累计爬升（米）">
+
+<br><br>
+
+<input
+id="duration"
+type="text"
+placeholder="预计耗时（小时）">
+
+<br><br>
+
+<input
+id="difficulty"
+type="text"
+placeholder="难度等级">
+
+<br><br>
+
+<input
+id="surface"
+type="text"
+placeholder="路面情况">
+
+<br><br>
+
+<input
+id="requirement"
+type="text"
+placeholder="准入门槛">
+
+<br><br>
+
+<input
+id="equipment"
+type="text"
+placeholder="装备要求">
+
+<br><br>
+
+<textarea
+id="description"
+rows="4"
+placeholder="线路说明"></textarea>
+
+<br><br>
+
+<input
+id="mapImage"
+type="text"
+placeholder="集合地点图示">
+
+<br><br>
 
 <button id="publishBtn">
 发布线路
@@ -81,89 +234,96 @@ placeholder="集合地点图示"><br><br>
 
 </div>
 
-<div id="cardPreview"
-style="display:none;margin-top:40px;">
+<div
+id="cardPreview"
+style="display:none;">
 </div>
 
-
 </main>
+
 <script>
 
-document.getElementById("leaderTony")
+document
+.getElementById("leaderTony")
 .addEventListener("click", () => {
 
-    const password = prompt("请输入带领人密码");
+    const password =
+    prompt("请输入带领人密码");
 
-  if(password === "budao2026"){
+    if(password === "budao2026"){
 
-    document.getElementById("activityForm")
-    .style.display = "block";
+        document
+        .getElementById("activityForm")
+        .style.display = "block";
 
-}else if(password !== null){
+        document
+        .getElementById("activityForm")
+        .scrollIntoView({
+            behavior:"smooth"
+        });
 
-    alert("密码错误");
+    }else if(password !== null){
 
-}
+        alert("密码错误");
+
+    }
 
 });
+
 document
 .getElementById("publishBtn")
 .addEventListener("click", () => {
 
-```
-const routeData = {
+    const routeData = {
 
-    routeName:
-    document.getElementById("routeName").value,
+        routeName:
+        document.getElementById("routeName").value,
 
-    activityDate:
-    document.getElementById("activityDate").value,
+        distance:
+        document.getElementById("distance").value,
 
-    startTime:
-    document.getElementById("startTime").value,
+        elevation:
+        document.getElementById("elevation").value,
 
-    meetingPlace:
-    document.getElementById("meetingPlace").value,
+        duration:
+        document.getElementById("duration").value,
 
-    distance:
-    document.getElementById("distance").value,
+        difficulty:
+        document.getElementById("difficulty").value
 
-    elevation:
-    document.getElementById("elevation").value,
+    };
 
-    duration:
-    document.getElementById("duration").value,
+    const card = `
 
-    difficulty:
-    document.getElementById("difficulty").value
+    <div class="route-card">
 
-};
+        <h3>${routeData.routeName}</h3>
 
-const card = `
-<div class="route-card">
+        <p>
+        ${routeData.distance}km ｜ 
+        ${routeData.elevation}m ｜ 
+        ${routeData.duration}h
+        </p>
 
-<h3>${routeData.routeName}</h3>
+        <p>
+        ${routeData.difficulty}
+        </p>
 
-<p>
-${routeData.distance}km ｜ 
-${routeData.elevation}m ｜ 
-${routeData.duration}h
-</p>
+    </div>
 
-<p>${routeData.difficulty}</p>
+    `;
 
-</div>
-`;
+    document
+    .getElementById("cardPreview")
+    .innerHTML = card;
 
-document.getElementById("cardPreview")
-.innerHTML = card;
-
-document.getElementById("cardPreview")
-.style.display = "block";
-```
+    document
+    .getElementById("cardPreview")
+    .style.display = "block";
 
 });
 
 </script>
+
 </body>
 </html>
