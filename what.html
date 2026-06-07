@@ -109,7 +109,7 @@ margin-top:120px;
     </p>
 
 </div>
-<main>
+<main id="mainContent">
 
 <h1>铁磨铁，磨出刃</h1>
 
@@ -273,7 +273,9 @@ document
     prompt("请输入带领人密码");
 
     if(password === "budao2026"){
-
+document
+.getElementById("mainContent")
+.style.display = "none";
         document
         .getElementById("step0")
         .style.display = "block";
