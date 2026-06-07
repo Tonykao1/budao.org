@@ -86,31 +86,30 @@
   <a href="/what.html">全球同工</a>
   <a href="/contact.html">联系</a>
 </nav>
-<div id="step0"
-style="
-display:none;
-text-align:center;
-margin-top:220px;
-">
+<div id="journey" style="display:none;">
 
+<section class="scene">
 
+    <div class="waiting">
 
-   <div class="waiting">
+        有人，<br>
+        正等候这一程。
 
-    有人，<br>
-    正等候这一程。
+    </div>
 
-</div>
-<div class="path-line"></div>
+    <div class="path-line"></div>
 
-<div
-class="walk-forward"
-id="walkForward">
+    <div
+    class="walk-forward"
+    id="walkForward">
 
-    向前一步
+        向前一步
 
-</div>
- <div id="step1" style="display:none;">
+    </div>
+
+</section>
+
+<section class="scene">
 
     <div class="question">
 
@@ -119,9 +118,10 @@ id="walkForward">
 
     </div>
 
+</section>
+    
 </div>
 
-</div>
 <main id="mainContent">
 
 <h1>铁磨铁，磨出刃</h1>
@@ -285,27 +285,21 @@ document
     const password =
     prompt("请输入带领人密码");
 
-    if(password === "budao2026"){
+   if(password === "budao2026"){
+
 document
 .getElementById("mainContent")
 .style.display = "none";
-        document
-        .getElementById("step0")
-        .style.display = "block";
 
-        document
-        .getElementById("step0")
-        .scrollIntoView({
-            behavior:"smooth"
-        });
+document
+.getElementById("journey")
+.style.display = "flex";
 
-    }else if(password !== null){
+}else if(password !== null){
 
-        alert("密码错误");
+alert("密码错误");
 
-    }
-
-});
+}
 
 document
 .getElementById("publishBtn")
@@ -358,16 +352,17 @@ document
     .getElementById("cardPreview")
     .style.display = "block";
 
-});
 document
 .getElementById("walkForward")
 .addEventListener("click", () => {
 
-    document
-    .getElementById("step1")
-    .style.display = "block";
+document
+.getElementById("journey")
+.style.transform =
+"translateX(-100vw)";
 
 });
+
 </script>
 
 </body>
