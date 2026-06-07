@@ -949,3 +949,46 @@ text-align:center;
 ```
 
 }
+.waiting{
+
+    font-size:34px;
+
+    line-height:2.1;
+
+    font-weight:300;
+
+    margin-bottom:60px;
+
+}
+
+.path-line{
+
+    width:180px;
+
+    height:1px;
+
+    background:#888;
+
+    margin:0 auto 28px auto;
+
+}
+
+.walk-forward{
+
+    color:#666;
+
+    letter-spacing:4px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.walk-forward:hover{
+
+    color:#000;
+
+    letter-spacing:6px;
+
+}
