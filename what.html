@@ -103,10 +103,22 @@ margin-top:220px;
 </div>
 <div class="path-line"></div>
 
-<div class="walk-forward">
+<div
+class="walk-forward"
+id="walkForward">
+
     向前一步
+
 </div>
-   
+ <div id="step1" style="display:none;">
+
+    <div class="question">
+
+        这一程，<br>
+        将从哪里开始？
+
+    </div>
+
 </div>
 
 </div>
@@ -347,7 +359,15 @@ document
     .style.display = "block";
 
 });
+document
+.getElementById("walkForward")
+.addEventListener("click", () => {
 
+    document
+    .getElementById("step1")
+    .style.display = "block";
+
+});
 </script>
 
 </body>
