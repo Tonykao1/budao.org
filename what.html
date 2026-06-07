@@ -86,7 +86,29 @@
   <a href="/what.html">全球同工</a>
   <a href="/contact.html">联系</a>
 </nav>
+<div id="step0"
+style="
+display:none;
+text-align:center;
+margin-top:120px;
+">
 
+    <h1>
+        发起步道
+    </h1>
+
+    <p style="
+    font-size:22px;
+    line-height:2;
+    color:#666;
+    ">
+
+        有人，<br>
+        正等候这一程。
+
+    </p>
+
+</div>
 <main>
 
 <h1>铁磨铁，磨出刃</h1>
@@ -253,11 +275,11 @@ document
     if(password === "budao2026"){
 
         document
-        .getElementById("activityForm")
+        .getElementById("step0")
         .style.display = "block";
 
         document
-        .getElementById("activityForm")
+        .getElementById("step0")
         .scrollIntoView({
             behavior:"smooth"
         });
