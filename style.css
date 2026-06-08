@@ -1045,7 +1045,9 @@ margin:60px 0 30px 0;
 
 }
 .answer-placeholder{
+cursor:pointer;
 
+transition:.3s;
     margin-top:90px;
 
     color:#8d8579;
@@ -1055,5 +1057,10 @@ margin:60px 0 30px 0;
     letter-spacing:3px;
 
     font-weight:300;
+  }
+.answer-placeholder:hover{
+
+    opacity:.55;
+
 
 }
