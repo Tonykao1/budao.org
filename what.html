@@ -300,57 +300,8 @@ document
 alert("密码错误");
 
 }
+});
 
-document
-.getElementById("publishBtn")
-.addEventListener("click", () => {
-
-    const routeData = {
-
-        routeName:
-        document.getElementById("routeName").value,
-
-        distance:
-        document.getElementById("distance").value,
-
-        elevation:
-        document.getElementById("elevation").value,
-
-        duration:
-        document.getElementById("duration").value,
-
-        difficulty:
-        document.getElementById("difficulty").value
-
-    };
-
-    const card = `
-
-    <div class="route-card">
-
-        <h3>${routeData.routeName}</h3>
-
-        <p>
-        ${routeData.distance}km ｜ 
-        ${routeData.elevation}m ｜ 
-        ${routeData.duration}h
-        </p>
-
-        <p>
-        ${routeData.difficulty}
-        </p>
-
-    </div>
-
-    `;
-
-    document
-    .getElementById("cardPreview")
-    .innerHTML = card;
-
-    document
-    .getElementById("cardPreview")
-    .style.display = "block";
 
 document
 .getElementById("walkForward")
