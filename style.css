@@ -963,9 +963,7 @@ text-align:center;
 
 .path-line{
 
-width:420px;
-  
-transform-origin:left center;
+width:5000px;
 
 height:1px;
 
@@ -973,10 +971,8 @@ background:#999;
 
 margin:60px 0 30px 0;
 
-transition:1.5s linear;
-
-
 }
+
 
 
 .walk-forward{
