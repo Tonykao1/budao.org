@@ -307,12 +307,22 @@ document
 .getElementById("walkForward")
 .addEventListener("click", () => {
 
-document
-.getElementById("journey")
-.style.transform =
-"translateX(-100vw)";
+const line =
+document.querySelector(".path-line");
+
+line.style.width = "900px";
+
+setTimeout(() => {
+
+    document
+    .getElementById("journey")
+    .style.transform =
+    "translateX(-100vw)";
+
+},800);
 
 });
+
 
 </script>
 
