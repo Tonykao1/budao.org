@@ -1125,10 +1125,10 @@ opacity:.6;
 
     width:300vw;
 
-    height:3px;
+    height:1px;
 
-    background:red;
+    background:#bdb6ab;
 
-    z-index:9999;
+    z-index:1;
 
 }
