@@ -343,11 +343,14 @@ setTimeout(() => {
     const locationAnswer =
 document.getElementById("locationAnswer");
 
+const emptySign =
+document.getElementById("emptySign");
+
 locationAnswer.addEventListener("click", () => {
 
-    locationAnswer.contentEditable = true;
+    locationAnswer.style.display = "none";
 
-    locationAnswer.focus();
+    emptySign.style.display = "block";
 
 });
 </script>
