@@ -355,7 +355,28 @@ setTimeout(() => {
 },800);
 
 });
+const locationAnswer =
+document.getElementById("locationAnswer");
 
+const continueBtn =
+document.getElementById("continueToTitle");
+
+locationAnswer.addEventListener("input",()=>{
+
+continueBtn.style.opacity="1";
+
+continueBtn.style.pointerEvents="auto";
+
+});
+
+continueBtn.addEventListener("click",()=>{
+
+document
+.getElementById("journey")
+.style.transform=
+"translateX(-200vw)";
+
+});
 </script>
 
 </body>
