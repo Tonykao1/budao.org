@@ -123,7 +123,7 @@ id="locationAnswer">
 
     中国 · 北京 · 顺义
 
-</divcontenteditable="true">
+</div>
 </section>
 
 
@@ -346,6 +346,16 @@ document
         .innerText = city;
 
     }
+
+});
+    const locationAnswer =
+document.getElementById("locationAnswer");
+
+locationAnswer.addEventListener("click", () => {
+
+    locationAnswer.contentEditable = true;
+
+    locationAnswer.focus();
 
 });
 </script>
