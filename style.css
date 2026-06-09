@@ -1064,3 +1064,18 @@ transition:.3s;
 
 
 }
+.empty-sign{
+
+    display:none;
+
+    margin-top:90px;
+
+    font-size:18px;
+
+    color:#8d8579;
+
+    letter-spacing:3px;
+
+    font-weight:300;
+
+}
