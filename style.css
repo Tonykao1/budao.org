@@ -1132,3 +1132,22 @@ opacity:.6;
     z-index:1;
 
 }
+.continue-btn{
+
+    margin-top:60px;
+
+    cursor:pointer;
+
+    color:#8d8579;
+
+    letter-spacing:2px;
+
+    transition:.3s;
+
+}
+
+.continue-btn:hover{
+
+    opacity:.6;
+
+}
