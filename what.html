@@ -331,27 +331,16 @@ alert("密码错误");
 
 }
 });
-
-
 document
 .getElementById("walkForward")
 .addEventListener("click", () => {
-
-const line =
-document.querySelector(".path-line");
-
-line.style.width = "900px";
-line.style.transform =
-"scaleX(3)";
-setTimeout(() => {
 
     document
     .getElementById("journey")
     .style.transform =
     "translateX(-100vw)";
 
-},800);
-
+});
 });
 const locationAnswer =
 document.getElementById("locationAnswer");
