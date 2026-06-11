@@ -347,12 +347,20 @@ document.getElementById("locationAnswer");
 const continueBtn =
 document.getElementById("continueToTitle");
 
+locationAnswer.addEventListener("focus",()=>{
+
+    continueBtn.style.opacity="1";
+
+    continueBtn.style.pointerEvents="auto";
+
+});
+
 locationAnswer.addEventListener("input",()=>{
 
-continueBtn.style.opacity="1";
+    continueBtn.style.opacity="1";
 
-continueBtn.style.pointerEvents="auto";
-
+    continueBtn.style.pointerEvents="auto";
+    
 });
 
 continueBtn.addEventListener("click",()=>{
