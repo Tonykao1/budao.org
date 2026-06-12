@@ -385,7 +385,7 @@ locationAnswer.addEventListener("input",()=>{
     
 });
 
-    const routeTitle =
+   const routeTitle =
 document.getElementById("routeTitle");
 
 const continueToEditor =
@@ -393,12 +393,19 @@ document.getElementById("continueToEditor");
 
 routeTitle.addEventListener("focus",()=>{
 
-    continueToEditor.style.opacity="1";
+continueToEditor.style.opacity="1";
 
-    continueToEditor.style.pointerEvents="auto";
+continueToEditor.style.pointerEvents="auto";
 
 });
-    continueToEditor.addEventListener("click",()=>{
+
+continueToEditor.addEventListener("click",()=>{
+
+document
+.getElementById("activityForm")
+.style.display="block";
+
+continueToEditor.style.display="none";
 
 document
 .getElementById("routeName")
@@ -408,6 +415,7 @@ document
 .innerText.trim();
 
 });
+
 continueToEditor.addEventListener("click",()=>{
 
 document
