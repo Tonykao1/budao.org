@@ -136,16 +136,27 @@ function updateUI() {
 
     if(eventConfig.paused){
 
-        document.getElementById("countdownTimer")
-        .innerHTML = `
-        因天气原因，<br><br>
-        本周步道暂缓启程。<br><br>
-        愿我们在合适的时候，<br>
-        再一起上路。
-        `;
+    document.getElementById("countdownTimer")
+    .innerHTML = `
 
-        return;
-    }
+    <div class="pause-message">
+
+        <div class="pause-main">
+            本周步道暂缓启程。
+        </div>
+
+        <div class="pause-sub">
+            因天气原因，<br>
+            愿我们在合适的时候，<br>
+            再一起上路。
+        </div>
+
+    </div>
+
+    `;
+
+    return;
+}
 
     const { state, diff } = getEventState(eventConfig);
 
