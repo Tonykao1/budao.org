@@ -156,6 +156,37 @@ id="continueToEditor">
 继续 →
 
 </div>
+    <div
+id="editorPanel"
+style="display:none; margin-top:120px;">
+
+<h3>线路信息</h3>
+
+<input
+type="date"
+id="activityDate">
+
+<br><br>
+
+<input
+type="time"
+id="activityTime">
+
+<br><br>
+
+<input
+type="text"
+id="distance"
+placeholder="距离（公里）">
+
+<br><br>
+
+<input
+type="text"
+id="elevation"
+placeholder="累计爬升（米）">
+
+</div>
 </section>    
 </div>
 
@@ -388,6 +419,15 @@ routeTitle.addEventListener("focus",()=>{
     continueToEditor.style.opacity="1";
 
     continueToEditor.style.pointerEvents="auto";
+
+});
+    continueToEditor.addEventListener("click",()=>{
+
+document
+.getElementById("editorPanel")
+.style.display="block";
+
+continueToEditor.style.display="none";
 
 });
 </script>
