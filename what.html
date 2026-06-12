@@ -377,6 +377,19 @@ document
 "translateX(-200vw)";
 
 });
+    const routeTitle =
+document.getElementById("routeTitle");
+
+const continueToEditor =
+document.getElementById("continueToEditor");
+
+routeTitle.addEventListener("focus",()=>{
+
+    continueToEditor.style.opacity="1";
+
+    continueToEditor.style.pointerEvents="auto";
+
+});
 </script>
 
 </body>
