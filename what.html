@@ -254,8 +254,7 @@ class="join-button">
 
 <input
 id="routeName"
-type="text"
-placeholder="线路名称">
+type="text">
 
 <br><br>
 
@@ -432,6 +431,22 @@ routeTitle.addEventListener("focus",()=>{
 
 });
     continueToEditor.addEventListener("click",()=>{
+
+document
+.getElementById("editorPanel")
+.style.display="block";
+
+continueToEditor.style.display="none";
+
+document
+.getElementById("routeName")
+.value =
+document
+.getElementById("routeTitle")
+.innerText.trim();
+
+});
+
 
 document
 .getElementById("editorPanel")
