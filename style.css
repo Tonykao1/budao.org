@@ -1151,15 +1151,18 @@ opacity:.6;
     opacity:.6;
 
 }
+
 .pause-main{
 
     font-size:56px;
 
     font-weight:300;
 
-    color:#6f675d;
+    color:#6f675d !important;
 
-    line-height:1.4;
+    background:none !important;
+
+    -webkit-text-fill-color:#6f675d !important;
 
     margin-bottom:24px;
 
@@ -1171,7 +1174,11 @@ opacity:.6;
 
     font-weight:300;
 
-    color:#9b948a;
+    color:#9a9287 !important;
+
+    background:none !important;
+
+    -webkit-text-fill-color:#9a9287 !important;
 
     line-height:2;
 
