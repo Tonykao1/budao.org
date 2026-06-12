@@ -368,6 +368,14 @@ document.getElementById("locationAnswer");
 
 const continueBtn =
 document.getElementById("continueToTitle");
+    continueBtn.addEventListener("click",()=>{
+
+document
+.getElementById("journey")
+.style.transform=
+"translateX(-200vw)";
+
+});
 
 locationAnswer.addEventListener("focus",()=>{
 
@@ -396,23 +404,6 @@ routeTitle.addEventListener("focus",()=>{
 continueToEditor.style.opacity="1";
 
 continueToEditor.style.pointerEvents="auto";
-
-});
-
-continueToEditor.addEventListener("click",()=>{
-
-document
-.getElementById("activityForm")
-.style.display="block";
-
-continueToEditor.style.display="none";
-
-document
-.getElementById("routeName")
-.value =
-document
-.getElementById("routeTitle")
-.innerText.trim();
 
 });
 
