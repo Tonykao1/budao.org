@@ -386,23 +386,6 @@ locationAnswer.addEventListener("input",()=>{
     
 });
 
-continueToEditor.addEventListener("click",()=>{
-
-document
-.getElementById("activityForm")
-.style.display="block";
-
-continueToEditor.style.display="none";
-
-document
-.getElementById("routeName")
-.value =
-document
-.getElementById("routeTitle")
-.innerText.trim();
-
-});
-
     const routeTitle =
 document.getElementById("routeTitle");
 
@@ -426,15 +409,23 @@ document
 .innerText.trim();
 
 });
-
+continueToEditor.addEventListener("click",()=>{
 
 document
-.getElementById("editorPanel")
+.getElementById("activityForm")
 .style.display="block";
 
 continueToEditor.style.display="none";
 
+document
+.getElementById("routeName")
+.value =
+document
+.getElementById("routeTitle")
+.innerText.trim();
+
 });
+
 </script>
 
 </body>
