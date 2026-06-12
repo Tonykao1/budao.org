@@ -1151,3 +1151,28 @@ opacity:.6;
     opacity:.6;
 
 }
+.pause-main{
+
+    font-size:56px;
+
+    font-weight:300;
+
+    color:#6f675d;
+
+    line-height:1.4;
+
+    margin-bottom:24px;
+
+}
+
+.pause-sub{
+
+    font-size:22px;
+
+    font-weight:300;
+
+    color:#9b948a;
+
+    line-height:2;
+
+}
