@@ -378,7 +378,14 @@ locationAnswer.addEventListener("focus",()=>{
 });
 
 locationAnswer.addEventListener("input",()=>{
+continueBtn.addEventListener("click",()=>{
 
+document
+.getElementById("journey")
+.style.transform=
+"translateX(-200vw)";
+
+});
     continueBtn.style.opacity="1";
 
     continueBtn.style.pointerEvents="auto";
