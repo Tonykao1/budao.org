@@ -391,11 +391,8 @@ continueBtn.addEventListener("click",()=>{
     "translateX(-200vw)";
 
 });
-    continueBtn.style.opacity="1";
 
-    continueBtn.style.pointerEvents="auto";
-    
-   const routeTitle =
+const routeTitle =
 document.getElementById("routeTitle");
 
 const continueToEditor =
@@ -403,26 +400,32 @@ document.getElementById("continueToEditor");
 
 routeTitle.addEventListener("focus",()=>{
 
-continueToEditor.style.opacity="1";
+    continueToEditor.style.opacity="1";
+    continueToEditor.style.pointerEvents="auto";
 
-continueToEditor.style.pointerEvents="auto";
+});
+
+routeTitle.addEventListener("input",()=>{
+
+    continueToEditor.style.opacity="1";
+    continueToEditor.style.pointerEvents="auto";
 
 });
 
 continueToEditor.addEventListener("click",()=>{
 
-document
-.getElementById("activityForm")
-.style.display="block";
+    document
+    .getElementById("activityForm")
+    .style.display="block";
 
-continueToEditor.style.display="none";
+    continueToEditor.style.display="none";
 
-document
-.getElementById("routeName")
-.value =
-document
-.getElementById("routeTitle")
-.innerText.trim();
+    document
+    .getElementById("routeName")
+    .value =
+    document
+    .getElementById("routeTitle")
+    .innerText.trim();
 
 });
 
