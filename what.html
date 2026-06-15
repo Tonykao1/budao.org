@@ -260,7 +260,29 @@ placeholder="集合地点图示">
 <button id="publishBtn">
 发布线路
 </button>
+<div id="cardPreview" style="display:none;">
 
+    <div class="route-card">
+
+        <h3 id="previewTitle"></h3>
+
+        <p id="previewDate"></p>
+
+        <p id="previewPlace"></p>
+
+        <p id="previewDistance"></p>
+
+        <p id="previewDuration"></p>
+
+        <p id="previewDescription"></p>
+
+        <button id="confirmPublish">
+            发布到超级星期六
+        </button>
+
+    </div>
+
+</div>
 </div>
  
     <div
@@ -431,7 +453,67 @@ continueToEditor.addEventListener("click",()=>{
    });
 
 });
+document
+.getElementById("publishBtn")
+.addEventListener("click",()=>{
 
+    document
+    .getElementById("previewTitle")
+    .innerText =
+    document
+    .getElementById("routeName")
+    .value;
+
+    document
+    .getElementById("previewDate")
+    .innerText =
+    document
+    .getElementById("activityDate")
+    .value;
+
+    document
+    .getElementById("previewPlace")
+    .innerText =
+    document
+    .getElementById("meetingPlace")
+    .value;
+
+    document
+    .getElementById("previewDistance")
+    .innerText =
+    "距离：" +
+    document
+    .getElementById("distance")
+    .value +
+    " km";
+
+    document
+    .getElementById("previewDuration")
+    .innerText =
+    "预计耗时：" +
+    document
+    .getElementById("duration")
+    .value +
+    " 小时";
+
+    document
+    .getElementById("previewDescription")
+    .innerText =
+    document
+    .getElementById("description")
+    .value;
+
+    document
+    .getElementById("cardPreview")
+    .style.display = "block";
+
+    document
+    .getElementById("cardPreview")
+    .scrollIntoView({
+        behavior:"smooth"
+    });
+
+});
 </script>
 
 </body>
