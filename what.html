@@ -82,7 +82,90 @@
     cursor:pointer;
 
 }
+.route-grid{
 
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(420px,1fr));
+
+    gap:42px;
+}
+    .route-card{
+
+    background:white;
+
+    border-radius:30px;
+
+    overflow:hidden;
+
+    transition:.4s;
+
+    box-shadow:
+    0 12px 40px rgba(0,0,0,.05);
+}
+    .route-content{
+
+    padding:34px;
+}
+    .route-location{
+
+    font-size:11px;
+
+    letter-spacing:4px;
+
+    color:#a49b90;
+
+    margin-bottom:18px;
+}
+    .route-description{
+
+    line-height:2;
+
+    color:#5f5b55;
+
+    margin-bottom:28px;
+
+    font-size:15px;
+}
+    .route-info{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:12px;
+
+    margin-bottom:32px;
+}
+    .route-info span{
+
+    background:#f4f1eb;
+
+    padding:10px 14px;
+
+    border-radius:999px;
+
+    font-size:13px;
+
+    color:#666;
+}
+    .route-button{
+
+    display:inline-block;
+
+    padding:12px 22px;
+
+    background:#111;
+
+    color:white;
+
+    text-decoration:none;
+
+    border-radius:999px;
+
+    font-size:13px;
+}
 </style>
 
 </head>
