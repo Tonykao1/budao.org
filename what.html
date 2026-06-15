@@ -561,9 +561,7 @@ document
 
     preview.style.display="grid";
 preview.innerHTML = `
-document
-.getElementById("publishToTest")
-.style.display = "block";
+
 document
 .getElementById("sendToTest")
 .addEventListener("click",()=>{
@@ -662,7 +660,17 @@ document
     });
 
 });
+
+    <script>
+
+document
+.getElementById("publishBtn")
+.addEventListener("click",()=>{
+ document
+.getElementById("publishToTest")
+.style.display = "block";
 </script>
 
+   
 </body>
 </html>
