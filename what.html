@@ -582,7 +582,97 @@ document
     .scrollIntoView({
         behavior:"smooth"
     });
+document
+.getElementById("publishBtn")
+.addEventListener("click",()=>{
 
+    const preview =
+    document.getElementById("cardPreview");
+
+    preview.style.display="grid";
+
+    preview.innerHTML = `
+
+    <div class="route-card">
+
+        <div class="route-content">
+
+            <div class="route-location">
+
+                ${
+                    document.getElementById("meetingPlace").value
+                }
+
+            </div>
+
+            <h2>
+
+                ${
+                    document.getElementById("routeName").value
+                }
+
+            </h2>
+
+            <div class="route-description">
+
+                ${
+                    document.getElementById("description").value
+                }
+
+            </div>
+
+            <div class="route-info">
+
+                <span>
+                    ${
+                        document.getElementById("startTime").value
+                    } 集合
+                </span>
+
+                <span>
+                    ${
+                        document.getElementById("duration").value
+                    }小时
+                </span>
+
+                <span>
+                    ${
+                        document.getElementById("distance").value
+                    }公里
+                </span>
+
+                <span>
+                    ${
+                        document.getElementById("surface").value
+                    }
+                </span>
+
+                <span>
+                    ↑${
+                        document.getElementById("elevation").value
+                    }米
+                </span>
+
+            </div>
+
+            <a href="#"
+            class="route-button">
+
+                与他们同行 →
+
+            </a>
+
+        </div>
+
+    </div>
+
+    `;
+
+    preview.scrollIntoView({
+        behavior:"smooth"
+    });
+
+});
 });
 </script>
 
