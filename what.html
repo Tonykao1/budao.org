@@ -421,6 +421,32 @@ id="cardPreview"
 style="display:none;">
 </div>
 
+<div
+id="publishToTest"
+style="
+display:none;
+text-align:center;
+margin-top:30px;
+">
+
+<button
+id="sendToTest"
+style="
+padding:14px 28px;
+border:none;
+border-radius:999px;
+background:#111;
+color:white;
+cursor:pointer;
+font-size:14px;
+">
+
+佳音启程 →
+
+</button>
+
+</div>
+
 </main>
 
 <script>
@@ -535,7 +561,16 @@ document
 
     preview.style.display="grid";
 preview.innerHTML = `
+document
+.getElementById("publishToTest")
+.style.display = "block";
+document
+.getElementById("sendToTest")
+.addEventListener("click",()=>{
 
+    alert("下一步发布到 test.html");
+
+});
 <div class="route-card">
 
     <div class="route-content">
