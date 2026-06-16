@@ -1183,3 +1183,18 @@ opacity:.6;
     line-height:2;
 
 }
+#publishToTest{
+
+    margin-top:20px;
+
+    text-align:center;
+}
+
+#sendToTest{
+
+    background:#c89b3c;
+
+    border:none;
+
+    cursor:pointer;
+}
