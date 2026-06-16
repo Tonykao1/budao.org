@@ -562,13 +562,6 @@ document
     preview.style.display="grid";
 preview.innerHTML = `
 
-document
-.getElementById("sendToTest")
-.addEventListener("click",()=>{
-
-    alert("下一步发布到 test.html");
-
-});
 <div class="route-card">
 
     <div class="route-content">
@@ -655,6 +648,13 @@ document
 </div>
 
 `;
+    document
+.getElementById("sendToTest")
+.addEventListener("click",()=>{
+
+    alert("下一步发布到 test.html");
+
+});
     preview.scrollIntoView({
         behavior:"smooth"
 
