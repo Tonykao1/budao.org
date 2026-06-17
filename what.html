@@ -555,7 +555,41 @@ continueToEditor.addEventListener("click",()=>{
 document
 .getElementById("publishBtn")
 .addEventListener("click",()=>{
+const routeData = {
 
+    location:
+    document.getElementById("locationAnswer")
+    .innerText.trim(),
+
+    title:
+    document.getElementById("routeName").value,
+
+    description:
+    document.getElementById("description").value,
+
+    time:
+    document.getElementById("startTime").value,
+
+    duration:
+    document.getElementById("duration").value,
+
+    distance:
+    document.getElementById("distance").value,
+
+    surface:
+    document.getElementById("surface").value,
+
+    elevation:
+    document.getElementById("elevation").value,
+
+    date:
+    document.getElementById("activityDate").value
+
+};
+
+console.log(
+JSON.stringify(routeData,null,2)
+);
     const preview =
     document.getElementById("cardPreviewEditor");
 
