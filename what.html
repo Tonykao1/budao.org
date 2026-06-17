@@ -587,9 +587,17 @@ const routeData = {
 
 };
 
-console.log(
-JSON.stringify(routeData,null,2)
-);
+fetch("/api/publish",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify(routeData)
+})
+.then(r=>r.json())
+.then(data=>{
+  alert("发布成功")
+})
     const preview =
     document.getElementById("cardPreviewEditor");
 
