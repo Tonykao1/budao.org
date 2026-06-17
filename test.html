@@ -702,7 +702,80 @@ function updateAll(){
 setInterval(updateAll,1000);
 
 updateAll();
+fetch("routes.json")
 
+.then(response=>response.json())
+
+.then(routes=>{
+
+    const grid =
+    document.getElementById("routeGrid");
+
+    routes.forEach(route=>{
+
+        grid.innerHTML += `
+
+        <div class="route-card">
+
+            <div class="route-content">
+
+                <div class="route-location">
+
+                    ${route.location}
+
+                </div>
+
+                <h2>
+
+                    ${route.title}
+
+                </h2>
+
+                <div class="route-description">
+
+                    ${route.description}
+
+                </div>
+
+                <div class="route-info">
+
+                    <span>
+                        ${route.time} 集合
+                    </span>
+
+                    <span>
+                        ${route.duration}小时
+                    </span>
+
+                    <span>
+                        ${route.distance}公里
+                    </span>
+
+                    <span>
+                        ${route.surface}
+                    </span>
+
+                    <span>
+                        ↑${route.elevation}米
+                    </span>
+
+                </div>
+
+                <div class="route-timezone">
+
+                    ${route.date}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+});
 </script>
 
 </body>
