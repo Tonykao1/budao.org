@@ -349,7 +349,7 @@ placeholder="集合地点图示">
 发布线路
 </button>
 <div
-id="cardPreview"
+id="cardPreviewEditor"
 class="route-grid"
 style="display:none;">
 </div>
@@ -417,7 +417,7 @@ class="join-button">
 
 
 <div
-id="cardPreview"
+id="cardPreviewPublic"
 style="display:none;">
 </div>
 
@@ -557,7 +557,7 @@ document
 .addEventListener("click",()=>{
 
     const preview =
-    document.getElementById("cardPreview");
+    document.getElementById("cardPreviewEditor");
 
     preview.style.display="grid";
 preview.innerHTML = `
