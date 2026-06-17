@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "location":"北京 · 顺义",
+    "title":"API测试线路",
+    "description":"这是步道发布系统第一次测试。",
+    "time":"09:00",
+    "duration":"3",
+    "distance":"6",
+    "surface":"绿道",
+    "elevation":"30",
+    "date":"2026-06-21"
+  }
+]
