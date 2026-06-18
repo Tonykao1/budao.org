@@ -702,11 +702,6 @@ function updateAll(){
 setInterval(updateAll,1000);
 
 updateAll();
-fetch("routes.json")
-
-.then(response=>response.json())
-
-.then(routes=>{
 
     const grid =
     document.getElementById("routeGrid");
