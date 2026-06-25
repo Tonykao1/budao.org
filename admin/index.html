@@ -1,98 +1,116 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Budao CMS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Night</title>
 
 <style>
 
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+}
+
 body{
 
-    margin:0;
-    background:#f5f2eb;
+    overflow:hidden;
 
-    font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "PingFang SC",
-    sans-serif;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    min-height:100vh;
+    background:
+    radial-gradient(
+        ellipse at center,
+        #131820 0%,
+        #090c12 45%,
+        #030406 100%
+    );
 }
 
-.panel{
+/* 第一层：极远星空 */
 
-    width:420px;
+body::before{
 
-    background:white;
+    content:"";
 
-    border-radius:28px;
+    position:fixed;
 
-    padding:50px;
+    inset:0;
 
-    box-shadow:
-    0 20px 60px rgba(0,0,0,.08);
+    background-image:
 
-    text-align:center;
+    radial-gradient(circle,#ffffff 0.8px,transparent 1px),
+    radial-gradient(circle,#d9d9d9 0.8px,transparent 1px),
+    radial-gradient(circle,#bfbfbf 0.8px,transparent 1px);
 
-}
+    background-size:
+    180px 180px,
+    270px 270px,
+    420px 420px;
 
-h1{
+    background-position:
+    20px 30px,
+    120px 180px,
+    260px 90px;
 
-    font-weight:300;
-
-    letter-spacing:.08em;
-
-    margin-bottom:12px;
-
-}
-
-small{
-
-    color:#999;
-
-    letter-spacing:3px;
+    opacity:.22;
 
 }
 
-.menu{
+/* 第二层：空气 */
 
-    margin-top:45px;
+body::after{
 
-    display:flex;
+    content:"";
 
-    flex-direction:column;
+    position:fixed;
 
-    gap:18px;
+    inset:-10%;
 
-}
+    background:
 
-.menu a{
+    radial-gradient(
+        ellipse at center,
+        rgba(255,236,180,.025),
+        transparent 65%
+    );
 
-    text-decoration:none;
-
-    color:#222;
-
-    border:1px solid #ddd;
-
-    border-radius:999px;
-
-    padding:16px;
-
-    transition:.3s;
+    animation:
+    breathe 18s ease-in-out infinite;
 
 }
 
-.menu a:hover{
+@keyframes breathe{
 
-    background:#111;
+0%{
 
-    color:white;
+transform:scale(1);
+
+opacity:.35;
+
+}
+
+50%{
+
+transform:scale(1.05);
+
+opacity:.55;
+
+}
+
+100%{
+
+transform:scale(1);
+
+opacity:.35;
+
+}
 
 }
 
@@ -101,26 +119,6 @@ small{
 </head>
 
 <body>
-
-<div class="panel">
-
-<small>BUDAO CMS</small>
-
-<h1>步道后台</h1>
-
-<div class="menu">
-
-<a href="publish.html">＋ 新建线路</a>
-
-<a href="routes.html">📚 管理线路</a>
-
-<a href="images.html">🖼 图片管理</a>
-
-<a href="settings.html">⚙ 系统设置</a>
-
-</div>
-
-</div>
 
 </body>
 </html>
