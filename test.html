@@ -342,162 +342,7 @@ body{
 
    <div
 class="route-grid"
-id="routeGrid">
-
-        <!-- 路线1 -->
-
-        <div class="route-card">
-
-            <div class="route-timer">
-
-    <div class="timer-city">
-
-        北京 · UTC+8
-
-    </div>
-
-    <div class="route-countdown"
-    id="countdown1">
-
-        倒计时加载中...
-
-    </div>
-
-</div>
-
-            <div class="route-content">
-
-                <div class="route-location">
-
-                    北京 · 怀柔
-
-                </div>
-
-                <h2>
-
-                    沙峪口书画山环线
-
-                </h2>
-
-                <div class="route-description">
-
-                    有人正在城市边缘，
-                    留下一段慢慢同行的路。
-                    山野之间，
-                    也许会重新听见自己。
-
-                </div>
-
-               <div class="route-info">
-
-    <span>08:30 集合</span>
-
-    <span>3小时</span>
-
-    <span>5.5千米</span>
-
-    <span>土石野路 / 石阶</span>
-
-    <span>↑334米</span>
-
-</div>
-
-                <div class="route-timezone">
-
-                    Asia/Shanghai · UTC+8
-
-                </div>
-
-                <a
-                href="#"
-                class="route-button">
-
-                    与他们同行 →
-
-                </a>
-
-            </div>
-
-        </div>
-
-        <!-- 路线2 -->
-
-        <div class="route-card">
-
-           <div class="route-timer">
-
-    <div class="timer-city">
-
-        Los Angeles · UTC-7
-
-    </div>
-
-    <div class="route-countdown"
-    id="countdown2">
-
-        倒计时加载中...
-
-    </div>
-
-</div>
-
-            <div class="route-content">
-
-                <div class="route-location">
-
-                    Orkland · California
-
-                </div>
-
-                <h2>
-
-                    
-Reinhardt Redwood Regional Park
-
-                </h2>
-
-                <div class="route-description">
-
-                    有人正在另一片大陆，
-                    继续学习彼此陪伴。
-                    清晨与黄昏之间，
-                    也仍有人在同行。
-
-                </div>
-
-                <div class="route-info">
-
-    <span>10:00 集合</span>
-
-    <span>3小时</span>
-
-    <span>1.8-3miles</span>
-
-    <span>土路 / 林间路</span>
-
-    <span>↑180-700feet</span>
-
-</div>
-
-                <div class="route-timezone">
-
-                    America/Los_Angeles · UTC-7
-
-                </div>
-
-                <a
-                href="#"
-                class="route-button">
-
-                    与他们同行 →
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
+id="routeGrid"></div>
 
     <!-- 页脚 -->
 
@@ -545,35 +390,212 @@ function closeImage(){
     .style.display = "none";
 }
 
+let events = [];
+
 /* 路线配置 */
 
-const events = [
+fetch("routes.json")
+    .then(response=>response.json())
+    .then(routes=>{
 
-{
-    id:"countdown1",
+        renderRoutes(routes);
 
-    date:"2026-07-04",
+        events =
+        routes.map((route,index)=>({
+            id:"countdown"+(index+1),
+            date:route.date,
+            time:route.time,
+            duration:parseDuration(route.duration),
+            timezone:route.timezone
+        }));
 
-    time:"08:30",
+        updateAll();
 
-    duration:180,
+        setInterval(updateAll,1000);
+    });
 
-    timezone:"Asia/Shanghai"
-},
+/* 路线渲染 */
 
-{
-    id:"countdown2",
+function renderRoutes(routes){
 
-    date:"2026-07-04",
+    const grid =
+    document.getElementById("routeGrid");
 
-    time:"10:00",
+    grid.innerHTML = "";
 
-    duration:180,
+    routes.forEach((route,index)=>{
 
-    timezone:"America/Los_Angeles"
+        const card =
+        document.createElement("div");
+
+        card.className = "route-card";
+
+        const imageHtml =
+        route.image ?
+        `
+            <div class="route-image">
+                <img src="${escapeAttribute(route.image)}" onclick="openImage(this.src)">
+            </div>
+        ` :
+        "";
+
+        card.innerHTML =
+        `
+            <div class="route-timer">
+
+    <div class="timer-city">
+
+        ${escapeHtml(getTimerCity(route))}
+
+    </div>
+
+    <div class="route-countdown"
+    id="countdown${index+1}">
+
+        倒计时加载中...
+
+    </div>
+
+</div>
+
+            ${imageHtml}
+
+            <div class="route-content">
+
+                <div class="route-location">
+
+                    ${escapeHtml(route.location)}
+
+                </div>
+
+                <h2>
+
+                    ${escapeHtml(route.title)}
+
+                </h2>
+
+                <div class="route-description">
+
+                    ${escapeHtml(route.description).replace(/\n/g,"<br>")}
+
+                </div>
+
+               <div class="route-info">
+
+    <span>${escapeHtml(route.time)} 集合</span>
+
+    <span>${escapeHtml(route.duration)}</span>
+
+    <span>${escapeHtml(route.distance)}</span>
+
+    <span>${escapeHtml(route.surface)}</span>
+
+    <span>${escapeHtml(route.elevation)}</span>
+
+</div>
+
+                <div class="route-timezone">
+
+                    ${escapeHtml(route.timezone)} · ${escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}
+
+                </div>
+
+                <a
+                href="#"
+                class="route-button">
+
+                    与他们同行 →
+
+                </a>
+
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
 }
 
-];
+function escapeHtml(value){
+
+    return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function escapeAttribute(value){
+
+    return escapeHtml(value)
+    .replace(/`/g,"&#096;");
+}
+
+function parseDuration(duration){
+
+    const text =
+    String(duration || "");
+
+    const hourMatch =
+    text.match(/([\d.]+)\s*(小时|hour|hours|h)/i);
+
+    if(hourMatch){
+
+        return Math.round(Number(hourMatch[1]) * 60);
+    }
+
+    const minuteMatch =
+    text.match(/([\d.]+)\s*(分钟|minute|minutes|min|m)/i);
+
+    if(minuteMatch){
+
+        return Math.round(Number(minuteMatch[1]));
+    }
+
+    return 180;
+}
+
+function getTimerCity(route){
+
+    if(route.timezone === "Asia/Shanghai"){
+
+        return "北京 · " + getUtcLabel(route.timezone,route.date,route.time);
+    }
+
+    if(route.timezone === "America/Los_Angeles"){
+
+        return "Los Angeles · " + getUtcLabel(route.timezone,route.date,route.time);
+    }
+
+    return route.location + " · " + getUtcLabel(route.timezone,route.date,route.time);
+}
+
+function getUtcLabel(timezone,date,time){
+
+    const target =
+    new Date(`${date}T${time || "00:00"}:00`);
+
+    const utcDate =
+    new Date(
+        target.toLocaleString(
+            "en-US",
+            {timeZone:"UTC"}
+        )
+    );
+
+    const localDate =
+    new Date(
+        target.toLocaleString(
+            "en-US",
+            {timeZone:timezone}
+        )
+    );
+
+    const offsetHours =
+    Math.round((localDate - utcDate) / (1000 * 60 * 60));
+
+    return "UTC" + (offsetHours >= 0 ? "+" : "") + offsetHours;
+}
 
 /* 获取时间状态 */
 
@@ -633,6 +655,11 @@ function renderCountdown(id,diff){
     const el =
     document.getElementById(id);
 
+    if(!el){
+
+        return;
+    }
+
     const hours =
     Math.floor(diff/(1000*60*60));
 
@@ -656,17 +683,31 @@ function renderCountdown(id,diff){
 
 function renderStarted(id){
 
+    const el =
     document
-    .getElementById(id)
-    .innerHTML =
+    .getElementById(id);
+
+    if(!el){
+
+        return;
+    }
+
+    el.innerHTML =
     "正在同行";
 }
 
 function renderEnded(id){
 
+    const el =
     document
-    .getElementById(id)
-    .innerHTML =
+    .getElementById(id);
+
+    if(!el){
+
+        return;
+    }
+
+    el.innerHTML =
     "已完成此程";
 }
 
@@ -699,9 +740,6 @@ function updateAll(){
 
     });
 }
-    setInterval(updateAll,1000);
-
-updateAll();
 </script>
 
 </body>
