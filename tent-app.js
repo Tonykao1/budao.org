@@ -436,7 +436,8 @@
           return response.json();
         }).then(function (routes) {
           const published = Array.isArray(routes) && routes.some(function (item) {
-            return item.title === route.title &&
+            return item.routeId && item.routeId === route.routeId ||
+              item.title === route.title &&
               item.date === route.date &&
               item.time === route.time;
           });
@@ -596,15 +597,7 @@
   }
 
   function getTimerCity(route) {
-    if (route.timezone === "Asia/Shanghai") {
-      return "北京 · " + getUtcLabel(route.timezone, route.date, route.time);
-    }
-
-    if (route.timezone === "America/Los_Angeles") {
-      return "Los Angeles · " + getUtcLabel(route.timezone, route.date, route.time);
-    }
-
-    return route.location + " · " + getUtcLabel(route.timezone, route.date, route.time);
+    return route.location || getUtcLabel(route.timezone, route.date, route.time);
   }
 
   function getUtcLabel(timezone, date, time) {
