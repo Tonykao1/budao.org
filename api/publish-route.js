@@ -38,9 +38,10 @@ module.exports = async function handler(request, response) {
 
   try {
     const current = await readRoutesFile();
-    const routes = current.routes;
+    const routeToSave = normalizeRoute(route);
+    const routes = current.routes.filter((item) => routeIdentity(item) !== routeToSave.routeId);
 
-    routes.unshift(normalizeRoute(route));
+    routes.unshift(routeToSave);
 
     const content = JSON.stringify(routes, null, 2) + "\n";
     const commit = await writeRoutesFile({
@@ -151,7 +152,8 @@ function contentsUrl() {
 }
 
 function normalizeRoute(route) {
-  return {
+  const normalized = {
+    routeId: route.routeId || "",
     location: route.location || "",
     title: route.title || "",
     description: route.description || "",
@@ -161,9 +163,47 @@ function normalizeRoute(route) {
     surface: route.surface || "",
     elevation: route.elevation || "",
     timezone: route.timezone || "Asia/Shanghai",
-    date: route.date || "",
+    date: normalizeDate(route.date || ""),
     image: route.image || ""
   };
+
+  normalized.routeId = normalized.routeId || routeIdentity(normalized);
+  return normalized;
+}
+
+function routeIdentity(route) {
+  const source = [
+    route.routeId,
+    normalizeDate(route.date),
+    route.time,
+    route.title,
+    route.location
+  ].filter(Boolean).join("-");
+
+  return slugify(source || route.title || "route");
+}
+
+function slugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "route";
+}
+
+function normalizeDate(date) {
+  const value = String(date || "");
+  const match = value.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+
+  if (match) {
+    return [
+      match[1],
+      match[2].padStart(2, "0"),
+      match[3].padStart(2, "0")
+    ].join("-");
+  }
+
+  return value;
 }
 
 function knownError(reason, status) {
