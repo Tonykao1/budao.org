@@ -1,5 +1,18 @@
 [
   {
+    "location": "伊宁市车站",
+    "title": "夏塔古道",
+    "description": "步道超级行军",
+    "time": "7:00",
+    "duration": "42小时",
+    "distance": "27千米",
+    "surface": "土石野路",
+    "elevation": "3210米",
+    "timezone": "Asia/Shanghai",
+    "date": "2026年8月17日",
+    "image": "images.jpeg"
+  },
+  {
     "location": "北京 · 怀柔",
     "title": "沙峪口书画山环线",
     "description": "有人正在城市边缘，\n留下一段慢慢同行的路。\n山野之间，\n也许会重新听见自己。",
