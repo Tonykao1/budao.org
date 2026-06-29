@@ -227,30 +227,35 @@
 
   routeForm.addEventListener("submit", function (event) {
     event.preventDefault();
-    const trail = buildTrailRecord(routeForm);
-    activeTrail = trail;
-    const trails = readSavedTrails();
-    const existingIndex = trails.findIndex(function (item) {
-      return item.id === trail.id;
+    routeMessage.textContent = "";
+
+    buildTrailRecord(routeForm).then(function (trail) {
+      activeTrail = trail;
+      const trails = readSavedTrails();
+      const existingIndex = trails.findIndex(function (item) {
+        return item.id === trail.id;
+      });
+
+      if (existingIndex >= 0) {
+        trails[existingIndex] = trail;
+      } else {
+        trails.unshift(trail);
+      }
+
+      window.localStorage.setItem(trailStorageKey, JSON.stringify(trails));
+      routeMessage.textContent = "这条步道已经暂时安放。";
+      publishWhisper.textContent = "这条步道已经暂时安放。";
+      presence.classList.add("saved-resting");
+      presence.classList.remove("review-open", "review-closing", "publish-transition", "publish-finished");
+      renderRoutePreview(trail);
+
+      window.setTimeout(function () {
+        presence.classList.remove("saved-resting");
+        presence.classList.add("review-open");
+      }, reduceMotion ? 1 : 1000);
+    }).catch(function () {
+      routeMessage.textContent = "图片暂时无法安放。";
     });
-
-    if (existingIndex >= 0) {
-      trails[existingIndex] = trail;
-    } else {
-      trails.unshift(trail);
-    }
-
-    window.localStorage.setItem(trailStorageKey, JSON.stringify(trails));
-    routeMessage.textContent = "这条步道已经暂时安放。";
-    publishWhisper.textContent = "这条步道已经暂时安放。";
-    presence.classList.add("saved-resting");
-    presence.classList.remove("review-open", "review-closing", "publish-transition", "publish-finished");
-    renderRoutePreview(trail);
-
-    window.setTimeout(function () {
-      presence.classList.remove("saved-resting");
-      presence.classList.add("review-open");
-    }, reduceMotion ? 1 : 1000);
   });
 
   returnEditButton.addEventListener("click", function () {
@@ -314,10 +319,27 @@
     }
   }
 
-  function imageNames() {
-    return Array.from(routeImages.files || []).map(function (file) {
-      return file.name;
-    });
+  function imageFiles() {
+    return Array.from(routeImages.files || []);
+  }
+
+  function readImageDataUrls() {
+    return Promise.all(imageFiles().map(function (file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+
+        reader.addEventListener("load", function () {
+          resolve({
+            name: file.name,
+            type: file.type,
+            dataUrl: reader.result
+          });
+        });
+
+        reader.addEventListener("error", reject);
+        reader.readAsDataURL(file);
+      });
+    }));
   }
 
   function firstImagePreview() {
@@ -343,56 +365,63 @@
     const difficulty = valueOf(form, "difficulty");
     const distance = valueOf(form, "distance");
     const elevationGain = valueOf(form, "elevationGain");
+    const routeLocation = valueOf(form, "routeLocation");
+    const timezone = valueOf(form, "timezone") || "Asia/Shanghai";
     const surfaceDescription = valueOf(form, "surfaceDescription");
     const duration = valueOf(form, "duration");
     const participantRequirements = valueOf(form, "participantRequirements");
     const itinerary = valueOf(form, "itinerary");
     const meetingPlace = valueOf(form, "meetingPlace");
-    const routeId = slugify([normalizedTrailDate, meetingTime, routeName, meetingPlace].filter(Boolean).join("-"));
+    const location = routeLocation || meetingPlace;
+    const routeId = slugify([normalizedTrailDate, meetingTime, routeName, location].filter(Boolean).join("-"));
 
-    return {
-      id: routeId,
-      routeId,
-      status: "draft",
-      updatedAt: new Date().toISOString(),
-      source: {
-        routeName,
-        trailDate: normalizedTrailDate || trailDate,
-        meetingTime,
-        difficulty,
-        distance,
-        elevationGain,
-        surfaceDescription,
-        duration,
-        participantRequirements,
-        itinerary,
-        meetingPlace,
-        images: imageNames()
-      },
-      testPage: {
-        countdown: {
-          date: trailDate,
-          time: meetingTime,
-          durationText: duration,
-          timezone: "Asia/Shanghai"
+    return readImageDataUrls().then(function (images) {
+      return {
+        id: routeId,
+        routeId,
+        status: "draft",
+        updatedAt: new Date().toISOString(),
+        source: {
+          routeName,
+          trailDate: normalizedTrailDate || trailDate,
+          meetingTime,
+          difficulty,
+          distance,
+          elevationGain,
+          routeLocation: location,
+          timezone,
+          surfaceDescription,
+          duration,
+          participantRequirements,
+          itinerary,
+          meetingPlace,
+          images
         },
-        card: {
-          location: meetingPlace,
-          title: routeName,
-          description: itinerary,
-          info: [
-            meetingTime ? meetingTime + " 集合" : "",
-            duration,
-            distance,
-            surfaceDescription,
-            elevationGain,
-            difficulty ? "难度 " + difficulty : "",
-            participantRequirements
-          ].filter(Boolean),
-          images: imageNames()
+        testPage: {
+          countdown: {
+            date: normalizedTrailDate || trailDate,
+            time: meetingTime,
+            durationText: duration,
+            timezone
+          },
+          card: {
+            location,
+            title: routeName,
+            description: itinerary,
+            info: [
+              meetingTime ? meetingTime + " 集合" : "",
+              duration,
+              distance,
+              surfaceDescription,
+              elevationGain,
+              difficulty ? "难度 " + difficulty : "",
+              participantRequirements
+            ].filter(Boolean),
+            images
+          }
         }
-      }
-    };
+      };
+    });
   }
 
   function publishTrail(trail) {
@@ -416,7 +445,11 @@
       }
 
       return response.json();
-    }).then(function () {
+    }).then(function (result) {
+      if (result && result.shareImageUrl) {
+        window.localStorage.setItem("budao.tent.lastShareImageUrl", result.shareImageUrl);
+      }
+
       return waitForPublishedRoute(route);
     });
   }
@@ -478,7 +511,7 @@
     const source = trail.source;
 
     return {
-      location: source.meetingPlace,
+      location: source.routeLocation || source.meetingPlace,
       title: source.routeName,
       routeId: trail.routeId || trail.id,
       description: source.itinerary,
@@ -487,9 +520,10 @@
       distance: source.distance,
       surface: source.surfaceDescription,
       elevation: source.elevationGain,
-      timezone: "Asia/Shanghai",
+      timezone: source.timezone || "Asia/Shanghai",
       date: source.trailDate,
-      image: source.images[0] || ""
+      image: source.images[0] && source.images[0].dataUrl ? source.images[0].dataUrl : "",
+      imageAlt: source.images[0] && source.images[0].name ? source.images[0].name : ""
     };
   }
 
@@ -506,11 +540,11 @@
   }
 
   function routeCardHtml(route, image) {
-    const imageHtml = image ? [
+    const imageHtml = [
       '<div class="route-image">',
-      '<img src="' + escapeAttribute(image) + '">',
+      image ? '<img src="' + escapeAttribute(image) + '" alt="' + escapeAttribute(route.imageAlt || route.title) + '">' : '<span class="route-image-placeholder"></span>',
       '</div>'
-    ].join("") : "";
+    ].join("");
 
     return [
       '<div class="route-timer">',
