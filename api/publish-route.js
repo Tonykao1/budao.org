@@ -39,6 +39,21 @@ module.exports = async function handler(request, response) {
   try {
     const current = await readRoutesFile();
     const routeToSave = normalizeRoute(route);
+    const existing = current.routes.find((item) => routeIdentity(item) === routeToSave.routeId);
+    const share = sharePayload(routeToSave);
+
+    if (existing && sameRoute(normalizeRoute(existing), routeToSave)) {
+      sendJson(response, 200, {
+        ok: true,
+        idempotent: true,
+        route: routeToSave,
+        shareImageUrl: share.shareImageUrl,
+        emailShare: share.emailShare,
+        commit: null
+      });
+      return;
+    }
+
     const routes = current.routes.filter((item) => routeIdentity(item) !== routeToSave.routeId);
 
     routes.unshift(routeToSave);
@@ -52,6 +67,10 @@ module.exports = async function handler(request, response) {
 
     sendJson(response, 200, {
       ok: true,
+      idempotent: false,
+      route: routeToSave,
+      shareImageUrl: share.shareImageUrl,
+      emailShare: share.emailShare,
       commit: commit.commit && commit.commit.sha ? commit.commit.sha : null
     });
   } catch (error) {
@@ -164,11 +183,44 @@ function normalizeRoute(route) {
     elevation: route.elevation || "",
     timezone: route.timezone || "Asia/Shanghai",
     date: normalizeDate(route.date || ""),
-    image: route.image || ""
+    image: validImage(route.image) ? route.image : "",
+    imageAlt: route.imageAlt || route.title || ""
   };
 
   normalized.routeId = normalized.routeId || routeIdentity(normalized);
+  normalized.location = normalized.location || route.locationName || "";
   return normalized;
+}
+
+function validImage(image) {
+  const value = String(image || "");
+
+  return value === "" ||
+    value.indexOf("data:image/") === 0 ||
+    value.indexOf("https://") === 0 ||
+    value.indexOf("/") === 0 ||
+    !/^[a-z]+:/i.test(value);
+}
+
+function sameRoute(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function sharePayload(route) {
+  const encodedRouteId = encodeURIComponent(route.routeId);
+  const baseUrl = process.env.BUDAO_PUBLIC_URL || "https://budao.org";
+  const shareImageUrl = baseUrl.replace(/\/$/, "") + "/api/share-route?routeId=" + encodedRouteId;
+
+  return {
+    shareImageUrl,
+    emailShare: {
+      enabled: false,
+      to: [],
+      subject: "Budao 同行 · " + route.title,
+      routeId: route.routeId,
+      shareImageUrl
+    }
+  };
 }
 
 function routeIdentity(route) {
