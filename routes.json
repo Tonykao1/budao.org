@@ -1,6 +1,7 @@
 [
   {
-    "location": "伊宁市车站",
+    "routeId": "2026-08-17-7-00-夏塔古道-中国-新疆-伊犁",
+    "location": "中国 · 新疆 · 伊犁",
     "title": "夏塔古道",
     "description": "步道超级行军",
     "time": "7:00",
@@ -9,46 +10,7 @@
     "surface": "土石野路",
     "elevation": "3210米",
     "timezone": "Asia/Shanghai",
-    "date": "2026年8月17日",
+    "date": "2026-08-17",
     "image": "images.jpeg"
-  },
-  {
-    "location": "伊宁市车站",
-    "title": "夏塔古道",
-    "description": "步道超级行军",
-    "time": "7:00",
-    "duration": "42小时",
-    "distance": "27千米",
-    "surface": "土石野路",
-    "elevation": "3210米",
-    "timezone": "Asia/Shanghai",
-    "date": "2026年8月17日",
-    "image": "images.jpeg"
-  },
-  {
-    "location": "北京 · 怀柔",
-    "title": "沙峪口书画山环线",
-    "description": "有人正在城市边缘，\n留下一段慢慢同行的路。\n山野之间，\n也许会重新听见自己。",
-    "time": "08:30",
-    "duration": "3小时",
-    "distance": "5.5千米",
-    "surface": "土石野路 / 石阶",
-    "elevation": "↑334米",
-    "timezone": "Asia/Shanghai",
-    "date": "2026-06-27",
-    "image": ""
-  },
-  {
-    "location": "Orkland · California",
-    "title": "Reinhardt Redwood Regional Park",
-    "description": "有人正在另一片大陆，\n继续学习彼此陪伴。\n清晨与黄昏之间，\n也仍有人在同行。",
-    "time": "10:00",
-    "duration": "3小时",
-    "distance": "1.8-3miles",
-    "surface": "土路 / 林间路",
-    "elevation": "↑180-700feet",
-    "timezone": "America/Los_Angeles",
-    "date": "2026-07-04",
-    "image": ""
   }
 ]
