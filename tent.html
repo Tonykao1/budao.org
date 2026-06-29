@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="zh-Hans"> <head> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1"> <title>Tent - Budao</title> <style>:root{color-scheme:dark;--night-deep:#030713;--night-still:#07101f;--night-blue:#0d1830;--ember-low:rgba(169,112,68,0.1);--breath:22s;}*{box-sizing:border-box;}html,body{width:100%;min-height:100%;margin:0;overflow:hidden;background:var(--night-deep);}body{font-family:"Songti SC","Noto Serif CJK SC",ui-serif,Georgia,"Times New Roman",serif;}.presence{position:fixed;inset:0;min-height:100svh;overflow:hidden;background:radial-gradient(circle at 48% 46%,rgba(50,71,112,0.13),transparent 31%),radial-gradient(circle at 18% 78%,rgba(130,79,46,0.08),transparent 28%),radial-gradient(circle at 74% 22%,rgba(64,87,135,0.12),transparent 34%),linear-gradient(180deg,#050a17 0%,#07101f 45%,#030713 100%);}.presence::before{content:"";position:absolute;inset:-8%;pointer-events:none;background:radial-gradient(ellipse at 50% 53%,transparent 0%,transparent 38%,rgba(0,0,0,0.22) 77%),linear-gradient(115deg,rgba(255,247,220,0.018),transparent 26%,rgba(89,118,174,0.028),transparent 64%);animation:breathing-field var(--breath) ease-in-out infinite;}.presence::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0.014) 1px,transparent 1px),linear-gradient(180deg,rgba(255,255,255,0.01) 1px,transparent 1px);background-size:17vw 19vh;opacity:0.04;mask-image:radial-gradient(circle at 50% 45%,black,transparent 72%);}.world{position:absolute;inset:0;transform-origin:50% 57%;transition:transform 1800ms cubic-bezier(0.18,0.74,0.2,1),opacity 900ms ease;}.presence.entering .world{transform:scale(1.32) translateY(2.5vh);}.presence.inside-open .world{opacity:0.18;transform:scale(1.72) translateY(5vh);}.night{position:absolute;inset:0;overflow:hidden;isolation:isolate;}.air{position:absolute;inset:auto;width:82vmax;height:82vmax;border-radius:50%;pointer-events:none;filter:blur(34px);opacity:0.18;mix-blend-mode:screen;}.air-one{left:-31vmax;bottom:-47vmax;background:radial-gradient(circle,rgba(177,119,72,0.18),transparent 59%);animation:air-drift-one 38s ease-in-out infinite;}.air-two{top:-42vmax;right:-26vmax;background:radial-gradient(circle,rgba(86,118,183,0.18),transparent 61%);animation:air-drift-two 46s ease-in-out infinite;}.horizon{position:absolute;left:-10%;right:-10%;bottom:-19%;height:38%;pointer-events:none;background:radial-gradient(ellipse at 50% 100%,rgba(0,0,0,0.58),transparent 57%),radial-gradient(ellipse at 28% 100%,rgba(141,87,47,0.08),transparent 34%),radial-gradient(ellipse at 70% 100%,rgba(36,55,91,0.11),transparent 39%);filter:blur(16px);opacity:0.75;}.stars{position:absolute;inset:0;z-index:2;transform:translateZ(0);animation:sky-breath 31s ease-in-out infinite;}.threshold{position:absolute;left:50%;top:54%;z-index:4;display:flex;width:min(72vw,560px);flex-direction:column;align-items:center;transform:translate(-50%,-50%);transition:opacity 850ms ease,filter 850ms ease;}.presence.inside-open .threshold{opacity:0;filter:blur(8px);pointer-events:none;}.presence.saved-resting .world,.presence.review-open .world,.presence.review-closing .world,.presence.publish-transition .world,.presence.publish-finished .world{opacity:0.32;}.presence.saved-resting .threshold,.presence.review-open .threshold,.presence.review-closing .threshold,.presence.publish-transition .threshold,.presence.publish-finished .threshold{opacity:0.24;filter:blur(1.5px);pointer-events:none;}.tent-button{position:relative;display:grid;width:min(58vw,430px);aspect-ratio:1.4;margin:0;padding:0;place-items:center;appearance:none;background:transparent;border:0;color:inherit;cursor:pointer;}.tent-button:focus-visible{outline:1px solid rgba(232,225,209,0.32);outline-offset:18px;}.inner-light{position:absolute;left:50%;top:57%;width:15%;height:28%;border-radius:50% 50% 46% 46%;background:radial-gradient(ellipse at 50% 56%,rgba(248,233,195,0.36),rgba(215,173,108,0.11) 44%,transparent 69%);filter:blur(10px);opacity:0.42;transform:translate(-50%,-50%);animation:tent-light 8.2s ease-in-out infinite;}.tent-button:hover .inner-light,.tent-button:focus-visible .inner-light{opacity:0.58;}.presence.entering .inner-light{opacity:0.72;transition:opacity 400ms ease;}.tent{position:relative;z-index:2;width:100%;height:100%;overflow:visible;}.tent path{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;}.ground-line{stroke:rgba(205,198,184,0.19);stroke-width:1;}.rear-line{stroke:rgba(219,211,194,0.34);stroke-width:1.15;}.front-line{stroke:rgba(232,225,208,0.48);stroke-width:1.4;}.ridge-line,.seam-line,.cloth-line{stroke:rgba(214,205,187,0.24);stroke-width:0.9;}.side-thread{stroke:rgba(199,188,168,0.2);stroke-width:0.8;}.door{fill:rgba(10,13,20,0.31);stroke:rgba(225,216,196,0.28);stroke-width:0.95;transform-box:fill-box;transition:transform 820ms cubic-bezier(0.22,0.65,0.17,1),opacity 820ms ease;}.door-left{transform-origin:100% 76%;}.door-right{transform-origin:0% 76%;}.presence.entering .door-left{transform:rotate(-10deg) translateX(-7px) translateY(4px);}.presence.entering .door-right{transform:rotate(9deg) translateX(7px) translateY(4px);}.question{margin:clamp(28px,5vh,56px) 0 0;color:rgba(226,224,215,0.68);font-size:clamp(17px,2.2vw,24px);font-weight:200;line-height:2.2;letter-spacing:0.18em;text-align:center;}.inside{position:absolute;inset:0;z-index:5;display:grid;place-items:center;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 56%,rgba(205,165,104,0.11),transparent 31%),radial-gradient(ellipse at 50% 100%,rgba(5,5,8,0.72),transparent 62%),linear-gradient(180deg,rgba(4,8,17,0.36),rgba(6,8,12,0.93));transition:opacity 980ms ease;}.presence.inside-open .inside{pointer-events:auto;opacity:1;}.entry-form{grid-area:1 / 1;display:flex;width:min(70vw,360px);flex-direction:column;gap:28px;opacity:0;transform:translateY(16px);transition:opacity 900ms ease 420ms,transform 900ms ease 420ms;}.presence.inside-open .entry-form{opacity:1;transform:translateY(0);}.presence.route-open .entry-form{opacity:0;transform:translateY(-18px);pointer-events:none;transition-delay:0ms;}.entry-form label,.line-field{display:flex;flex-direction:column;gap:9px;color:rgba(226,220,205,0.53);font-family:ui-serif,Georgia,"Times New Roman",serif;font-size:12px;font-weight:300;letter-spacing:0.16em;}.entry-form input,.line-field input,.line-field textarea{width:100%;padding:0;border:0;border-bottom:1px solid rgba(220,210,187,0.35);border-radius:0;outline:0;background:transparent;color:rgba(238,232,217,0.78);font:300 16px/1.6 ui-serif,Georgia,"Times New Roman",serif;letter-spacing:0.03em;}.entry-form input,.line-field input{height:38px;}.line-field textarea{min-height:116px;resize:vertical;}.entry-form input:focus,.line-field input:focus,.line-field textarea:focus{border-bottom-color:rgba(236,224,197,0.62);}.entry-form button,.quiet-submit{align-self:center;margin-top:14px;padding:0;border:0;background:transparent;color:rgba(232,225,211,0.66);cursor:pointer;font:200 15px/1 "Songti SC","Noto Serif CJK SC",ui-serif,serif;letter-spacing:0.24em;}.entry-form button:focus-visible,.entry-form button:hover,.quiet-submit:focus-visible,.quiet-submit:hover{color:rgba(242,234,217,0.9);outline:0;}.route-room{grid-area:1 / 1;width:min(84vw,880px);max-height:min(82svh,720px);opacity:0;overflow:auto;pointer-events:none;transform:translateY(18px);scrollbar-width:thin;scrollbar-color:rgba(220,210,187,0.28) transparent;transition:opacity 900ms ease 260ms,transform 900ms ease 260ms;}.presence.route-open .route-room{opacity:1;pointer-events:auto;transform:translateY(0);}.route-form{display:flex;flex-direction:column;gap:clamp(30px,5vh,46px);padding:2px;}.route-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px clamp(34px,5vw,64px);}.line-field.wide{grid-column:1 / -1;}.image-offering{display:grid;grid-template-columns:minmax(180px,260px) 1fr;align-items:end;gap:20px clamp(30px,6vw,72px);}.image-line{position:relative;display:flex;min-height:40px;align-items:end;border-bottom:1px solid rgba(220,210,187,0.35);color:rgba(226,220,205,0.53);cursor:pointer;font-size:12px;font-weight:300;letter-spacing:0.16em;}.image-line input{position:absolute;inset:0;opacity:0;cursor:pointer;}.image-line:focus-within{border-bottom-color:rgba(236,224,197,0.62);}.image-note,.route-message{margin:0;color:rgba(225,219,206,0.48);font-size:13px;font-weight:200;line-height:1.8;letter-spacing:0.08em;}.route-message{min-height:24px;text-align:center;opacity:0;transform:translateY(8px);transition:opacity 800ms ease,transform 800ms ease;}.presence.saved-resting .route-message,.presence.review-open .route-message{opacity:1;transform:translateY(0);}.quiet-submit{margin-top:0;}.presence.review-open .route-room,.presence.publish-transition .route-room,.presence.publish-finished .route-room{opacity:0;pointer-events:none;transform:translateY(-14px);transition-delay:0ms;}.presence.publish-transition .inside,.presence.publish-finished .inside{background:radial-gradient(ellipse at 50% 56%,rgba(225,195,144,0.14),transparent 31%),radial-gradient(ellipse at 50% 100%,rgba(5,5,8,0.76),transparent 62%),linear-gradient(180deg,rgba(4,8,17,0.46),rgba(6,8,12,0.95));}.presence.publish-transition .inner-light{opacity:0.86;}.publish-stage{grid-area:1 / 1;position:relative;display:grid;width:min(86vw,760px);max-height:min(86svh,760px);place-items:center;pointer-events:none;}.publish-whisper{position:absolute;left:50%;top:50%;z-index:2;width:min(78vw,560px);margin:0;color:rgba(232,225,211,0.68);font-size:clamp(15px,2vw,19px);font-weight:200;line-height:2;letter-spacing:0.12em;text-align:center;opacity:0;transform:translate(-50%,-50%) translateY(10px);transition:opacity 800ms ease,transform 800ms ease;}.presence.saved-resting .publish-whisper,.presence.publish-transition .publish-whisper,.presence.publish-finished .publish-whisper{opacity:1;transform:translate(-50%,-50%) translateY(0);}.presence.review-open .publish-whisper,.presence.review-closing .publish-whisper{opacity:0;transform:translate(-50%,-50%) translateY(-8px);}.publish-card-wrap{width:min(84vw,560px);opacity:0;transform:translateY(76px) scale(0.98);transition:opacity 1050ms ease,transform 1050ms cubic-bezier(0.16,0.72,0.18,1);}.presence.review-open .publish-card-wrap{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}.presence.review-closing .publish-card-wrap{opacity:0;transform:translateY(64px) scale(0.98);transition-duration:600ms;}.presence.publish-transition .publish-card-wrap,.presence.publish-finished .publish-card-wrap{opacity:0;transform:translateY(22px) scale(0.99);pointer-events:none;}.route-preview{width:100%;}.route-card{background:white;border-radius:30px;overflow:hidden;transition:0.4s;box-shadow:0 12px 40px rgba(0,0,0,0.05);}.route-card:hover{transform:translateY(-5px);box-shadow:0 24px 70px rgba(0,0,0,0.08);}.route-image{position:relative;}.route-image img{width:100%;height:220px;object-fit:cover;display:block;}.route-timer{padding:22px 34px 0;color:#8d8579;}.timer-city{margin-bottom:10px;font-size:11px;letter-spacing:3px;}.route-countdown{font-size:15px;letter-spacing:2px;}.route-content{padding:34px;}.route-location{margin-bottom:18px;color:#a49b90;font-size:11px;letter-spacing:4px;}.route-content h2{margin:0 0 20px;color:#17140f;font-size:32px;font-weight:300;letter-spacing:0;}.route-description{margin-bottom:28px;color:#5f5b55;font-size:15px;line-height:2;}.route-info{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;}.route-info span{padding:10px 14px;border-radius:999px;background:#f4f1eb;color:#666;font-size:13px;}.route-timezone{margin-bottom:26px;color:#999;font-size:13px;letter-spacing:1px;}.route-button{display:inline-block;padding:12px 22px;border-radius:999px;background:#111;color:white;font-size:13px;letter-spacing:2px;text-decoration:none;transition:0.3s;}.route-button:hover{opacity:0.75;}.publish-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:min(9vw,76px);margin-top:34px;}.publish-actions button,.view-published{border:0;background:transparent;color:rgba(232,225,211,0.64);cursor:pointer;font:200 15px/1 "Songti SC","Noto Serif CJK SC",ui-serif,serif;letter-spacing:0.18em;}.publish-actions button:hover,.publish-actions button:focus-visible,.view-published:hover,.view-published:focus-visible{color:rgba(242,234,217,0.9);outline:0;}.view-published{position:absolute;left:50%;top:calc(50% + 72px);opacity:0;pointer-events:none;transform:translateX(-50%) translateY(18px);transition:opacity 900ms ease 900ms,transform 900ms ease 900ms;}.presence.publish-finished .view-published{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}.presence.publish-transition .publish-actions{pointer-events:none;}.star{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;opacity:var(--o);background:rgb(var(--r),var(--g),var(--b));box-shadow:0 0 calc(var(--s) * 2.4) rgba(var(--r),var(--g),var(--b),var(--glow)),0 0 calc(var(--s) * 7) rgba(var(--r),var(--g),var(--b),calc(var(--glow) * 0.36));transform:translate(-50%,-50%) scale(var(--scale));animation-name:star-pulse,star-drift;animation-duration:var(--d),var(--move);animation-delay:var(--delay),var(--move-delay);animation-timing-function:ease-in-out,ease-in-out;animation-iteration-count:infinite,infinite;animation-direction:alternate,alternate;will-change:opacity,transform;}.star::after{content:"";position:absolute;inset:-160%;border-radius:inherit;background:radial-gradient(circle,rgba(var(--r),var(--g),var(--b),0.16),transparent 63%);opacity:var(--halo);}.star.quiet{filter:blur(0.18px);}.star.near{filter:blur(0);}.star.far{filter:blur(0.36px);}@keyframes star-pulse{0%{opacity:calc(var(--o) * 0.58);}43%{opacity:calc(var(--o) * 0.9);}100%{opacity:calc(var(--o) * 1.2);}}@keyframes star-drift{from{transform:translate(-50%,-50%) translate3d(calc(var(--dx) * -1),calc(var(--dy) * -1),0) scale(calc(var(--scale) * 0.94));}to{transform:translate(-50%,-50%) translate3d(var(--dx),var(--dy),0) scale(calc(var(--scale) * 1.06));}}@keyframes sky-breath{0%,100%{opacity:0.88;transform:scale(1);}50%{opacity:1;transform:scale(1.006);}}@keyframes breathing-field{0%,100%{opacity:0.72;transform:scale(1) rotate(0deg);}50%{opacity:1;transform:scale(1.025) rotate(0.3deg);}}@keyframes air-drift-one{0%,100%{transform:translate3d(0,0,0) scale(1);opacity:0.13;}50%{transform:translate3d(5vmax,-4vmax,0) scale(1.12);opacity:0.22;}}@keyframes air-drift-two{0%,100%{transform:translate3d(0,0,0) scale(1);opacity:0.12;}50%{transform:translate3d(-4vmax,6vmax,0) scale(1.08);opacity:0.21;}}@keyframes tent-light{0%,100%{opacity:0.35;transform:translate(-50%,-50%) scale(0.95);}50%{opacity:0.5;transform:translate(-50%,-50%) scale(1.06);}}@media (max-width:620px){.threshold{top:52%;width:88vw;}.tent-button{width:82vw;}.question{font-size:17px;letter-spacing:0.12em;}.route-room{width:84vw;max-height:78svh;}.route-fields,.image-offering{grid-template-columns:1fr;}}@media (prefers-reduced-motion:reduce){.presence::before,.air,.stars,.star,.inner-light{animation-duration:1ms;animation-iteration-count:1;}.world,.threshold,.door,.inside,.entry-form,.route-room{transition-duration:1ms;}}</style> </head> <body> <main class="presence" aria-label="Tent"> <div class="world"> <div class="night" aria-hidden="true"> <div class="air air-one"></div> <div class="air air-two"></div> <div class="horizon"></div> <div id="stars" class="stars"></div> </div> <section class="threshold" aria-label="进入帐篷前的安静"> <button class="tent-button" type="button" aria-label="进入帐篷"> <span class="inner-light" aria-hidden="true"></span> <svg class="tent" viewBox="0 0 420 300" role="img" aria-label="帐篷"> <path class="ground-line" d="M65 247 C118 237 161 241 203 244 C260 248 310 249 358 238"></path> <path class="rear-line" d="M91 237 C126 169 153 110 207 45 C250 100 287 166 333 237"></path> <path class="front-line" d="M132 237 C158 161 178 105 207 45 C235 106 257 164 288 237"></path> <path class="ridge-line" d="M207 45 C205 103 205 170 205 238"></path> <path class="cloth-line cloth-left" d="M205 68 C184 119 168 175 151 236"></path> <path class="cloth-line cloth-right" d="M207 68 C229 124 248 177 269 236"></path> <path class="door door-left" d="M204 92 C187 138 174 187 162 237 C178 227 193 219 205 205 C205 164 205 126 204 92"></path> <path class="door door-right" d="M208 92 C225 139 239 188 252 237 C235 227 220 219 206 205 C206 164 207 126 208 92"></path> <path class="seam-line" d="M205 88 C205 128 205 166 205 207"></path> <path class="side-thread thread-left" d="M132 237 C120 249 105 257 85 263"></path> <path class="side-thread thread-right" d="M288 237 C301 248 320 254 341 256"></path> </svg> </button> <p class="question">这次，<br>你想让祂带我们去哪里？</p> </section> </div> <section class="inside" aria-label="帐篷内部"> <form class="entry-form"> <label> <span>Email</span> <input type="email" autocomplete="email"> </label> <label> <span>Password</span> <input type="password" autocomplete="current-password"> </label> <button type="submit">进入帐篷</button> </form> <section class="route-room" aria-label="填写路线"> <form class="route-form"> <div class="route-fields"> <label class="line-field"> <span>路线名称</span> <input name="routeName" type="text" autocomplete="off"> </label> <label class="line-field"> <span>步道日期</span> <input name="trailDate" type="text" autocomplete="off"> </label> <label class="line-field"> <span>集合时间</span> <input name="meetingTime" type="text" autocomplete="off"> </label> <label class="line-field"> <span>线路难度</span> <input name="difficulty" type="text" autocomplete="off"> </label> <label class="line-field"> <span>总里程</span> <input name="distance" type="text" autocomplete="off"> </label> <label class="line-field"> <span>累计爬升</span> <input name="elevationGain" type="text" autocomplete="off"> </label> <label class="line-field"> <span>预计耗时</span> <input name="duration" type="text" autocomplete="off"> </label> <label class="line-field"> <span>集合地点</span> <input name="meetingPlace" type="text" autocomplete="off"> </label> <label class="line-field wide"> <span>路面描述</span> <textarea name="surfaceDescription" rows="3"></textarea> </label> <label class="line-field wide"> <span>参与者要求</span> <textarea name="participantRequirements" rows="3"></textarea> </label> <label class="line-field wide"> <span>行程说明</span> <textarea name="itinerary" rows="5"></textarea> </label> </div> <div class="image-offering"> <label class="image-line"> <span>上传图片</span> <input id="routeImages" name="routeImages" type="file" accept="image/*" multiple> </label> <p class="image-note" aria-live="polite">还没有选择图片</p> </div> <button class="quiet-submit" type="submit">保存步道</button> <p class="route-message" aria-live="polite"></p> </form> </section> <section class="publish-stage" aria-label="发布同行"> <p class="publish-whisper" aria-live="polite"></p> <div class="publish-card-wrap"> <div id="routePreview" class="route-preview"></div> <div class="publish-actions"> <button class="return-edit" type="button">继续修改</button> <button class="send-trail" type="button">发布同行</button> </div> </div> <button class="view-published" type="button">看看他们现在看到什么</button> </section> </section> </main> <script>(function () {
+const presence = document.querySelector(".presence");
+const tentButton = document.querySelector(".tent-button");
+const entryForm = document.querySelector(".entry-form");
+const routeForm = document.querySelector(".route-form");
+const routeImages = document.getElementById("routeImages");
+const imageNote = document.querySelector(".image-note");
+const routeMessage = document.querySelector(".route-message");
+const publishWhisper = document.querySelector(".publish-whisper");
+const routePreview = document.getElementById("routePreview");
+const returnEditButton = document.querySelector(".return-edit");
+const sendTrailButton = document.querySelector(".send-trail");
+const viewPublishedButton = document.querySelector(".view-published");
+const field = document.getElementById("stars");
+const root = document.documentElement;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const trailStorageKey = "budao.tent.trails";
+const pendingTrailStorageKey = "budao.tent.pendingPublish";
+const publishEndpoint = window.BUDAO_PUBLISH_ENDPOINT ||
+(window.location.protocol === "file:" ? "https://budao.org/api/publish-route" : "/api/publish-route");
+let activeTrail = null;
+let activePreviewUrl = "";
+function mulberry32(seed) {
+return function () {
+let t = seed += 0x6d2b79f5;
+t = Math.imul(t ^ (t >>> 15), t | 1);
+t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+}
+const random = mulberry32(20260629);
+function between(min, max) {
+return min + (max - min) * random();
+}
+function clamp(value, min, max) {
+return Math.max(min, Math.min(max, value));
+}
+function gaussian() {
+let u = 0;
+let v = 0;
+while (u === 0) u = random();
+while (v === 0) v = random();
+return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function galaxyPoint() {
+const t = random();
+const curve = Math.sin((t - 0.5) * Math.PI) * 6.2;
+const centerQuiet = Math.exp(-Math.pow((t - 0.51) / 0.17, 2));
+const width = 5.4 + 11.6 * Math.pow(Math.sin(Math.PI * t), 1.1);
+const off = gaussian() * width * (1 + centerQuiet * 0.48);
+const x = -8 + t * 116 + gaussian() * 1.9;
+const y = 82 - t * 65 + curve + off;
+const distanceFromCenter = Math.abs(t - 0.51);
+const keep = centerQuiet > 0.42 && Math.abs(off) < width * 0.72 && random() < 0.74 - distanceFromCenter;
+if (keep) {
+return galaxyPoint();
+}
+return {
+x: clamp(x, -2, 102),
+y: clamp(y, -2, 102),
+band: true,
+t,
+centerQuiet,
+off
+};
+}
+function openSkyPoint() {
+let x = between(0, 100);
+let y = between(0, 100);
+const lineY = 82 - (x + 8) / 116 * 65 + Math.sin(((x + 8) / 116 - 0.5) * Math.PI) * 6.2;
+const distance = Math.abs(y - lineY);
+const center = Math.hypot(x - 50, y - 48);
+if ((distance < 10 && random() < 0.68) || (center < 17 && random() < 0.72)) {
+x = between(0, 100);
+y = between(0, 100);
+}
+return { x, y, band: false };
+}
+function colorFor(point) {
+const warmth = point.band ? between(0.05, 0.34) : between(0, 0.2);
+const blue = point.band ? between(0.1, 0.32) : between(0.15, 0.42);
+const base = between(205, 248);
+return {
+r: Math.round(base + 7 * warmth),
+g: Math.round(base + 2 - 10 * warmth),
+b: Math.round(base + 18 * blue)
+};
+}
+function starSize(point) {
+if (!point.band) {
+return between(0.45, 1.65);
+}
+const dense = Math.pow(Math.sin(Math.PI * point.t), 1.4);
+const dust = Math.abs(point.off) > 10 ? 0.74 : 1;
+return between(0.45, 1.9 + dense * 1.2) * dust;
+}
+function createStar(point, index) {
+const star = document.createElement("i");
+const color = colorFor(point);
+const size = starSize(point);
+const bright = point.band ? between(0.3, 0.88) : between(0.18, 0.64);
+const slow = reduceMotion ? 1 : between(8, 28);
+const drift = reduceMotion ? 1 : between(34, 96);
+const depth = size > 1.55 ? "near" : size < 0.75 ? "far" : "quiet";
+star.className = "star " + depth;
+star.style.setProperty("--x", point.x.toFixed(4) + "%");
+star.style.setProperty("--y", point.y.toFixed(4) + "%");
+star.style.setProperty("--s", size.toFixed(3) + "px");
+star.style.setProperty("--o", bright.toFixed(3));
+star.style.setProperty("--r", color.r);
+star.style.setProperty("--g", color.g);
+star.style.setProperty("--b", color.b);
+star.style.setProperty("--glow", between(0.18, point.band ? 0.58 : 0.34).toFixed(3));
+star.style.setProperty("--halo", between(0.04, point.band ? 0.2 : 0.11).toFixed(3));
+star.style.setProperty("--scale", between(0.84, 1.18).toFixed(3));
+star.style.setProperty("--d", slow.toFixed(2) + "s");
+star.style.setProperty("--delay", (-between(0, slow) - index * 0.017).toFixed(2) + "s");
+star.style.setProperty("--move", drift.toFixed(2) + "s");
+star.style.setProperty("--move-delay", (-between(0, drift)).toFixed(2) + "s");
+star.style.setProperty("--dx", between(-0.28, 0.28).toFixed(3) + "vw");
+star.style.setProperty("--dy", between(-0.22, 0.22).toFixed(3) + "vh");
+return star;
+}
+function density() {
+const area = window.innerWidth * window.innerHeight;
+const base = clamp(Math.round(area / 2900), 220, 560);
+return {
+galaxy: Math.round(base * 1.35),
+open: Math.round(base * 0.62)
+};
+}
+function render() {
+const fragment = document.createDocumentFragment();
+const count = density();
+field.textContent = "";
+for (let i = 0; i < count.open; i += 1) {
+fragment.appendChild(createStar(openSkyPoint(), i));
+}
+for (let i = 0; i < count.galaxy; i += 1) {
+fragment.appendChild(createStar(galaxyPoint(), i + count.open));
+}
+field.appendChild(fragment);
+root.style.setProperty("--breath", between(20, 28).toFixed(2) + "s");
+}
+let resizeTimer = 0;
+window.addEventListener("resize", function () {
+window.clearTimeout(resizeTimer);
+resizeTimer = window.setTimeout(render, 180);
+});
+tentButton.addEventListener("click", function () {
+if (presence.classList.contains("entering")) {
+return;
+}
+presence.classList.add("entering");
+window.setTimeout(function () {
+presence.classList.add("inside-open");
+}, reduceMotion ? 1 : 2100);
+});
+entryForm.addEventListener("submit", function (event) {
+event.preventDefault();
+presence.classList.add("route-open");
+});
+routeImages.addEventListener("change", function () {
+const files = Array.from(routeImages.files || []);
+if (files.length === 0) {
+imageNote.textContent = "还没有选择图片";
+return;
+}
+if (files.length === 1) {
+imageNote.textContent = files[0].name;
+return;
+}
+imageNote.textContent = files.length + " 张图片已经放在这里";
+});
+routeForm.addEventListener("submit", function (event) {
+event.preventDefault();
+const trail = buildTrailRecord(routeForm);
+activeTrail = trail;
+const trails = readSavedTrails();
+const existingIndex = trails.findIndex(function (item) {
+return item.id === trail.id;
+});
+if (existingIndex >= 0) {
+trails[existingIndex] = trail;
+} else {
+trails.unshift(trail);
+}
+window.localStorage.setItem(trailStorageKey, JSON.stringify(trails));
+routeMessage.textContent = "这条步道已经暂时安放。";
+publishWhisper.textContent = "这条步道已经暂时安放。";
+presence.classList.add("saved-resting");
+presence.classList.remove("review-open", "review-closing", "publish-transition", "publish-finished");
+renderRoutePreview(trail);
+window.setTimeout(function () {
+presence.classList.remove("saved-resting");
+presence.classList.add("review-open");
+}, reduceMotion ? 1 : 1000);
+});
+returnEditButton.addEventListener("click", function () {
+presence.classList.add("review-closing");
+presence.classList.remove("review-open");
+window.setTimeout(function () {
+presence.classList.remove("review-closing", "saved-resting", "publish-transition", "publish-finished");
+routeMessage.textContent = "";
+}, reduceMotion ? 1 : 600);
+});
+sendTrailButton.addEventListener("click", function () {
+if (!activeTrail) {
+return;
+}
+presence.classList.remove("review-open", "review-closing", "saved-resting", "publish-finished");
+presence.classList.add("publish-transition");
+publishWhisper.textContent = "与你同行的人，将很快看见这段路。";
+window.setTimeout(function () {
+publishTrail(activeTrail).then(function () {
+publishWhisper.textContent = "与你同行的人，现在已经能够看见这段路。";
+presence.classList.remove("publish-transition");
+presence.classList.add("publish-finished");
+}).catch(function (error) {
+publishWhisper.textContent = error && error.reason === "deploy_pending" ?
+"部署尚未完成。请稍后查看。" :
+"这段路已经预备好，还需要被送出。";
+presence.classList.remove("publish-transition");
+});
+}, reduceMotion ? 1 : 1600);
+});
+viewPublishedButton.addEventListener("click", function () {
+window.location.href = "https://budao.org/test.html";
+});
+function valueOf(form, name) {
+const fieldElement = form.elements[name];
+return fieldElement ? fieldElement.value.trim() : "";
+}
+function slugify(value) {
+const plain = value
+.trim()
+.toLowerCase()
+.replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-")
+.replace(/^-+|-+$/g, "");
+return plain || "trail";
+}
+function readSavedTrails() {
+try {
+const saved = JSON.parse(window.localStorage.getItem(trailStorageKey) || "[]");
+return Array.isArray(saved) ? saved : [];
+} catch (error) {
+return [];
+}
+}
+function imageNames() {
+return Array.from(routeImages.files || []).map(function (file) {
+return file.name;
+});
+}
+function firstImagePreview() {
+const file = routeImages.files && routeImages.files[0];
+if (!file) {
+return "";
+}
+if (activePreviewUrl) {
+URL.revokeObjectURL(activePreviewUrl);
+}
+activePreviewUrl = URL.createObjectURL(file);
+return activePreviewUrl;
+}
+function buildTrailRecord(form) {
+const routeName = valueOf(form, "routeName");
+const trailDate = valueOf(form, "trailDate");
+const meetingTime = valueOf(form, "meetingTime");
+const difficulty = valueOf(form, "difficulty");
+const distance = valueOf(form, "distance");
+const elevationGain = valueOf(form, "elevationGain");
+const surfaceDescription = valueOf(form, "surfaceDescription");
+const duration = valueOf(form, "duration");
+const participantRequirements = valueOf(form, "participantRequirements");
+const itinerary = valueOf(form, "itinerary");
+const meetingPlace = valueOf(form, "meetingPlace");
+const id = slugify([trailDate, routeName].filter(Boolean).join("-"));
+return {
+id,
+status: "draft",
+updatedAt: new Date().toISOString(),
+source: {
+routeName,
+trailDate,
+meetingTime,
+difficulty,
+distance,
+elevationGain,
+surfaceDescription,
+duration,
+participantRequirements,
+itinerary,
+meetingPlace,
+images: imageNames()
+},
+testPage: {
+countdown: {
+date: trailDate,
+time: meetingTime,
+durationText: duration,
+timezone: "Asia/Shanghai"
+},
+card: {
+location: meetingPlace,
+title: routeName,
+description: itinerary,
+info: [
+meetingTime ? meetingTime + " 集合" : "",
+duration,
+distance,
+surfaceDescription,
+elevationGain,
+difficulty ? "难度 " + difficulty : "",
+participantRequirements
+].filter(Boolean),
+images: imageNames()
+}
+}
+};
+}
+function publishTrail(trail) {
+const route = toRouteJson(trail);
+window.localStorage.setItem(pendingTrailStorageKey, JSON.stringify(route));
+return fetch(publishEndpoint, {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify(route)
+}).then(function (response) {
+if (!response.ok) {
+return response.json().catch(function () {
+return {};
+}).then(function (body) {
+throw publishError(body.reason || "network_failed");
+});
+}
+return response.json();
+}).then(function () {
+return waitForPublishedRoute(route);
+});
+}
+function waitForPublishedRoute(route) {
+const startedAt = Date.now();
+return new Promise(function (resolve, reject) {
+function check() {
+fetch("https://budao.org/routes.json?budao=" + Date.now(), {
+cache: "no-store"
+}).then(function (response) {
+if (!response.ok) {
+throw publishError("network_failed");
+}
+return response.json();
+}).then(function (routes) {
+const published = Array.isArray(routes) && routes.some(function (item) {
+return item.title === route.title &&
+item.date === route.date &&
+item.time === route.time;
+});
+if (published) {
+window.localStorage.removeItem(pendingTrailStorageKey);
+resolve();
+return;
+}
+if (Date.now() - startedAt >= 60000) {
+reject(publishError("deploy_pending"));
+return;
+}
+window.setTimeout(check, 2000);
+}).catch(function (error) {
+if (Date.now() - startedAt >= 60000) {
+reject(error && error.reason ? error : publishError("deploy_pending"));
+return;
+}
+window.setTimeout(check, 2000);
+});
+}
+window.setTimeout(check, reduceMotion ? 1 : 2000);
+});
+}
+function publishError(reason) {
+const error = new Error(reason);
+error.reason = reason;
+return error;
+}
+function toRouteJson(trail) {
+const source = trail.source;
+return {
+location: source.meetingPlace,
+title: source.routeName,
+description: source.itinerary,
+time: source.meetingTime,
+duration: source.duration,
+distance: source.distance,
+surface: source.surfaceDescription,
+elevation: source.elevationGain,
+timezone: "Asia/Shanghai",
+date: source.trailDate,
+image: source.images[0] || ""
+};
+}
+function renderRoutePreview(trail) {
+const route = toRouteJson(trail);
+const previewImage = firstImagePreview();
+const image = previewImage || route.image;
+const card = document.createElement("div");
+card.className = "route-card";
+card.innerHTML = routeCardHtml(route, image);
+routePreview.textContent = "";
+routePreview.appendChild(card);
+}
+function routeCardHtml(route, image) {
+const imageHtml = image ? [
+'<div class="route-image">',
+'<img src="' + escapeAttribute(image) + '">',
+'</div>'
+].join("") : "";
+return [
+'<div class="route-timer">',
+'<div class="timer-city">',
+escapeHtml(getTimerCity(route)),
+'</div>',
+'<div class="route-countdown">',
+routeCountdownText(route),
+'</div>',
+'</div>',
+imageHtml,
+'<div class="route-content">',
+'<div class="route-location">',
+escapeHtml(route.location),
+'</div>',
+'<h2>',
+escapeHtml(route.title),
+'</h2>',
+'<div class="route-description">',
+escapeHtml(route.description).replace(/\n/g, "<br>"),
+'</div>',
+'<div class="route-info">',
+'<span>' + escapeHtml(route.time) + ' 集合</span>',
+'<span>' + escapeHtml(route.duration) + '</span>',
+'<span>' + escapeHtml(route.distance) + '</span>',
+'<span>' + escapeHtml(route.surface) + '</span>',
+'<span>' + escapeHtml(route.elevation) + '</span>',
+'</div>',
+'<div class="route-timezone">',
+escapeHtml(route.timezone) + ' · ' + escapeHtml(getUtcLabel(route.timezone, route.date, route.time)),
+'</div>',
+'<a href="#" class="route-button">',
+'与他们同行 →',
+'</a>',
+'</div>'
+].join("");
+}
+function routeCountdownText(route) {
+if (!route.date || !route.time) {
+return "倒计时加载中...";
+}
+const result = getEventState({
+date: route.date,
+time: route.time,
+duration: parseDuration(route.duration),
+timezone: route.timezone
+});
+if (result.state === "started") {
+return "正在同行";
+}
+if (result.state === "ended") {
+return "已完成此程";
+}
+return formatCountdown(result.diff);
+}
+function formatCountdown(diff) {
+const hours = Math.floor(diff / (1000 * 60 * 60));
+const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+return hours + "小时 " + minutes + "分 " + seconds + "秒";
+}
+function parseDuration(duration) {
+const text = String(duration || "");
+const hourMatch = text.match(/([\d.]+)\s*(小时|hour|hours|h)/i);
+const minuteMatch = text.match(/([\d.]+)\s*(分钟|minute|minutes|min|m)/i);
+if (hourMatch) {
+return Math.round(Number(hourMatch[1]) * 60);
+}
+if (minuteMatch) {
+return Math.round(Number(minuteMatch[1]));
+}
+return 180;
+}
+function getTimerCity(route) {
+if (route.timezone === "Asia/Shanghai") {
+return "北京 · " + getUtcLabel(route.timezone, route.date, route.time);
+}
+if (route.timezone === "America/Los_Angeles") {
+return "Los Angeles · " + getUtcLabel(route.timezone, route.date, route.time);
+}
+return route.location + " · " + getUtcLabel(route.timezone, route.date, route.time);
+}
+function getUtcLabel(timezone, date, time) {
+if (!timezone || !date) {
+return "UTC+8";
+}
+const target = new Date(date + "T" + (time || "00:00") + ":00");
+const utcDate = new Date(target.toLocaleString("en-US", { timeZone: "UTC" }));
+const localDate = new Date(target.toLocaleString("en-US", { timeZone: timezone }));
+const offsetHours = Math.round((localDate - utcDate) / (1000 * 60 * 60));
+return "UTC" + (offsetHours >= 0 ? "+" : "") + offsetHours;
+}
+function getEventState(event) {
+const now = new Date();
+const localNow = new Date(now.toLocaleString("en-US", { timeZone: event.timezone }));
+const start = new Date(event.date + "T" + event.time + ":00");
+const end = new Date(start.getTime() + event.duration * 60 * 1000);
+if (localNow < start) {
+return {
+state: "countdown",
+diff: start - localNow
+};
+}
+if (localNow >= start && localNow < end) {
+return {
+state: "started",
+diff: end - localNow
+};
+}
+return {
+state: "ended",
+diff: 0
+};
+}
+function escapeHtml(value) {
+return String(value || "")
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;")
+.replace(/'/g, "&#039;");
+}
+function escapeAttribute(value) {
+return escapeHtml(value).replace(/`/g, "&#096;");
+}
+render();
+}());
+</script> </body>
+</html>
