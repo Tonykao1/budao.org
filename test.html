@@ -419,6 +419,37 @@ function replaceBrokenImage(image){
     image.replaceWith(placeholder);
 }
 
+function resolveImage(value){
+
+    const image =
+    String(value || "").trim();
+
+    if(!image){
+
+        return "";
+    }
+
+    if(
+        image.indexOf("data:image/")===0 ||
+        image.indexOf("blob:")===0 ||
+        image.indexOf("http://")===0 ||
+        image.indexOf("https://")===0
+    ){
+
+        return image;
+    }
+
+    if(
+        image.indexOf("/")===0 ||
+        /^[^:/?#]+(?:[/?#].*)?$/.test(image)
+    ){
+
+        return image;
+    }
+
+    return "";
+}
+
 let events = [];
 
 const defaultRoutes = [
@@ -508,12 +539,15 @@ function renderRoutes(routes){
 
         card.className = "route-card";
 
+        const resolvedImage =
+        resolveImage(route.image);
+
         const imageHtml =
         `
             <div class="route-image">
                 ${
-                    route.image ?
-                    `<img src="${escapeAttribute(route.image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
+                    resolvedImage ?
+                    `<img src="${escapeAttribute(resolvedImage)}" alt="${escapeAttribute(route.imageAlt || route.title)}" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
                     `<span class="route-image-placeholder"></span>`
                 }
             </div>
