@@ -20,11 +20,12 @@
   const publishEndpoint = window.BUDAO_PUBLISH_ENDPOINT ||
     (window.location.protocol === "file:" ? "https://budao.org/api/publish-route" : "/api/publish-route");
   const admins = [
-    { email: "ims@budao.org", password: "Budao2026!" },
-    { email: "bacbc@budao.org", password: "Budao2026!" }
+    { email: "IMS@budao.org", password: "Budao2026!" },
+    { email: "BACBC@budao.org", password: "Budao2026!" }
   ];
   let activeTrail = null;
   let activePreviewUrl = "";
+  let currentUserEmail = "";
 
   function mulberry32(seed) {
     return function () {
@@ -196,8 +197,8 @@
     event.preventDefault();
     const email = valueOf(entryForm, "email").toLowerCase();
     const password = valueOf(entryForm, "password");
-    const allowed = admins.some(function (admin) {
-      return admin.email === email && admin.password === password;
+    const allowed = admins.find(function (admin) {
+      return admin.email.toLowerCase() === email && admin.password === password;
     });
 
     if (!allowed) {
@@ -205,6 +206,7 @@
       return;
     }
 
+    currentUserEmail = allowed.email;
     loginMessage.textContent = "";
     presence.classList.add("route-open");
   });
@@ -283,9 +285,7 @@
         presence.classList.remove("publish-transition");
         presence.classList.add("publish-finished");
       }).catch(function (error) {
-        publishWhisper.textContent = error && error.reason === "deploy_pending" ?
-          "部署尚未完成。请稍后查看。" :
-          "这段路已经预备好，还需要被送出。";
+        publishWhisper.textContent = publishFailureText(error);
         presence.classList.remove("publish-transition");
       });
     }, reduceMotion ? 1 : 1600);
@@ -440,12 +440,16 @@
         return response.json().catch(function () {
           return {};
         }).then(function (body) {
-          throw publishError(body.reason || "network_failed");
+          throw publishError(body.error || body.reason || "network_failed");
         });
       }
 
       return response.json();
     }).then(function (result) {
+      if (result && result.ok === false) {
+        throw publishError(result.error || result.reason || "network_failed");
+      }
+
       if (result && result.shareImageUrl) {
         window.localStorage.setItem("budao.tent.lastShareImageUrl", result.shareImageUrl);
       }
@@ -507,6 +511,46 @@
     return error;
   }
 
+  function publishFailureText(error) {
+    if (error && error.reason === "route_limit_reached") {
+      return "你已经安放了两条步道。";
+    }
+
+    if (error && error.reason === "deploy_pending") {
+      return "部署尚未完成。请稍后查看。";
+    }
+
+    return "这段路已经预备好，还需要被送出。";
+  }
+
+  function resolveImage(value) {
+    const image = String(value || "").trim();
+
+    if (!image) {
+      return "";
+    }
+
+    if (image.indexOf("data:image/") === 0 ||
+      image.indexOf("blob:") === 0 ||
+      image.indexOf("http://") === 0 ||
+      image.indexOf("https://") === 0) {
+      return image;
+    }
+
+    if (image.indexOf("/") === 0 || /^[^:/?#]+(?:[/?#].*)?$/.test(image)) {
+      return image;
+    }
+
+    return "";
+  }
+
+  window.replaceBrokenImage = function (image) {
+    const placeholder = document.createElement("span");
+
+    placeholder.className = "route-image-placeholder";
+    image.replaceWith(placeholder);
+  };
+
   function toRouteJson(trail) {
     const source = trail.source;
 
@@ -514,6 +558,7 @@
       location: source.routeLocation || source.meetingPlace,
       title: source.routeName,
       routeId: trail.routeId || trail.id,
+      owner: currentUserEmail,
       description: source.itinerary,
       time: source.meetingTime,
       duration: source.duration,
@@ -522,7 +567,7 @@
       elevation: source.elevationGain,
       timezone: source.timezone || "Asia/Shanghai",
       date: source.trailDate,
-      image: source.images[0] && source.images[0].dataUrl ? source.images[0].dataUrl : "",
+      image: resolveImage(source.images[0] && source.images[0].dataUrl ? source.images[0].dataUrl : ""),
       imageAlt: source.images[0] && source.images[0].name ? source.images[0].name : ""
     };
   }
@@ -530,7 +575,7 @@
   function renderRoutePreview(trail) {
     const route = toRouteJson(trail);
     const previewImage = firstImagePreview();
-    const image = previewImage || route.image;
+    const image = resolveImage(previewImage || route.image);
     const card = document.createElement("div");
 
     card.className = "route-card";
@@ -542,7 +587,7 @@
   function routeCardHtml(route, image) {
     const imageHtml = [
       '<div class="route-image">',
-      image ? '<img src="' + escapeAttribute(image) + '" alt="' + escapeAttribute(route.imageAlt || route.title) + '">' : '<span class="route-image-placeholder"></span>',
+      image ? '<img src="' + escapeAttribute(resolveImage(image)) + '" alt="' + escapeAttribute(route.imageAlt || route.title) + '" onerror="replaceBrokenImage(this)">' : '<span class="route-image-placeholder"></span>',
       '</div>'
     ].join("");
 
