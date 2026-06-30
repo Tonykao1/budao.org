@@ -3,6 +3,8 @@ const repo = process.env.GITHUB_REPO || "budao.org";
 const branch = process.env.GITHUB_BRANCH || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
+const routeLimitPerOwner = 2;
+const allowedOwners = ["ims@budao.org", "bacbc@budao.org"];
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -39,8 +41,19 @@ module.exports = async function handler(request, response) {
   try {
     const current = await readRoutesFile();
     const routeToSave = normalizeRoute(route);
+
+    if (!allowedOwner(routeToSave.owner)) {
+      sendJson(response, 403, { ok: false, error: "owner_not_allowed" });
+      return;
+    }
+
     const existing = current.routes.find((item) => routeIdentity(item) === routeToSave.routeId);
     const share = sharePayload(routeToSave);
+
+    if (existing && normalizeOwner(existing.owner) !== routeToSave.owner) {
+      sendJson(response, 403, { ok: false, error: "owner_mismatch" });
+      return;
+    }
 
     if (existing && sameRoute(normalizeRoute(existing), routeToSave)) {
       sendJson(response, 200, {
@@ -51,6 +64,11 @@ module.exports = async function handler(request, response) {
         emailShare: share.emailShare,
         commit: null
       });
+      return;
+    }
+
+    if (!existing && ownerRouteCount(current.routes, routeToSave.owner) >= routeLimitPerOwner) {
+      sendJson(response, 403, { ok: false, error: "route_limit_reached" });
       return;
     }
 
@@ -173,6 +191,7 @@ function contentsUrl() {
 function normalizeRoute(route) {
   const normalized = {
     routeId: route.routeId || "",
+    owner: normalizeOwner(route.owner),
     location: route.location || "",
     title: route.title || "",
     description: route.description || "",
@@ -183,7 +202,7 @@ function normalizeRoute(route) {
     elevation: route.elevation || "",
     timezone: route.timezone || "Asia/Shanghai",
     date: normalizeDate(route.date || ""),
-    image: validImage(route.image) ? route.image : "",
+    image: resolveImage(route.image),
     imageAlt: route.imageAlt || route.title || ""
   };
 
@@ -192,14 +211,36 @@ function normalizeRoute(route) {
   return normalized;
 }
 
-function validImage(image) {
+function resolveImage(image) {
   const value = String(image || "");
 
-  return value === "" ||
+  if (value === "" ||
     value.indexOf("data:image/") === 0 ||
+    value.indexOf("blob:") === 0 ||
+    value.indexOf("http://") === 0 ||
     value.indexOf("https://") === 0 ||
     value.indexOf("/") === 0 ||
-    !/^[a-z]+:/i.test(value);
+    !/^[a-z]+:/i.test(value)) {
+    return value;
+  }
+
+  return "";
+}
+
+function allowedOwner(owner) {
+  return allowedOwners.indexOf(normalizeOwner(owner)) >= 0;
+}
+
+function normalizeOwner(owner) {
+  return String(owner || "").trim().toLowerCase();
+}
+
+function ownerRouteCount(routes, owner) {
+  const normalizedOwner = normalizeOwner(owner);
+
+  return routes.filter(function (route) {
+    return normalizeOwner(route.owner) === normalizedOwner;
+  }).length;
 }
 
 function sameRoute(left, right) {
