@@ -225,10 +225,22 @@ body{
     font-size:15px;
     line-height:1.85;
     text-align:left;
-    display:-webkit-box;
-    -webkit-line-clamp:5;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(125,112,92,0.22) transparent;
+}
+
+.route-description::-webkit-scrollbar{
+    width:4px;
+}
+
+.route-description::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.route-description::-webkit-scrollbar-thumb{
+    background:rgba(125,112,92,0.22);
+    border-radius:999px;
 }
 
 .route-info{
@@ -559,6 +571,7 @@ const defaultRoutes = [
     elevation:"520米",
     difficulty:"适中",
     suitableFor:"有徒步经验者",
+    equipmentMinimum:"防滑徒步鞋 / 1L水",
     timezone:"Asia/Shanghai",
     date:"2026-07-11",
     image:"",
@@ -578,6 +591,7 @@ const defaultRoutes = [
     elevation:"↑180-700feet",
     difficulty:"适中",
     suitableFor:"初次参与者 / 有徒步经验者",
+    equipmentMinimum:"徒步鞋 / 饮水 / 午餐",
     timezone:"America/Los_Angeles",
     date:"2026-07-04",
     image:"",
@@ -667,6 +681,7 @@ function renderRoutes(routes){
                     ${parameterButton("elevation", route.elevation, route.elevation)}
                     ${route.difficulty ? parameterButton("difficulty", route.difficulty, "难度 " + route.difficulty) : ""}
                     ${route.suitableFor ? parameterButton("suitableFor", route.suitableFor, route.suitableFor) : ""}
+                    ${route.equipmentMinimum ? parameterButton("equipmentMinimum", route.equipmentMinimum, "装备 " + route.equipmentMinimum) : ""}
                 </div>
                 <div class="route-timezone">${escapeHtml(route.timezone)} · ${escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}</div>
                 <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
