@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>同道 - 步道</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.78), transparent 26%),
+    linear-gradient(180deg, #f7f4ed 0%, #f1ece1 56%, #e8dfd0 100%);
+  color: #222;
+}
+
+.tongdao-shell {
+  min-height: calc(100svh - 55px);
+  display: flex;
+  justify-content: center;
+  padding: 28px 18px;
+}
+
+.tongdao-screen {
+  width: min(100%, 640px);
+  min-height: calc(100svh - 112px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 30px;
+  padding: clamp(26px, 7vw, 54px) clamp(22px, 6vw, 46px);
+  border: 1px solid rgba(50, 42, 31, 0.08);
+  border-radius: 34px;
+  background: rgba(255, 253, 248, 0.54);
+  box-shadow: 0 28px 80px rgba(64, 52, 37, 0.08);
+}
+
+.stage-mark {
+  color: #9d968b;
+  font-size: 11px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.screen-title {
+  margin: 0;
+  color: #25211b;
+  font-size: clamp(38px, 10vw, 62px);
+  font-weight: 200;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+}
+
+.screen-body {
+  color: #555;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 2.05;
+  letter-spacing: 0.04em;
+}
+
+.screen-body p {
+  margin: 0 0 18px;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.quiet-panel {
+  padding: 22px 0;
+  border-top: 1px solid rgba(70, 59, 43, 0.12);
+  border-bottom: 1px solid rgba(70, 59, 43, 0.12);
+}
+
+.field-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.field-line {
+  display: grid;
+  gap: 9px;
+  color: #777;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-align: left;
+}
+
+.field-line input,
+.field-line select {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-bottom: 1px solid rgba(59, 50, 37, 0.22);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  color: #222;
+  font: inherit;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+}
+
+.field-line input:focus,
+.field-line select:focus {
+  border-bottom-color: rgba(17, 17, 17, 0.6);
+}
+
+.participant-list {
+  display: grid;
+  gap: 12px;
+}
+
+.participant-row {
+  display: grid;
+  grid-template-columns: 1fr 112px;
+  gap: 12px;
+}
+
+.check-line {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.8;
+  text-align: left;
+}
+
+.check-line input {
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+  accent-color: #111;
+}
+
+.actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.action-primary,
+.action-secondary,
+.action-plain {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  transition: opacity 0.26s ease, transform 0.26s ease;
+}
+
+.action-primary {
+  padding: 0 25px;
+  background: #111;
+  color: #fff;
+}
+
+.action-secondary {
+  padding: 0 22px;
+  background: rgba(255, 255, 255, 0.66);
+  color: #333;
+}
+
+.action-plain {
+  min-height: auto;
+  padding: 8px 0;
+  background: transparent;
+  color: #777;
+}
+
+.action-primary:hover,
+.action-secondary:hover,
+.action-plain:hover {
+  opacity: 0.76;
+  transform: translateY(-1px);
+}
+
+.action-primary:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.timer {
+  display: grid;
+  place-items: center;
+  width: min(66vw, 220px);
+  aspect-ratio: 1;
+  margin: 8px auto;
+  border: 1px solid rgba(72, 60, 41, 0.12);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.82), rgba(245, 239, 228, 0.36));
+  color: #201c16;
+  font-size: clamp(44px, 14vw, 68px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 200;
+  letter-spacing: 0.02em;
+}
+
+.group-list {
+  display: grid;
+  gap: 14px;
+}
+
+.group-item {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(70, 59, 43, 0.12);
+  color: #333;
+  font-size: 18px;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+}
+
+.group-item small {
+  display: block;
+  margin-bottom: 4px;
+  color: #9d968b;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+}
+
+.topic-text,
+.scripture-text,
+.challenge-text {
+  color: #2b261e;
+  font-size: clamp(22px, 6vw, 34px);
+  font-weight: 300;
+  line-height: 1.75;
+  letter-spacing: 0.04em;
+}
+
+.media-space {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  border: 1px solid rgba(70, 59, 43, 0.12);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(216, 166, 91, 0.14), transparent 34%),
+    rgba(255, 255, 255, 0.4);
+  color: #8a806f;
+  font-size: 14px;
+  line-height: 2;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.status-message {
+  min-height: 24px;
+  color: #8a5f30;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+@media (max-width: 640px) {
+  nav {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .tongdao-shell {
+    min-height: calc(100svh - 55px);
+    padding: 16px 12px;
+  }
+
+  .tongdao-screen {
+    min-height: calc(100svh - 88px);
+    border-radius: 26px;
+  }
+
+  .participant-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  .action-primary,
+  .action-secondary {
+    flex: 1 1 100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <a href="/home.html">首页</a>
+  <a href="/about.html">超级星期六</a>
+  <a href="/tongxing.html">童行</a>
+  <a href="/tongdao.html">同道</a>
+  <a href="/what.html">全球同工</a>
+  <a href="/contact.html">联系</a>
+</nav>
+
+<main class="tongdao-shell">
+  <section class="tongdao-screen" id="screen" aria-live="polite"></section>
+</main>
+
+<script>
+const tongdaoConfig = {
+  title: "同道",
+  estimatedDefaultMinutes: 90,
+  storyVideoUrl: "",
+  warmupVideoUrl: "",
+  warmupImageUrl: "",
+  scriptureText: "你们要休息，要知道我是神。",
+  topics: {
+    topic1: "今天走在路上，你最先注意到什么？",
+    topic2: "最近有什么事，让你觉得自己需要被扶一把？",
+    topic3: "有哪一段关系，是你想重新学习温柔面对的？",
+    topic4: "如果今天神在路上对你说一句话，你盼望听见什么？",
+    topic5: "刚刚同行时，有哪一句话让你愿意继续想一想？",
+    topic6: "今天，神是否借着路、故事、经文，提醒你什么？",
+    topic7: "回到生活以后，你愿意带着哪一个提醒继续走？"
+  },
+  growthChallenge: "本周找一位你想关心的人，约他一起走一小段路。不要急着给建议，只认真听完。"
+};
+
+const screen = document.getElementById("screen");
+const state = {
+  route: "home",
+  history: [],
+  peopleCount: 1,
+  participants: [],
+  estimatedMinutes: tongdaoConfig.estimatedDefaultMinutes,
+  place: "",
+  weather: "",
+  safetyConfirmed: false,
+  groups: [],
+  previousPairs: new Set(),
+  walkIndex: 0,
+  timer: null,
+  timerRemaining: 0,
+  timerDone: false,
+  pendingRoute: ""
+};
+
+const routes = {
+  home: renderHome,
+  initialize: renderInitialize,
+  welcome: renderWelcome,
+  icebreaker: renderIcebreaker,
+  warmup: renderWarmup,
+  prayer: () => renderTimedQuiet({
+    mark: "ENTER",
+    title: "摩西祷告",
+    body: "请大家安静站立。<br>可以闭上眼睛。<br>不用说很多话。<br><br>请在心里向神说：<br>我在这里。<br>愿你带领我们今天的路。",
+    seconds: 60,
+    button: "祷告完成",
+    next: "pairIntro"
+  }),
+  pairIntro: renderPairIntro,
+  groupResult: renderGroupResult,
+  walk: renderWalk,
+  story: renderStory,
+  storyQuiet: () => renderTimedQuiet({
+    mark: "STORY",
+    title: "请安静30秒",
+    body: "不用急着解释。<br>让刚刚看见的，先安静留下。",
+    seconds: 30,
+    button: "继续",
+    next: "storyResponse"
+  }),
+  storyResponse: renderStoryResponse,
+  ministry: renderMinistry,
+  word: renderWord,
+  wordQuiet: () => renderTimedQuiet({
+    mark: "WORD",
+    title: "安静",
+    body: "经文已经读完。<br>请不要急着解释。<br>安静一分钟。",
+    seconds: 60,
+    button: "继续",
+    next: "wordAgain"
+  }),
+  wordAgain: renderWordAgain,
+  regroupRespond: renderRegroupRespond,
+  respond: renderRespond,
+  go: renderGo,
+  blessing: renderBlessing,
+  closingPrayer: renderClosingPrayer,
+  grow: renderGrow,
+  finish: renderFinish
+};
+
+function setRoute(route, push = true) {
+  stopTimer();
+  if (push && state.route !== route) {
+    state.history.push(state.route);
+  }
+  state.route = route;
+  routes[route]();
+}
+
+function goBack() {
+  const previous = state.history.pop();
+  if (previous) {
+    setRoute(previous, false);
+  }
+}
+
+function resetTongdao() {
+  stopTimer();
+  state.route = "home";
+  state.history = [];
+  state.peopleCount = 1;
+  state.participants = [];
+  state.estimatedMinutes = tongdaoConfig.estimatedDefaultMinutes;
+  state.place = "";
+  state.weather = "";
+  state.safetyConfirmed = false;
+  state.groups = [];
+  state.previousPairs = new Set();
+  state.walkIndex = 0;
+  state.timerDone = false;
+  state.pendingRoute = "";
+  routes.home();
+}
+
+function layout({ mark, title, body = "", extra = "", primary = "", primaryAction = "", secondary = "返回上一步" }) {
+  screen.innerHTML = `
+    <div>
+      ${mark ? `<div class="stage-mark">${mark}</div>` : ""}
+      <h1 class="screen-title">${title}</h1>
+    </div>
+    ${body ? `<div class="screen-body">${body}</div>` : ""}
+    ${extra}
+    <div class="actions">
+      <button class="action-plain" type="button" data-action="reset">重置同道</button>
+      <div>
+        ${state.history.length ? `<button class="action-secondary" type="button" data-action="back">${secondary}</button>` : ""}
+        ${primary ? `<button class="action-primary" type="button" data-action="${primaryAction}">${primary}</button>` : ""}
+      </div>
+    </div>
+  `;
+  bindBaseActions();
+}
+
+function bindBaseActions() {
+  screen.querySelector('[data-action="reset"]')?.addEventListener("click", resetTongdao);
+  screen.querySelector('[data-action="back"]')?.addEventListener("click", goBack);
+}
+
+function renderHome() {
+  layout({
+    mark: "TONGDAO",
+    title: "同道",
+    body: "<p>没有带领人，<br>也可以一起走。</p>",
+    primary: "开始同行",
+    primaryAction: "start"
+  });
+  screen.querySelector('[data-action="start"]').addEventListener("click", () => setRoute("initialize"));
+}
+
+function renderInitialize() {
+  const participantsHtml = Array.from({ length: state.peopleCount }, (_, index) => {
+    const person = state.participants[index] || { name: "", gender: "" };
+    return `
+      <div class="participant-row">
+        <label class="field-line">
+          <span>第${index + 1}位同伴</span>
+          <input data-person-name="${index}" value="${escapeAttribute(person.name)}" placeholder="姓名">
+        </label>
+        <label class="field-line">
+          <span>性别</span>
+          <select data-person-gender="${index}">
+            <option value="" ${person.gender === "" ? "selected" : ""}>不填写</option>
+            <option value="男" ${person.gender === "男" ? "selected" : ""}>男</option>
+            <option value="女" ${person.gender === "女" ? "selected" : ""}>女</option>
+          </select>
+        </label>
+      </div>
+    `;
+  }).join("");
+
+  layout({
+    mark: "INITIALIZE",
+    title: "开始之前",
+    body: "<p>请一位同伴拿起手机，完成今天的同行初始化。<br>不用紧张，只需要两分钟。</p>",
+    extra: `
+      <div class="field-stack">
+        <label class="field-line">
+          <span>预计时间</span>
+          <input id="estimatedMinutes" type="number" min="1" value="${state.estimatedMinutes || ""}" placeholder="例如 90">
+        </label>
+        <label class="field-line">
+          <span>人数</span>
+          <input id="peopleCount" type="number" min="1" value="${state.peopleCount}" placeholder="例如 8">
+        </label>
+        <div class="participant-list">${participantsHtml}</div>
+        <label class="field-line">
+          <span>地点</span>
+          <input id="place" value="${escapeAttribute(state.place)}" placeholder="例如 奥克兰 East Ridge Loop / 北京某公园">
+        </label>
+        <label class="field-line">
+          <span>天气</span>
+          <input id="weather" value="${escapeAttribute(state.weather)}" placeholder="例如 晴，有风，22°C">
+        </label>
+        <label class="check-line">
+          <input id="safetyConfirmed" type="checkbox" ${state.safetyConfirmed ? "checked" : ""}>
+          <span>我们确认：使用手机时请双脚站定，不边走边看手机。</span>
+        </label>
+        <div class="status-message" id="initMessage"></div>
+      </div>
+    `,
+    primary: "开始",
+    primaryAction: "finishInit"
+  });
+
+  bindInitFields();
+  screen.querySelector('[data-action="finishInit"]').addEventListener("click", () => {
+    collectInitFields();
+    if (!state.safetyConfirmed) {
+      document.getElementById("initMessage").textContent = "请先确认安全须知，然后我们再开始。";
+      return;
+    }
+    state.participants = normalizeParticipants();
+    setRoute("welcome");
+  });
+}
+
+function bindInitFields() {
+  document.getElementById("peopleCount").addEventListener("change", () => {
+    collectInitFields();
+    state.peopleCount = Math.max(1, Number(document.getElementById("peopleCount").value || 1));
+    renderInitialize();
+  });
+}
+
+function collectInitFields() {
+  state.estimatedMinutes = Number(document.getElementById("estimatedMinutes")?.value || tongdaoConfig.estimatedDefaultMinutes);
+  state.peopleCount = Math.max(1, Number(document.getElementById("peopleCount")?.value || 1));
+  state.place = document.getElementById("place")?.value.trim() || "";
+  state.weather = document.getElementById("weather")?.value.trim() || "";
+  state.safetyConfirmed = Boolean(document.getElementById("safetyConfirmed")?.checked);
+  state.participants = Array.from({ length: state.peopleCount }, (_, index) => ({
+    name: document.querySelector(`[data-person-name="${index}"]`)?.value.trim() || "",
+    gender: document.querySelector(`[data-person-gender="${index}"]`)?.value || ""
+  }));
+}
+
+function normalizeParticipants() {
+  return Array.from({ length: state.peopleCount }, (_, index) => {
+    const person = state.participants[index] || {};
+    return {
+      name: person.name || `同伴${index + 1}`,
+      gender: person.gender || ""
+    };
+  });
+}
+
+function renderWelcome() {
+  layout({
+    mark: "ENTER",
+    title: "欢迎来到同道",
+    body: `<p>今天，没有带领人。<br>只有同行的人。</p>
+      <p>请相信：<br>真正带领我们的，不是手机，<br>不是网页，<br>也不是任何一个人。</p>
+      <p>我们只是一起，一步一步，走到神面前。</p>`,
+    primary: "继续",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("icebreaker"));
+}
+
+function renderIcebreaker() {
+  layout({
+    mark: "ENTER",
+    title: "三问破冰",
+    body: `<p>请每个人依次回答下面三个问题。<br>每人不超过一分钟。</p>
+      <div class="quiet-panel">
+        <p>1. 你的名字？</p>
+        <p>2. 一个今天和信仰无关的小信息：你今天早上吃了什么 / 今天心情像什么天气 / 最近在听什么歌？</p>
+        <p>3. 你今天带着怎样的期待或状态来到这里？</p>
+      </div>`,
+    primary: "完成破冰",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("warmup"));
+}
+
+function renderWarmup() {
+  const media = tongdaoConfig.warmupVideoUrl
+    ? `<video class="media-space" controls src="${tongdaoConfig.warmupVideoUrl}"></video>`
+    : tongdaoConfig.warmupImageUrl
+      ? `<img class="media-space" src="${tongdaoConfig.warmupImageUrl}" alt="热身示意">`
+      : `<div class="media-space">请轻轻活动肩颈、膝盖和脚踝。<br>让身体慢慢醒来。</div>`;
+
+  layout({
+    mark: "ENTER",
+    title: "热身",
+    body: "<p>开始前，请大家一起做一个简单热身。</p>",
+    extra: media,
+    primary: "开始热身",
+    primaryAction: "next"
+  });
+  const button = screen.querySelector('[data-action="next"]');
+  button.addEventListener("click", () => {
+    button.textContent = "热身完成";
+    button.onclick = () => setRoute("prayer");
+  }, { once: true });
+}
+
+function renderTimedQuiet({ mark, title, body, seconds, button, next }) {
+  state.timerDone = false;
+  layout({
+    mark,
+    title,
+    body: `<p>${body}</p>`,
+    extra: `<div class="timer" id="timer">${formatTime(seconds)}</div>`,
+    primary: button,
+    primaryAction: "timerNext"
+  });
+  const nextButton = screen.querySelector('[data-action="timerNext"]');
+  nextButton.disabled = true;
+  startTimer(seconds, () => {
+    nextButton.disabled = false;
+    if (navigator.vibrate) navigator.vibrate(300);
+  });
+  nextButton.addEventListener("click", () => setRoute(next));
+}
+
+function renderPairIntro() {
+  layout({
+    mark: "PAIR",
+    title: state.participants.length === 1 ? "独行模式" : "生成同行伙伴",
+    body: state.participants.length === 1
+      ? "<p>今天只有你一个人。<br>所有问题都可以安静默想，也可以轻声说出来。</p>"
+      : `<p>接下来，系统会为大家生成今天第一组同行伙伴。<br>请按照手机上的名字寻找对方。</p>
+        <p>每组建议 2 人。若人数为奇数，允许出现 3 人组。</p>`,
+    primary: state.participants.length === 1 ? "开始同行" : "生成分组",
+    primaryAction: "pair"
+  });
+  screen.querySelector('[data-action="pair"]').addEventListener("click", () => {
+    state.pendingRoute = "walk";
+    if (state.participants.length > 1) generateGroups();
+    setRoute("groupResult");
+  });
+}
+
+function renderGroupResult() {
+  const solo = state.participants.length === 1;
+  layout({
+    mark: "PAIR",
+    title: solo ? "继续默想" : "同行伙伴",
+    body: solo ? "<p>请带着今天的问题，继续向前走。</p>" : "<p>请按照名字找到今天这一轮的同行者。</p>",
+    extra: solo ? "" : `<div class="group-list">${renderGroups()}</div>`,
+    primary: state.pendingRoute === "walk" ? "开始同行" : state.pendingRoute === "respond" ? "进入回应" : "请和新的同行者继续走",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute(state.pendingRoute || "walk"));
+}
+
+function renderWalk() {
+  const topicKey = `topic${state.walkIndex + 1}`;
+  renderTopicTimer({
+    mark: "WALK",
+    title: `同行${toChineseNumber(state.walkIndex + 1)}`,
+    topic: tongdaoConfig.topics[topicKey],
+    prompt: state.participants.length === 1
+      ? "请安静默想，也可以轻声说出来。"
+      : "请轮流分享。<br>不用评价别人。<br>不用给答案。<br>只需要认真听。",
+    seconds: 300,
+    doneText: state.participants.length === 1
+      ? "刚刚的话，可以留在路上。现在，请继续默想。"
+      : "刚刚的话，可以留在路上。现在，请寻找新的同行者。",
+    doneButton: state.participants.length === 1 ? "继续默想" : "重新配对",
+    onDoneNext: () => {
+      state.walkIndex += 1;
+      if (state.walkIndex >= 5) {
+        setRoute("story");
+        return;
+      }
+      state.pendingRoute = "walk";
+      if (state.participants.length > 1) generateGroups();
+      setRoute("groupResult");
+    }
+  });
+}
+
+function renderStory() {
+  const media = tongdaoConfig.storyVideoUrl
+    ? `<video class="media-space" controls src="${tongdaoConfig.storyVideoUrl}"></video>`
+    : `<div class="media-space">今天的故事视频<br>将在这里播放</div>`;
+  layout({
+    mark: "STORY",
+    title: "故事",
+    body: "<p>接下来，请一起观看今天的故事。<br>不用急着解释。<br>只需要观看。</p>",
+    extra: media,
+    primary: "播放故事",
+    primaryAction: "play"
+  });
+  const button = screen.querySelector('[data-action="play"]');
+  button.addEventListener("click", () => {
+    button.textContent = "故事看完了";
+    button.onclick = () => setRoute("storyQuiet");
+  }, { once: true });
+}
+
+function renderStoryResponse() {
+  layout({
+    mark: "STORY",
+    title: "一句回应",
+    body: `<p>刚刚的故事里，哪一个画面、人物、句子或感受，留在了你心里？</p>
+      <p>每个人只说一句。<br>不用展开。<br>不用讨论。</p>`,
+    primary: "继续",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("ministry"));
+}
+
+function renderMinistry() {
+  layout({
+    mark: "BUDAO",
+    title: "步道是什么",
+    body: `<p>步道，是一群人在神所造的自然中同行。</p>
+      <p>我们盼望：<br>亲近神，<br>改善关系，<br>锻炼身体，<br>更新灵命，<br>巩固信仰，<br>享受生活。</p>`,
+    primary: "继续听神的话",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("word"));
+}
+
+function renderWord() {
+  layout({
+    mark: "WORD",
+    title: "圣言",
+    body: "<p>现在，让我们一起安静，<br>听一听神的话。</p>",
+    extra: `<div class="scripture-text">${tongdaoConfig.scriptureText || "这里将放入本期经文。"}</div>`,
+    primary: "请一位同伴读出经文",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("wordQuiet"));
+}
+
+function renderWordAgain() {
+  layout({
+    mark: "WORD",
+    title: "再次读经",
+    body: "<p>请换一位同伴，<br>再读一遍这段经文。</p>",
+    primary: "读完了",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("regroupRespond"));
+}
+
+function renderRegroupRespond() {
+  layout({
+    mark: "RESPOND",
+    title: state.participants.length === 1 ? "继续默想" : "重新配对",
+    body: state.participants.length === 1
+      ? "<p>接下来，我们进入回应。</p>"
+      : "<p>请寻找新的同行者。<br>接下来，我们进入回应。</p>",
+    primary: state.participants.length === 1 ? "进入回应" : "生成新分组",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => {
+    state.pendingRoute = "respond";
+    if (state.participants.length > 1) generateGroups();
+    setRoute("groupResult");
+  });
+}
+
+function renderRespond() {
+  renderTopicTimer({
+    mark: "RESPOND",
+    title: "回应",
+    topic: tongdaoConfig.topics.topic6,
+    prompt: state.participants.length === 1
+      ? "这不是答题。<br>这是回应。<br><br>请安静默想，也可以轻声说出来。"
+      : "这不是答题。<br>这是回应。<br><br>请分享：今天，神是否借着路、故事、经文，提醒你什么？",
+    seconds: 300,
+    doneText: state.participants.length === 1
+      ? "谢谢你愿意真实停留。现在，请继续往前走。"
+      : "谢谢你们愿意真实分享。现在，请再次寻找新的同行者。",
+    doneButton: state.participants.length === 1 ? "继续" : "重新配对",
+    onDoneNext: () => setRoute("go")
+  });
+}
+
+function renderGo() {
+  renderTopicTimer({
+    mark: "GO",
+    title: "带着它继续走",
+    topic: tongdaoConfig.topics.topic7,
+    prompt: state.participants.length === 1
+      ? "这是今天最后一次安静回应。请尽量真实，也尽量简短。"
+      : "这是今天最后一次同行分享。<br>请尽量诚实，也尽量简短。",
+    seconds: 300,
+    doneText: "刚刚领受的，可以慢慢带回生活里。",
+    doneButton: "继续",
+    onDoneNext: () => setRoute("blessing")
+  });
+}
+
+function renderBlessing() {
+  layout({
+    mark: "GO",
+    title: "彼此祝福",
+    body: `<p>请两三个人为一组。可以选择：</p>
+      <div class="quiet-panel">
+        <p>1. 为彼此做一个简短祷告；</p>
+        <p>2. 或者给对方一句祝福；</p>
+        <p>3. 如果你还不习惯祷告，可以安静地说：愿你平安。</p>
+      </div>`,
+    primary: "完成祝福",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("closingPrayer"));
+}
+
+function renderClosingPrayer() {
+  layout({
+    mark: "GO",
+    title: "结束祷告",
+    body: `<p>请一位愿意的同伴，带大家做一个简短结束祷告。</p>
+      <p>如果没有人愿意，可以一起读下面这段：</p>
+      <div class="quiet-panel">
+        <p>主啊，<br>谢谢你今天与我们同行。<br>求你把我们带回真实的生活里，<br>也把今天领受的提醒，<br>放在我们心里。<br>阿们。</p>
+      </div>`,
+    primary: "完成今天的同道",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("grow"));
+}
+
+function renderGrow() {
+  layout({
+    mark: "GROW",
+    title: "本周同行挑战",
+    body: "<p>今天的同道到这里结束。<br>但同行没有结束。</p>",
+    extra: `<div class="challenge-text">${tongdaoConfig.growthChallenge}</div><p class="screen-body">请把这个挑战记下来。也可以截图保存。</p>`,
+    primary: "结束",
+    primaryAction: "next"
+  });
+  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("finish"));
+}
+
+function renderFinish() {
+  layout({
+    mark: "FINISH",
+    title: "愿你继续走在路上",
+    body: "<p>同道结束。<br>愿你平安。<br>愿你继续同行。</p>",
+    primary: "返回步道首页",
+    primaryAction: "home"
+  });
+  screen.querySelector('[data-action="home"]').addEventListener("click", () => {
+    window.location.href = "/home.html";
+  });
+}
+
+function renderTopicTimer({ mark, title, topic, prompt, seconds, doneText, doneButton, onDoneNext }) {
+  layout({
+    mark,
+    title,
+    body: `<div class="topic-text">${topic || "本期话题将在这里出现。"}</div><p>${prompt}</p>`,
+    extra: `<div class="timer" id="timer">${formatTime(seconds)}</div><div class="status-message" id="timerStatus"></div>`,
+    primary: "开始计时",
+    primaryAction: "startTimer"
+  });
+
+  const button = screen.querySelector('[data-action="startTimer"]');
+  button.addEventListener("click", () => {
+    button.textContent = "可以提前结束";
+    startTimer(seconds, () => {
+      document.getElementById("timerStatus").textContent = doneText;
+      button.textContent = doneButton;
+      button.onclick = onDoneNext;
+      if (navigator.vibrate) navigator.vibrate(300);
+    });
+    button.onclick = () => {
+      stopTimer();
+      document.getElementById("timer").textContent = "0:00";
+      document.getElementById("timerStatus").textContent = doneText;
+      button.textContent = doneButton;
+      button.onclick = onDoneNext;
+    };
+  }, { once: true });
+}
+
+function startTimer(seconds, onDone) {
+  stopTimer();
+  state.timerRemaining = seconds;
+  updateTimer();
+  state.timer = window.setInterval(() => {
+    state.timerRemaining -= 1;
+    updateTimer();
+    if (state.timerRemaining <= 0) {
+      stopTimer();
+      onDone();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (state.timer) {
+    window.clearInterval(state.timer);
+    state.timer = null;
+  }
+}
+
+function updateTimer() {
+  const timer = document.getElementById("timer");
+  if (timer) timer.textContent = formatTime(Math.max(0, state.timerRemaining));
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function generateGroups() {
+  if (state.participants.length <= 1) {
+    state.groups = [];
+    return;
+  }
+
+  let bestGroups = [];
+  for (let attempt = 0; attempt < 16; attempt += 1) {
+    const shuffled = shuffle([...state.participants]);
+    const groups = [];
+    let index = 0;
+    while (index < shuffled.length) {
+      const remaining = shuffled.length - index;
+      if (remaining === 3) {
+        groups.push(shuffled.slice(index, index + 3));
+        break;
+      }
+      groups.push(shuffled.slice(index, index + 2));
+      index += 2;
+    }
+    bestGroups = groups;
+    if (!hasRepeatedPair(groups)) break;
+  }
+
+  state.groups = bestGroups;
+  state.previousPairs = new Set(pairSignatures(bestGroups));
+}
+
+function hasRepeatedPair(groups) {
+  return pairSignatures(groups).some((signature) => state.previousPairs.has(signature));
+}
+
+function pairSignatures(groups) {
+  const signatures = [];
+  groups.forEach((group) => {
+    for (let i = 0; i < group.length; i += 1) {
+      for (let j = i + 1; j < group.length; j += 1) {
+        signatures.push([group[i].name, group[j].name].sort().join(" + "));
+      }
+    }
+  });
+  return signatures;
+}
+
+function renderGroups() {
+  return state.groups.map((group, index) => `
+    <div class="group-item">
+      <small>第${index + 1}组</small>
+      ${group.map((person) => escapeHtml(person.name)).join(" + ")}
+    </div>
+  `).join("");
+}
+
+function shuffle(items) {
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
+
+function toChineseNumber(number) {
+  return ["", "①", "②", "③", "④", "⑤"][number] || number;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value);
+}
+
+routes.home();
+</script>
+
+</body>
+</html>
