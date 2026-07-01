@@ -47,12 +47,21 @@ module.exports = async function handler(request, response) {
       return;
     }
 
-    const existing = current.routes.find((item) => routeIdentity(item) === routeToSave.routeId);
+    const existing = findExistingRoute(current.routes, routeToSave);
     const share = sharePayload(routeToSave);
 
     if (existing && normalizeOwner(existing.owner) !== routeToSave.owner) {
       sendJson(response, 403, { ok: false, error: "owner_mismatch" });
       return;
+    }
+
+    if (existing) {
+      routeToSave.id = existing.id || existing.routeId || routeToSave.id;
+      routeToSave.routeId = existing.routeId || existing.id || routeToSave.routeId;
+      routeToSave.createdAt = existing.createdAt || routeToSave.createdAt;
+      routeToSave.image = routeToSave.image || existing.image || existing.imageUrl || "";
+      routeToSave.qrCode = routeToSave.qrCode || existing.qrCode || "";
+      routeToSave.imageAlt = routeToSave.imageAlt || existing.imageAlt || routeToSave.title || "";
     }
 
     if (existing && sameRoute(normalizeRoute(existing), routeToSave)) {
@@ -72,7 +81,7 @@ module.exports = async function handler(request, response) {
       return;
     }
 
-    const routes = current.routes.filter((item) => routeIdentity(item) !== routeToSave.routeId);
+    const routes = current.routes.filter((item) => item !== existing);
 
     routes.unshift(routeToSave);
 
@@ -189,9 +198,15 @@ function contentsUrl() {
 }
 
 function normalizeRoute(route) {
+  const now = new Date().toISOString();
+
   const normalized = {
-    routeId: route.routeId || "",
+    id: route.id || route.routeId || "",
+    routeId: route.routeId || route.id || "",
     owner: normalizeOwner(route.owner),
+    country: route.country || "",
+    city: route.city || "",
+    region: route.region || "",
     location: route.location || "",
     title: route.title || "",
     description: route.description || "",
@@ -200,13 +215,22 @@ function normalizeRoute(route) {
     distance: route.distance || "",
     surface: route.surface || "",
     elevation: route.elevation || "",
+    difficulty: route.difficulty || "",
+    suitableFor: route.suitableFor || "",
+    equipmentMinimum: route.equipmentMinimum || "",
     timezone: route.timezone || "Asia/Shanghai",
     date: normalizeDate(route.date || ""),
+    meetingPlace: route.meetingPlace || "",
+    participantRequirements: route.participantRequirements || "",
     image: resolveImage(route.image),
-    imageAlt: route.imageAlt || route.title || ""
+    qrCode: resolveImage(route.qrCode),
+    imageAlt: route.imageAlt || route.title || "",
+    createdAt: route.createdAt || now,
+    updatedAt: now
   };
 
   normalized.routeId = normalized.routeId || routeIdentity(normalized);
+  normalized.id = normalized.id || normalized.routeId;
   normalized.location = normalized.location || route.locationName || "";
   return normalized;
 }
@@ -244,7 +268,43 @@ function ownerRouteCount(routes, owner) {
 }
 
 function sameRoute(left, right) {
-  return JSON.stringify(left) === JSON.stringify(right);
+  const normalizedLeft = {
+    ...left,
+    updatedAt: ""
+  };
+  const normalizedRight = {
+    ...right,
+    updatedAt: ""
+  };
+
+  return JSON.stringify(normalizedLeft) === JSON.stringify(normalizedRight);
+}
+
+function findExistingRoute(routes, route) {
+  return routes.find(function (item) {
+    const candidate = normalizeRoute(item);
+
+    if (normalizeOwner(candidate.owner) !== route.owner) {
+      return false;
+    }
+
+    if (candidate.routeId && route.routeId && candidate.routeId === route.routeId) {
+      return true;
+    }
+
+    return sameRouteCore(candidate, route);
+  }) || null;
+}
+
+function sameRouteCore(left, right) {
+  return normalizeText(left.title) === normalizeText(right.title) &&
+    normalizeDate(left.date) === normalizeDate(right.date) &&
+    normalizeText(left.time) === normalizeText(right.time) &&
+    normalizeText(left.location) === normalizeText(right.location);
+}
+
+function normalizeText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function sharePayload(route) {
