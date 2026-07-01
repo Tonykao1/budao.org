@@ -3,9 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>步道是什么</title>
+<title>全球同工 - 步道</title>
 
-<link rel="stylesheet" href="style.css">
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.72), transparent 26%),
+    linear-gradient(180deg, #f8f5ee 0%, #efe9dc 52%, #e7dfd0 100%);
+  color: #2d2923;
+  font-family: "Songti SC", "Noto Serif CJK SC", ui-serif, Georgia, "Times New Roman", serif;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 18px 20px;
+  background: #000;
+  white-space: nowrap;
+}
+
+nav a {
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+nav a:hover {
+  opacity: 0.7;
+}
+
+.co-workers {
+  position: relative;
+  width: min(88vw, 960px);
+  margin: 0 auto;
+  padding: 112px 0 128px;
+}
+
+.co-workers::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 72px;
+  width: 1px;
+  height: calc(100% - 120px);
+  background: linear-gradient(180deg, transparent, rgba(91, 81, 67, 0.22), transparent);
+  transform: translateX(-50%);
+}
+
+.hero {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 78px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 28px;
+  color: #9b9284;
+  font-size: 11px;
+  letter-spacing: 0.58em;
+}
+
+h1 {
+  margin: 0;
+  color: #29241c;
+  font-size: clamp(42px, 7vw, 76px);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+.lead {
+  max-width: 640px;
+  margin: 44px auto 0;
+  color: #625b50;
+  font-size: 19px;
+  font-weight: 300;
+  line-height: 2.35;
+  letter-spacing: 0.08em;
+}
+
+.mission {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 20px;
+  max-width: 620px;
+  margin: 0 auto 86px;
+  color: #4e473d;
+  text-align: center;
+}
+
+.mission p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 2.35;
+  letter-spacing: 0.07em;
+}
+
+.leaders {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 18px;
+  width: min(100%, 720px);
+  margin: 0 auto 94px;
+}
+
+.leader-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 32px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(77, 67, 55, 0.14);
+}
+
+.leader-row:last-child {
+  border-bottom: 1px solid rgba(77, 67, 55, 0.14);
+}
+
+.place {
+  color: #8a806f;
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.28em;
+}
+
+.name {
+  color: #252017;
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
+.join-section {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 auto;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.join-section h2 {
+  margin: 0 0 24px;
+  color: #332d24;
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+}
+
+.join-section p {
+  margin: 0 auto 30px;
+  color: #6b6256;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 2.2;
+  letter-spacing: 0.08em;
+}
+
+.join-button {
+  display: inline-block;
+  padding: 13px 26px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  text-decoration: none;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.join-button:hover {
+  opacity: 0.78;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  nav {
+    gap: 18px;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .co-workers {
+    padding: 76px 0 96px;
+  }
+
+  .co-workers::before {
+    display: none;
+  }
+
+  .lead,
+  .mission p {
+    font-size: 16px;
+  }
+
+  .leader-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .place,
+  .name {
+    text-align: center;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -18,54 +241,63 @@
   <a href="/contact.html">联系</a>
 </nav>
 
-<main id="mainContent">
+<main class="co-workers" id="mainContent">
 
-<h1>铁磨铁，磨出刃</h1>
+<section class="hero" aria-label="全球同工">
+  <p class="eyebrow">BUDAO CO-WORKERS</p>
+  <h1>铁磨铁，磨出刃</h1>
+  <p class="lead">祂对我们说话，在不同国家，城市，社区，兴起更多肢体。</p>
+</section>
 
-<p>祂对我们说话，</p>
+<section class="mission" aria-label="步道使命">
+  <p>
+    以脚行道，
+    一步一步回应恩典，
+    传扬祝福。
+  </p>
+  <p>
+    成为一个，造就一个，
+    让我们同心同行去“步道”！
+  </p>
+</section>
 
-<p>
-在不同国家，城市，社区，
-兴起更多肢体，
-以脚行道，
-一步一步回应恩典，
-传扬祝福。
-</p>
+<section class="leaders" aria-label="带领人">
+  <div class="leader-row">
+    <div class="place">美国 · 加州 · 湾区</div>
+    <div class="name">Simon&Juliana</div>
+  </div>
 
-<p>
-成为一个，造就一个，
-让我们同心同行去“步道”！
-</p>
+  <div class="leader-row">
+    <div class="place">中国 · 北京 · 顺义</div>
+    <div class="name">Tony夫妇&Vincent</div>
+  </div>
 
-<p>美国 加州 湾区 ：Simon&Juliana</p>
+  <div class="leader-row">
+    <div class="place">中国 · 北京 · 朝阳</div>
+    <div class="name">TT（Titus）</div>
+  </div>
 
-<p>
-中国 北京 顺义 ：
-<span id="leaderTony">
-Tony夫妇&Vincent
-</span>
-</p>
+  <div class="leader-row">
+    <div class="place">中国 · 北京 · 昌平</div>
+    <div class="name">Leo&Laurel</div>
+  </div>
 
-<p>
-中国 北京 昌平 ：Laurel
-</p>
+  <div class="leader-row">
+    <div class="place">中国 · 北京 · 顺义</div>
+    <div class="name">Toda</div>
+  </div>
+</section>
 
-<div class="join-section">
-
-<h2>成为带领人</h2>
-
-<p>
-若你有感动与步道同工，
-我们欢迎你成为带领人。
-</p>
-
-<a
-href="mailto:hello@budao.org?subject=加入步道同工&body=姓名：%0A电话：%0A所在城市："
-class="join-button">
-提交申请
-</a>
-
-</div>
+<section class="join-section" aria-label="成为带领人">
+  <h2>成为带领人</h2>
+  <p>
+    若你有感动与步道同工，
+    我们欢迎你成为带领人。
+  </p>
+  <a
+  href="mailto:hello@budao.org?subject=加入步道同工&body=姓名：%0A电话：%0A所在城市："
+  class="join-button">提交申请</a>
+</section>
 
 </main>
 
