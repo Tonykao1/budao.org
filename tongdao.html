@@ -12,16 +12,10 @@
   box-sizing: border-box;
 }
 
-html,
 body {
-  min-height: 100%;
-}
-
-body {
+  min-height: 100vh;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.78), transparent 26%),
-    linear-gradient(180deg, #f7f4ed 0%, #f1ece1 56%, #e8dfd0 100%);
+  background: #f5f2eb;
   color: #222;
 }
 
@@ -29,72 +23,70 @@ body {
   min-height: calc(100svh - 55px);
   display: flex;
   justify-content: center;
-  padding: 28px 18px;
+  padding: 18px 14px;
 }
 
 .tongdao-screen {
   width: min(100%, 640px);
-  min-height: calc(100svh - 112px);
+  min-height: calc(100svh - 92px);
+  margin: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 30px;
-  padding: clamp(26px, 7vw, 54px) clamp(22px, 6vw, 46px);
-  border: 1px solid rgba(50, 42, 31, 0.08);
-  border-radius: 34px;
-  background: rgba(255, 253, 248, 0.54);
-  box-shadow: 0 28px 80px rgba(64, 52, 37, 0.08);
+  gap: 26px;
+  padding: clamp(24px, 7vw, 48px);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.48);
+  text-align: left;
 }
 
-.stage-mark {
+.stage {
   color: #9d968b;
   font-size: 11px;
   letter-spacing: 5px;
-  text-transform: uppercase;
 }
 
-.screen-title {
+.title {
   margin: 0;
-  color: #25211b;
-  font-size: clamp(38px, 10vw, 62px);
+  color: #222;
+  font-size: clamp(38px, 11vw, 58px);
   font-weight: 200;
+  line-height: 1.3;
   letter-spacing: 0.08em;
-  line-height: 1.35;
 }
 
-.screen-body {
+.body {
   color: #555;
   font-size: 17px;
   font-weight: 300;
-  line-height: 2.05;
+  line-height: 2;
   letter-spacing: 0.04em;
 }
 
-.screen-body p {
+.body p {
   margin: 0 0 18px;
   color: inherit;
-  font-size: inherit;
+  font: inherit;
   line-height: inherit;
 }
 
-.quiet-panel {
-  padding: 22px 0;
-  border-top: 1px solid rgba(70, 59, 43, 0.12);
-  border-bottom: 1px solid rgba(70, 59, 43, 0.12);
+.quiet-box {
+  padding: 20px 0;
+  border-top: 1px solid rgba(40, 34, 24, 0.12);
+  border-bottom: 1px solid rgba(40, 34, 24, 0.12);
 }
 
 .field-stack {
   display: grid;
-  gap: 18px;
+  gap: 17px;
 }
 
 .field-line {
   display: grid;
-  gap: 9px;
+  gap: 8px;
   color: #777;
   font-size: 13px;
   letter-spacing: 0.08em;
-  text-align: left;
 }
 
 .field-line input,
@@ -102,19 +94,18 @@ body {
   width: 100%;
   min-height: 44px;
   border: 0;
-  border-bottom: 1px solid rgba(59, 50, 37, 0.22);
+  border-bottom: 1px solid rgba(30, 25, 18, 0.22);
   border-radius: 0;
   outline: 0;
   background: transparent;
   color: #222;
   font: inherit;
   font-size: 17px;
-  letter-spacing: 0.02em;
 }
 
 .field-line input:focus,
 .field-line select:focus {
-  border-bottom-color: rgba(17, 17, 17, 0.6);
+  border-bottom-color: #222;
 }
 
 .participant-list {
@@ -135,7 +126,6 @@ body {
   color: #555;
   font-size: 14px;
   line-height: 1.8;
-  text-align: left;
 }
 
 .check-line input {
@@ -145,130 +135,122 @@ body {
   accent-color: #111;
 }
 
+.message {
+  min-height: 24px;
+  color: #8a5f30;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.timer {
+  display: grid;
+  place-items: center;
+  width: min(64vw, 210px);
+  aspect-ratio: 1;
+  margin: 4px auto;
+  border: 1px solid rgba(40, 34, 24, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.46);
+  color: #222;
+  font-size: clamp(42px, 14vw, 64px);
+  font-weight: 200;
+  font-variant-numeric: tabular-nums;
+}
+
+.groups {
+  display: grid;
+  gap: 12px;
+}
+
+.group {
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(40, 34, 24, 0.12);
+  color: #333;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.group small {
+  display: block;
+  margin-bottom: 3px;
+  color: #9d968b;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+}
+
+.theme,
+.question,
+.scripture,
+.challenge {
+  color: #2b261e;
+  font-size: clamp(22px, 6vw, 32px);
+  font-weight: 300;
+  line-height: 1.75;
+  letter-spacing: 0.04em;
+}
+
 .actions {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 14px;
 }
 
-.action-primary,
-.action-secondary,
-.action-plain {
+.actions > div {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+button {
+  font: inherit;
+}
+
+.primary,
+.secondary,
+.plain {
   min-height: 48px;
   border: 0;
   border-radius: 999px;
   cursor: pointer;
-  font: inherit;
-  font-size: 14px;
-  letter-spacing: 0.16em;
-  transition: opacity 0.26s ease, transform 0.26s ease;
+  letter-spacing: 0.14em;
+  transition: opacity 0.24s ease, transform 0.24s ease;
 }
 
-.action-primary {
-  padding: 0 25px;
+.primary {
+  padding: 0 24px;
   background: #111;
-  color: #fff;
+  color: white;
 }
 
-.action-secondary {
-  padding: 0 22px;
-  background: rgba(255, 255, 255, 0.66);
+.secondary {
+  padding: 0 20px;
+  background: rgba(255, 255, 255, 0.72);
   color: #333;
 }
 
-.action-plain {
+.plain {
   min-height: auto;
   padding: 8px 0;
   background: transparent;
   color: #777;
 }
 
-.action-primary:hover,
-.action-secondary:hover,
-.action-plain:hover {
+.primary:hover,
+.secondary:hover,
+.plain:hover {
   opacity: 0.76;
   transform: translateY(-1px);
 }
 
-.action-primary:disabled {
-  opacity: 0.32;
+.primary:disabled {
+  opacity: 0.34;
   cursor: not-allowed;
   transform: none;
-}
-
-.timer {
-  display: grid;
-  place-items: center;
-  width: min(66vw, 220px);
-  aspect-ratio: 1;
-  margin: 8px auto;
-  border: 1px solid rgba(72, 60, 41, 0.12);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.82), rgba(245, 239, 228, 0.36));
-  color: #201c16;
-  font-size: clamp(44px, 14vw, 68px);
-  font-variant-numeric: tabular-nums;
-  font-weight: 200;
-  letter-spacing: 0.02em;
-}
-
-.group-list {
-  display: grid;
-  gap: 14px;
-}
-
-.group-item {
-  padding: 16px 0;
-  border-bottom: 1px solid rgba(70, 59, 43, 0.12);
-  color: #333;
-  font-size: 18px;
-  line-height: 1.8;
-  letter-spacing: 0.04em;
-}
-
-.group-item small {
-  display: block;
-  margin-bottom: 4px;
-  color: #9d968b;
-  font-size: 11px;
-  letter-spacing: 0.24em;
-}
-
-.topic-text,
-.scripture-text,
-.challenge-text {
-  color: #2b261e;
-  font-size: clamp(22px, 6vw, 34px);
-  font-weight: 300;
-  line-height: 1.75;
-  letter-spacing: 0.04em;
-}
-
-.media-space {
-  display: grid;
-  min-height: 180px;
-  place-items: center;
-  border: 1px solid rgba(70, 59, 43, 0.12);
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(216, 166, 91, 0.14), transparent 34%),
-    rgba(255, 255, 255, 0.4);
-  color: #8a806f;
-  font-size: 14px;
-  line-height: 2;
-  letter-spacing: 0.12em;
-  text-align: center;
-}
-
-.status-message {
-  min-height: 24px;
-  color: #8a5f30;
-  font-size: 14px;
-  line-height: 1.8;
 }
 
 @media (max-width: 640px) {
@@ -278,26 +260,26 @@ body {
   }
 
   .tongdao-shell {
-    min-height: calc(100svh - 55px);
-    padding: 16px 12px;
+    padding: 12px;
   }
 
   .tongdao-screen {
-    min-height: calc(100svh - 88px);
-    border-radius: 26px;
+    min-height: calc(100svh - 78px);
+    border-radius: 22px;
   }
 
   .participant-row {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 5px;
   }
 
-  .actions {
-    gap: 10px;
+  .actions,
+  .actions > div {
+    width: 100%;
   }
 
-  .action-primary,
-  .action-secondary {
+  .primary,
+  .secondary {
     flex: 1 1 100%;
   }
 }
@@ -320,90 +302,238 @@ body {
 </main>
 
 <script>
-const tongdaoConfig = {
-  title: "同道",
-  estimatedDefaultMinutes: 90,
-  storyVideoUrl: "",
-  warmupVideoUrl: "",
-  warmupImageUrl: "",
-  scriptureText: "你们要休息，要知道我是神。",
-  topics: {
-    topic1: "今天走在路上，你最先注意到什么？",
-    topic2: "最近有什么事，让你觉得自己需要被扶一把？",
-    topic3: "有哪一段关系，是你想重新学习温柔面对的？",
-    topic4: "如果今天神在路上对你说一句话，你盼望听见什么？",
-    topic5: "刚刚同行时，有哪一句话让你愿意继续想一想？",
-    topic6: "今天，神是否借着路、故事、经文，提醒你什么？",
-    topic7: "回到生活以后，你愿意带着哪一个提醒继续走？"
-  },
-  growthChallenge: "本周找一位你想关心的人，约他一起走一小段路。不要急着给建议，只认真听完。"
-};
+let activeConfig = null;
 
-const screen = document.getElementById("screen");
+const tongdaoPacks = [
+  {
+    id: "gateway-001",
+    source: "第1期",
+    theme: "归回起初",
+    symbol: "孩子",
+    storyTitle: "大蝌蚪",
+    storyVideoUrl: "",
+    scriptureReference: "路加福音 18:17",
+    scriptureText: "我实在告诉你们，凡要承受神国的，若不像小孩子，断不能进去。",
+    topics: {
+      topic1: "你的故乡里，什么最令你难忘？",
+      topic2: "小时候，有没有一件现在想起来仍觉得很有意思的糗事？",
+      topic3: "最近有没有一件令你开心，或不开心的事？",
+      topic4: "你最亲密的一位朋友，有什么优点？",
+      topic5: "如果可以穿越一次，你想回到哪里？做什么？",
+      topic6: "你觉得自己哪一点最像小孩子？",
+      topic7: "这段经文里，哪一个词最触动你？为什么？"
+    },
+    growthChallenge: "本周，请找一个安静时刻，回想自己小时候最单纯、最真实的一面，并向神说一句简单的话。"
+  },
+  {
+    id: "gateway-002",
+    source: "第2期",
+    theme: "找回失落的生命",
+    symbol: "帽子",
+    storyTitle: "我要把我的帽子找回来",
+    storyVideoUrl: "",
+    scriptureReference: "路加福音 24:45-47",
+    scriptureText: "于是耶稣开他们的心窍，使他们能明白圣经，又对他们说：照经上所写的，基督必受害，第三日从死里复活，并且人要奉他的名传悔改、赦罪的道，从耶路撒冷起直传到万邦。",
+    topics: {
+      topic1: "今天早上，有什么和平时不太一样的地方？",
+      topic2: "你生命中最难忘的一顿饭，是和谁一起吃的？",
+      topic3: "有没有一件事，让你觉得：如果能重来一次就好了？",
+      topic4: "你最不能接受别人怎样对待你？",
+      topic5: "有没有一个自己不太满意，却一直改不掉的小毛病？",
+      topic6: "你的生命中，有没有一顶“帽子”好像丢了？你觉得该去哪里找？",
+      topic7: "今天的经文里，哪一点最令你有感触？"
+    },
+    growthChallenge: "本周，请认真面对一个你一直知道却常常回避的小问题，并为它祷告一次。"
+  },
+  {
+    id: "gateway-003",
+    source: "第3期",
+    theme: "起来，不要静坐不动",
+    symbol: "石头",
+    storyTitle: "花婆婆",
+    storyVideoUrl: "",
+    scriptureReference: "士师记 18:9-10",
+    scriptureText: "起来，我们上去攻击他们吧！我们已经窥探那地，见那地甚好。你们为何静坐不动呢？要急速前往得那地为业，不可迟延。",
+    topics: {
+      topic1: "昨晚你带着什么心情入睡？谈谈你的睡前状态。",
+      topic2: "当你面对一个有挑战的任务时，第一反应通常是什么？",
+      topic3: "最近一周，有没有一件事让你心中一暖？若没有，有没有一件事让你心里一紧？",
+      topic4: "最近有没有一件你很抗拒的事？你抗拒的是事情本身，还是它背后的东西？",
+      topic5: "有没有一件你知道应该去做，却一直没有迈出去的事？",
+      topic6: "今天的故事或经文，让你想到自己生命中哪一件迟迟没有行动的事？",
+      topic7: "这一周，你愿意迈出的一个小步是什么？"
+    },
+    growthChallenge: "本周，请完成一件你知道应该做、却一直拖延的小事。不要追求做大，只要真实迈出一步。"
+  },
+  {
+    id: "gateway-004",
+    source: "第5期",
+    theme: "见证之路的站点",
+    symbol: "巴士",
+    storyTitle: "市场街的最后一站",
+    storyVideoUrl: "",
+    scriptureReference: "使徒行传 1:7-8",
+    scriptureText: "但圣灵降临在你们身上，你们就必得着能力，并要在耶路撒冷、犹太全地，和撒马利亚，直到地极，作我的见证。",
+    topics: {
+      topic1: "上一段旅行里，最触动你的一件小事是什么？",
+      topic2: "有什么是你比较坚持一直在做的？动力是什么？",
+      topic3: "接下来一段时间，你有什么期待或计划？",
+      topic4: "有没有一次，你满怀期待，结果却完全出乎意料？",
+      topic5: "最近有没有一件事影响了你的情绪？它真正触动你的是什么？",
+      topic6: "如果人生像一辆巴士，你现在觉得自己停在哪一站？",
+      topic7: "你眼中的服事是什么？"
+    },
+    growthChallenge: "本周，请不要急着“为神做点什么”，先安静问一句：主啊，你正在我里面做什么？"
+  },
+  {
+    id: "gateway-005",
+    source: "第6期",
+    theme: "望而却步的风景",
+    symbol: "地图",
+    storyTitle: "我怎样学习地理",
+    storyVideoUrl: "",
+    scriptureReference: "撒母耳记下 23:5",
+    scriptureText: "神却与我立永远的约。这约凡事坚稳，关乎我的一切救恩和我一切所想望的，他岂不为我成就吗？",
+    topics: {
+      topic1: "分享一件现在想起来仍然后怕的经历。",
+      topic2: "当面对不确定或害怕时，你通常倚靠什么？为什么？",
+      topic3: "家里有没有一个地方，是你下意识会回避的？为什么？",
+      topic4: "到目前为止，你已经实现的一个重要愿望是什么？你靠什么实现？",
+      topic5: "有没有一件事，让你意识到：这是我真的做不到的？",
+      topic6: "你愿意谈谈你的父亲，或一个在你生命中像父亲角色的人吗？",
+      topic7: "有没有一个愿望，你觉得可能无法实现，却仍然希望天父来成全？"
+    },
+    growthChallenge: "本周，请把一个你觉得自己做不到的愿望，写下来，交托给神。"
+  },
+  {
+    id: "gateway-006",
+    source: "第10期",
+    theme: "灵与肉的交汇点",
+    symbol: "粮食",
+    storyTitle: "田鼠阿佛",
+    storyVideoUrl: "",
+    scriptureReference: "罗马书 8:6",
+    scriptureText: "体贴肉体的，就是死；体贴圣灵的，乃是生命、平安。",
+    topics: {
+      topic1: "分享一道你最拿手的饭或菜，以及你为什么喜欢它。",
+      topic2: "还记得人生第一份工作吗？那时你最在意什么？",
+      topic3: "本周最让你喜乐的一件事是什么？为什么？",
+      topic4: "现在在工作或生活中，哪一点最令你担忧或不安？",
+      topic5: "在不冒犯隐私的前提下，可以分享一次你在病痛中的经历与看见吗？",
+      topic6: "你觉得阿佛所储存的阳光、颜色和诗歌，为什么在寒冬里那么重要？",
+      topic7: "今天经文里的“体贴”，你如何理解？"
+    },
+    growthChallenge: "本周，请留意：你每天最常思想、停留、忧虑、渴望的是什么，并为此祷告一次。"
+  },
+  {
+    id: "gateway-007",
+    source: "第11期",
+    theme: "越软弱越陪伴",
+    symbol: "小树",
+    storyTitle: "小树的四季",
+    storyVideoUrl: "",
+    scriptureReference: "罗马书 15:1",
+    scriptureText: "我们坚强的人要担待软弱者的软弱，不该只顾自己的喜好。",
+    topics: {
+      topic1: "分享一个兴趣爱好，并谈谈你喜欢它的原因。",
+      topic2: "你小时候最怕什么？现在呢？",
+      topic3: "分享一个对你帮助很大的习惯，它是在什么情况下养成的？",
+      topic4: "有没有一句别人对你的肯定，你至今仍然记得？",
+      topic5: "你生命中有没有遇见过像小树一样的人？为什么你觉得他或她像小树？",
+      topic6: "今天的故事或经文，让你想到谁曾经陪伴过你的软弱？",
+      topic7: "当你软弱的时候，你会选择倚靠什么？"
+    },
+    growthChallenge: "本周，请主动陪伴一个正在软弱中的人。不必讲很多话，只要真实在场。"
+  },
+  {
+    id: "gateway-008",
+    source: "第12期",
+    theme: "从自由步入更自由",
+    symbol: "船",
+    storyTitle: "和甘伯伯去游河",
+    storyVideoUrl: "",
+    scriptureReference: "哥林多前书 6:12",
+    scriptureText: "凡事我都可行，但不都有益处。凡事我都可行，但无论哪一件，我总不受它的辖制。",
+    topics: {
+      topic1: "从早上一睁眼到现在，你经历了哪些情绪？",
+      topic2: "只用一个形容词概括你自己，并说说原因。",
+      topic3: "分享一件自己做过的了不起的事。",
+      topic4: "上一次，你是如何意识到自己犯了错的？",
+      topic5: "别人最常夸你的优点是什么？你自己怎么看？",
+      topic6: "如果甘伯伯邀请你上船，你觉得他会怎样叮嘱你？",
+      topic7: "今天的经文里，哪一句最触动你？为什么？"
+    },
+    growthChallenge: "本周，请留意一件正在辖制你的情绪、习惯或欲望，并练习一次“不被它牵着走”。"
+  },
+  {
+    id: "gateway-009",
+    source: "第13期",
+    theme: "永不迁移的爱",
+    symbol: "小兔",
+    storyTitle: "逃家小兔",
+    storyVideoUrl: "",
+    scriptureReference: "以赛亚书 54:10",
+    scriptureText: "大山可以挪开，小山可以迁移；但我的慈爱必不离开你；我平安的约也不迁移。这是怜恤你的耶和华说的。",
+    topics: {
+      topic1: "你的名字是谁取的？分享一个关于名字的小故事。",
+      topic2: "好朋友最常夸你什么？又最受不了你哪一点？",
+      topic3: "为了所爱的人，你做过最傻、最疯狂，或最难忘的一件事是什么？",
+      topic4: "分享一次自己犯了错却被原谅的经历，以及留给你的感觉。",
+      topic5: "最近一次真实感觉自己被爱，是什么时候？",
+      topic6: "今天的信息，让你想起生命中的哪一件事，使你对神的爱有新的感受？",
+      topic7: "如果从今天开始，你愿意为了所爱的人改变一点点，你最想从哪件小事开始？"
+    },
+    growthChallenge: "本周，请向一个你所爱的人做一件很小、但真实表达爱的事。"
+  },
+  {
+    id: "gateway-010",
+    source: "第14期",
+    theme: "顾念所不见的",
+    symbol: "黑夜",
+    storyTitle: "讨厌黑夜的席奶奶",
+    storyVideoUrl: "",
+    scriptureReference: "哥林多后书 4:18",
+    scriptureText: "原来我们不是顾念所见的，乃是顾念所不见的；因为所见的是暂时的，所不见的是永远的。",
+    topics: {
+      topic1: "今天来的途中，最令你印象深刻的一个画面是什么？为什么？",
+      topic2: "想起一位很久没有见面的朋友。为什么这么久没见，你仍然会想起他或她？",
+      topic3: "分享一件生活中处于“烂尾”的事，并谈谈你觉得它为什么会烂尾。",
+      topic4: "今天的山或今天的路并不轻松。生活里有没有一座“山”，你觉得还在爬？",
+      topic5: "如果今天可以从你的生活里拿走一样东西，让你轻松一点，你最希望拿走什么？",
+      topic6: "从今天的故事或经文里，谈谈最触动你的一句话、一个画面或一个细节。",
+      topic7: "今天以后，有没有一样东西你希望自己慢慢少顾念？有没有一样东西你希望自己慢慢多顾念？"
+    },
+    growthChallenge: "本周，请每天用一分钟问自己：我今天顾念的是暂时的，还是永恒的？"
+  }
+];
+
 const state = {
   route: "home",
   history: [],
   peopleCount: 1,
   participants: [],
-  estimatedMinutes: tongdaoConfig.estimatedDefaultMinutes,
+  estimatedMinutes: 90,
   place: "",
   weather: "",
   safetyConfirmed: false,
   groups: [],
   previousPairs: new Set(),
-  walkIndex: 0,
+  walkIndex: 1,
   timer: null,
   timerRemaining: 0,
-  timerDone: false,
-  pendingRoute: ""
+  nextAfterGroups: "walk"
 };
 
-const routes = {
-  home: renderHome,
-  initialize: renderInitialize,
-  welcome: renderWelcome,
-  icebreaker: renderIcebreaker,
-  warmup: renderWarmup,
-  prayer: () => renderTimedQuiet({
-    mark: "ENTER",
-    title: "摩西祷告",
-    body: "请大家安静站立。<br>可以闭上眼睛。<br>不用说很多话。<br><br>请在心里向神说：<br>我在这里。<br>愿你带领我们今天的路。",
-    seconds: 60,
-    button: "祷告完成",
-    next: "pairIntro"
-  }),
-  pairIntro: renderPairIntro,
-  groupResult: renderGroupResult,
-  walk: renderWalk,
-  story: renderStory,
-  storyQuiet: () => renderTimedQuiet({
-    mark: "STORY",
-    title: "请安静30秒",
-    body: "不用急着解释。<br>让刚刚看见的，先安静留下。",
-    seconds: 30,
-    button: "继续",
-    next: "storyResponse"
-  }),
-  storyResponse: renderStoryResponse,
-  ministry: renderMinistry,
-  word: renderWord,
-  wordQuiet: () => renderTimedQuiet({
-    mark: "WORD",
-    title: "安静",
-    body: "经文已经读完。<br>请不要急着解释。<br>安静一分钟。",
-    seconds: 60,
-    button: "继续",
-    next: "wordAgain"
-  }),
-  wordAgain: renderWordAgain,
-  regroupRespond: renderRegroupRespond,
-  respond: renderRespond,
-  go: renderGo,
-  blessing: renderBlessing,
-  closingPrayer: renderClosingPrayer,
-  grow: renderGrow,
-  finish: renderFinish
-};
+const screen = document.getElementById("screen");
+
+function pickRandomPack(packs) {
+  return packs[Math.floor(Math.random() * packs.length)];
+}
+
+function startTongdao() {
+  activeConfig = pickRandomPack(tongdaoPacks);
+  showChosenPackIntro(activeConfig);
+}
 
 function setRoute(route, push = true) {
   stopTimer();
@@ -411,7 +541,7 @@ function setRoute(route, push = true) {
     state.history.push(state.route);
   }
   state.route = route;
-  routes[route]();
+  renderRoute();
 }
 
 function goBack() {
@@ -423,69 +553,103 @@ function goBack() {
 
 function resetTongdao() {
   stopTimer();
+  activeConfig = null;
   state.route = "home";
   state.history = [];
   state.peopleCount = 1;
   state.participants = [];
-  state.estimatedMinutes = tongdaoConfig.estimatedDefaultMinutes;
+  state.estimatedMinutes = 90;
   state.place = "";
   state.weather = "";
   state.safetyConfirmed = false;
   state.groups = [];
   state.previousPairs = new Set();
-  state.walkIndex = 0;
-  state.timerDone = false;
-  state.pendingRoute = "";
-  routes.home();
+  state.walkIndex = 1;
+  state.nextAfterGroups = "walk";
+  renderRoute();
 }
 
-function layout({ mark, title, body = "", extra = "", primary = "", primaryAction = "", secondary = "返回上一步" }) {
+function renderRoute() {
+  const renderers = {
+    home: renderHome,
+    chosen: () => showChosenPackIntro(activeConfig),
+    initialize: renderInitialize,
+    welcome: renderWelcome,
+    icebreaker: renderIcebreaker,
+    prayer: renderPrayer,
+    groups: renderGroupsScreen,
+    walk: renderWalk,
+    story: renderStory,
+    storyQuiet: () => renderQuietTimer("STORY", "请安静30秒", "不用急着解释。<br>让刚刚看见的，先安静留下。", 30, "继续", () => setRoute("word")),
+    word: renderWord,
+    wordQuiet: () => renderQuietTimer("WORD", "安静", "经文已经读完。<br>请不要急着解释。<br>安静一分钟。", 60, "继续", () => setRoute("wordAgain")),
+    wordAgain: renderWordAgain,
+    respond: renderRespond,
+    go: renderGo,
+    blessing: renderBlessing,
+    closingPrayer: renderClosingPrayer,
+    grow: renderGrow
+  };
+  renderers[state.route]();
+}
+
+function layout({ stage, title, body = "", extra = "", primary = "", onPrimary = null }) {
   screen.innerHTML = `
     <div>
-      ${mark ? `<div class="stage-mark">${mark}</div>` : ""}
-      <h1 class="screen-title">${title}</h1>
+      ${stage ? `<div class="stage">${stage}</div>` : ""}
+      <h1 class="title">${title}</h1>
     </div>
-    ${body ? `<div class="screen-body">${body}</div>` : ""}
+    ${body ? `<div class="body">${body}</div>` : ""}
     ${extra}
     <div class="actions">
-      <button class="action-plain" type="button" data-action="reset">重置同道</button>
+      <button class="plain" type="button" data-action="reset">重置同道</button>
       <div>
-        ${state.history.length ? `<button class="action-secondary" type="button" data-action="back">${secondary}</button>` : ""}
-        ${primary ? `<button class="action-primary" type="button" data-action="${primaryAction}">${primary}</button>` : ""}
+        ${state.history.length ? `<button class="secondary" type="button" data-action="back">返回上一步</button>` : ""}
+        ${primary ? `<button class="primary" type="button" data-action="primary">${primary}</button>` : ""}
       </div>
     </div>
   `;
-  bindBaseActions();
-}
 
-function bindBaseActions() {
-  screen.querySelector('[data-action="reset"]')?.addEventListener("click", resetTongdao);
+  screen.querySelector('[data-action="reset"]').addEventListener("click", resetTongdao);
   screen.querySelector('[data-action="back"]')?.addEventListener("click", goBack);
+  if (typeof onPrimary === "function") {
+    screen.querySelector('[data-action="primary"]')?.addEventListener("click", onPrimary);
+  }
 }
 
 function renderHome() {
   layout({
-    mark: "TONGDAO",
+    stage: "TONGDAO",
     title: "同道",
     body: "<p>没有带领人，<br>也可以一起走。</p>",
-    primary: "开始同行",
-    primaryAction: "start"
+    primary: "开始同道",
+    onPrimary: startTongdao
   });
-  screen.querySelector('[data-action="start"]').addEventListener("click", () => setRoute("initialize"));
+}
+
+function showChosenPackIntro(pack) {
+  state.route = "chosen";
+  layout({
+    stage: "TODAY",
+    title: "今天，同道为我们预备了一段路。",
+    body: `<p>主题：</p><div class="theme">《${escapeHtml(pack.theme)}》</div>`,
+    primary: "开始这段路",
+    onPrimary: () => setRoute("initialize")
+  });
 }
 
 function renderInitialize() {
-  const participantsHtml = Array.from({ length: state.peopleCount }, (_, index) => {
+  const people = Array.from({ length: state.peopleCount }, (_, index) => {
     const person = state.participants[index] || { name: "", gender: "" };
     return `
       <div class="participant-row">
         <label class="field-line">
           <span>第${index + 1}位同伴</span>
-          <input data-person-name="${index}" value="${escapeAttribute(person.name)}" placeholder="姓名">
+          <input data-name="${index}" value="${escapeAttribute(person.name)}" placeholder="姓名">
         </label>
         <label class="field-line">
           <span>性别</span>
-          <select data-person-gender="${index}">
+          <select data-gender="${index}">
             <option value="" ${person.gender === "" ? "selected" : ""}>不填写</option>
             <option value="男" ${person.gender === "男" ? "selected" : ""}>男</option>
             <option value="女" ${person.gender === "女" ? "selected" : ""}>女</option>
@@ -496,407 +660,302 @@ function renderInitialize() {
   }).join("");
 
   layout({
-    mark: "INITIALIZE",
+    stage: "INITIALIZE",
     title: "开始之前",
-    body: "<p>请一位同伴拿起手机，完成今天的同行初始化。<br>不用紧张，只需要两分钟。</p>",
+    body: "<p>请一位同伴拿起手机，完成今天的同行初始化。</p>",
     extra: `
       <div class="field-stack">
         <label class="field-line">
           <span>预计时间</span>
-          <input id="estimatedMinutes" type="number" min="1" value="${state.estimatedMinutes || ""}" placeholder="例如 90">
+          <input id="estimatedMinutes" type="number" min="1" value="${state.estimatedMinutes}" placeholder="90">
         </label>
         <label class="field-line">
           <span>人数</span>
-          <input id="peopleCount" type="number" min="1" value="${state.peopleCount}" placeholder="例如 8">
+          <input id="peopleCount" type="number" min="1" value="${state.peopleCount}" placeholder="8">
         </label>
-        <div class="participant-list">${participantsHtml}</div>
+        <div class="participant-list">${people}</div>
         <label class="field-line">
           <span>地点</span>
-          <input id="place" value="${escapeAttribute(state.place)}" placeholder="例如 奥克兰 East Ridge Loop / 北京某公园">
+          <input id="place" value="${escapeAttribute(state.place)}" placeholder="奥克兰 East Ridge Loop / 北京某公园">
         </label>
         <label class="field-line">
           <span>天气</span>
-          <input id="weather" value="${escapeAttribute(state.weather)}" placeholder="例如 晴，有风，22°C">
+          <input id="weather" value="${escapeAttribute(state.weather)}" placeholder="晴，有风，22°C">
         </label>
         <label class="check-line">
           <input id="safetyConfirmed" type="checkbox" ${state.safetyConfirmed ? "checked" : ""}>
-          <span>我们确认：使用手机时请双脚站定，不边走边看手机。</span>
+          <span>我确认：使用手机时请双脚站定，不边走边看手机。</span>
         </label>
-        <div class="status-message" id="initMessage"></div>
+        <div class="message" id="message"></div>
       </div>
     `,
     primary: "开始",
-    primaryAction: "finishInit"
+    onPrimary: finishInitialize
   });
 
-  bindInitFields();
-  screen.querySelector('[data-action="finishInit"]').addEventListener("click", () => {
-    collectInitFields();
-    if (!state.safetyConfirmed) {
-      document.getElementById("initMessage").textContent = "请先确认安全须知，然后我们再开始。";
-      return;
-    }
-    state.participants = normalizeParticipants();
-    setRoute("welcome");
-  });
-}
-
-function bindInitFields() {
   document.getElementById("peopleCount").addEventListener("change", () => {
-    collectInitFields();
+    collectInitialize();
     state.peopleCount = Math.max(1, Number(document.getElementById("peopleCount").value || 1));
     renderInitialize();
   });
 }
 
-function collectInitFields() {
-  state.estimatedMinutes = Number(document.getElementById("estimatedMinutes")?.value || tongdaoConfig.estimatedDefaultMinutes);
+function collectInitialize() {
+  state.estimatedMinutes = Number(document.getElementById("estimatedMinutes")?.value || 90);
   state.peopleCount = Math.max(1, Number(document.getElementById("peopleCount")?.value || 1));
   state.place = document.getElementById("place")?.value.trim() || "";
   state.weather = document.getElementById("weather")?.value.trim() || "";
   state.safetyConfirmed = Boolean(document.getElementById("safetyConfirmed")?.checked);
   state.participants = Array.from({ length: state.peopleCount }, (_, index) => ({
-    name: document.querySelector(`[data-person-name="${index}"]`)?.value.trim() || "",
-    gender: document.querySelector(`[data-person-gender="${index}"]`)?.value || ""
+    name: document.querySelector(`[data-name="${index}"]`)?.value.trim() || "",
+    gender: document.querySelector(`[data-gender="${index}"]`)?.value || ""
   }));
 }
 
-function normalizeParticipants() {
-  return Array.from({ length: state.peopleCount }, (_, index) => {
-    const person = state.participants[index] || {};
-    return {
-      name: person.name || `同伴${index + 1}`,
-      gender: person.gender || ""
-    };
-  });
+function finishInitialize() {
+  collectInitialize();
+  if (!state.safetyConfirmed) {
+    document.getElementById("message").textContent = "请先确认安全须知，然后我们再开始。";
+    return;
+  }
+  state.participants = Array.from({ length: state.peopleCount }, (_, index) => ({
+    name: state.participants[index]?.name || `同伴${index + 1}`,
+    gender: state.participants[index]?.gender || ""
+  }));
+  setRoute("welcome");
 }
 
 function renderWelcome() {
   layout({
-    mark: "ENTER",
-    title: "欢迎来到同道",
+    stage: "ENTER",
+    title: "欢迎来到同道。",
     body: `<p>今天，没有带领人。<br>只有同行的人。</p>
-      <p>请相信：<br>真正带领我们的，不是手机，<br>不是网页，<br>也不是任何一个人。</p>
-      <p>我们只是一起，一步一步，走到神面前。</p>`,
+      <p>真正带领我们的，<br>不是手机，<br>不是网页，<br>也不是任何一个人。</p>
+      <p>我们只是一起，<br>一步一步，<br>走到神面前。</p>`,
     primary: "继续",
-    primaryAction: "next"
+    onPrimary: () => setRoute("icebreaker")
   });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("icebreaker"));
 }
 
 function renderIcebreaker() {
   layout({
-    mark: "ENTER",
+    stage: "ENTER",
     title: "三问破冰",
-    body: `<p>请每个人依次回答下面三个问题。<br>每人不超过一分钟。</p>
-      <div class="quiet-panel">
+    body: `<p>请每个人依次回答：</p>
+      <div class="quiet-box">
         <p>1. 你的名字？</p>
-        <p>2. 一个今天和信仰无关的小信息：你今天早上吃了什么 / 今天心情像什么天气 / 最近在听什么歌？</p>
-        <p>3. 你今天带着怎样的期待或状态来到这里？</p>
+        <p>2. 一个今天和信仰无关的小信息。</p>
+        <p>3. 你今天带着怎样的状态来到这里？</p>
       </div>`,
     primary: "完成破冰",
-    primaryAction: "next"
-  });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("warmup"));
-}
-
-function renderWarmup() {
-  const media = tongdaoConfig.warmupVideoUrl
-    ? `<video class="media-space" controls src="${tongdaoConfig.warmupVideoUrl}"></video>`
-    : tongdaoConfig.warmupImageUrl
-      ? `<img class="media-space" src="${tongdaoConfig.warmupImageUrl}" alt="热身示意">`
-      : `<div class="media-space">请轻轻活动肩颈、膝盖和脚踝。<br>让身体慢慢醒来。</div>`;
-
-  layout({
-    mark: "ENTER",
-    title: "热身",
-    body: "<p>开始前，请大家一起做一个简单热身。</p>",
-    extra: media,
-    primary: "开始热身",
-    primaryAction: "next"
-  });
-  const button = screen.querySelector('[data-action="next"]');
-  button.addEventListener("click", () => {
-    button.textContent = "热身完成";
-    button.onclick = () => setRoute("prayer");
-  }, { once: true });
-}
-
-function renderTimedQuiet({ mark, title, body, seconds, button, next }) {
-  state.timerDone = false;
-  layout({
-    mark,
-    title,
-    body: `<p>${body}</p>`,
-    extra: `<div class="timer" id="timer">${formatTime(seconds)}</div>`,
-    primary: button,
-    primaryAction: "timerNext"
-  });
-  const nextButton = screen.querySelector('[data-action="timerNext"]');
-  nextButton.disabled = true;
-  startTimer(seconds, () => {
-    nextButton.disabled = false;
-    if (navigator.vibrate) navigator.vibrate(300);
-  });
-  nextButton.addEventListener("click", () => setRoute(next));
-}
-
-function renderPairIntro() {
-  layout({
-    mark: "PAIR",
-    title: state.participants.length === 1 ? "独行模式" : "生成同行伙伴",
-    body: state.participants.length === 1
-      ? "<p>今天只有你一个人。<br>所有问题都可以安静默想，也可以轻声说出来。</p>"
-      : `<p>接下来，系统会为大家生成今天第一组同行伙伴。<br>请按照手机上的名字寻找对方。</p>
-        <p>每组建议 2 人。若人数为奇数，允许出现 3 人组。</p>`,
-    primary: state.participants.length === 1 ? "开始同行" : "生成分组",
-    primaryAction: "pair"
-  });
-  screen.querySelector('[data-action="pair"]').addEventListener("click", () => {
-    state.pendingRoute = "walk";
-    if (state.participants.length > 1) generateGroups();
-    setRoute("groupResult");
+    onPrimary: () => setRoute("prayer")
   });
 }
 
-function renderGroupResult() {
-  const solo = state.participants.length === 1;
+function renderPrayer() {
+  renderQuietTimer(
+    "ENTER",
+    "摩西祷告",
+    "请安静站立。<br>可以闭上眼睛。<br><br>在心里说：<br>我在这里。<br>愿你带领我们今天的路。",
+    60,
+    "祷告完成",
+    () => startGroupRound("walk")
+  );
+}
+
+function startGroupRound(nextRoute) {
+  state.nextAfterGroups = nextRoute;
+  generateGroups();
+  setRoute("groups");
+}
+
+function renderGroupsScreen() {
+  const solo = isSolo();
+  const label = state.nextAfterGroups === "respond" ? "进入回应" : state.nextAfterGroups === "go" ? "继续" : "开始同行";
   layout({
-    mark: "PAIR",
-    title: solo ? "继续默想" : "同行伙伴",
-    body: solo ? "<p>请带着今天的问题，继续向前走。</p>" : "<p>请按照名字找到今天这一轮的同行者。</p>",
-    extra: solo ? "" : `<div class="group-list">${renderGroups()}</div>`,
-    primary: state.pendingRoute === "walk" ? "开始同行" : state.pendingRoute === "respond" ? "进入回应" : "请和新的同行者继续走",
-    primaryAction: "next"
+    stage: "PAIR",
+    title: solo ? "安静默想" : "同行伙伴",
+    body: solo ? "<p>今天进入独行模式。<br>请安静默想，也可以轻声说出来。</p>" : "<p>请按照手机上的名字，寻找这一轮的同行者。</p>",
+    extra: solo ? "" : `<div class="groups">${renderGroupList()}</div>`,
+    primary: label,
+    onPrimary: () => setRoute(state.nextAfterGroups)
   });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute(state.pendingRoute || "walk"));
 }
 
 function renderWalk() {
-  const topicKey = `topic${state.walkIndex + 1}`;
-  renderTopicTimer({
-    mark: "WALK",
-    title: `同行${toChineseNumber(state.walkIndex + 1)}`,
-    topic: tongdaoConfig.topics[topicKey],
-    prompt: state.participants.length === 1
+  const topic = activeConfig.topics[`topic${state.walkIndex}`];
+  renderShareTimer({
+    stage: "WALK",
+    title: `同行${["", "①", "②", "③", "④", "⑤"][state.walkIndex]}`,
+    question: topic,
+    prompt: isSolo()
       ? "请安静默想，也可以轻声说出来。"
-      : "请轮流分享。<br>不用评价别人。<br>不用给答案。<br>只需要认真听。",
-    seconds: 300,
-    doneText: state.participants.length === 1
+      : "请轮流分享。<br>不用评价。<br>不用给答案。<br>只需要认真听。",
+    doneText: isSolo()
       ? "刚刚的话，可以留在路上。现在，请继续默想。"
       : "刚刚的话，可以留在路上。现在，请寻找新的同行者。",
-    doneButton: state.participants.length === 1 ? "继续默想" : "重新配对",
-    onDoneNext: () => {
+    doneButton: isSolo() ? "继续" : "重新配对",
+    onDone: () => {
       state.walkIndex += 1;
-      if (state.walkIndex >= 5) {
+      if (state.walkIndex <= 5) {
+        startGroupRound("walk");
+      } else {
         setRoute("story");
-        return;
       }
-      state.pendingRoute = "walk";
-      if (state.participants.length > 1) generateGroups();
-      setRoute("groupResult");
     }
   });
 }
 
 function renderStory() {
-  const media = tongdaoConfig.storyVideoUrl
-    ? `<video class="media-space" controls src="${tongdaoConfig.storyVideoUrl}"></video>`
-    : `<div class="media-space">今天的故事视频<br>将在这里播放</div>`;
   layout({
-    mark: "STORY",
+    stage: "STORY",
     title: "故事",
-    body: "<p>接下来，请一起观看今天的故事。<br>不用急着解释。<br>只需要观看。</p>",
-    extra: media,
-    primary: "播放故事",
-    primaryAction: "play"
+    body: `<p>接下来，请一起观看今天的故事。<br>不用急着解释。<br>只需要观看。</p>
+      <div class="quiet-box">
+        <p>今天的故事：<br>《${escapeHtml(activeConfig.storyTitle)}》</p>
+        <p>${activeConfig.storyVideoUrl ? "请播放今天的故事视频。" : `请由一位同伴简单读出或讲述今天的故事：《${escapeHtml(activeConfig.storyTitle)}》。`}</p>
+      </div>`,
+    primary: "故事完成",
+    onPrimary: () => setRoute("storyQuiet")
   });
-  const button = screen.querySelector('[data-action="play"]');
-  button.addEventListener("click", () => {
-    button.textContent = "故事看完了";
-    button.onclick = () => setRoute("storyQuiet");
-  }, { once: true });
-}
-
-function renderStoryResponse() {
-  layout({
-    mark: "STORY",
-    title: "一句回应",
-    body: `<p>刚刚的故事里，哪一个画面、人物、句子或感受，留在了你心里？</p>
-      <p>每个人只说一句。<br>不用展开。<br>不用讨论。</p>`,
-    primary: "继续",
-    primaryAction: "next"
-  });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("ministry"));
-}
-
-function renderMinistry() {
-  layout({
-    mark: "BUDAO",
-    title: "步道是什么",
-    body: `<p>步道，是一群人在神所造的自然中同行。</p>
-      <p>我们盼望：<br>亲近神，<br>改善关系，<br>锻炼身体，<br>更新灵命，<br>巩固信仰，<br>享受生活。</p>`,
-    primary: "继续听神的话",
-    primaryAction: "next"
-  });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("word"));
 }
 
 function renderWord() {
   layout({
-    mark: "WORD",
+    stage: "WORD",
     title: "圣言",
-    body: "<p>现在，让我们一起安静，<br>听一听神的话。</p>",
-    extra: `<div class="scripture-text">${tongdaoConfig.scriptureText || "这里将放入本期经文。"}</div>`,
+    body: `<p>现在，让我们一起安静，<br>听一听神的话。</p>
+      <div class="scripture">
+        ${escapeHtml(activeConfig.scriptureReference)}<br><br>
+        ${escapeHtml(activeConfig.scriptureText)}
+      </div>`,
     primary: "请一位同伴读出经文",
-    primaryAction: "next"
+    onPrimary: () => setRoute("wordQuiet")
   });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("wordQuiet"));
 }
 
 function renderWordAgain() {
   layout({
-    mark: "WORD",
+    stage: "WORD",
     title: "再次读经",
     body: "<p>请换一位同伴，<br>再读一遍这段经文。</p>",
     primary: "读完了",
-    primaryAction: "next"
-  });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("regroupRespond"));
-}
-
-function renderRegroupRespond() {
-  layout({
-    mark: "RESPOND",
-    title: state.participants.length === 1 ? "继续默想" : "重新配对",
-    body: state.participants.length === 1
-      ? "<p>接下来，我们进入回应。</p>"
-      : "<p>请寻找新的同行者。<br>接下来，我们进入回应。</p>",
-    primary: state.participants.length === 1 ? "进入回应" : "生成新分组",
-    primaryAction: "next"
-  });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => {
-    state.pendingRoute = "respond";
-    if (state.participants.length > 1) generateGroups();
-    setRoute("groupResult");
+    onPrimary: () => startGroupRound("respond")
   });
 }
 
 function renderRespond() {
-  renderTopicTimer({
-    mark: "RESPOND",
+  renderShareTimer({
+    stage: "RESPOND",
     title: "回应",
-    topic: tongdaoConfig.topics.topic6,
-    prompt: state.participants.length === 1
+    question: activeConfig.topics.topic6,
+    prompt: isSolo()
       ? "这不是答题。<br>这是回应。<br><br>请安静默想，也可以轻声说出来。"
-      : "这不是答题。<br>这是回应。<br><br>请分享：今天，神是否借着路、故事、经文，提醒你什么？",
-    seconds: 300,
-    doneText: state.participants.length === 1
-      ? "谢谢你愿意真实停留。现在，请继续往前走。"
-      : "谢谢你们愿意真实分享。现在，请再次寻找新的同行者。",
-    doneButton: state.participants.length === 1 ? "继续" : "重新配对",
-    onDoneNext: () => setRoute("go")
+      : "这不是答题。<br>这是回应。<br><br>请分享：<br>今天，神是否借着路、故事、经文，提醒你什么？",
+    doneText: "谢谢你愿意真实分享。",
+    doneButton: isSolo() ? "继续" : "重新配对",
+    onDone: () => startGroupRound("go")
   });
 }
 
 function renderGo() {
-  renderTopicTimer({
-    mark: "GO",
+  renderShareTimer({
+    stage: "GO",
     title: "带着它继续走",
-    topic: tongdaoConfig.topics.topic7,
-    prompt: state.participants.length === 1
-      ? "这是今天最后一次安静回应。请尽量真实，也尽量简短。"
-      : "这是今天最后一次同行分享。<br>请尽量诚实，也尽量简短。",
-    seconds: 300,
+    question: activeConfig.topics.topic7,
+    prompt: isSolo() ? "请安静默想，也可以轻声说出来。" : "请轮流分享。<br>不用评价。<br>不用给答案。",
     doneText: "刚刚领受的，可以慢慢带回生活里。",
     doneButton: "继续",
-    onDoneNext: () => setRoute("blessing")
+    onDone: () => setRoute("blessing")
   });
 }
 
 function renderBlessing() {
   layout({
-    mark: "GO",
+    stage: "GO",
     title: "彼此祝福",
     body: `<p>请两三个人为一组。可以选择：</p>
-      <div class="quiet-panel">
+      <div class="quiet-box">
         <p>1. 为彼此做一个简短祷告；</p>
-        <p>2. 或者给对方一句祝福；</p>
-        <p>3. 如果你还不习惯祷告，可以安静地说：愿你平安。</p>
+        <p>2. 给对方一句祝福；</p>
+        <p>3. 如果你还不习惯祷告，可以说：愿你平安。</p>
       </div>`,
     primary: "完成祝福",
-    primaryAction: "next"
+    onPrimary: () => setRoute("closingPrayer")
   });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("closingPrayer"));
 }
 
 function renderClosingPrayer() {
   layout({
-    mark: "GO",
+    stage: "GO",
     title: "结束祷告",
-    body: `<p>请一位愿意的同伴，带大家做一个简短结束祷告。</p>
-      <p>如果没有人愿意，可以一起读下面这段：</p>
-      <div class="quiet-panel">
+    body: `<p>请一位愿意的同伴，带大家做简短结束祷告。</p>
+      <p>如果没有人愿意，可以一起读：</p>
+      <div class="quiet-box">
         <p>主啊，<br>谢谢你今天与我们同行。<br>求你把我们带回真实的生活里，<br>也把今天领受的提醒，<br>放在我们心里。<br>阿们。</p>
       </div>`,
     primary: "完成今天的同道",
-    primaryAction: "next"
+    onPrimary: () => setRoute("grow")
   });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("grow"));
 }
 
 function renderGrow() {
   layout({
-    mark: "GROW",
+    stage: "GROW",
     title: "本周同行挑战",
-    body: "<p>今天的同道到这里结束。<br>但同行没有结束。</p>",
-    extra: `<div class="challenge-text">${tongdaoConfig.growthChallenge}</div><p class="screen-body">请把这个挑战记下来。也可以截图保存。</p>`,
-    primary: "结束",
-    primaryAction: "next"
-  });
-  screen.querySelector('[data-action="next"]').addEventListener("click", () => setRoute("finish"));
-}
-
-function renderFinish() {
-  layout({
-    mark: "FINISH",
-    title: "愿你继续走在路上",
-    body: "<p>同道结束。<br>愿你平安。<br>愿你继续同行。</p>",
+    body: `<div class="challenge">${escapeHtml(activeConfig.growthChallenge)}</div>
+      <p>请截图保存。<br>同行没有结束，<br>只是今天的路走到这里。</p>`,
     primary: "返回步道首页",
-    primaryAction: "home"
-  });
-  screen.querySelector('[data-action="home"]').addEventListener("click", () => {
-    window.location.href = "/home.html";
+    onPrimary: () => {
+      window.location.href = "/home.html";
+    }
   });
 }
 
-function renderTopicTimer({ mark, title, topic, prompt, seconds, doneText, doneButton, onDoneNext }) {
+function renderQuietTimer(stage, title, text, seconds, buttonText, onDone) {
   layout({
-    mark,
+    stage,
     title,
-    body: `<div class="topic-text">${topic || "本期话题将在这里出现。"}</div><p>${prompt}</p>`,
-    extra: `<div class="timer" id="timer">${formatTime(seconds)}</div><div class="status-message" id="timerStatus"></div>`,
+    body: `<p>${text}</p>`,
+    extra: `<div class="timer" id="timer">${formatTime(seconds)}</div>`,
+    primary: buttonText,
+    onPrimary: onDone
+  });
+  const button = screen.querySelector('[data-action="primary"]');
+  button.disabled = true;
+  startTimer(seconds, () => {
+    button.disabled = false;
+    if (navigator.vibrate) navigator.vibrate(300);
+  });
+}
+
+function renderShareTimer({ stage, title, question, prompt, doneText, doneButton, onDone }) {
+  layout({
+    stage,
+    title,
+    body: `<div class="question">${escapeHtml(question)}</div><p>${prompt}</p>`,
+    extra: `<div class="timer" id="timer">5:00</div><div class="message" id="timerMessage"></div>`,
     primary: "开始计时",
-    primaryAction: "startTimer"
+    onPrimary: null
   });
 
-  const button = screen.querySelector('[data-action="startTimer"]');
+  const button = screen.querySelector('[data-action="primary"]');
   button.addEventListener("click", () => {
     button.textContent = "可以提前结束";
-    startTimer(seconds, () => {
-      document.getElementById("timerStatus").textContent = doneText;
-      button.textContent = doneButton;
-      button.onclick = onDoneNext;
-      if (navigator.vibrate) navigator.vibrate(300);
-    });
+    startTimer(300, () => finishShareTimer(button, doneText, doneButton, onDone));
     button.onclick = () => {
       stopTimer();
       document.getElementById("timer").textContent = "0:00";
-      document.getElementById("timerStatus").textContent = doneText;
-      button.textContent = doneButton;
-      button.onclick = onDoneNext;
+      finishShareTimer(button, doneText, doneButton, onDone);
     };
   }, { once: true });
+}
+
+function finishShareTimer(button, doneText, doneButton, onDone) {
+  document.getElementById("timerMessage").textContent = doneText;
+  button.textContent = doneButton;
+  button.onclick = onDone;
+  if (navigator.vibrate) navigator.vibrate(300);
 }
 
 function startTimer(seconds, onDone) {
@@ -922,23 +981,29 @@ function stopTimer() {
 
 function updateTimer() {
   const timer = document.getElementById("timer");
-  if (timer) timer.textContent = formatTime(Math.max(0, state.timerRemaining));
+  if (timer) {
+    timer.textContent = formatTime(Math.max(0, state.timerRemaining));
+  }
 }
 
-function formatTime(totalSeconds) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = String(totalSeconds % 60).padStart(2, "0");
-  return `${minutes}:${seconds}`;
+function formatTime(seconds) {
+  const minute = Math.floor(seconds / 60);
+  const second = String(seconds % 60).padStart(2, "0");
+  return `${minute}:${second}`;
+}
+
+function isSolo() {
+  return state.participants.length <= 1;
 }
 
 function generateGroups() {
-  if (state.participants.length <= 1) {
+  if (isSolo()) {
     state.groups = [];
     return;
   }
 
-  let bestGroups = [];
-  for (let attempt = 0; attempt < 16; attempt += 1) {
+  let picked = [];
+  for (let attempt = 0; attempt < 20; attempt += 1) {
     const shuffled = shuffle([...state.participants]);
     const groups = [];
     let index = 0;
@@ -951,12 +1016,12 @@ function generateGroups() {
       groups.push(shuffled.slice(index, index + 2));
       index += 2;
     }
-    bestGroups = groups;
+    picked = groups;
     if (!hasRepeatedPair(groups)) break;
   }
 
-  state.groups = bestGroups;
-  state.previousPairs = new Set(pairSignatures(bestGroups));
+  state.groups = picked;
+  state.previousPairs = new Set(pairSignatures(picked));
 }
 
 function hasRepeatedPair(groups) {
@@ -968,16 +1033,16 @@ function pairSignatures(groups) {
   groups.forEach((group) => {
     for (let i = 0; i < group.length; i += 1) {
       for (let j = i + 1; j < group.length; j += 1) {
-        signatures.push([group[i].name, group[j].name].sort().join(" + "));
+        signatures.push([group[i].name, group[j].name].sort().join("+"));
       }
     }
   });
   return signatures;
 }
 
-function renderGroups() {
+function renderGroupList() {
   return state.groups.map((group, index) => `
-    <div class="group-item">
+    <div class="group">
       <small>第${index + 1}组</small>
       ${group.map((person) => escapeHtml(person.name)).join(" + ")}
     </div>
@@ -990,10 +1055,6 @@ function shuffle(items) {
     [items[i], items[j]] = [items[j], items[i]];
   }
   return items;
-}
-
-function toChineseNumber(number) {
-  return ["", "①", "②", "③", "④", "⑤"][number] || number;
 }
 
 function escapeHtml(value) {
@@ -1009,7 +1070,7 @@ function escapeAttribute(value) {
   return escapeHtml(value);
 }
 
-routes.home();
+renderRoute();
 </script>
 
 </body>
