@@ -20,7 +20,7 @@ body{
 
 .super-container{
     width:92%;
-    max-width:1120px;
+    max-width:1640px;
     margin:auto;
     padding:80px 20px 160px 20px;
 }
@@ -52,16 +52,17 @@ body{
 
 .route-grid{
     display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(420px,520px));
     grid-auto-rows:1fr;
     gap:42px;
     align-items:stretch;
+    justify-content:center;
 }
 
 .route-card{
     display:flex;
     flex-direction:column;
-    min-height:780px;
+    min-height:860px;
     height:100%;
     background:white;
     border-radius:30px;
@@ -99,12 +100,28 @@ body{
 
 .route-countdown{
     width:100%;
-    height:28px;
+    height:34px;
     display:block;
-    color:rgba(255,255,255,0.88);
-    font-size:clamp(13px,1.45vw,18px);
-    line-height:28px;
-    letter-spacing:1.5px;
+    color:rgba(255,255,255,0.92);
+    background:linear-gradient(
+        105deg,
+        #f8edd0 0%,
+        #ffd88a 16%,
+        #f68fb5 34%,
+        #b69cff 50%,
+        #72d7ff 66%,
+        #f6efcf 82%,
+        #ffd88a 100%
+    );
+    background-size:280% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    text-shadow:0 0 18px rgba(255,216,138,0.28);
+    animation:countdown-prism 4.8s ease-in-out infinite;
+    font-size:clamp(21px,2.1vw,26px);
+    line-height:34px;
+    letter-spacing:1.2px;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:clip;
@@ -113,8 +130,23 @@ body{
 }
 
 .route-countdown.is-long{
-    font-size:13px;
-    letter-spacing:0.6px;
+    font-size:clamp(18px,1.7vw,22px);
+    letter-spacing:0.8px;
+}
+
+@keyframes countdown-prism{
+    0%{
+        background-position:0% 50%;
+        filter:saturate(1.08);
+    }
+    50%{
+        background-position:100% 50%;
+        filter:saturate(1.38);
+    }
+    100%{
+        background-position:0% 50%;
+        filter:saturate(1.08);
+    }
 }
 
 .route-image{
@@ -172,12 +204,13 @@ body{
 }
 
 .route-content h2{
-    min-height:78px;
+    min-height:88px;
     margin:0 0 18px 0;
     color:#25211b;
-    font-size:30px;
+    font-size:34px;
     line-height:1.3;
-    font-weight:300;
+    font-weight:600;
+    text-align:center;
     display:-webkit-box;
     -webkit-line-clamp:2;
     -webkit-box-orient:vertical;
@@ -185,14 +218,15 @@ body{
 }
 
 .route-description{
-    min-height:86px;
-    max-height:86px;
+    min-height:126px;
+    max-height:126px;
     margin-bottom:0;
     color:#5f5b55;
     font-size:15px;
-    line-height:1.9;
+    line-height:1.85;
+    text-align:left;
     display:-webkit-box;
-    -webkit-line-clamp:3;
+    -webkit-line-clamp:5;
     -webkit-box-orient:vertical;
     overflow:hidden;
 }
@@ -201,7 +235,7 @@ body{
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:12px;
-    min-height:104px;
+    min-height:188px;
     margin-top:28px;
     margin-bottom:28px;
     align-content:flex-start;
@@ -239,13 +273,16 @@ body{
     margin-top:auto;
     margin-bottom:20px;
     color:#999;
-    font-size:13px;
+    width:100%;
+    font-size:17px;
+    text-align:center;
     letter-spacing:1px;
 }
 
 .route-button{
     display:inline-block;
     width:max-content;
+    align-self:center;
     padding:12px 22px;
     background:#111;
     color:white;
@@ -366,7 +403,7 @@ body.modal-open .super-container{
 
 @media(max-width:1100px){
     .route-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
+        grid-template-columns:repeat(2,minmax(360px,1fr));
     }
 }
 
@@ -384,7 +421,7 @@ body.modal-open .super-container{
     }
 
     .route-card{
-        min-height:720px;
+        min-height:780px;
     }
 
     .route-content{
@@ -392,7 +429,7 @@ body.modal-open .super-container{
     }
 
     .route-content h2{
-        font-size:26px;
+        font-size:28px;
     }
 }
 
@@ -520,6 +557,8 @@ const defaultRoutes = [
     distance:"9千米",
     surface:"石阶 / 土路 / 林道",
     elevation:"520米",
+    difficulty:"适中",
+    suitableFor:"有徒步经验者",
     timezone:"Asia/Shanghai",
     date:"2026-07-11",
     image:"",
@@ -529,7 +568,7 @@ const defaultRoutes = [
     country:"美国",
     city:"加州",
     region:"奥克兰",
-    location:"Oakland · California",
+    location:"美国 · 加州 · 奥克兰",
     title:"Reinhardt Redwood Regional Park",
     description:"有人正在另一片大陆，继续学习彼此陪伴。清晨与黄昏之间，也仍有人在同行。",
     time:"10:00",
@@ -537,6 +576,8 @@ const defaultRoutes = [
     distance:"1.8-3miles",
     surface:"土路 / 林间路",
     elevation:"↑180-700feet",
+    difficulty:"适中",
+    suitableFor:"初次参与者 / 有徒步经验者",
     timezone:"America/Los_Angeles",
     date:"2026-07-04",
     image:"",
@@ -624,6 +665,8 @@ function renderRoutes(routes){
                     ${parameterButton("distance", route.distance, route.distance)}
                     ${parameterButton("surface", route.surface, route.surface)}
                     ${parameterButton("elevation", route.elevation, route.elevation)}
+                    ${route.difficulty ? parameterButton("difficulty", route.difficulty, "难度 " + route.difficulty) : ""}
+                    ${route.suitableFor ? parameterButton("suitableFor", route.suitableFor, route.suitableFor) : ""}
                 </div>
                 <div class="route-timezone">${escapeHtml(route.timezone)} · ${escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}</div>
                 <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
@@ -1119,8 +1162,14 @@ function setCountdownText(id,text){
 }
 
 function renderCountdown(id,diff){
+    const days =
+    Math.floor(diff/(1000*60*60*24));
+
     const hours =
-    Math.floor(diff/(1000*60*60));
+    Math.floor(
+        (diff%(1000*60*60*24))
+        /(1000*60*60)
+    );
 
     const minutes =
     Math.floor(
@@ -1134,7 +1183,14 @@ function renderCountdown(id,diff){
         /1000
     );
 
-    setCountdownText(id,hours+"小时 "+minutes+"分 "+seconds+"秒");
+    const time =
+    [
+        String(hours).padStart(2,"0"),
+        String(minutes).padStart(2,"0"),
+        String(seconds).padStart(2,"0")
+    ].join(":");
+
+    setCountdownText(id,days > 0 ? days+"天 "+time : time);
 }
 
 function renderStarted(id){
