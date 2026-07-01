@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>全球同工 - 步道</title>
 
+<link rel="stylesheet" href="style.css">
+
 <style>
 * {
   box-sizing: border-box;
@@ -21,30 +23,6 @@ body {
     radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.72), transparent 26%),
     linear-gradient(180deg, #f8f5ee 0%, #efe9dc 52%, #e7dfd0 100%);
   color: #2d2923;
-  font-family: "Songti SC", "Noto Serif CJK SC", ui-serif, Georgia, "Times New Roman", serif;
-}
-
-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
-  padding: 18px 20px;
-  background: #000;
-  white-space: nowrap;
-}
-
-nav a {
-  flex-shrink: 0;
-  color: #fff;
-  font-size: 15px;
-  letter-spacing: 1px;
-  text-decoration: none;
-  transition: opacity 0.3s ease;
-}
-
-nav a:hover {
-  opacity: 0.7;
 }
 
 .co-workers {
@@ -183,9 +161,12 @@ h1 {
 .join-button {
   display: inline-block;
   padding: 13px 26px;
+  border: 0;
   border-radius: 999px;
   background: #111;
   color: #fff;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 13px;
   letter-spacing: 0.22em;
   text-decoration: none;
@@ -197,13 +178,64 @@ h1 {
   transform: translateY(-1px);
 }
 
-@media (max-width: 720px) {
-  nav {
-    gap: 18px;
-    overflow-x: auto;
-    justify-content: flex-start;
-  }
+.email-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(34, 30, 24, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
 
+.email-dialog.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.email-panel {
+  position: relative;
+  width: min(88vw, 420px);
+  padding: 42px 32px 38px;
+  background: rgba(248, 245, 238, 0.96);
+  border: 1px solid rgba(77, 67, 55, 0.12);
+  box-shadow: 0 26px 72px rgba(43, 36, 27, 0.16);
+  text-align: center;
+}
+
+.email-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: #6f665a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.email-panel p {
+  margin: 0 0 18px;
+  color: #6b6256;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+.email-panel strong {
+  color: #222;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 720px) {
   .co-workers {
     padding: 76px 0 96px;
   }
@@ -294,12 +326,50 @@ h1 {
     若你有感动与步道同工，
     我们欢迎你成为带领人。
   </p>
-  <a
-  href="mailto:hello@budao.org?subject=加入步道同工&body=姓名：%0A电话：%0A所在城市："
-  class="join-button">提交申请</a>
+  <button class="join-button" type="button" id="showEmail">提交申请</button>
 </section>
 
 </main>
+
+<div class="email-dialog" id="emailDialog" aria-hidden="true">
+  <div class="email-panel" role="dialog" aria-modal="true" aria-labelledby="emailTitle">
+    <button class="email-close" type="button" id="closeEmail" aria-label="关闭">×</button>
+    <p id="emailTitle">请写信给我们</p>
+    <strong>hello@budao.org</strong>
+  </div>
+</div>
+
+<script>
+const showEmail = document.getElementById("showEmail");
+const emailDialog = document.getElementById("emailDialog");
+const closeEmail = document.getElementById("closeEmail");
+
+function openEmailDialog() {
+  emailDialog.classList.add("is-open");
+  emailDialog.setAttribute("aria-hidden", "false");
+  closeEmail.focus();
+}
+
+function closeEmailDialog() {
+  emailDialog.classList.remove("is-open");
+  emailDialog.setAttribute("aria-hidden", "true");
+  showEmail.focus();
+}
+
+showEmail.addEventListener("click", openEmailDialog);
+closeEmail.addEventListener("click", closeEmailDialog);
+emailDialog.addEventListener("click", (event) => {
+  if (event.target === emailDialog) {
+    closeEmailDialog();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && emailDialog.classList.contains("is-open")) {
+    closeEmailDialog();
+  }
+});
+</script>
 
 </body>
 </html>
