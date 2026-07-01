@@ -1,5 +1,6 @@
 [
   {
+    "id": "2026-07-11-08-30-xishan-botanical-garden-traverse-中国-北京-海淀",
     "routeId": "2026-07-11-08-30-xishan-botanical-garden-traverse-中国-北京-海淀",
     "owner": "ims@budao.org",
     "country": "中国",
@@ -8,19 +9,23 @@
     "location": "中国 · 北京 · 海淀",
     "title": "西山森林公园–国家植物园（穿越线）",
     "description": "从西山森林公园向国家植物园方向穿越。路线会经过林间台阶、山脊视野与城市边缘的安静地带，适合愿意慢下来、彼此照看、稳定完成一次半日同行的伙伴。",
+    "date": "2026-07-11",
     "time": "08:30",
     "duration": "4小时",
     "distance": "9千米",
-    "surface": "石阶 / 土路 / 林道",
     "elevation": "520米",
+    "surface": "石阶 / 土路 / 林道",
     "timezone": "Asia/Shanghai",
-    "date": "2026-07-11",
-    "imageUrl": "",
-    "aiPrompt": "Quiet natural landscape of Beijing Western Hills forest trail leading toward the National Botanical Garden, soft morning light, restrained documentary atmosphere, no people, no religious symbols.",
-    "fallbackGradient": "linear-gradient(155deg,#e9e2d4 0%,#c8d0bd 48%,#8f9a7f 100%)",
-    "qrCode": ""
+    "difficulty": "适中",
+    "suitableFor": "有徒步经验者",
+    "equipmentMinimum": "防滑徒步鞋 / 1L水",
+    "image": "",
+    "qrCode": "",
+    "createdAt": "2026-07-01T00:00:00.000Z",
+    "updatedAt": "2026-07-01T00:00:00.000Z"
   },
   {
+    "id": "2026-07-04-10-00-reinhardt-redwood-regional-park-美国-加州-奥克兰",
     "routeId": "2026-07-04-10-00-reinhardt-redwood-regional-park-美国-加州-奥克兰",
     "owner": "bacbc@budao.org",
     "country": "美国",
@@ -29,16 +34,19 @@
     "location": "美国 · 加州 · 奥克兰",
     "title": "Reinhardt Redwood Regional Park",
     "description": "10点停车在 Canyon Meadow Staging，出发进入山谷。Bridle Trail 到头后有两个选择：身体条件普通者从 Stream 返回；体力较好的伙伴从 Chown 上山，经 French 与 Orchard 返回 Bridle。大家在 Orchard Picnic 会合，一起午餐。",
+    "date": "2026-07-04",
     "time": "10:00",
     "duration": "2-3小时",
     "distance": "1.8-3.0英里",
-    "surface": "土路、自然路面",
     "elevation": "180-700英尺",
+    "surface": "土路、自然路面",
     "timezone": "America/Los_Angeles",
-    "date": "2026-07-04",
-    "imageUrl": "",
-    "aiPrompt": "Northern California redwood regional park trail, canyon meadow and tall redwoods, calm natural light, realistic landscape, no people, no signs, no text.",
-    "fallbackGradient": "linear-gradient(155deg,#e7e1d3 0%,#b8c0a7 46%,#556b5c 100%)",
-    "qrCode": ""
+    "difficulty": "适中",
+    "suitableFor": "初次参与者 / 有徒步经验者",
+    "equipmentMinimum": "徒步鞋 / 饮水 / 午餐",
+    "image": "",
+    "qrCode": "",
+    "createdAt": "2026-07-01T00:00:00.000Z",
+    "updatedAt": "2026-07-01T00:00:00.000Z"
   }
 ]
