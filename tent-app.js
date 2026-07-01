@@ -209,6 +209,7 @@
     currentUserEmail = allowed.email;
     loginMessage.textContent = "";
     presence.classList.add("route-open");
+    loadOwnedRouteForCurrentUser();
   });
 
   routeImages.addEventListener("change", function () {
@@ -319,6 +320,145 @@
     }
   }
 
+  function findSavedTrail(routeId, title, location) {
+    return readSavedTrails().find(function (trail) {
+      if (trail.routeId && routeId && trail.routeId === routeId) {
+        return true;
+      }
+
+      const source = trail.source || {};
+      return source.routeName === title &&
+        (source.routeLocation || source.meetingPlace || "") === location;
+    }) || null;
+  }
+
+  function loadOwnedRouteForCurrentUser() {
+    fetch("https://budao.org/routes.json?budao=" + Date.now(), {
+      cache: "no-store"
+    }).then(function (response) {
+      if (!response.ok) {
+        throw new Error("routes_unavailable");
+      }
+
+      return response.json();
+    }).then(function (routes) {
+      if (!Array.isArray(routes)) {
+        return;
+      }
+
+      const owned = routes.find(function (route) {
+        return normalizeEmail(route.owner) === normalizeEmail(currentUserEmail);
+      });
+
+      if (owned) {
+        fillRouteFormFromRoute(owned);
+      }
+    }).catch(function () {
+      const localTrail = readSavedTrails().find(function (trail) {
+        return normalizeEmail(currentUserEmail) &&
+          normalizeEmail((trail.source && trail.source.owner) || currentUserEmail) === normalizeEmail(currentUserEmail);
+      });
+
+      if (localTrail) {
+        fillRouteFormFromTrail(localTrail);
+      }
+    });
+  }
+
+  function fillRouteFormFromRoute(route) {
+    setValue(routeForm, "routeName", route.title || "");
+    setValue(routeForm, "trailDate", route.date || "");
+    setValue(routeForm, "meetingTime", route.time || "");
+    setValue(routeForm, "difficulty", route.difficulty || "");
+    setValue(routeForm, "suitableFor", route.suitableFor || "");
+    setValue(routeForm, "equipmentMinimum", route.equipmentMinimum || "");
+    setValue(routeForm, "distance", route.distance || "");
+    setValue(routeForm, "elevationGain", route.elevation || "");
+    setValue(routeForm, "routeLocation", locationForForm(route));
+    setValue(routeForm, "timezone", route.timezone || "Asia/Shanghai");
+    setValue(routeForm, "duration", route.duration || "");
+    setValue(routeForm, "meetingPlace", route.meetingPlace || "");
+    setValue(routeForm, "surfaceDescription", route.surface || "");
+    setValue(routeForm, "participantRequirements", route.participantRequirements || "");
+    setValue(routeForm, "itinerary", route.description || "");
+
+    activeTrail = trailFromRoute(route);
+    routeMessage.textContent = "已为你取回上次安放的步道。";
+  }
+
+  function fillRouteFormFromTrail(trail) {
+    const source = trail.source || {};
+
+    setValue(routeForm, "routeName", source.routeName || "");
+    setValue(routeForm, "trailDate", source.trailDate || "");
+    setValue(routeForm, "meetingTime", source.meetingTime || "");
+    setValue(routeForm, "difficulty", source.difficulty || "");
+    setValue(routeForm, "suitableFor", source.suitableFor || "");
+    setValue(routeForm, "equipmentMinimum", source.equipmentMinimum || "");
+    setValue(routeForm, "distance", source.distance || "");
+    setValue(routeForm, "elevationGain", source.elevationGain || "");
+    setValue(routeForm, "routeLocation", source.routeLocation || "");
+    setValue(routeForm, "timezone", source.timezone || "Asia/Shanghai");
+    setValue(routeForm, "duration", source.duration || "");
+    setValue(routeForm, "meetingPlace", source.meetingPlace || "");
+    setValue(routeForm, "surfaceDescription", source.surfaceDescription || "");
+    setValue(routeForm, "participantRequirements", source.participantRequirements || "");
+    setValue(routeForm, "itinerary", source.itinerary || "");
+
+    activeTrail = trail;
+    routeMessage.textContent = "已为你取回上次安放的步道。";
+  }
+
+  function trailFromRoute(route) {
+    const routeId = route.routeId || route.id || slugify([route.date, route.time, route.title, route.location].filter(Boolean).join("-"));
+
+    return {
+      id: route.id || routeId,
+      routeId,
+      status: "draft",
+      createdAt: route.createdAt || "",
+      updatedAt: route.updatedAt || "",
+      source: {
+        owner: route.owner || currentUserEmail,
+        routeName: route.title || "",
+        trailDate: route.date || "",
+        meetingTime: route.time || "",
+        difficulty: route.difficulty || "",
+        suitableFor: route.suitableFor || "",
+        equipmentMinimum: route.equipmentMinimum || "",
+        distance: route.distance || "",
+        elevationGain: route.elevation || "",
+        routeLocation: locationForForm(route),
+        timezone: route.timezone || "Asia/Shanghai",
+        surfaceDescription: route.surface || "",
+        duration: route.duration || "",
+        participantRequirements: route.participantRequirements || "",
+        itinerary: route.description || "",
+        meetingPlace: route.meetingPlace || "",
+        images: [],
+        existingImage: route.image || route.imageUrl || "",
+        existingImageAlt: route.imageAlt || "",
+        qrCode: route.qrCode || ""
+      }
+    };
+  }
+
+  function locationForForm(route) {
+    return [route.country, route.city, route.region].filter(Boolean).join(" · ") ||
+      route.location ||
+      "";
+  }
+
+  function setValue(form, name, value) {
+    if (form.elements[name]) {
+      form.elements[name].value = value;
+    }
+  }
+
+  function normalizeEmail(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
   function imageFiles() {
     return Array.from(routeImages.files || []);
   }
@@ -363,6 +503,8 @@
     const normalizedTrailDate = normalizeDate(trailDate);
     const meetingTime = valueOf(form, "meetingTime");
     const difficulty = valueOf(form, "difficulty");
+    const suitableFor = valueOf(form, "suitableFor");
+    const equipmentMinimum = valueOf(form, "equipmentMinimum");
     const distance = valueOf(form, "distance");
     const elevationGain = valueOf(form, "elevationGain");
     const routeLocation = valueOf(form, "routeLocation");
@@ -376,16 +518,23 @@
     const routeId = slugify([normalizedTrailDate, meetingTime, routeName, location].filter(Boolean).join("-"));
 
     return readImageDataUrls().then(function (images) {
+      const now = new Date().toISOString();
+      const previous = findSavedTrail(routeId, routeName, location) ||
+        activeTrailFor(routeName, normalizedTrailDate || trailDate, meetingTime, location);
+
       return {
-        id: routeId,
-        routeId,
+        id: previous && previous.id ? previous.id : routeId,
+        routeId: previous && previous.routeId ? previous.routeId : routeId,
         status: "draft",
-        updatedAt: new Date().toISOString(),
+        createdAt: previous && previous.createdAt ? previous.createdAt : now,
+        updatedAt: now,
         source: {
           routeName,
           trailDate: normalizedTrailDate || trailDate,
           meetingTime,
           difficulty,
+          suitableFor,
+          equipmentMinimum,
           distance,
           elevationGain,
           routeLocation: location,
@@ -395,7 +544,10 @@
           participantRequirements,
           itinerary,
           meetingPlace,
-          images
+          images,
+          existingImage: previous && previous.source ? previous.source.existingImage : "",
+          existingImageAlt: previous && previous.source ? previous.source.existingImageAlt : "",
+          qrCode: previous && previous.source ? previous.source.qrCode : ""
         },
         testPage: {
           countdown: {
@@ -415,6 +567,8 @@
               surfaceDescription,
               elevationGain,
               difficulty ? "难度 " + difficulty : "",
+              suitableFor,
+              equipmentMinimum ? "装备 " + equipmentMinimum : "",
               participantRequirements
             ].filter(Boolean),
             images
@@ -456,6 +610,20 @@
 
       return waitForPublishedRoute(route);
     });
+  }
+
+  function activeTrailFor(title, date, time, location) {
+    if (!activeTrail || !activeTrail.source) {
+      return null;
+    }
+
+    const source = activeTrail.source;
+
+    if (source.routeName === title) {
+      return activeTrail;
+    }
+
+    return null;
   }
 
   function waitForPublishedRoute(route) {
@@ -553,22 +721,51 @@
 
   function toRouteJson(trail) {
     const source = trail.source;
+    const location = source.routeLocation || source.meetingPlace;
+    const locationParts = parseLocationParts(location);
+    const uploadedImage = source.images[0] && source.images[0].dataUrl ? source.images[0].dataUrl : "";
+    const image = resolveImage(uploadedImage || source.existingImage || "");
 
     return {
-      location: source.routeLocation || source.meetingPlace,
+      id: trail.id || trail.routeId,
+      location,
       title: source.routeName,
       routeId: trail.routeId || trail.id,
       owner: currentUserEmail,
+      country: locationParts.country,
+      city: locationParts.city,
+      region: locationParts.region,
       description: source.itinerary,
       time: source.meetingTime,
       duration: source.duration,
       distance: source.distance,
       surface: source.surfaceDescription,
       elevation: source.elevationGain,
+      difficulty: source.difficulty,
+      suitableFor: source.suitableFor,
+      equipmentMinimum: source.equipmentMinimum,
       timezone: source.timezone || "Asia/Shanghai",
       date: source.trailDate,
-      image: resolveImage(source.images[0] && source.images[0].dataUrl ? source.images[0].dataUrl : ""),
-      imageAlt: source.images[0] && source.images[0].name ? source.images[0].name : ""
+      image,
+      qrCode: resolveImage(source.qrCode || ""),
+      imageAlt: source.images[0] && source.images[0].name ? source.images[0].name : source.existingImageAlt || "",
+      createdAt: trail.createdAt || "",
+      updatedAt: trail.updatedAt || new Date().toISOString()
+    };
+  }
+
+  function parseLocationParts(location) {
+    const parts = String(location || "")
+      .split(/[·,，/]+/)
+      .map(function (part) {
+        return part.trim();
+      })
+      .filter(Boolean);
+
+    return {
+      country: parts[0] || "",
+      city: parts[1] || "",
+      region: parts.slice(2).join(" · ")
     };
   }
 
@@ -617,12 +814,15 @@
       '<span>' + escapeHtml(route.distance) + '</span>',
       '<span>' + escapeHtml(route.surface) + '</span>',
       '<span>' + escapeHtml(route.elevation) + '</span>',
+      route.difficulty ? '<span>' + escapeHtml("难度 " + route.difficulty) + '</span>' : '',
+      route.suitableFor ? '<span>' + escapeHtml(route.suitableFor) + '</span>' : '',
+      route.equipmentMinimum ? '<span>' + escapeHtml("装备 " + route.equipmentMinimum) + '</span>' : '',
       '</div>',
       '<div class="route-timezone">',
       escapeHtml(route.timezone) + ' · ' + escapeHtml(getUtcLabel(route.timezone, route.date, route.time)),
       '</div>',
       '<a href="#" class="route-button">',
-      '与他们同行 →',
+      '与祂同行',
       '</a>',
       '</div>'
     ].join("");
@@ -652,11 +852,18 @@
   }
 
   function formatCountdown(diff) {
-    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-    return hours + "小时 " + minutes + "分 " + seconds + "秒";
+    const time = [
+      String(hours).padStart(2, "0"),
+      String(minutes).padStart(2, "0"),
+      String(seconds).padStart(2, "0")
+    ].join(":");
+
+    return days > 0 ? days + "天 " + time : time;
   }
 
   function parseDuration(duration) {
