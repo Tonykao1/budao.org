@@ -454,6 +454,7 @@ body.modal-open .super-container{
 <a href="/home.html">首页</a>
 <a href="/about.html">超级星期六</a>
 <a href="/tongxing.html">童行</a>
+<a href="/tongdao.html">同道</a>
 <a href="/what.html">全球同工</a>
 <a href="/contact.html">联系</a>
 </nav>
@@ -555,29 +556,34 @@ function resolveImage(value){
 
 let events = [];
 let activeRoutes = [];
+const fixedRouteSlots = ["IMS","BACBC"];
 
 const defaultRoutes = [
 {
+    owner:"IMS@budao.org",
+    slot:"IMS",
     country:"中国",
     city:"北京",
     region:"海淀",
     location:"中国 · 北京 · 海淀",
-    title:"西山森林公园–国家植物园（穿越线）",
-    description:"从西山森林公园向国家植物园方向穿越。路线会经过林间台阶、山脊视野与城市边缘的安静地带，适合愿意慢下来、彼此照看、稳定完成一次半日同行的伙伴。",
+    title:"东郊湿地公园",
+    description:"在城市边缘的湿地里，放慢脚步，沿着水边与林间小路同行。适合一次轻松、安静、彼此照看的半日步道。",
     time:"08:30",
-    duration:"4小时",
-    distance:"9千米",
-    surface:"石阶 / 土路 / 林道",
-    elevation:"520米",
-    difficulty:"适中",
-    suitableFor:"有徒步经验者",
-    equipmentMinimum:"防滑徒步鞋 / 1L水",
+    duration:"3小时",
+    distance:"6千米",
+    surface:"公园步道 / 木栈道 / 平路",
+    elevation:"平缓",
+    difficulty:"轻松",
+    suitableFor:"初次参与者 / 亲子",
+    equipmentMinimum:"舒适步行鞋 / 饮水",
     timezone:"Asia/Shanghai",
     date:"2026-07-11",
     image:"",
     qrCode:""
 },
 {
+    owner:"BACBC@budao.org",
+    slot:"BACBC",
     country:"美国",
     city:"加州",
     region:"奥克兰",
@@ -602,10 +608,11 @@ const defaultRoutes = [
 fetch("/api/routes")
     .then(response=>response.json())
     .then(routes=>{
-        activeRoutes =
-        Array.isArray(routes) && routes.length ?
-        routes :
-        defaultRoutes;
+        activeRoutes = fixedRoutesOnly(Array.isArray(routes) ? routes : []);
+
+        if(!activeRoutes.length){
+            activeRoutes = fixedRoutesOnly(defaultRoutes);
+        }
 
         renderRoutes(activeRoutes);
         prepareEvents(activeRoutes);
@@ -613,7 +620,7 @@ fetch("/api/routes")
         setInterval(updateAll,1000);
     })
     .catch(()=>{
-        activeRoutes = defaultRoutes;
+        activeRoutes = fixedRoutesOnly(defaultRoutes);
         renderRoutes(activeRoutes);
         prepareEvents(activeRoutes);
         updateAll();
@@ -629,6 +636,12 @@ function prepareEvents(routes){
         duration:parseDuration(route.duration),
         timezone:route.timezone
     }));
+}
+
+function fixedRoutesOnly(routes){
+    return fixedRouteSlots
+    .map(slot=>routes.find(route=>route.slot === slot))
+    .filter(Boolean);
 }
 
 function renderRoutes(routes){
