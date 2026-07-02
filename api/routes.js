@@ -3,6 +3,7 @@ const repo = process.env.GITHUB_REPO || "budao.org";
 const branch = process.env.GITHUB_BRANCH || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
+const fixedSlots = ["IMS", "BACBC"];
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -21,7 +22,7 @@ module.exports = async function handler(request, response) {
     const routes = await readRoutes();
 
     response.setHeader("Cache-Control", "s-maxage=0, stale-while-revalidate=30");
-    sendJson(response, 200, routes);
+    sendJson(response, 200, fixedRoutesOnly(routes));
   } catch (error) {
     sendJson(response, 200, []);
   }
@@ -46,6 +47,16 @@ async function readRoutes() {
   const routes = JSON.parse(text || "[]");
 
   return Array.isArray(routes) ? routes : [];
+}
+
+function fixedRoutesOnly(routes) {
+  return fixedSlots
+    .map(function (slot) {
+      return routes.find(function (route) {
+        return route.slot === slot;
+      });
+    })
+    .filter(Boolean);
 }
 
 function contentsUrl() {
