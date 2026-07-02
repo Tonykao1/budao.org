@@ -3,8 +3,11 @@ const repo = process.env.GITHUB_REPO || "budao.org";
 const branch = process.env.GITHUB_BRANCH || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
-const routeLimitPerOwner = 2;
-const allowedOwners = ["ims@budao.org", "bacbc@budao.org"];
+const fixedSlots = ["IMS", "BACBC"];
+const slotOwners = {
+  IMS: "IMS@budao.org",
+  BACBC: "BACBC@budao.org"
+};
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -50,7 +53,8 @@ module.exports = async function handler(request, response) {
     const existing = findExistingRoute(current.routes, routeToSave);
     const share = sharePayload(routeToSave);
 
-    if (existing && normalizeOwner(existing.owner) !== routeToSave.owner) {
+    const existingSlot = existing ? normalizeSlot(existing.slot || slotForOwner(existing.owner)) : "";
+    if (existing && existingSlot !== routeToSave.slot) {
       sendJson(response, 403, { ok: false, error: "owner_mismatch" });
       return;
     }
@@ -76,14 +80,27 @@ module.exports = async function handler(request, response) {
       return;
     }
 
-    if (!existing && ownerRouteCount(current.routes, routeToSave.owner) >= routeLimitPerOwner) {
-      sendJson(response, 403, { ok: false, error: "route_limit_reached" });
-      return;
-    }
+    const routesBySlot = {};
 
-    const routes = current.routes.filter((item) => item !== existing);
+    current.routes.forEach(function (item) {
+      const itemSlot = normalizeSlot(item.slot || slotForOwner(item.owner));
 
-    routes.unshift(routeToSave);
+      if (fixedSlots.indexOf(itemSlot) >= 0 && !routesBySlot[itemSlot]) {
+        routesBySlot[itemSlot] = normalizeRoute({
+          ...item,
+          slot: itemSlot,
+          owner: slotOwners[itemSlot]
+        });
+      }
+    });
+
+    routesBySlot[routeToSave.slot] = routeToSave;
+
+    const routes = fixedSlots
+      .map(function (slot) {
+        return routesBySlot[slot];
+      })
+      .filter(Boolean);
 
     const content = JSON.stringify(routes, null, 2) + "\n";
     const commit = await writeRoutesFile({
@@ -203,7 +220,8 @@ function normalizeRoute(route) {
   const normalized = {
     id: route.id || route.routeId || "",
     routeId: route.routeId || route.id || "",
-    owner: normalizeOwner(route.owner),
+    owner: canonicalOwner(route.owner),
+    slot: normalizeSlot(route.slot || slotForOwner(route.owner)),
     country: route.country || "",
     city: route.city || "",
     region: route.region || "",
@@ -229,8 +247,10 @@ function normalizeRoute(route) {
     updatedAt: now
   };
 
-  normalized.routeId = normalized.routeId || routeIdentity(normalized);
-  normalized.id = normalized.id || normalized.routeId;
+  normalized.slot = normalizeSlot(normalized.slot || slotForOwner(normalized.owner));
+  normalized.owner = slotOwners[normalized.slot] || normalized.owner;
+  normalized.routeId = "budao-" + normalized.slot.toLowerCase();
+  normalized.id = normalized.routeId;
   normalized.location = normalized.location || route.locationName || "";
   return normalized;
 }
@@ -252,19 +272,37 @@ function resolveImage(image) {
 }
 
 function allowedOwner(owner) {
-  return allowedOwners.indexOf(normalizeOwner(owner)) >= 0;
+  return Boolean(slotForOwner(owner));
 }
 
 function normalizeOwner(owner) {
   return String(owner || "").trim().toLowerCase();
 }
 
-function ownerRouteCount(routes, owner) {
+function canonicalOwner(owner) {
+  const slot = slotForOwner(owner);
+
+  return slot ? slotOwners[slot] : String(owner || "").trim();
+}
+
+function slotForOwner(owner) {
   const normalizedOwner = normalizeOwner(owner);
 
-  return routes.filter(function (route) {
-    return normalizeOwner(route.owner) === normalizedOwner;
-  }).length;
+  if (normalizedOwner === "ims@budao.org") {
+    return "IMS";
+  }
+
+  if (normalizedOwner === "bacbc@budao.org") {
+    return "BACBC";
+  }
+
+  return "";
+}
+
+function normalizeSlot(slot) {
+  const normalized = String(slot || "").trim().toUpperCase();
+
+  return fixedSlots.indexOf(normalized) >= 0 ? normalized : "";
 }
 
 function sameRoute(left, right) {
@@ -284,15 +322,7 @@ function findExistingRoute(routes, route) {
   return routes.find(function (item) {
     const candidate = normalizeRoute(item);
 
-    if (normalizeOwner(candidate.owner) !== route.owner) {
-      return false;
-    }
-
-    if (candidate.routeId && route.routeId && candidate.routeId === route.routeId) {
-      return true;
-    }
-
-    return sameRouteCore(candidate, route);
+    return candidate.slot === route.slot;
   }) || null;
 }
 
