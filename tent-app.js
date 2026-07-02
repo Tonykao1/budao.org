@@ -370,16 +370,20 @@
 
       const currentSlot = slotForEmail(currentUserEmail);
       const owned = routes.find(function (route) {
-        return route.slot === currentSlot;
+        return route.slot === currentSlot ||
+          slotForEmail(route.owner) === currentSlot;
       });
 
       if (owned) {
         fillRouteFormFromRoute(owned);
       }
     }).catch(function () {
+      const currentSlot = slotForEmail(currentUserEmail);
       const localTrail = readSavedTrails().find(function (trail) {
-        return normalizeEmail(currentUserEmail) &&
-          normalizeEmail((trail.source && trail.source.owner) || currentUserEmail) === normalizeEmail(currentUserEmail);
+        const source = trail.source || {};
+
+        return source.slot === currentSlot ||
+          (source.owner && slotForEmail(source.owner) === currentSlot);
       });
 
       if (localTrail) {
@@ -578,6 +582,7 @@
         createdAt: previous && previous.createdAt ? previous.createdAt : now,
         updatedAt: now,
         source: {
+          owner: currentUserEmail,
           routeName,
           slot,
           trailDate: normalizedTrailDate || trailDate,
