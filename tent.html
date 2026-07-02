@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tent - Budao</title>
+    <link rel="stylesheet" href="tent-style.css">
+  </head>
+  <body>
+    <main class="presence" aria-label="Tent">
+      <div class="world">
+        <div class="night" aria-hidden="true">
+          <div class="air air-one"></div>
+          <div class="air air-two"></div>
+          <div class="horizon"></div>
+          <div id="stars" class="stars"></div>
+        </div>
+
+        <section class="threshold" aria-label="进入帐篷前的安静">
+          <button class="tent-button" type="button" aria-label="进入帐篷">
+            <span class="inner-light" aria-hidden="true"></span>
+            <svg class="tent" viewBox="0 0 420 300" role="img" aria-label="帐篷">
+              <path class="ground-line" d="M65 247 C118 237 161 241 203 244 C260 248 310 249 358 238"></path>
+              <path class="rear-line" d="M91 237 C126 169 153 110 207 45 C250 100 287 166 333 237"></path>
+              <path class="front-line" d="M132 237 C158 161 178 105 207 45 C235 106 257 164 288 237"></path>
+              <path class="ridge-line" d="M207 45 C205 103 205 170 205 238"></path>
+              <path class="cloth-line cloth-left" d="M205 68 C184 119 168 175 151 236"></path>
+              <path class="cloth-line cloth-right" d="M207 68 C229 124 248 177 269 236"></path>
+              <path class="door door-left" d="M204 92 C187 138 174 187 162 237 C178 227 193 219 205 205 C205 164 205 126 204 92"></path>
+              <path class="door door-right" d="M208 92 C225 139 239 188 252 237 C235 227 220 219 206 205 C206 164 207 126 208 92"></path>
+              <path class="seam-line" d="M205 88 C205 128 205 166 205 207"></path>
+              <path class="side-thread thread-left" d="M132 237 C120 249 105 257 85 263"></path>
+              <path class="side-thread thread-right" d="M288 237 C301 248 320 254 341 256"></path>
+            </svg>
+          </button>
+
+          <p class="question">这次，<br>你想让祂带我们去哪里？</p>
+        </section>
+      </div>
+
+      <section class="inside" aria-label="帐篷内部">
+        <form class="entry-form">
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email">
+          </label>
+          <label>
+            <span>Password</span>
+            <input name="password" type="password" autocomplete="current-password">
+          </label>
+          <button type="submit">进入帐篷</button>
+          <p class="login-message" aria-live="polite"></p>
+        </form>
+
+        <section class="route-room" aria-label="填写路线">
+          <form class="route-form">
+            <div class="route-fields">
+              <label class="line-field">
+                <span>路线名称</span>
+                <input name="routeName" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>步道日期</span>
+                <input name="trailDate" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>集合时间</span>
+                <input name="meetingTime" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>线路难度</span>
+                <input name="difficulty" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>适合人群</span>
+                <input name="suitableFor" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>装备下限</span>
+                <input name="equipmentMinimum" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>总里程</span>
+                <input name="distance" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>累计爬升</span>
+                <input name="elevationGain" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>地点层级</span>
+                <input name="routeLocation" type="text" autocomplete="off" placeholder="中国 · 新疆 · 伊犁">
+              </label>
+
+              <label class="line-field">
+                <span>时区</span>
+                <input name="timezone" type="text" autocomplete="off" value="Asia/Shanghai">
+              </label>
+
+              <label class="line-field">
+                <span>预计耗时</span>
+                <input name="duration" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field">
+                <span>集合地点</span>
+                <input name="meetingPlace" type="text" autocomplete="off">
+              </label>
+
+              <label class="line-field wide">
+                <span>路面描述</span>
+                <textarea name="surfaceDescription" rows="3"></textarea>
+              </label>
+
+              <label class="line-field wide">
+                <span>参与者要求</span>
+                <textarea name="participantRequirements" rows="3"></textarea>
+              </label>
+
+              <label class="line-field wide">
+                <span>行程说明</span>
+                <textarea name="itinerary" rows="5"></textarea>
+              </label>
+            </div>
+
+            <div class="image-offering">
+              <label class="image-line">
+                <span>上传图片</span>
+                <input id="routeImages" name="routeImages" type="file" accept="image/*" multiple>
+              </label>
+              <p class="image-note" aria-live="polite">还没有选择图片</p>
+              <label class="image-line">
+                <span>活动码</span>
+                <input id="routeQrCode" name="routeQrCode" type="file" accept="image/*">
+              </label>
+              <p class="qr-note" aria-live="polite">还没有选择活动码</p>
+            </div>
+
+            <button class="quiet-submit" type="submit">保存步道</button>
+            <p class="route-message" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="publish-stage" aria-label="发布同行">
+          <p class="publish-whisper" aria-live="polite"></p>
+          <div class="publish-card-wrap">
+            <div id="routePreview" class="route-preview"></div>
+            <div class="publish-actions">
+              <button class="return-edit" type="button">继续修改</button>
+              <button class="send-trail" type="button">发布同行</button>
+            </div>
+          </div>
+          <button class="view-published" type="button">看看他们现在看到什么</button>
+        </section>
+      </section>
+    </main>
+    <script src="tent-app.js"></script>
+  </body>
+</html>

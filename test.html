@@ -18,270 +18,408 @@ body{
     background:#f5f2eb;
 }
 
-/* 页面主体 */
-
 .super-container{
-
     width:92%;
-    max-width:1280px;
-
+    max-width:1640px;
     margin:auto;
-
     padding:80px 20px 160px 20px;
 }
 
-/* 顶部 */
-
 .super-hero{
-
     text-align:center;
-
     margin-bottom:100px;
 }
 
 .super-hero small{
-
     font-size:11px;
-
     letter-spacing:6px;
-
     color:#9d968b;
 }
 
 .super-hero h1{
-
     font-size:58px;
-
     font-weight:200;
-
     margin-top:24px;
     margin-bottom:28px;
-
     letter-spacing:0.08em;
 }
 
 .super-hero p{
-
     color:#666;
-
     font-size:17px;
-
     line-height:2;
 }
 
-/* 双路线 */
-
 .route-grid{
-
     display:grid;
-
-    grid-template-columns:
-    repeat(auto-fit,minmax(420px,1fr));
-
+    grid-template-columns:repeat(auto-fit,minmax(420px,520px));
+    grid-auto-rows:1fr;
     gap:42px;
+    align-items:stretch;
+    justify-content:center;
 }
 
-/* 卡片 */
-
 .route-card{
-
+    display:flex;
+    flex-direction:column;
+    min-height:860px;
+    height:100%;
     background:white;
-
     border-radius:30px;
-
     overflow:hidden;
-
     transition:0.4s;
-
-    box-shadow:
-    0 12px 40px rgba(0,0,0,0.05);
+    box-shadow:0 12px 40px rgba(0,0,0,0.05);
 }
 
 .route-card:hover{
-
     transform:translateY(-5px);
-
-    box-shadow:
-    0 24px 70px rgba(0,0,0,0.08);
+    box-shadow:0 24px 70px rgba(0,0,0,0.08);
 }
 
-/* 图片 */
+.route-timer{
+    height:96px;
+    flex:0 0 auto;
+    padding:22px 34px 18px;
+    background:#111;
+    color:#f2eee5;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+
+.timer-city{
+    min-height:18px;
+    margin-bottom:10px;
+    color:rgba(242,238,229,0.58);
+    font-size:11px;
+    letter-spacing:3px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.route-countdown{
+    width:100%;
+    height:34px;
+    display:block;
+    color:rgba(255,255,255,0.92);
+    background:linear-gradient(
+        105deg,
+        #f8edd0 0%,
+        #ffd88a 16%,
+        #f68fb5 34%,
+        #b69cff 50%,
+        #72d7ff 66%,
+        #f6efcf 82%,
+        #ffd88a 100%
+    );
+    background-size:280% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    text-shadow:0 0 18px rgba(255,216,138,0.28);
+    animation:countdown-prism 4.8s ease-in-out infinite;
+    font-size:clamp(21px,2.1vw,26px);
+    line-height:34px;
+    letter-spacing:1.2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:clip;
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum" 1,"lnum" 1;
+}
+
+.route-countdown.is-long{
+    font-size:clamp(18px,1.7vw,22px);
+    letter-spacing:0.8px;
+}
+
+@keyframes countdown-prism{
+    0%{
+        background-position:0% 50%;
+        filter:saturate(1.08);
+    }
+    50%{
+        background-position:100% 50%;
+        filter:saturate(1.38);
+    }
+    100%{
+        background-position:0% 50%;
+        filter:saturate(1.08);
+    }
+}
 
 .route-image{
-
     position:relative;
+    aspect-ratio:16/9;
+    overflow:hidden;
+    flex:0 0 auto;
+    background:#e8e0d2;
 }
 
 .route-image img{
-
     width:100%;
-
-    height:220px;
-
+    height:100%;
     object-fit:cover;
-
     display:block;
 }
 
-/* 倒计时 */
+.route-image-placeholder{
+    display:flex;
+    align-items:flex-end;
+    justify-content:flex-start;
+    width:100%;
+    height:100%;
+    padding:24px;
+    background:
+    radial-gradient(circle at 30% 24%,rgba(255,250,232,0.78),transparent 18%),
+    radial-gradient(circle at 74% 42%,rgba(165,145,108,0.18),transparent 28%),
+    linear-gradient(160deg,#f1ece2 0%,#d7cebe 52%,#b8ad99 100%);
+}
 
-
-
-/* 内容 */
+.route-image-placeholder::after{
+    content:attr(data-place);
+    max-width:78%;
+    color:rgba(54,48,39,0.52);
+    font-size:12px;
+    letter-spacing:4px;
+    line-height:1.8;
+}
 
 .route-content{
-
+    display:flex;
+    flex:1 1 auto;
+    flex-direction:column;
     padding:34px;
+    min-height:382px;
 }
 
 .route-location{
-
-    font-size:11px;
-
-    letter-spacing:4px;
-
-    color:#a49b90;
-
-    margin-bottom:18px;
+    min-height:31px;
+    margin-bottom:12px;
+    color:#6f665a;
+    font-size:18px;
+    line-height:1.7;
+    letter-spacing:2.8px;
 }
 
 .route-content h2{
-
-    margin:0 0 20px 0;
-
-    font-size:32px;
-
-    font-weight:300;
+    min-height:88px;
+    margin:0 0 18px 0;
+    color:#25211b;
+    font-size:34px;
+    line-height:1.3;
+    font-weight:600;
+    text-align:center;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
 }
 
 .route-description{
-
-    line-height:2;
-
+    min-height:126px;
+    max-height:126px;
+    margin-bottom:0;
     color:#5f5b55;
-
-    margin-bottom:28px;
-
     font-size:15px;
+    line-height:1.85;
+    text-align:left;
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(125,112,92,0.22) transparent;
 }
 
-/* 参数 */
+.route-description::-webkit-scrollbar{
+    width:4px;
+}
+
+.route-description::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.route-description::-webkit-scrollbar-thumb{
+    background:rgba(125,112,92,0.22);
+    border-radius:999px;
+}
 
 .route-info{
-
-    display:flex;
-
-    flex-wrap:wrap;
-
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
     gap:12px;
-
-    margin-bottom:32px;
+    min-height:188px;
+    margin-top:28px;
+    margin-bottom:28px;
+    align-content:flex-start;
 }
 
-.route-info span{
-
-    background:#f4f1eb;
-
-    padding:10px 14px;
-
+.route-info button{
+    width:100%;
+    min-height:38px;
+    padding:10px 12px;
+    border:1px solid rgba(125,112,92,0.08);
     border-radius:999px;
-
-    font-size:13px;
-
+    background:#f4f1eb;
     color:#666;
+    cursor:pointer;
+    font-size:13px;
+    line-height:1.2;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition:transform 240ms ease,background-color 240ms ease,color 240ms ease,border-color 240ms ease;
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum" 1,"lnum" 1;
 }
 
-/* 时区 */
+.route-info button:hover,
+.route-info button:focus-visible{
+    transform:translateY(-1px) scale(1.015);
+    background:#eee9df;
+    color:#4f493f;
+    border-color:rgba(125,112,92,0.16);
+    outline:0;
+}
 
 .route-timezone{
-
-    margin-bottom:26px;
-
-    font-size:13px;
-
+    margin-top:auto;
+    margin-bottom:20px;
     color:#999;
-
+    width:100%;
+    font-size:17px;
+    text-align:center;
     letter-spacing:1px;
 }
 
-/* 按钮 */
-
 .route-button{
-
     display:inline-block;
-
+    width:max-content;
+    align-self:center;
     padding:12px 22px;
-
     background:#111;
-
     color:white;
-
     text-decoration:none;
-
     border-radius:999px;
-
+    border:0;
+    cursor:pointer;
     font-size:13px;
-
     letter-spacing:2px;
-
     transition:0.3s;
 }
 
-.route-button:hover{
-
+.route-button:hover,
+.route-button:focus-visible{
     opacity:0.75;
+    outline:0;
 }
 
-/* 页脚 */
-
 .super-footer{
-
     text-align:center;
-
     margin-top:150px;
-
     color:#8d8579;
-
     line-height:2.3;
-
     font-size:14px;
 }
 
-/* 放大图 */
-
 .image-modal{
-
     display:none;
-
     position:fixed;
-
     top:0;
     left:0;
-
     width:100%;
     height:100%;
-
-    background:
-    rgba(0,0,0,0.82);
-
+    background:rgba(0,0,0,0.82);
     justify-content:center;
     align-items:center;
-
     z-index:999;
 }
 
 .image-modal-content{
-
     max-width:90%;
     max-height:90%;
-
     border-radius:18px;
 }
 
-/* 手机 */
+body.modal-open .super-container{
+    filter:blur(3px);
+}
 
-@media(max-width:900px){
+.qr-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    background:rgba(20,18,15,0.54);
+}
 
+.qr-modal.open{
+    display:flex;
+}
+
+.qr-dialog{
+    position:relative;
+    width:min(88vw,380px);
+    padding:42px 34px 36px;
+    border-radius:24px;
+    background:rgba(250,247,239,0.96);
+    box-shadow:0 24px 80px rgba(0,0,0,0.18);
+    text-align:center;
+}
+
+.qr-close{
+    position:absolute;
+    right:18px;
+    top:16px;
+    border:0;
+    background:transparent;
+    color:#777064;
+    cursor:pointer;
+    font-size:24px;
+    line-height:1;
+}
+
+.qr-frame{
+    width:220px;
+    aspect-ratio:1;
+    margin:0 auto 24px;
+    display:grid;
+    place-items:center;
+    background:#fff;
+    border-radius:18px;
+    overflow:hidden;
+}
+
+.qr-frame img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.qr-empty{
+    padding:0 22px;
+    color:#6f665a;
+    line-height:2;
+    font-size:15px;
+}
+
+.qr-caption{
+    margin:0;
+    color:#4d473e;
+    font-size:14px;
+    letter-spacing:3px;
+}
+
+@media(max-width:1100px){
+    .route-grid{
+        grid-template-columns:repeat(2,minmax(360px,1fr));
+    }
+}
+
+@media(max-width:760px){
     .super-container{
         padding-top:60px;
     }
@@ -294,8 +432,8 @@ body{
         grid-template-columns:1fr;
     }
 
-    .route-image img{
-        height:200px;
+    .route-card{
+        min-height:780px;
     }
 
     .route-content{
@@ -303,9 +441,8 @@ body{
     }
 
     .route-content h2{
-        font-size:26px;
+        font-size:28px;
     }
-
 }
 
 </style>
@@ -317,13 +454,12 @@ body{
 <a href="/home.html">首页</a>
 <a href="/about.html">超级星期六</a>
 <a href="/tongxing.html">童行</a>
+<a href="/tongdao.html">同道</a>
 <a href="/what.html">全球同工</a>
 <a href="/contact.html">联系</a>
 </nav>
 
 <div class="super-container">
-
-    <!-- 顶部 -->
 
     <div class="super-hero">
 
@@ -338,168 +474,9 @@ body{
 
     </div>
 
-    <!-- 双路线 -->
-
    <div
 class="route-grid"
-id="routeGrid">
-
-        <!-- 路线1 -->
-
-        <div class="route-card">
-
-            <div class="route-timer">
-
-    <div class="timer-city">
-
-        北京 · UTC+8
-
-    </div>
-
-    <div class="route-countdown"
-    id="countdown1">
-
-        倒计时加载中...
-
-    </div>
-
-</div>
-
-            <div class="route-content">
-
-                <div class="route-location">
-
-                    北京 · 怀柔
-
-                </div>
-
-                <h2>
-
-                    沙峪口书画山环线
-
-                </h2>
-
-                <div class="route-description">
-
-                    有人正在城市边缘，
-                    留下一段慢慢同行的路。
-                    山野之间，
-                    也许会重新听见自己。
-
-                </div>
-
-               <div class="route-info">
-
-    <span>08:30 集合</span>
-
-    <span>3小时</span>
-
-    <span>5.5千米</span>
-
-    <span>土石野路 / 石阶</span>
-
-    <span>↑334米</span>
-
-</div>
-
-                <div class="route-timezone">
-
-                    Asia/Shanghai · UTC+8
-
-                </div>
-
-                <a
-                href="#"
-                class="route-button">
-
-                    与他们同行 →
-
-                </a>
-
-            </div>
-
-        </div>
-
-        <!-- 路线2 -->
-
-        <div class="route-card">
-
-           <div class="route-timer">
-
-    <div class="timer-city">
-
-        Los Angeles · UTC-7
-
-    </div>
-
-    <div class="route-countdown"
-    id="countdown2">
-
-        倒计时加载中...
-
-    </div>
-
-</div>
-
-            <div class="route-content">
-
-                <div class="route-location">
-
-                    Orkland · California
-
-                </div>
-
-                <h2>
-
-                    
-Reinhardt Redwood Regional Park
-
-                </h2>
-
-                <div class="route-description">
-
-                    有人正在另一片大陆，
-                    继续学习彼此陪伴。
-                    清晨与黄昏之间，
-                    也仍有人在同行。
-
-                </div>
-
-                <div class="route-info">
-
-    <span>10:00 集合</span>
-
-    <span>3小时</span>
-
-    <span>1.8-3miles</span>
-
-    <span>土路 / 林间路</span>
-
-    <span>↑180-700feet</span>
-
-</div>
-
-                <div class="route-timezone">
-
-                    America/Los_Angeles · UTC-7
-
-                </div>
-
-                <a
-                href="#"
-                class="route-button">
-
-                    与他们同行 →
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- 页脚 -->
+id="routeGrid"></div>
 
     <div class="super-footer">
 
@@ -509,8 +486,6 @@ Reinhardt Redwood Regional Park
     </div>
 
 </div>
-
-<!-- 图片放大 -->
 
 <div
 class="image-modal"
@@ -523,118 +498,706 @@ class="image-modal-content">
 
 </div>
 
+<div
+class="qr-modal"
+id="qrModal"
+aria-hidden="true">
+    <div class="qr-dialog" role="dialog" aria-modal="true" aria-label="报名码">
+        <button class="qr-close" type="button" aria-label="关闭报名码" onclick="closeQrModal()">×</button>
+        <div class="qr-frame" id="qrFrame"></div>
+        <p class="qr-caption">扫码进群 · 即刻报名</p>
+    </div>
+</div>
+
 <script>
 
-/* 放大图 */
-
 function openImage(src){
-
-    document
-    .getElementById("imageModal")
-    .style.display = "flex";
-
-    document
-    .getElementById("modalImage")
-    .src = src;
+    document.getElementById("imageModal").style.display = "flex";
+    document.getElementById("modalImage").src = src;
 }
 
 function closeImage(){
-
-    document
-    .getElementById("imageModal")
-    .style.display = "none";
+    document.getElementById("imageModal").style.display = "none";
 }
 
-/* 路线配置 */
+function replaceBrokenImage(image){
+    const placeholder = document.createElement("span");
 
-const events = [
+    placeholder.className = "route-image-placeholder";
+    placeholder.setAttribute("data-place", image.getAttribute("data-place") || "BUDAO");
+    image.replaceWith(placeholder);
+}
 
+function resolveImage(value){
+    const image = String(value || "").trim();
+
+    if(!image){
+        return "";
+    }
+
+    if(
+        image.indexOf("data:image/")===0 ||
+        image.indexOf("blob:")===0 ||
+        image.indexOf("http://")===0 ||
+        image.indexOf("https://")===0
+    ){
+        return image;
+    }
+
+    if(
+        image.indexOf("/")===0 ||
+        /^[^:/?#]+(?:[/?#].*)?$/.test(image)
+    ){
+        return image;
+    }
+
+    return "";
+}
+
+let events = [];
+let activeRoutes = [];
+const fixedRouteSlots = ["IMS","BACBC"];
+
+const defaultRoutes = [
 {
-    id:"countdown1",
-
-    date:"2026-06-27,
-
+    owner:"IMS@budao.org",
+    slot:"IMS",
+    country:"中国",
+    city:"北京",
+    region:"海淀",
+    location:"中国 · 北京 · 海淀",
+    title:"东郊湿地公园",
+    description:"在城市边缘的湿地里，放慢脚步，沿着水边与林间小路同行。适合一次轻松、安静、彼此照看的半日步道。",
     time:"08:30",
-
-    duration:180,
-
-    timezone:"Asia/Shanghai"
+    duration:"3小时",
+    distance:"6千米",
+    surface:"公园步道 / 木栈道 / 平路",
+    elevation:"平缓",
+    difficulty:"轻松",
+    suitableFor:"初次参与者 / 亲子",
+    equipmentMinimum:"舒适步行鞋 / 饮水",
+    timezone:"Asia/Shanghai",
+    date:"2026-07-11",
+    image:"",
+    qrCode:""
 },
-
 {
-    id:"countdown2",
-
-    date:"2026-07-04",
-
+    owner:"BACBC@budao.org",
+    slot:"BACBC",
+    country:"美国",
+    city:"加州",
+    region:"奥克兰",
+    location:"美国 · 加州 · 奥克兰",
+    title:"Reinhardt Redwood Regional Park",
+    description:"有人正在另一片大陆，继续学习彼此陪伴。清晨与黄昏之间，也仍有人在同行。",
     time:"10:00",
-
-    duration:180,
-
-    timezone:"America/Los_Angeles"
+    duration:"3小时",
+    distance:"1.8-3miles",
+    surface:"土路 / 林间路",
+    elevation:"↑180-700feet",
+    difficulty:"适中",
+    suitableFor:"初次参与者 / 有徒步经验者",
+    equipmentMinimum:"徒步鞋 / 饮水 / 午餐",
+    timezone:"America/Los_Angeles",
+    date:"2026-07-04",
+    image:"",
+    qrCode:""
 }
-
 ];
 
-/* 获取时间状态 */
+fetch("/api/routes")
+    .then(response=>response.json())
+    .then(routes=>{
+        activeRoutes = fixedRoutesOnly(Array.isArray(routes) ? routes : []);
 
-function getEventState(event){
+        if(!activeRoutes.length){
+            activeRoutes = fixedRoutesOnly(defaultRoutes);
+        }
 
-    const now = new Date();
+        renderRoutes(activeRoutes);
+        prepareEvents(activeRoutes);
+        updateAll();
+        setInterval(updateAll,1000);
+    })
+    .catch(()=>{
+        activeRoutes = fixedRoutesOnly(defaultRoutes);
+        renderRoutes(activeRoutes);
+        prepareEvents(activeRoutes);
+        updateAll();
+        setInterval(updateAll,1000);
+    });
 
-    const localNow =
-    new Date(
-        now.toLocaleString(
-            "en-US",
-            {timeZone:event.timezone}
-        )
-    );
-
-    const start =
-    new Date(
-        `${event.date}T${event.time}:00`
-    );
-
-    const end =
-    new Date(
-        start.getTime() +
-        event.duration * 60 * 1000
-    );
-
-    if(localNow < start){
-
-        return{
-            state:"countdown",
-            diff:start - localNow
-        };
-
-    }else if(
-        localNow >= start &&
-        localNow < end
-    ){
-
-        return{
-            state:"started",
-            diff:end - localNow
-        };
-
-    }else{
-
-        return{
-            state:"ended",
-            diff:0
-        };
-    }
+function prepareEvents(routes){
+    events =
+    routes.map((route,index)=>({
+        id:"countdown"+(index+1),
+        date:route.date,
+        time:route.time,
+        duration:parseDuration(route.duration),
+        timezone:route.timezone
+    }));
 }
 
-/* 渲染 */
+function fixedRoutesOnly(routes){
+    return fixedRouteSlots
+    .map(slot=>routes.find(route=>route.slot === slot))
+    .filter(Boolean);
+}
 
-function renderCountdown(id,diff){
+function renderRoutes(routes){
+    const grid =
+    document.getElementById("routeGrid");
 
+    grid.innerHTML = "";
+
+    routes.forEach((route,index)=>{
+        const card =
+        document.createElement("div");
+
+        card.className = "route-card";
+
+        const locationLabel =
+        getLocationLabel(route);
+
+        const image =
+        resolveImage(route.image || route.imageUrl);
+
+        const imageHtml =
+        `
+            <div class="route-image">
+                ${
+                    image ?
+                    `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
+                    `<span class="route-image-placeholder" data-place="${escapeAttribute(locationLabel)}"></span>`
+                }
+            </div>
+        `;
+
+        card.innerHTML =
+        `
+            <div class="route-timer">
+                <div class="timer-city">${escapeHtml(getTimerCity(route))}</div>
+                <div class="route-countdown" id="countdown${index+1}">倒计时加载中...</div>
+            </div>
+
+            ${imageHtml}
+
+            <div class="route-content">
+                <div class="route-location">${escapeHtml(locationLabel)}</div>
+                <h2>${escapeHtml(route.title)}</h2>
+                <div class="route-description">${escapeHtml(route.description).replace(/\n/g,"<br>")}</div>
+                <div class="route-info">
+                    ${parameterButton("time", route.time, route.time + " 集合")}
+                    ${parameterButton("duration", route.duration, route.duration)}
+                    ${parameterButton("distance", route.distance, route.distance)}
+                    ${parameterButton("surface", route.surface, route.surface)}
+                    ${parameterButton("elevation", route.elevation, route.elevation)}
+                    ${route.difficulty ? parameterButton("difficulty", route.difficulty, "难度 " + route.difficulty) : ""}
+                    ${route.suitableFor ? parameterButton("suitableFor", route.suitableFor, route.suitableFor) : ""}
+                    ${route.equipmentMinimum ? parameterButton("equipmentMinimum", route.equipmentMinimum, "装备 " + route.equipmentMinimum) : ""}
+                </div>
+                <div class="route-timezone">${escapeHtml(route.timezone)} · ${escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}</div>
+                <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
+
+    grid.querySelectorAll(".route-info button").forEach(button=>{
+        button.addEventListener("click",()=>cycleParameter(button));
+    });
+
+    grid.querySelectorAll(".route-button").forEach(button=>{
+        button.addEventListener("click",()=>{
+            openQrModal(activeRoutes[Number(button.dataset.routeIndex)]);
+        });
+    });
+}
+
+function parameterButton(type,value,label){
+    const variants =
+    parameterVariants(type,value,label);
+
+    return `<button type="button" data-kind="${escapeAttribute(type)}" data-variant-index="0" data-variants="${escapeAttribute(JSON.stringify(variants))}">${escapeHtml(variants[0])}</button>`;
+}
+
+function cycleParameter(button){
+    let variants = [];
+
+    try{
+        variants = JSON.parse(button.dataset.variants || "[]");
+    }catch(error){
+        variants = [];
+    }
+
+    if(!variants.length){
+        return;
+    }
+
+    const next =
+    (Number(button.dataset.variantIndex || "0") + 1) % variants.length;
+
+    button.dataset.variantIndex = String(next);
+    button.textContent = variants[next];
+}
+
+function parameterVariants(type,value,label){
+    const text =
+    String(value || "").trim();
+
+    if(!text){
+        return ["待补充"];
+    }
+
+    if(type==="time"){
+        return unique([label || text, formatTime12(text), formatTime24(text)]);
+    }
+
+    if(type==="duration"){
+        return unique([text, durationMinutes(text)]);
+    }
+
+    if(type==="distance"){
+        return unique([text, distanceMetric(text), distanceMiles(text)]);
+    }
+
+    if(type==="elevation"){
+        return unique([text, elevationMeters(text), elevationFeet(text)]);
+    }
+
+    return [text];
+}
+
+function unique(values){
+    return values.filter(Boolean).filter((value,index,array)=>array.indexOf(value)===index);
+}
+
+function formatTime12(time){
+    const parsed = parseClock(time);
+
+    if(!parsed){
+        return "";
+    }
+
+    const hour = parsed.hour % 12 || 12;
+    const suffix = parsed.hour >= 12 ? "PM" : "AM";
+
+    return hour + ":" + String(parsed.minute).padStart(2,"0") + " " + suffix;
+}
+
+function formatTime24(time){
+    const parsed = parseClock(time);
+
+    if(!parsed){
+        return "";
+    }
+
+    return String(parsed.hour).padStart(2,"0") + ":" + String(parsed.minute).padStart(2,"0");
+}
+
+function parseClock(time){
+    const match =
+    String(time || "").match(/(\d{1,2})[:：](\d{1,2})/);
+
+    if(!match){
+        return null;
+    }
+
+    return {
+        hour:Math.min(23,Number(match[1])),
+        minute:Math.min(59,Number(match[2]))
+    };
+}
+
+function durationMinutes(value){
+    const text =
+    String(value || "");
+
+    const hourMatch =
+    text.match(/([\d.]+)(?:\s*[-–]\s*([\d.]+))?\s*(小时|hour|hours|h)/i);
+
+    if(!hourMatch){
+        return "";
+    }
+
+    const first =
+    Math.round(Number(hourMatch[1]) * 60);
+
+    const second =
+    hourMatch[2] ? Math.round(Number(hourMatch[2]) * 60) : null;
+
+    return second ? first + "-" + second + "分钟" : first + "分钟";
+}
+
+function distanceMetric(value){
+    const numbers =
+    allNumbers(value);
+
+    if(!numbers.length){
+        return "";
+    }
+
+    const converted =
+    numbers.map(number=>{
+        if(/mi|mile|英里/i.test(value)){
+            return trimNumber(number * 1.60934);
+        }
+
+        return trimNumber(number);
+    });
+
+    return converted.join("-") + " km";
+}
+
+function distanceMiles(value){
+    const numbers =
+    allNumbers(value);
+
+    if(!numbers.length){
+        return "";
+    }
+
+    const converted =
+    numbers.map(number=>{
+        if(/mi|mile|英里/i.test(value)){
+            return trimNumber(number);
+        }
+
+        return trimNumber(number * 0.621371);
+    });
+
+    return converted.join("-") + " mi";
+}
+
+function elevationMeters(value){
+    const numbers =
+    allNumbers(value);
+
+    if(!numbers.length){
+        return "";
+    }
+
+    const converted =
+    numbers.map(number=>{
+        if(/ft|feet|英尺/i.test(value)){
+            return Math.round(number * 0.3048);
+        }
+
+        return Math.round(number);
+    });
+
+    return converted.join("-") + " m";
+}
+
+function elevationFeet(value){
+    const numbers =
+    allNumbers(value);
+
+    if(!numbers.length){
+        return "";
+    }
+
+    const converted =
+    numbers.map(number=>{
+        if(/ft|feet|英尺/i.test(value)){
+            return Math.round(number);
+        }
+
+        return Math.round(number * 3.28084);
+    });
+
+    return converted.join("-") + " ft";
+}
+
+function allNumbers(value){
+    const matches =
+    String(value || "").match(/[\d.]+/g);
+
+    return matches ? matches.slice(0,2).map(Number).filter(number=>!Number.isNaN(number)) : [];
+}
+
+function firstNumber(value){
+    const numbers =
+    allNumbers(value);
+
+    return numbers[0] || 0;
+}
+
+function trimNumber(value){
+    return Number(value.toFixed(1)).toString();
+}
+
+function getLocationLabel(route){
+    const pieces =
+    [route.country,route.city,route.region]
+    .map(value=>String(value || "").trim())
+    .filter(Boolean);
+
+    if(pieces.length){
+        return pieces.join(" · ");
+    }
+
+    return String(route.location || "")
+    .replace(/·/g," · ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function openQrModal(route){
+    const modal =
+    document.getElementById("qrModal");
+
+    const frame =
+    document.getElementById("qrFrame");
+
+    const qr =
+    resolveImage(route && route.qrCode);
+
+    frame.innerHTML =
+    qr ?
+    `<img src="${escapeAttribute(qr)}" alt="报名二维码" onerror="renderQrEmpty()">` :
+    `<div class="qr-empty">这段同行尚未放出报名码。</div>`;
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden","false");
+    document.body.classList.add("modal-open");
+}
+
+function renderQrEmpty(){
+    document.getElementById("qrFrame").innerHTML =
+    '<div class="qr-empty">这段同行尚未放出报名码。</div>';
+}
+
+function closeQrModal(){
+    const modal =
+    document.getElementById("qrModal");
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden","true");
+    document.body.classList.remove("modal-open");
+}
+
+document.getElementById("qrModal").addEventListener("click",event=>{
+    if(event.target.id==="qrModal"){
+        closeQrModal();
+    }
+});
+
+document.addEventListener("keydown",event=>{
+    if(event.key==="Escape"){
+        closeQrModal();
+    }
+});
+
+function escapeHtml(value){
+    return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function escapeAttribute(value){
+    return escapeHtml(value)
+    .replace(/`/g,"&#096;");
+}
+
+function parseDuration(duration){
+    const text =
+    String(duration || "");
+
+    const hourMatch =
+    text.match(/([\d.]+)\s*(小时|hour|hours|h)/i);
+
+    if(hourMatch){
+        return Math.round(Number(hourMatch[1]) * 60);
+    }
+
+    const minuteMatch =
+    text.match(/([\d.]+)\s*(分钟|minute|minutes|min|m)/i);
+
+    if(minuteMatch){
+        return Math.round(Number(minuteMatch[1]));
+    }
+
+    return 180;
+}
+
+function getTimerCity(route){
+    return getLocationLabel(route) || getUtcLabel(route.timezone,route.date,route.time);
+}
+
+function getUtcLabel(timezone,date,time){
+    if(!timezone || !date){
+        return "UTC+8";
+    }
+
+    const timestamp =
+    getZonedTimestamp(date,time || "00:00",timezone);
+
+    const offsetHours =
+    Math.round(getTimezoneOffset(timestamp,timezone) / (1000 * 60 * 60));
+
+    return "UTC" + (offsetHours >= 0 ? "+" : "") + offsetHours;
+}
+
+function getEventState(event){
+    const now =
+    Date.now();
+
+    const start =
+    getZonedTimestamp(event.date,event.time,event.timezone);
+
+    const end =
+    start + event.duration * 60 * 1000;
+
+    if(now < start){
+        return{
+            state:"countdown",
+            diff:start - now
+        };
+    }
+
+    if(now >= start && now < end){
+        return{
+            state:"started",
+            diff:end - now
+        };
+    }
+
+    return{
+        state:"ended",
+        diff:0
+    };
+}
+
+function getZonedTimestamp(date,time,timezone){
+    const parts =
+    parseLocalDateTime(date,time);
+
+    if(!parts){
+        return Date.now();
+    }
+
+    const zone =
+    timezone || "Asia/Shanghai";
+
+    const utcGuess =
+    Date.UTC(parts.year,parts.month - 1,parts.day,parts.hour,parts.minute,0);
+
+    const firstOffset =
+    getTimezoneOffset(utcGuess,zone);
+
+    const firstPass =
+    utcGuess - firstOffset;
+
+    const secondOffset =
+    getTimezoneOffset(firstPass,zone);
+
+    return utcGuess - secondOffset;
+}
+
+function getTimezoneOffset(timestamp,timezone){
+    const date =
+    new Date(timestamp);
+
+    const formatter =
+    new Intl.DateTimeFormat(
+        "en-US",
+        {
+            timeZone:timezone,
+            year:"numeric",
+            month:"2-digit",
+            day:"2-digit",
+            hour:"2-digit",
+            minute:"2-digit",
+            second:"2-digit",
+            hour12:false
+        }
+    );
+
+    const values = {};
+
+    formatter.formatToParts(date).forEach(part=>{
+        if(part.type !== "literal"){
+            values[part.type] = part.value;
+        }
+    });
+
+    const zoned =
+    Date.UTC(
+        Number(values.year),
+        Number(values.month) - 1,
+        Number(values.day),
+        Number(values.hour),
+        Number(values.minute),
+        Number(values.second)
+    );
+
+    return zoned - timestamp;
+}
+
+function parseLocalDateTime(date,time){
+    const dateMatch =
+    String(date || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+
+    const timeMatch =
+    String(time || "00:00").match(/(\d{1,2})[:：](\d{1,2})/);
+
+    if(!dateMatch){
+        return null;
+    }
+
+    return{
+        year:Number(dateMatch[1]),
+        month:Number(dateMatch[2]),
+        day:Number(dateMatch[3]),
+        hour:timeMatch ? Number(timeMatch[1]) : 0,
+        minute:timeMatch ? Number(timeMatch[2]) : 0
+    };
+}
+
+function normalizeDate(date){
+    const value =
+    String(date || "");
+
+    const match =
+    value.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+
+    if(match){
+        return [
+            match[1],
+            match[2].padStart(2,"0"),
+            match[3].padStart(2,"0")
+        ].join("-");
+    }
+
+    return value;
+}
+
+function setCountdownText(id,text){
     const el =
     document.getElementById(id);
 
+    if(!el){
+        return;
+    }
+
+    el.textContent = text;
+    el.classList.toggle("is-long",text.length > 14);
+}
+
+function renderCountdown(id,diff){
+    const days =
+    Math.floor(diff/(1000*60*60*24));
+
     const hours =
-    Math.floor(diff/(1000*60*60));
+    Math.floor(
+        (diff%(1000*60*60*24))
+        /(1000*60*60)
+    );
 
     const minutes =
     Math.floor(
@@ -648,60 +1211,42 @@ function renderCountdown(id,diff){
         /1000
     );
 
-    el.innerHTML =
-    hours+"小时 "+
-    minutes+"分 "+
-    seconds+"秒";
+    const time =
+    [
+        String(hours).padStart(2,"0"),
+        String(minutes).padStart(2,"0"),
+        String(seconds).padStart(2,"0")
+    ].join(":");
+
+    setCountdownText(id,days > 0 ? days+"天 "+time : time);
 }
 
 function renderStarted(id){
-
-    document
-    .getElementById(id)
-    .innerHTML =
-    "正在同行";
+    setCountdownText(id,"正在同行");
 }
 
 function renderEnded(id){
-
-    document
-    .getElementById(id)
-    .innerHTML =
-    "已完成此程";
+    setCountdownText(id,"已完成此程");
 }
 
-/* 更新 */
-
 function updateAll(){
-
     events.forEach(event=>{
-
         const result =
         getEventState(event);
 
         if(result.state==="countdown"){
-
-            renderCountdown(
-                event.id,
-                result.diff
-            );
+            renderCountdown(event.id,result.diff);
         }
 
         if(result.state==="started"){
-
             renderStarted(event.id);
         }
 
         if(result.state==="ended"){
-
             renderEnded(event.id);
         }
-
     });
 }
-    setInterval(updateAll,1000);
-
-updateAll();
 </script>
 
 </body>

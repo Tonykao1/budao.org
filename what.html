@@ -1,178 +1,246 @@
 <!DOCTYPE html>
-
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>步道是什么</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球同工 - 步道</title>
 
 <link rel="stylesheet" href="style.css">
 
 <style>
-
-#leaderTony{
-    cursor:pointer;
-    transition:all .3s ease;
+* {
+  box-sizing: border-box;
 }
 
-#leaderTony:hover{
-    opacity:.6;
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.78), transparent 28%),
+    radial-gradient(circle at 18% 72%, rgba(199, 153, 94, 0.12), transparent 30%),
+    linear-gradient(180deg, #f7f4ed 0%, #eee8dc 54%, #e7dfd0 100%);
+  color: #222;
 }
 
-.route-card{
-
-    max-width:420px;
-
-    margin:40px auto;
-
-    padding:24px;
-
-    border:1px solid #ddd;
-
-    border-radius:16px;
-
-    text-align:center;
-    #cardPreview{
-
-    margin-top:80px;
-
+.spark-page {
+  width: min(88vw, 720px);
+  margin: 0 auto;
+  padding: 104px 0 132px;
 }
 
+.spark-intro {
+  margin-bottom: 92px;
+  text-align: center;
 }
 
-.route-card h3{
-
-    margin-bottom:12px;
-
+.spark-intro small {
+  display: block;
+  margin-bottom: 24px;
+  color: #9d968b;
+  font-size: 11px;
+  letter-spacing: 6px;
 }
 
-.route-card p{
-
-    margin:8px 0;
-
+.spark-intro h1 {
+  margin: 0 0 30px;
+  color: #25211b;
+  font-size: clamp(44px, 7vw, 64px);
+  font-weight: 200;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
 }
 
-#activityForm{
-
-    max-width:520px;
-
-    margin:100px auto;
-
+.spark-intro p {
+  margin: 0;
+  color: #666;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 2;
+  letter-spacing: 0.08em;
 }
 
-#activityForm input,
-#activityForm textarea{
-
-    width:100%;
-
-    padding:14px 0;
-
-    background:none;
-
-    border:none;
-
-    border-bottom:1px solid #d8d2c8;
-
-    outline:none;
-
-    font-size:18px;
-
-    color:#555;
-
+.spark-path {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 62px;
+  margin: 0 auto;
+  padding: 0 0 138px;
+  text-align: left;
 }
 
-#publishBtn{
-
-    padding:12px 24px;
-
-    cursor:pointer;
-
+.spark-path::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  bottom: 0;
+  left: 8px;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(182, 136, 70, 0.42),
+    rgba(126, 105, 76, 0.16) 72%,
+    rgba(126, 105, 76, 0)
+  );
 }
-.route-grid{
 
-    display:grid;
-
-    grid-template-columns:
-    repeat(auto-fit,minmax(420px,1fr));
-
-    gap:42px;
+.spark-node {
+  position: relative;
+  display: flex;
+  gap: 34px;
+  align-items: flex-start;
 }
-    .route-card{
 
-    background:white;
+.spark-light {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff6dc 0 16%, #d8a65a 38%, rgba(176, 117, 54, 0.42) 62%, transparent 72%);
+  box-shadow:
+    0 0 14px rgba(215, 166, 87, 0.52),
+    0 0 34px rgba(215, 166, 87, 0.18);
+  animation: ember-breath 8.4s ease-in-out infinite;
+}
 
-    border-radius:30px;
+.spark-content {
+  padding-bottom: 4px;
+}
 
-    overflow:hidden;
+.spark-place {
+  margin: 0 0 13px;
+  color: #8a806f;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.24em;
+  line-height: 1.8;
+}
 
-    transition:.4s;
+.spark-name {
+  margin: 0 0 14px;
+  color: #252017;
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 300;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+}
 
+.spark-note {
+  max-width: 520px;
+  margin: 0;
+  color: #6b6256;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 2;
+  letter-spacing: 0.06em;
+}
+
+.unlit-path {
+  position: absolute;
+  left: 0;
+  bottom: 42px;
+  display: flex;
+  height: 66px;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.unlit-dot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(219, 188, 134, 0.32), rgba(175, 137, 88, 0.08) 62%, transparent 74%);
+  box-shadow: 0 0 22px rgba(215, 166, 87, 0.08);
+  opacity: 0.48;
+  animation: unlit-breath 9.2s ease-in-out infinite;
+}
+
+.unlit-dot:nth-child(2) {
+  animation-delay: 1.8s;
+  opacity: 0.35;
+}
+
+.unlit-dot:nth-child(3) {
+  animation-delay: 3.4s;
+  opacity: 0.24;
+}
+
+.closing-line {
+  max-width: 460px;
+  margin: 0 auto;
+  color: #6b6256;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 2.2;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+@keyframes ember-breath {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.92);
     box-shadow:
-    0 12px 40px rgba(0,0,0,.05);
+      0 0 12px rgba(215, 166, 87, 0.42),
+      0 0 26px rgba(215, 166, 87, 0.13);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow:
+      0 0 18px rgba(215, 166, 87, 0.58),
+      0 0 44px rgba(215, 166, 87, 0.22);
+  }
 }
-    .route-content{
 
-    padding:34px;
+@keyframes unlit-breath {
+  0%,
+  100% {
+    transform: scale(0.94);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
 }
-    .route-location{
 
-    font-size:11px;
+@media (max-width: 640px) {
+  .spark-page {
+    width: min(90vw, 520px);
+    padding: 78px 0 104px;
+  }
 
-    letter-spacing:4px;
+  .spark-intro {
+    margin-bottom: 74px;
+  }
 
-    color:#a49b90;
+  .spark-intro small {
+    letter-spacing: 4px;
+  }
 
-    margin-bottom:18px;
-}
-    .route-description{
+  .spark-path {
+    gap: 54px;
+    padding-bottom: 124px;
+  }
 
-    line-height:2;
+  .spark-node {
+    gap: 24px;
+  }
 
-    color:#5f5b55;
+  .spark-place {
+    letter-spacing: 0.18em;
+  }
 
-    margin-bottom:28px;
-
-    font-size:15px;
-}
-    .route-info{
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    gap:12px;
-
-    margin-bottom:32px;
-}
-    .route-info span{
-
-    background:#f4f1eb;
-
-    padding:10px 14px;
-
-    border-radius:999px;
-
-    font-size:13px;
-
-    color:#666;
-}
-    .route-button{
-
-    display:inline-block;
-
-    padding:12px 22px;
-
-    background:#111;
-
-    color:white;
-
-    text-decoration:none;
-
-    border-radius:999px;
-
-    font-size:13px;
+  .spark-note {
+    font-size: 15px;
+  }
 }
 </style>
-
 </head>
 
 <body>
@@ -181,620 +249,77 @@
   <a href="/home.html">首页</a>
   <a href="/about.html">超级星期六</a>
   <a href="/tongxing.html">童行</a>
+  <a href="/tongdao.html">同道</a>
   <a href="/what.html">全球同工</a>
   <a href="/contact.html">联系</a>
 </nav>
-<div id="journey" class="journey-container" style="display:none;">
 
-<section class="scene">
-
-    <div class="waiting">
-
-        有人，<br>
-        正等候这一程。
-
-    </div>
-
-    <div
-    class="walk-forward"
-    id="walkForward">
-
-        向前一步
-
-    </div>
-
-</section>
-
-<section class="scene">
-
-<div class="question">
-
-    这一程，<br>
-    将从哪里开始？
-
-</div>
-<div
-class="answer-placeholder"
-id="locationAnswer"
-contenteditable="true">
-
-    中国 · 北京 · 顺义
-
-</div>
- <div
-class="continue-btn"
-id="continueToTitle">
-
-继续前行 →
-
-</div>
-</section>
-<section class="scene">
-
-<div class="question">
-
-    这一程，<br>
-    叫什么名字？
-
-</div>
-
-<div
-class="answer-placeholder"
-id="routeTitle"
-contenteditable="true">
-
-    输入线路名称
-
-</div>
-<div
-class="continue-btn"
-id="continueToEditor">
-
-继续 →
-
-</div>
-  <div id="activityForm" style="display:none;">
-
-<h2>继续完善这一程</h2>
-
-<input
-id="routeName"
-type="text">
-
-<br><br>
-
-<input
-id="activityDate"
-type="date">
-
-<br><br>
-
-<input
-id="startTime"
-type="time">
-
-<br><br>
-
-<input
-id="meetingPlace"
-type="text"
-placeholder="集合地点">
-
-<br><br>
-
-<input
-id="distance"
-type="text"
-placeholder="距离（公里）">
-
-<br><br>
-
-<input
-id="elevation"
-type="text"
-placeholder="累计爬升（米）">
-
-<br><br>
-
-<input
-id="duration"
-type="text"
-placeholder="预计耗时（小时）">
-
-<br><br>
-
-<input
-id="difficulty"
-type="text"
-placeholder="难度等级">
-
-<br><br>
-
-<input
-id="surface"
-type="text"
-placeholder="路面情况">
-
-<br><br>
-
-<input
-id="requirement"
-type="text"
-placeholder="准入门槛">
-
-<br><br>
-
-<input
-id="equipment"
-type="text"
-placeholder="装备要求">
-
-<br><br>
-
-<textarea
-id="description"
-rows="4"
-placeholder="线路说明"></textarea>
-
-<br><br>
-
-<input
-id="mapImage"
-type="text"
-placeholder="集合地点图示">
-
-<br><br>
-
-<button id="publishBtn">
-发布线路
-</button>
-<div
-id="cardPreviewEditor"
-class="route-grid"
-style="display:none;">
-</div>
-
-</div>
-</div>
- 
-    <div
-class="continue-btn"
-id="publishRoute">
-
-启程 →
-
-</div>
-</section>    
-</div>
-
-<main id="mainContent">
-
-<h1>铁磨铁，磨出刃</h1>
-
-<p>祂对我们说话，</p>
-
-<p>
-在不同国家，城市，社区，
-兴起更多肢体，
-以脚行道，
-一步一步回应恩典，
-传扬祝福。
-</p>
-
-<p>
-成为一个，造就一个，
-让我们同心同行去“步道”！
-</p>
-
-<p>美国 加州 湾区 ：Simon&Juliana</p>
-
-<p>
-中国 北京 顺义 ：
-<span id="leaderTony">
-Tony夫妇&Vincent
-</span>
-</p>
-
-<p>
-中国 北京 昌平 ：Laurel
-</p>
-
-<div class="join-section">
-
-<h2>成为带领人</h2>
-
-<p>
-若你有感动与步道同工，
-我们欢迎你成为带领人。
-</p>
-
-<a
-href="mailto:hello@budao.org?subject=加入步道同工&body=姓名：%0A电话：%0A所在城市："
-class="join-button">
-提交申请 </a>
-
-</div>
-
-
-<div
-id="cardPreviewPublic"
-style="display:none;">
-</div>
-
-<div
-id="publishToTest"
-style="
-display:none;
-text-align:center;
-margin-top:30px;
-">
-
-<button
-id="sendToTest"
-style="
-padding:14px 28px;
-border:none;
-border-radius:999px;
-background:#111;
-color:white;
-cursor:pointer;
-font-size:14px;
-">
-
-佳音启程 →
-
-</button>
-
-</div>
-
+<main class="spark-page">
+  <section class="spark-intro" aria-label="全球同工">
+    <small>GLOBAL CO-WORKERS</small>
+    <h1>全球同工</h1>
+    <p>
+      从一个城市到另一个城市，<br>
+      火种仍在传递。
+    </p>
+  </section>
+
+  <section class="spark-path" id="sparkPath" aria-label="火种传递路径"></section>
+
+  <p class="closing-line">
+    下一位同行者，<br>
+    也许正在读这段文字。
+  </p>
 </main>
 
 <script>
-
-document
-.getElementById("leaderTony")
-.addEventListener("click", () => {
-
-    const password =
-    prompt("请输入带领人密码");
-
-   if(password === "budao2026"){
-
-document
-.getElementById("mainContent")
-.style.display = "none";
-
-document
-.getElementById("journey")
-.style.display = "flex";
-
-}else if(password !== null){
-
-alert("密码错误");
-
-}
-});
-document
-.getElementById("walkForward")
-.addEventListener("click", () => {
-
-    document
-    .getElementById("journey")
-    .style.transform =
-    "translateX(-100vw)";
-});
-const locationAnswer =
-document.getElementById("locationAnswer");
-
-const continueBtn =
-document.getElementById("continueToTitle");
-
-locationAnswer.addEventListener("focus",()=>{
-
-    continueBtn.style.opacity="1";
-    continueBtn.style.pointerEvents="auto";
-
-});
-
-locationAnswer.addEventListener("input",()=>{
-
-    continueBtn.style.opacity="1";
-    continueBtn.style.pointerEvents="auto";
-
-});
-
-continueBtn.addEventListener("click",()=>{
-
-    document
-    .getElementById("journey")
-    .style.transform =
-    "translateX(-200vw)";
-
-});
-
-const continueToEditor =
-document.getElementById("continueToEditor");
-
-routeTitle.addEventListener("focus",()=>{
-
-    continueToEditor.style.opacity="1";
-    continueToEditor.style.pointerEvents="auto";
-
-});
-
-routeTitle.addEventListener("input",()=>{
-
-    continueToEditor.style.opacity="1";
-    continueToEditor.style.pointerEvents="auto";
-
-});
-
-continueToEditor.addEventListener("click",()=>{
-
-    document
-    .getElementById("activityForm")
-    .style.display="block";
-
-    continueToEditor.style.display="none";
-
-    document
-    .getElementById("routeName")
-    .value =
-    document
-    .getElementById("routeTitle")
-    .innerText.trim();
-
-    document
-    .getElementById("activityForm")
-    .scrollIntoView({
-        behavior:"smooth"
-   });
-
-});
-
-document
-.getElementById("publishBtn")
-.addEventListener("click",()=>{
-const routeData = {
-
-    location:
-    document.getElementById("locationAnswer")
-    .innerText.trim(),
-
-    title:
-    document.getElementById("routeName").value,
-
-    description:
-    document.getElementById("description").value,
-
-    time:
-    document.getElementById("startTime").value,
-
-    duration:
-    document.getElementById("duration").value,
-
-    distance:
-    document.getElementById("distance").value,
-
-    surface:
-    document.getElementById("surface").value,
-
-    elevation:
-    document.getElementById("elevation").value,
-
-    date:
-    document.getElementById("activityDate").value
-
-};
-
-fetch("/api/publish",{
-  method:"POST",
-  headers:{
-    "Content-Type":"application/json"
+const collaborators = [
+  {
+    place: "美国 · 加州 · 湾区",
+    names: "Simon & Juliana",
+    note: "这束微光，越过海洋继续燃起。"
   },
-  body:JSON.stringify(routeData)
-})
-.then(r=>r.json())
-.then(data=>{
-  alert("发布成功")
-})
-    const preview =
-    document.getElementById("cardPreviewEditor");
+  {
+    place: "中国 · 北京 · 顺义",
+    names: "Tony夫妇 & Vincent",
+    note: "最初的火种，在这里被点亮。"
+  },
+  {
+    place: "中国 · 北京 · 朝阳",
+    names: "TT（Titus）",
+    note: "新的街区，也有人安静回应同行。"
+  },
+  {
+    place: "中国 · 北京 · 昌平",
+    names: "Leo & Laurel",
+    note: "城市边缘，也有脚步继续向前。"
+  },
+  {
+    place: "中国 · 北京 · 顺义",
+    names: "Toda",
+    note: "同一束微光，在熟悉的地方再次被接住。"
+  }
+];
 
-    preview.style.display="grid";
-preview.innerHTML = `
+const sparkPath = document.getElementById("sparkPath");
 
-<div class="route-card">
-
-    <div class="route-content">
-
-        <div class="route-location">
-
-            ${
-                document.getElementById("meetingPlace").value
-            }
-
-        </div>
-
-        <h2>
-
-            ${
-                document.getElementById("routeName").value
-            }
-
-        </h2>
-
-        <div class="route-description">
-
-            ${
-                document.getElementById("description").value
-            }
-
-        </div>
-
-        <div class="route-info">
-
-            <span>
-                ${
-                    document.getElementById("startTime").value
-                }
-                集合
-            </span>
-
-            <span>
-                ${
-                    document.getElementById("duration").value
-                }
-                小时
-            </span>
-
-            <span>
-                ${
-                    document.getElementById("distance").value
-                }
-                公里
-            </span>
-
-            <span>
-                ${
-                    document.getElementById("surface").value
-                }
-            </span>
-
-            <span>
-                ↑${
-                    document.getElementById("elevation").value
-                }米
-            </span>
-
-        </div>
-
-        <div class="route-timezone">
-
-            ${
-                document.getElementById("activityDate").value
-            }
-
-        </div>
-
-        <a
-        href="#"
-        class="route-button">
-
-            与他们同行 →
-
-        </a>
-
+sparkPath.innerHTML = collaborators.map((collaborator) => `
+  <article class="spark-node">
+    <span class="spark-light" aria-hidden="true"></span>
+    <div class="spark-content">
+      <p class="spark-place">${collaborator.place}</p>
+      <h2 class="spark-name">${collaborator.names}</h2>
+      <p class="spark-note">${collaborator.note}</p>
     </div>
-
-</div>
-     <div id="publishToTest">
-
-    <button
-    id="sendToTest"
-    class="route-button">
-
-        发布到超级星期六
-
-    </button>
-
-</div>
+  </article>
+`).join("") + `
+  <div class="unlit-path" aria-hidden="true">
+    <span class="unlit-dot"></span>
+    <span class="unlit-dot"></span>
+    <span class="unlit-dot"></span>
+  </div>
 `;
-   
-    document
-.getElementById("sendToTest")
-.addEventListener("click",()=>{
-
-    alert("下一步发布到 test.html");
-
-});
-    preview.scrollIntoView({
-        behavior:"smooth"
-
-   });
-});
-
-document
-.getElementById("publishBtn")
-.addEventListener("click",()=>{
- document
-.getElementById("publishToTest")
-.style.display = "block";
-
-    });
-
 </script>
-<script>
 
-fetch("data/routes.json")
-.then(res => res.json())
-.then(routes => {
-
-    const container =
-    document.getElementById("cardPreviewPublic");
-
-    container.style.display = "grid";
-    container.className = "route-grid";
-
-    routes.forEach(route => {
-
-        container.innerHTML += `
-
-        <div class="route-card">
-
-            <div class="route-content">
-
-                <div class="route-location">
-                    ${route.location}
-                </div>
-
-                <h2>
-                    ${route.title}
-                </h2>
-
-                <div class="route-description">
-                    ${route.description}
-                </div>
-
-                <div class="route-info">
-
-                    <span>
-                        ${route.time} 集合
-                    </span>
-
-                    <span>
-                        ${route.duration}小时
-                    </span>
-
-                    <span>
-                        ${route.distance}公里
-                    </span>
-
-                    <span>
-                        ${route.surface}
-                    </span>
-
-                    <span>
-                        ↑${route.elevation}米
-                    </span>
-
-                </div>
-
-                <div class="route-timezone">
-                    ${route.date}
-                </div>
-
-            </div>
-
-        </div>
-
-        `;
-
-    });
-
-});
-
-</script>
-   
 </body>
 </html>
