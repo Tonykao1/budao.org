@@ -25,6 +25,56 @@
     { email: "IMS@budao.org", password: "Budao2026!" },
     { email: "BACBC@budao.org", password: "Budao2026!" }
   ];
+  const slotRouteDefaults = {
+    IMS: {
+      id: "budao-ims",
+      routeId: "budao-ims",
+      owner: "IMS@budao.org",
+      slot: "IMS",
+      country: "中国",
+      city: "北京",
+      region: "海淀",
+      location: "中国 · 北京 · 海淀",
+      title: "东郊湿地公园",
+      description: "在城市边缘的湿地里，放慢脚步，沿着水边与林间小路同行。适合一次轻松、安静、彼此照看的半日步道。",
+      date: "2026-07-11",
+      time: "08:30",
+      duration: "3小时",
+      distance: "6千米",
+      elevation: "平缓",
+      surface: "公园步道 / 木栈道 / 平路",
+      timezone: "Asia/Shanghai",
+      difficulty: "轻松",
+      suitableFor: "初次参与者 / 亲子",
+      equipmentMinimum: "舒适步行鞋 / 饮水",
+      meetingPlace: "",
+      participantRequirements: ""
+    },
+    BACBC: {
+      id: "budao-bacbc",
+      routeId: "budao-bacbc",
+      owner: "BACBC@budao.org",
+      slot: "BACBC",
+      country: "美国",
+      city: "加州",
+      region: "奥克兰",
+      location: "美国 · 加州 · 奥克兰",
+      title: "Reinhardt Redwood Regional Park",
+      description: "10点停车在 Canyon Meadow Staging，出发进入山谷。Bridle Trail 到头后有两个选择：身体条件普通者从 Stream 返回；体力较好的伙伴从 Chown 上山，经 French 与 Orchard 返回 Bridle。大家在 Orchard Picnic 会合，一起午餐。",
+      date: "2026-07-04",
+      time: "10:00",
+      duration: "2-3小时",
+      distance: "1.8-3.0英里",
+      elevation: "180-700英尺",
+      surface: "土路、自然路面",
+      timezone: "America/Los_Angeles",
+      difficulty: "适中",
+      suitableFor: "初次参与者 / 有徒步经验者",
+      equipmentMinimum: "徒步鞋 / 饮水 / 午餐",
+      meetingPlace: "Canyon Meadow Staging",
+      participantRequirements: ""
+    }
+  };
   let activeTrail = null;
   let activePreviewUrl = "";
   let currentUserEmail = "";
@@ -355,28 +405,10 @@
   }
 
   function loadOwnedRouteForCurrentUser() {
-    fetch("https://budao.org/routes.json?budao=" + Date.now(), {
-      cache: "no-store"
-    }).then(function (response) {
-      if (!response.ok) {
-        throw new Error("routes_unavailable");
-      }
+    readPublishedRoutes().then(function (routes) {
+      const owned = routeForCurrentSlot(routes);
 
-      return response.json();
-    }).then(function (routes) {
-      if (!Array.isArray(routes)) {
-        return;
-      }
-
-      const currentSlot = slotForEmail(currentUserEmail);
-      const owned = routes.find(function (route) {
-        return route.slot === currentSlot ||
-          slotForEmail(route.owner) === currentSlot;
-      });
-
-      if (owned) {
-        fillRouteFormFromRoute(owned);
-      }
+      fillRouteFormFromRoute(owned);
     }).catch(function () {
       const currentSlot = slotForEmail(currentUserEmail);
       const localTrail = readSavedTrails().find(function (trail) {
@@ -388,8 +420,45 @@
 
       if (localTrail) {
         fillRouteFormFromTrail(localTrail);
+        return;
       }
+
+      fillRouteFormFromRoute(routeForCurrentSlot([]));
     });
+  }
+
+  function readPublishedRoutes() {
+    return fetch("https://budao.org/api/routes?budao=" + Date.now(), {
+      cache: "no-store"
+    }).then(function (response) {
+      if (!response.ok) {
+        throw new Error("api_routes_unavailable");
+      }
+
+      return response.json();
+    }).catch(function () {
+      return fetch("https://budao.org/routes.json?budao=" + Date.now(), {
+        cache: "no-store"
+      }).then(function (response) {
+        if (!response.ok) {
+          throw new Error("routes_unavailable");
+        }
+
+        return response.json();
+      });
+    }).then(function (routes) {
+      return Array.isArray(routes) ? routes : [];
+    });
+  }
+
+  function routeForCurrentSlot(routes) {
+    const currentSlot = slotForEmail(currentUserEmail);
+    const owned = routes.find(function (route) {
+      return route.slot === currentSlot ||
+        slotForEmail(route.owner) === currentSlot;
+    });
+
+    return owned || slotRouteDefaults[currentSlot];
   }
 
   function fillRouteFormFromRoute(route) {
