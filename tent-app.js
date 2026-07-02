@@ -7,6 +7,7 @@
   const routeImages = document.getElementById("routeImages");
   const routeQrCode = document.getElementById("routeQrCode");
   const imageNote = document.querySelector(".image-note");
+  const clearImageButton = ensureClearImageButton();
   const qrNote = document.querySelector(".qr-note");
   const routeMessage = document.querySelector(".route-message");
   const publishWhisper = document.querySelector(".publish-whisper");
@@ -282,7 +283,7 @@
     const files = Array.from(routeImages.files || []);
 
     if (files.length === 0) {
-      imageNote.textContent = "还没有选择图片";
+      updateRetainedImageState(currentExistingImage(), currentExistingImageAlt());
       return;
     }
 
@@ -292,6 +293,19 @@
     }
 
     imageNote.textContent = files.length + " 张图片已经放在这里";
+  });
+
+  clearImageButton.addEventListener("click", function () {
+    routeImages.value = "";
+
+    if (activeTrail && activeTrail.source) {
+      activeTrail.source.images = [];
+      activeTrail.source.existingImage = "";
+      activeTrail.source.existingImageAlt = "";
+      activeTrail.source.removeExistingImage = true;
+    }
+
+    updateRetainedImageState("", "");
   });
 
   routeQrCode.addEventListener("change", function () {
@@ -357,6 +371,9 @@
         publishWhisper.textContent = "与你同行的人，现在已经能够看见这段路。";
         presence.classList.remove("publish-transition");
         presence.classList.add("publish-finished");
+        window.setTimeout(function () {
+          window.location.href = "https://budao.org/test.html";
+        }, reduceMotion ? 1 : 1200);
       }).catch(function (error) {
         publishWhisper.textContent = publishFailureText(error);
         presence.classList.remove("publish-transition");
@@ -477,6 +494,7 @@
     setValue(routeForm, "surfaceDescription", route.surface || "");
     setValue(routeForm, "participantRequirements", route.participantRequirements || "");
     setValue(routeForm, "itinerary", route.description || "");
+    updateRetainedImageState(route.image || route.imageUrl || "", route.imageAlt || "");
     qrNote.textContent = route.qrCode ? "已保留活动码" : "还没有选择活动码";
 
     activeTrail = trailFromRoute(route);
@@ -501,6 +519,7 @@
     setValue(routeForm, "surfaceDescription", source.surfaceDescription || "");
     setValue(routeForm, "participantRequirements", source.participantRequirements || "");
     setValue(routeForm, "itinerary", source.itinerary || "");
+    updateRetainedImageState(source.existingImage || "", source.existingImageAlt || "");
     qrNote.textContent = source.qrCode ? "已保留活动码" : "还没有选择活动码";
 
     activeTrail = trail;
@@ -537,6 +556,7 @@
         images: [],
         existingImage: route.image || route.imageUrl || "",
         existingImageAlt: route.imageAlt || "",
+        removeExistingImage: false,
         qrCode: route.qrCode || ""
       }
     };
@@ -556,6 +576,50 @@
 
   function normalizeEmail(value) {
     return String(value || "").trim().toLowerCase();
+  }
+
+  function ensureClearImageButton() {
+    const existing = document.querySelector(".image-clear");
+
+    if (existing) {
+      return existing;
+    }
+
+    const button = document.createElement("button");
+
+    button.className = "image-clear";
+    button.type = "button";
+    button.hidden = true;
+    button.textContent = "移除已保留图片";
+    button.style.justifySelf = "start";
+    button.style.border = "0";
+    button.style.padding = "0";
+    button.style.background = "transparent";
+    button.style.color = "rgba(225, 219, 206, 0.48)";
+    button.style.cursor = "pointer";
+    button.style.font = "inherit";
+    button.style.fontSize = "12px";
+    button.style.letterSpacing = "0.12em";
+
+    imageNote.insertAdjacentElement("afterend", button);
+    return button;
+  }
+
+  function currentExistingImage() {
+    return activeTrail && activeTrail.source ? activeTrail.source.existingImage || "" : "";
+  }
+
+  function currentExistingImageAlt() {
+    return activeTrail && activeTrail.source ? activeTrail.source.existingImageAlt || "" : "";
+  }
+
+  function updateRetainedImageState(image, label) {
+    const hasImage = Boolean(resolveImage(image));
+
+    imageNote.textContent = hasImage ?
+      "已保留路线图片" + (label ? "：" + label : "") :
+      "还没有选择图片";
+    clearImageButton.hidden = !hasImage;
   }
 
   function imageFiles() {
@@ -643,6 +707,7 @@
       const previous = findSavedTrail(routeId, routeName, location) ||
         activeTrailFor(routeName, normalizedTrailDate || trailDate, meetingTime, location);
       const previousQrCode = previous && previous.source ? previous.source.qrCode : "";
+      const removeExistingImage = activeTrail && activeTrail.source && activeTrail.source.removeExistingImage;
 
       return {
         id: previous && previous.id ? previous.id : routeId,
@@ -669,8 +734,9 @@
           itinerary,
           meetingPlace,
           images,
-          existingImage: previous && previous.source ? previous.source.existingImage : "",
-          existingImageAlt: previous && previous.source ? previous.source.existingImageAlt : "",
+          existingImage: removeExistingImage ? "" : previous && previous.source ? previous.source.existingImage : "",
+          existingImageAlt: removeExistingImage ? "" : previous && previous.source ? previous.source.existingImageAlt : "",
+          removeExistingImage,
           qrCode: qrCode || previousQrCode
         },
         testPage: {
@@ -1055,7 +1121,7 @@
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
+      .replace(/\"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
 
