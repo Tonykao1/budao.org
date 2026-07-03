@@ -406,6 +406,14 @@ body.modal-open .super-container{
     font-size:15px;
 }
 
+.qr-empty small{
+    display:block;
+    margin-top:12px;
+    color:#8a8176;
+    font-size:12px;
+    line-height:1.8;
+}
+
 .qr-caption{
     margin:0;
     color:#4d473e;
@@ -512,7 +520,7 @@ aria-hidden="true">
     <div class="qr-dialog" role="dialog" aria-modal="true" aria-label="报名码">
         <button class="qr-close" type="button" aria-label="关闭报名码" onclick="closeQrModal()">×</button>
         <div class="qr-frame" id="qrFrame"></div>
-        <p class="qr-caption">扫码进群 · 即刻报名</p>
+        <p class="qr-caption" id="qrCaption">扫码进群 · 即刻报名</p>
     </div>
 </div>
 
@@ -958,13 +966,28 @@ function openQrModal(route){
     const frame =
     document.getElementById("qrFrame");
 
+    const caption =
+    document.getElementById("qrCaption");
+
     const qr =
     resolveImage(route && route.qrCode);
 
-    frame.innerHTML =
-    qr ?
-    `<img src="${escapeAttribute(qr)}" alt="报名二维码" onerror="renderQrEmpty()">` :
-    `<div class="qr-empty">这段同行尚未放出报名码。</div>`;
+    if(qr && isQrRegistrationOpen(route)){
+        frame.innerHTML =
+        `<img src="${escapeAttribute(qr)}" alt="报名二维码" onerror="renderQrEmpty()">`;
+        caption.textContent = "扫码进群 · 即刻报名";
+        caption.style.display = "";
+    }else if(qr){
+        frame.innerHTML =
+        `<div class="qr-empty">本次同行报名已暂时止步，<br>愿我们下次路上相逢。<br><small>若已报名，请按原群内通知准时同行。</small></div>`;
+        caption.textContent = "";
+        caption.style.display = "none";
+    }else{
+        frame.innerHTML =
+        `<div class="qr-empty">这段同行尚未放出报名码。</div>`;
+        caption.textContent = "";
+        caption.style.display = "none";
+    }
 
     modal.classList.add("open");
     modal.setAttribute("aria-hidden","false");
@@ -974,6 +997,24 @@ function openQrModal(route){
 function renderQrEmpty(){
     document.getElementById("qrFrame").innerHTML =
     '<div class="qr-empty">这段同行尚未放出报名码。</div>';
+    const caption =
+    document.getElementById("qrCaption");
+    caption.textContent = "";
+    caption.style.display = "none";
+}
+
+function isQrRegistrationOpen(route){
+    if(!route || !route.date){
+        return true;
+    }
+
+    const start =
+    getZonedTimestamp(route.date,route.time || "00:00",route.timezone || "Asia/Shanghai");
+
+    const qrDeadline =
+    start - 5 * 60 * 60 * 1000;
+
+    return Date.now() < qrDeadline;
 }
 
 function closeQrModal(){
