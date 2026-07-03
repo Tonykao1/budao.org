@@ -312,6 +312,7 @@ function renderWarmup() {
     primary: state.warmupStarted ? "继续热身" : "开始热身",
     onPrimary: startWarmup
   });
+  addSkipWarmupButton();
   renderWarmupProgress();
 }
 
@@ -330,6 +331,24 @@ function startWarmup() {
   if (button) button.disabled = true;
   state.warmupTimer = window.setInterval(tickWarmup, 500);
   tickWarmup();
+}
+
+function addSkipWarmupButton() {
+  const actionGroup = screen.querySelector(".actions > div");
+  const primaryButton = screen.querySelector('[data-action="primary"]');
+  if (!actionGroup || !primaryButton) return;
+  const skipButton = document.createElement("button");
+  skipButton.className = "secondary";
+  skipButton.type = "button";
+  skipButton.textContent = "跳过热身";
+  skipButton.addEventListener("click", skipWarmup);
+  actionGroup.insertBefore(skipButton, primaryButton);
+}
+
+function skipWarmup() {
+  stopWarmup();
+  state.warmupStarted = false;
+  setRoute("prayer");
 }
 
 function tickWarmup() {
