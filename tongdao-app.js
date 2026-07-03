@@ -7,9 +7,10 @@ const state = {
   history: [],
   peopleCount: 1,
   participants: [],
-  estimatedMinutes: 90,
+  estimatedMinutes: 120,
   place: "",
   weather: "",
+  weatherCareShown: false,
   safetyConfirmed: false,
   groupMode: "natural",
   groupWarning: "",
@@ -24,7 +25,9 @@ const state = {
   warmupRound: 1,
   warmupBeat: 0,
   warmupStarted: false,
-  audioContext: null
+  audioContext: null,
+  shareIndex: 0,
+  shareTotal: 1
 };
 
 const screen = document.getElementById("screen");
@@ -63,9 +66,10 @@ function resetTongdao() {
   state.history = [];
   state.peopleCount = 1;
   state.participants = [];
-  state.estimatedMinutes = 90;
+  state.estimatedMinutes = 120;
   state.place = "";
   state.weather = "";
+  state.weatherCareShown = false;
   state.safetyConfirmed = false;
   state.groupMode = "natural";
   state.groupWarning = "";
@@ -77,6 +81,8 @@ function resetTongdao() {
   state.warmupRound = 1;
   state.warmupBeat = 0;
   state.warmupStarted = false;
+  state.shareIndex = 0;
+  state.shareTotal = 1;
   renderRoute();
 }
 
@@ -180,7 +186,7 @@ function renderInitialize() {
       <div class="field-stack">
         <label class="field-line">
           <span>预计时间（分钟）</span>
-          <input id="estimatedMinutes" type="number" min="1" value="${state.estimatedMinutes}" placeholder="90">
+          <input id="estimatedMinutes" type="number" min="1" value="${state.estimatedMinutes}" placeholder="120">
         </label>
         <label class="field-line">
           <span>人数</span>
@@ -227,7 +233,7 @@ function renderInitialize() {
 }
 
 function collectInitialize() {
-  state.estimatedMinutes = Number(document.getElementById("estimatedMinutes")?.value || 90);
+  state.estimatedMinutes = Number(document.getElementById("estimatedMinutes")?.value || 120);
   state.peopleCount = Math.max(1, Number(document.getElementById("peopleCount")?.value || 1));
   state.place = document.getElementById("place")?.value.trim() || "";
   state.weather = document.getElementById("weather")?.value.trim() || "";
@@ -306,7 +312,7 @@ function renderWarmup() {
     title: "七步热身",
     body: `<p>请跟随节拍完成七步热身。<br>每一组动作 4 个 8 拍。</p>
       <div class="warmup-list">
-        ${parts.map((part) => `<span>${escapeHtml(part)}</span>`).join("")}
+        ${parts.map((part, index) => `<span data-warmup-index="${index}">${escapeHtml(part)}</span>`).join("")}
       </div>`,
     extra: `<div class="warmup-status" id="warmupStatus"></div>`,
     primary: state.warmupStarted ? "继续热身" : "开始热身",
@@ -352,6 +358,7 @@ function skipWarmup() {
 }
 
 function tickWarmup() {
+  const previousPart = state.warmupPartIndex;
   state.warmupBeat += 1;
   if (state.warmupBeat > 8) {
     state.warmupBeat = 1;
@@ -365,7 +372,11 @@ function tickWarmup() {
     finishWarmup();
     return;
   }
+  const partChanged = previousPart !== state.warmupPartIndex;
   playBeat(state.warmupBeat === 1);
+  if (partChanged && state.warmupBeat === 1) {
+    playChime();
+  }
   renderWarmupProgress();
 }
 
@@ -374,6 +385,9 @@ function renderWarmupProgress() {
   if (!status) return;
   const parts = getWarmupParts();
   const current = parts[state.warmupPartIndex] || parts[0];
+  screen.querySelectorAll("[data-warmup-index]").forEach((item) => {
+    item.classList.toggle("is-current", Number(item.dataset.warmupIndex) === state.warmupPartIndex);
+  });
   status.innerHTML = `
     <div class="warmup-current">当前：${escapeHtml(current)}</div>
     <div class="warmup-round">第 ${state.warmupRound} 组 / 4 组</div>
@@ -433,6 +447,30 @@ function playBeat(strong) {
   }
 }
 
+function playChime() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    if (!state.audioContext) state.audioContext = new AudioContext();
+    const ctx = state.audioContext;
+    if (ctx.state === "suspended") ctx.resume();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(980, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.24);
+  } catch (error) {
+    // The visual transition remains available if audio is unavailable.
+  }
+}
+
 function renderPrayer() {
   renderQuietTimer(
     "ENTER",
@@ -444,8 +482,8 @@ function renderPrayer() {
         <path d="M80 58V104"></path>
         <path d="M78 70C62 58 53 43 47 27"></path>
         <path d="M82 70C98 58 107 43 113 27"></path>
-        <path d="M80 104L60 146"></path>
-        <path d="M80 104L100 146"></path>
+        <path d="M80 104L60 164"></path>
+        <path d="M80 104L100 164"></path>
       </svg>
     </div>
     请安静站立。<br><br>
@@ -475,10 +513,13 @@ function startGroupRound(nextRoute) {
 function renderGroupsScreen() {
   const solo = isSolo();
   const label = state.nextAfterGroups === "respond" ? "进入回应" : state.nextAfterGroups === "go" ? "继续" : "开始同行";
+  const weatherCare = takeWeatherCareLine();
   layout({
     stage: "PAIR",
     title: solo ? "安静默想" : "同行伙伴",
-    body: solo ? "<p>今天进入独行模式。<br>请安静默想，也可以轻声说出来。</p>" : "<p>请按照手机上的名字，寻找这一轮的同行者。</p>",
+    body: solo
+      ? `<p>今天进入独行模式。<br>请安静默想，也可以轻声说出来。</p>${weatherCare}`
+      : `<p>${getGroupIntroText()}</p>${weatherCare}`,
     extra: solo ? "" : `${state.groupWarning ? `<div class="message">${escapeHtml(state.groupWarning)}</div>` : ""}<div class="groups">${renderGroupList()}</div>`,
     primary: label,
     onPrimary: () => setRoute(state.nextAfterGroups)
@@ -493,11 +534,11 @@ function renderWalk() {
     question: topic,
     prompt: isSolo()
       ? "请安静默想，也可以轻声说出来。"
-      : "请轮流分享。<br>不用评价。<br>不用给答案。<br>只需要认真听。",
+      : getShareIntroText(),
     doneText: isSolo()
       ? "刚刚的话，可以留在路上。现在，请继续默想。"
-      : "刚刚的话，可以留在路上。现在，请寻找新的同行者。",
-    doneButton: isSolo() ? "继续" : "重新配对",
+      : getShareDoneText("刚刚的话，可以留在路上。现在，请寻找新的同行者。"),
+    doneButton: isSolo() ? "继续" : getShareDoneButton("重新配对"),
     onDone: () => {
       state.walkIndex += 1;
       if (state.walkIndex <= 5) {
@@ -510,11 +551,16 @@ function renderWalk() {
 }
 
 function renderStory() {
+  const storyMediaId = activeConfig.storyMediaId || "";
+  const storyMediaType = activeConfig.storyMediaType || "";
+  const mediaData = storyMediaId && storyMediaType
+    ? ` data-story-media-id="${escapeAttribute(storyMediaId)}" data-story-media-type="${escapeAttribute(storyMediaType)}"`
+    : "";
   layout({
     stage: "STORY",
     title: "故事",
     body: `<p>接下来，请一起观看今天的故事。<br>不用急着解释。<br>只需要观看。</p>
-      <div class="quiet-box">
+      <div class="quiet-box"${mediaData}>
         <p>今天的故事：<br>《${escapeHtml(activeConfig.storyTitle)}》</p>
         <p>${activeConfig.storyVideoUrl ? "请播放今天的故事视频。" : `请由一位同伴简单读出或讲述今天的故事：《${escapeHtml(activeConfig.storyTitle)}》。`}</p>
       </div>`,
@@ -556,7 +602,7 @@ function renderRespond() {
       ? "这不是答题。<br>这是回应。<br><br>请安静默想，也可以轻声说出来。"
       : "这不是答题。<br>这是回应。<br><br>请分享：<br>今天，神是否借着路、故事、经文，提醒你什么？",
     doneText: "谢谢你愿意真实分享。",
-    doneButton: isSolo() ? "继续" : "重新配对",
+    doneButton: isSolo() ? "继续" : getShareDoneButton("重新配对"),
     onDone: () => startGroupRound("go")
   });
 }
@@ -566,7 +612,7 @@ function renderGo() {
     stage: "GO",
     title: "带着它继续走",
     question: activeConfig.topics.topic7,
-    prompt: isSolo() ? "请安静默想，也可以轻声说出来。" : "请轮流分享。<br>不用评价。<br>不用给答案。",
+    prompt: isSolo() ? "请安静默想，也可以轻声说出来。" : getShareIntroText(),
     doneText: "刚刚领受的，可以慢慢带回生活里。",
     doneButton: "继续",
     onDone: () => setRoute("blessing")
@@ -648,32 +694,157 @@ function renderQuietTimer(stage, title, text, seconds, buttonText, onDone) {
 }
 
 function renderShareTimer({ stage, title, question, prompt, doneText, doneButton, onDone }) {
+  state.shareIndex = 0;
+  state.shareTotal = getShareTotal();
   layout({
     stage,
     title,
-    body: `<div class="question">${escapeHtml(question)}</div><p>${prompt}</p>`,
-    extra: `<div class="timer" id="timer">5:00</div><div class="message" id="timerMessage"></div>`,
-    primary: "开始计时",
+    body: `<div class="question">${escapeHtml(question)}</div><p>${prompt}</p><div class="share-guidance" id="shareGuidance"></div>`,
+    extra: `<div class="timer" id="timer">8:00</div><div class="message" id="timerMessage"></div>`,
+    primary: state.shareTotal > 1 ? "开始第一位" : "开始计时",
     onPrimary: null
   });
 
   const button = screen.querySelector('[data-action="primary"]');
-  button.addEventListener("click", () => {
-    button.textContent = "可以提前结束";
-    startTimer(300, () => finishShareTimer(button, doneText, doneButton, onDone));
-    button.onclick = () => {
-      stopTimer();
-      document.getElementById("timer").textContent = "0:00";
-      finishShareTimer(button, doneText, doneButton, onDone);
-    };
-  }, { once: true });
+  updateShareGuidance(false);
+  button.addEventListener("click", () => startSharePerson(button, doneText, doneButton, onDone), { once: true });
 }
 
 function finishShareTimer(button, doneText, doneButton, onDone) {
+  playChime();
+  if (state.shareIndex < state.shareTotal - 1) {
+    state.shareIndex += 1;
+    document.getElementById("timerMessage").textContent = "这一位的分享先到这里。请把时间交给下一位同行者。";
+    document.getElementById("timer").textContent = "8:00";
+    updateShareGuidance(false);
+    button.textContent = `开始第${state.shareIndex + 1}位`;
+    button.onclick = () => startSharePerson(button, doneText, doneButton, onDone);
+    return;
+  }
   document.getElementById("timerMessage").textContent = doneText;
   button.textContent = doneButton;
   button.onclick = onDone;
   if (navigator.vibrate) navigator.vibrate(300);
+}
+
+function startSharePerson(button, doneText, doneButton, onDone) {
+  document.getElementById("timerMessage").textContent = "";
+  updateShareGuidance(true);
+  button.textContent = "可以提前结束";
+  startTimer(480, () => finishShareTimer(button, doneText, doneButton, onDone));
+  button.onclick = () => {
+    stopTimer();
+    document.getElementById("timer").textContent = "0:00";
+    finishShareTimer(button, doneText, doneButton, onDone);
+  };
+}
+
+function getShareTotal() {
+  if (isSolo()) return 1;
+  if (state.participants.length === 2 || state.participants.length === 3) {
+    return state.participants.length;
+  }
+  const groupSizes = state.groups.map((group) => group.length);
+  return Math.max(1, ...groupSizes);
+}
+
+function updateShareGuidance(isActive) {
+  const guidance = document.getElementById("shareGuidance");
+  if (!guidance) return;
+  guidance.innerHTML = getShareGuidanceText(state.shareIndex, state.shareTotal, isActive);
+}
+
+function getShareGuidanceText(index, total, isActive) {
+  if (total === 1) return "";
+  if (total === 2) {
+    if (index === 0) {
+      return isActive
+        ? "请第一位同行者开始分享。<br>这一段时间，其他人只需要安静聆听。"
+        : "第一位预备好以后，就可以开始。";
+    }
+    return isActive
+      ? "谢谢刚才的分享。<br>现在，请把时间交给另一位同行者。"
+      : "现在，请把时间交给另一位同行者。";
+  }
+  if (total === 3) {
+    if (index === 0) {
+      return isActive
+        ? "请第一位同行者开始分享。<br>其余两位，只需要安静聆听。"
+        : "第一位预备好以后，就可以开始。";
+    }
+    if (index === 1) {
+      return isActive
+        ? "谢谢第一位同行者。<br>现在，请第二位继续分享。"
+        : "现在，请第二位继续分享。";
+    }
+    return isActive
+      ? "谢谢第二位同行者。<br>现在，请最后一位同行者分享。"
+      : "现在，请最后一位同行者分享。";
+  }
+  return `请第 ${index + 1} 位同行者分享。<br>其余同伴只需要安静聆听。`;
+}
+
+function getShareIntroText() {
+  if (state.participants.length === 2) {
+    return "今天两位轮流分享。<br>一位说，一位听。<br>不用评价，也不用急着回应。";
+  }
+  if (state.participants.length === 3) {
+    return "今天三位轮流分享。<br>一位说，另外两位安静聆听。";
+  }
+  return "请轮流分享。<br>不用评价。<br>不用给答案。<br>只需要认真听。";
+}
+
+function getShareDoneText(defaultText) {
+  if (state.participants.length === 2) {
+    return "两位都已经分享完。<br>可以继续往下一段同行。";
+  }
+  if (state.participants.length === 3) {
+    return "三位都已经分享完。<br>这一轮同行可以继续往前走。";
+  }
+  return defaultText;
+}
+
+function getShareDoneButton(defaultText) {
+  return state.participants.length === 2 || state.participants.length === 3 ? "继续" : defaultText;
+}
+
+function getGroupIntroText() {
+  if (state.participants.length === 2) {
+    return "今天两位同行。<br>请照着接下来的顺序，慢慢分享。";
+  }
+  if (state.participants.length === 3) {
+    return "今天三位同行。<br>请照着接下来的顺序，轮流分享。";
+  }
+  return "请按照手机上的名字，寻找这一轮的同行者。";
+}
+
+function takeWeatherCareLine() {
+  if (!state.weather || state.weatherCareShown) return "";
+  state.weatherCareShown = true;
+  return `<p class="weather-care">${escapeHtml(getWeatherCareText(state.weather))}</p>`;
+}
+
+function getWeatherCareText(weather) {
+  const text = String(weather || "").toLowerCase();
+  if (/雨|rain|shower/.test(text)) {
+    return "雨声若在，也可以成为今天同行的节拍。";
+  }
+  if (/风|wind/.test(text)) {
+    return "风会经过身旁，但同行的人仍在身边。";
+  }
+  if (/冷|寒|低温|cold|chilly/.test(text)) {
+    return "天气有些冷，愿这一段分享有一点温度。";
+  }
+  if (/热|暑|高温|hot|heat/.test(text)) {
+    return "天气有些热，记得慢一点，也彼此照看。";
+  }
+  if (/阴|cloud|overcast/.test(text)) {
+    return "阴天也适合同行，有些话可以慢一点说出来。";
+  }
+  if (/晴|sun|clear/.test(text)) {
+    return "今天的光很好，适合慢慢听彼此说话。";
+  }
+  return "愿今天的天气，也成为这段同行里安静的一部分。";
 }
 
 function startTimer(seconds, onDone) {
@@ -718,6 +889,11 @@ function generateGroups() {
   state.groupWarning = "";
   if (isSolo()) {
     state.groups = [];
+    return;
+  }
+
+  if (state.participants.length <= 3) {
+    state.groups = [state.participants];
     return;
   }
 
