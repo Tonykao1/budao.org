@@ -332,7 +332,9 @@ body {
   transform: translateY(0);
 }
 
-.presence.route-open .entry-form {
+.presence.entrance-open .entry-form,
+.presence.route-open .entry-form,
+.presence.word-open .entry-form {
   opacity: 0;
   transform: translateY(-18px);
   pointer-events: none;
@@ -399,6 +401,127 @@ body {
 .entry-form button:hover,
 .quiet-submit:focus-visible,
 .quiet-submit:hover {
+  color: rgba(242, 234, 217, 0.9);
+  outline: 0;
+}
+
+.tent-entrance,
+.word-room {
+  grid-area: 1 / 1;
+  width: min(74vw, 420px);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(18px);
+  transition:
+    opacity 900ms ease 260ms,
+    transform 900ms ease 260ms;
+}
+
+.tent-entrance {
+  display: grid;
+  gap: 28px;
+  place-items: center;
+  text-align: center;
+}
+
+.presence.entrance-open:not(.route-open):not(.word-open) .tent-entrance {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.path-choice {
+  display: grid;
+  gap: 12px;
+  place-items: center;
+  width: 100%;
+  border: 0;
+  padding: 6px 0;
+  background: transparent;
+  color: rgba(232, 225, 211, 0.6);
+  cursor: pointer;
+  font-family: "Songti SC", "Noto Serif CJK SC", ui-serif, Georgia, serif;
+  transition: color 280ms ease;
+}
+
+.path-choice span {
+  font-size: clamp(42px, 9vw, 64px);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
+}
+
+.path-choice small {
+  font-size: 14px;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+}
+
+.path-choice:hover,
+.path-choice:focus-visible {
+  color: rgba(246, 236, 213, 0.92);
+  outline: 0;
+}
+
+.path-divider {
+  width: min(42vw, 260px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(225, 214, 189, 0.36), transparent);
+}
+
+.presence.path-hover .inner-light {
+  opacity: 0.78;
+}
+
+.word-room {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.presence.word-open .word-room {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.word-rest h1 {
+  margin: 0 0 14px;
+  color: rgba(242, 234, 217, 0.84);
+  font-family: "Songti SC", "Noto Serif CJK SC", ui-serif, Georgia, serif;
+  font-size: clamp(48px, 10vw, 68px);
+  font-weight: 200;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+}
+
+.word-rest p {
+  margin: 0;
+  color: rgba(232, 225, 211, 0.58);
+  font: 200 15px/2.2 "Songti SC", "Noto Serif CJK SC", ui-serif, Georgia, serif;
+  letter-spacing: 0.14em;
+}
+
+.word-rest .word-kicker {
+  margin-bottom: 32px;
+  color: rgba(232, 225, 211, 0.68);
+  letter-spacing: 0.2em;
+}
+
+.return-entrance {
+  margin-top: 42px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: rgba(232, 225, 211, 0.62);
+  cursor: pointer;
+  font: 200 14px/1 "Songti SC", "Noto Serif CJK SC", ui-serif, Georgia, serif;
+  letter-spacing: 0.2em;
+}
+
+.return-entrance:hover,
+.return-entrance:focus-visible {
   color: rgba(242, 234, 217, 0.9);
   outline: 0;
 }
@@ -470,6 +593,24 @@ body {
 
 .image-line:focus-within {
   border-bottom-color: rgba(236, 224, 197, 0.62);
+}
+
+.image-clear {
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: rgba(225, 219, 206, 0.48);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+.image-clear:hover,
+.image-clear:focus-visible {
+  color: rgba(236, 224, 197, 0.76);
+  outline: 0;
 }
 
 .login-message,
@@ -1003,6 +1144,8 @@ body {
   .door,
   .inside,
   .entry-form,
+  .tent-entrance,
+  .word-room,
   .route-room {
     transition-duration: 1ms;
   }
