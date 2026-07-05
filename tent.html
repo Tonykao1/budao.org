@@ -52,6 +52,32 @@
           <p class="login-message" aria-live="polite"></p>
         </form>
 
+        <section class="tent-entrance" aria-label="步与道">
+          <button class="path-choice" type="button" data-tent-path="step">
+            <span>步</span>
+            <small>让身体出发</small>
+          </button>
+
+          <div class="path-divider" aria-hidden="true"></div>
+
+          <button class="path-choice" type="button" data-tent-path="word">
+            <span>道</span>
+            <small>让心灵归回</small>
+          </button>
+        </section>
+
+        <section class="word-room" aria-label="道">
+          <div class="word-rest">
+            <h1>道</h1>
+            <p class="word-kicker">让心灵归回</p>
+            <p>
+              经文、问题与高光时刻，<br>
+              将在这里被安静保存。
+            </p>
+            <button class="return-entrance" type="button">返回帐篷</button>
+          </div>
+        </section>
+
         <section class="route-room" aria-label="填写路线">
           <form class="route-form">
             <div class="route-fields">
@@ -137,6 +163,7 @@
                 <input id="routeImages" name="routeImages" type="file" accept="image/*" multiple>
               </label>
               <p class="image-note" aria-live="polite">还没有选择图片</p>
+              <button class="image-clear" type="button" hidden>移除已保留图片</button>
               <label class="image-line">
                 <span>活动码</span>
                 <input id="routeQrCode" name="routeQrCode" type="file" accept="image/*">
