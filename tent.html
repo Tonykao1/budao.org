@@ -34,7 +34,7 @@
             </svg>
           </button>
 
-          <p class="question">这次，<br>你想让祂带我们去哪里？</p>
+          <p class="question">这次，<br>你祈求祂如何带领这一程？</p>
         </section>
       </div>
 
@@ -70,11 +70,60 @@
           <div class="word-rest">
             <h1>道</h1>
             <p class="word-kicker">让心灵归回</p>
-            <p>
-              经文、问题与高光时刻，<br>
-              将在这里被安静保存。
-            </p>
-            <button class="return-entrance" type="button">返回帐篷</button>
+            <form class="word-form">
+              <label class="word-field">
+                <span>经文</span>
+                <input name="scripture" type="text" autocomplete="off" placeholder="耶利米书 29:11">
+              </label>
+
+              <label class="word-field">
+                <span>经文内容</span>
+                <textarea name="scriptureText" rows="6"></textarea>
+              </label>
+
+              <label class="word-field">
+                <span>主题</span>
+                <input name="theme" type="text" autocomplete="off" placeholder="真正的自由">
+              </label>
+
+              <div class="word-questions" aria-label="问题">
+                <label class="word-field"><span>问题一</span><input name="question1" type="text" autocomplete="off"></label>
+                <label class="word-field"><span>问题二</span><input name="question2" type="text" autocomplete="off"></label>
+                <label class="word-field"><span>问题三</span><input name="question3" type="text" autocomplete="off"></label>
+                <label class="word-field"><span>问题四</span><input name="question4" type="text" autocomplete="off"></label>
+                <label class="word-field"><span>问题五</span><input name="question5" type="text" autocomplete="off"></label>
+                <label class="word-field"><span>问题六</span><input name="question6" type="text" autocomplete="off"></label>
+                <label class="word-field"><span>问题七</span><input name="question7" type="text" autocomplete="off"></label>
+              </div>
+
+              <label class="word-field">
+                <span>故事</span>
+                <textarea name="story" rows="7"></textarea>
+              </label>
+
+              <label class="word-field">
+                <span>高光时刻</span>
+                <textarea name="highlights" rows="6"></textarea>
+              </label>
+
+              <label class="word-field">
+                <span>回应</span>
+                <textarea name="response" rows="6"></textarea>
+              </label>
+
+              <label class="word-field">
+                <span>祷告</span>
+                <textarea name="prayer" rows="8"></textarea>
+              </label>
+
+              <div class="word-actions">
+                <button class="return-entrance" type="button">返回帐篷</button>
+                <button class="word-place" type="submit">暂时安放</button>
+                <button class="word-send" type="button">发布这一程</button>
+              </div>
+
+              <p class="word-message" aria-live="polite"></p>
+            </form>
           </div>
         </section>
 
