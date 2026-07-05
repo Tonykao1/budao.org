@@ -4,6 +4,8 @@
   const entryForm = document.querySelector(".entry-form");
   const loginMessage = document.querySelector(".login-message");
   const routeForm = document.querySelector(".route-form");
+  const pathChoices = Array.from(document.querySelectorAll(".path-choice"));
+  const returnEntranceButton = document.querySelector(".return-entrance");
   const routeImages = document.getElementById("routeImages");
   const routeQrCode = document.getElementById("routeQrCode");
   const imageNote = document.querySelector(".image-note");
@@ -275,9 +277,50 @@
 
     currentUserEmail = allowed.email;
     loginMessage.textContent = "";
-    presence.classList.add("route-open");
+    presence.classList.add("entrance-open");
+    presence.classList.remove("route-open", "word-open");
     loadOwnedRouteForCurrentUser();
   });
+
+  pathChoices.forEach(function (choice) {
+    choice.addEventListener("mouseenter", function () {
+      presence.classList.add("path-hover");
+    });
+
+    choice.addEventListener("mouseleave", function () {
+      presence.classList.remove("path-hover");
+    });
+
+    choice.addEventListener("focus", function () {
+      presence.classList.add("path-hover");
+    });
+
+    choice.addEventListener("blur", function () {
+      presence.classList.remove("path-hover");
+    });
+
+    choice.addEventListener("click", function () {
+      const path = choice.getAttribute("data-tent-path");
+
+      if (path === "step") {
+        presence.classList.add("route-open");
+        presence.classList.remove("word-open", "path-hover");
+        return;
+      }
+
+      if (path === "word") {
+        presence.classList.add("word-open");
+        presence.classList.remove("route-open", "path-hover");
+      }
+    });
+  });
+
+  if (returnEntranceButton) {
+    returnEntranceButton.addEventListener("click", function () {
+      presence.classList.remove("route-open", "word-open", "path-hover");
+      presence.classList.add("entrance-open");
+    });
+  }
 
   routeImages.addEventListener("change", function () {
     const files = Array.from(routeImages.files || []);
@@ -1121,7 +1164,7 @@
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
+      .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
 
