@@ -1,0 +1,118 @@
+.word-room {
+  width: min(84vw, 760px);
+  max-height: min(82svh, 740px);
+  overflow: auto;
+  place-items: start center;
+  text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(220, 210, 187, 0.28) transparent;
+}
+
+.word-rest h1,
+.word-rest .word-kicker {
+  text-align: center;
+}
+
+.word-form {
+  display: grid;
+  width: min(100%, 680px);
+  gap: clamp(30px, 5vh, 48px);
+  padding: 2px 2px 12px;
+}
+
+.word-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: rgba(226, 220, 205, 0.54);
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+}
+
+.word-field input,
+.word-field textarea {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(220, 210, 187, 0.32);
+  border-radius: 0;
+  outline: 0;
+  background: rgba(255, 249, 232, 0.025);
+  color: rgba(238, 232, 217, 0.82);
+  font: 300 16px/1.8 ui-serif, Georgia, "Times New Roman", serif;
+  letter-spacing: 0.04em;
+}
+
+.word-field input {
+  height: 42px;
+}
+
+.word-field textarea {
+  min-height: 132px;
+  resize: vertical;
+}
+
+.word-field input::placeholder {
+  color: rgba(226, 220, 205, 0.28);
+}
+
+.word-field input:focus,
+.word-field textarea:focus {
+  border-bottom-color: rgba(236, 224, 197, 0.64);
+}
+
+.word-questions {
+  display: grid;
+  gap: 28px;
+  padding: 4px 0;
+}
+
+.word-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(24px, 6vw, 72px);
+  margin-top: 6px;
+}
+
+.word-place,
+.word-send {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: rgba(232, 225, 211, 0.64);
+  cursor: pointer;
+  font: 200 15px/1 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.18em;
+}
+
+.word-place:hover,
+.word-place:focus-visible,
+.word-send:hover,
+.word-send:focus-visible {
+  color: rgba(242, 234, 217, 0.9);
+  outline: 0;
+}
+
+.word-actions .return-entrance {
+  margin-top: 0;
+}
+
+.word-message {
+  min-height: 24px;
+  margin: 0;
+  color: rgba(225, 219, 206, 0.48);
+  font-size: 13px;
+  font-weight: 200;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  .word-room {
+    width: 84vw;
+    max-height: 78svh;
+  }
+}
