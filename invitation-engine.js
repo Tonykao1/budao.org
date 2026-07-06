@@ -4,7 +4,8 @@
     const previewId = "budaoInvitationPreview";
 
     const imagePipeline = {
-        mode: "tent-image",
+        imageSourceMode: "uploaded",
+        availableModes: ["uploaded", "ai-enhanced"],
         async resolve(route) {
             return resolveImageSource(route && (route.image || route.imageUrl));
         }
@@ -163,13 +164,14 @@
 
         return {
             type: "route",
-            imageMode: imagePipeline.mode,
+            imageSourceMode: route.imageSourceMode || imagePipeline.imageSourceMode,
             scripture: route.scripture || "",
             scriptureTheme: route.scriptureTheme || "",
             scriptureImage: route.scriptureImage || "",
             location,
             title: route.title || "步道同行",
             description: route.description || "",
+            date: route.date || "",
             time: route.time || "",
             duration: route.duration || "",
             distance: route.distance || "",
@@ -195,20 +197,29 @@
 
     function drawBrandTop(ctx) {
         ctx.save();
-        ctx.fillStyle = "rgba(42,36,28,0.56)";
-        ctx.font = "500 31px Arial, sans-serif";
+        ctx.fillStyle = "rgba(38,32,25,0.58)";
+        ctx.font = "500 30px Arial, sans-serif";
         ctx.textAlign = "center";
         ctx.letterSpacing = "18px";
-        drawText(ctx, "B U D A O", width / 2, 92);
+        drawText(ctx, "B U D A O", width / 2, 82);
         ctx.restore();
     }
 
     function drawHero(ctx, image, location) {
-        const x = 82;
-        const y = 150;
-        const w = 916;
-        const h = 1040;
-        const radius = 48;
+        const x = 70;
+        const y = 118;
+        const w = 940;
+        const h = 1092;
+        const radius = 54;
+
+        ctx.save();
+        ctx.shadowColor = "rgba(80,65,45,0.15)";
+        ctx.shadowBlur = 48;
+        ctx.shadowOffsetY = 28;
+        roundedRect(ctx, x, y, w, h, radius);
+        ctx.fillStyle = "rgba(255,250,240,0.7)";
+        ctx.fill();
+        ctx.restore();
 
         ctx.save();
         roundedRect(ctx, x, y, w, h, radius);
@@ -216,100 +227,108 @@
 
         if (image) {
             drawCoverImage(ctx, image, x, y, w, h);
-            const shade = ctx.createLinearGradient(0, y + h * 0.45, 0, y + h);
-            shade.addColorStop(0, "rgba(0,0,0,0)");
-            shade.addColorStop(1, "rgba(0,0,0,0.32)");
+            const warmth = ctx.createLinearGradient(x, y, x + w, y + h);
+            warmth.addColorStop(0, "rgba(255,242,210,0.2)");
+            warmth.addColorStop(0.48, "rgba(244,232,211,0.06)");
+            warmth.addColorStop(1, "rgba(84,66,44,0.26)");
+            ctx.fillStyle = warmth;
+            ctx.fillRect(x, y, w, h);
+
+            const skySpace = ctx.createLinearGradient(0, y, 0, y + h * 0.46);
+            skySpace.addColorStop(0, "rgba(250,245,232,0.36)");
+            skySpace.addColorStop(1, "rgba(250,245,232,0)");
+            ctx.fillStyle = skySpace;
+            ctx.fillRect(x, y, w, h * 0.48);
+
+            const shade = ctx.createLinearGradient(0, y + h * 0.56, 0, y + h);
+            shade.addColorStop(0, "rgba(24,19,14,0)");
+            shade.addColorStop(1, "rgba(24,19,14,0.38)");
             ctx.fillStyle = shade;
             ctx.fillRect(x, y, w, h);
         } else {
             const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
-            gradient.addColorStop(0, "#e8e0d3");
-            gradient.addColorStop(0.42, "#d4c7b4");
-            gradient.addColorStop(1, "#9f947f");
+            gradient.addColorStop(0, "#efe8db");
+            gradient.addColorStop(0.38, "#d8cbb8");
+            gradient.addColorStop(1, "#958b78");
             ctx.fillStyle = gradient;
             ctx.fillRect(x, y, w, h);
 
-            ctx.fillStyle = "rgba(255,250,232,0.42)";
+            ctx.fillStyle = "rgba(255,250,232,0.5)";
             ctx.beginPath();
-            ctx.arc(x + 230, y + 220, 150, 0, Math.PI * 2);
+            ctx.arc(x + 260, y + 250, 180, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.strokeStyle = "rgba(255,250,232,0.28)";
+            ctx.strokeStyle = "rgba(255,250,232,0.34)";
             ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.moveTo(x + 90, y + h - 270);
-            ctx.bezierCurveTo(x + 270, y + h - 350, x + 520, y + h - 180, x + w - 80, y + h - 260);
+            ctx.moveTo(x + 90, y + h - 320);
+            ctx.bezierCurveTo(x + 280, y + h - 430, x + 560, y + h - 200, x + w - 84, y + h - 312);
             ctx.stroke();
         }
 
-        ctx.fillStyle = "rgba(255,250,238,0.7)";
-        ctx.font = "300 24px Georgia, 'Times New Roman', serif";
+        const veil = ctx.createLinearGradient(0, y + h - 220, 0, y + h);
+        veil.addColorStop(0, "rgba(0,0,0,0)");
+        veil.addColorStop(1, "rgba(0,0,0,0.18)");
+        ctx.fillStyle = veil;
+        ctx.fillRect(x, y, w, h);
+
+        ctx.fillStyle = "rgba(255,250,238,0.76)";
+        ctx.font = "300 23px Georgia, 'Times New Roman', serif";
         ctx.textAlign = "left";
-        drawText(ctx, location || "BUDAO", x + 52, y + h - 58);
+        drawText(ctx, location || "BUDAO", x + 54, y + h - 56);
         ctx.restore();
     }
 
     function drawMainCopy(ctx, data) {
         ctx.save();
-        ctx.fillStyle = "#73695d";
-        ctx.font = "300 32px Georgia, 'Times New Roman', serif";
+        ctx.fillStyle = "#7a7064";
+        ctx.font = "300 30px Georgia, 'Times New Roman', serif";
         ctx.textAlign = "center";
-        drawText(ctx, data.location, width / 2, 1268);
+        drawText(ctx, data.location, width / 2, 1270);
 
-        ctx.fillStyle = "#211d18";
-        ctx.font = "600 64px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.title, width / 2, 1354, 830, 78, 2, "center");
+        ctx.fillStyle = "#2a241c";
+        ctx.font = "300 27px Georgia, 'Times New Roman', serif";
+        drawText(ctx, eventMeta(data), width / 2, 1322);
 
-        ctx.fillStyle = "#625b51";
-        ctx.font = "300 28px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.description, width / 2, 1490, 780, 46, 3, "center");
+        ctx.fillStyle = "#1d1914";
+        ctx.font = "600 72px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, data.title, width / 2, 1412, 830, 86, 2, "center");
+
+        ctx.fillStyle = "#675f55";
+        ctx.font = "300 27px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, data.description, width / 2, 1548, 760, 44, 3, "center");
         ctx.restore();
     }
 
     function drawInfoPills(ctx, data) {
-        const pills = [
-            data.time ? data.time + " 集合" : "",
-            data.duration,
-            data.distance,
-            data.difficulty ? "难度 " + data.difficulty : "",
-            data.suitableFor,
-            data.weather
-        ].filter(Boolean).slice(0, 6);
-
-        const startY = 1618;
-        const gap = 18;
-        const pillH = 50;
-        const widths = pills.map(function (pill) {
-            return Math.min(300, Math.max(156, measurePill(ctx, pill)));
-        });
-
-        let rows = [[]];
-        let rowWidth = 0;
-
-        pills.forEach(function (pill, index) {
-            const w = widths[index];
-            if (rowWidth && rowWidth + gap + w > 820) {
-                rows.push([]);
-                rowWidth = 0;
-            }
-            rows[rows.length - 1].push({ text: pill, width: w });
-            rowWidth += (rowWidth ? gap : 0) + w;
-        });
+        const rows = balancedPillRows(data);
+        const startY = 1626;
+        const gap = 20;
+        const pillH = 52;
 
         ctx.save();
-        ctx.font = "300 24px Arial, sans-serif";
-        rows.slice(0, 2).forEach(function (row, rowIndex) {
-            const total = row.reduce(function (sum, item) { return sum + item.width; }, 0) + gap * (row.length - 1);
+        ctx.font = "300 23px Arial, sans-serif";
+        rows.forEach(function (row, rowIndex) {
+            const rowItems = row.map(function (pill) {
+                return {
+                    text: pill,
+                    width: Math.min(330, Math.max(156, measurePill(ctx, pill)))
+                };
+            });
+            const total = rowItems.reduce(function (sum, item) { return sum + item.width; }, 0) + gap * (rowItems.length - 1);
             let x = (width - total) / 2;
-            const y = startY + rowIndex * (pillH + 16);
+            const y = startY + rowIndex * (pillH + 15);
 
-            row.forEach(function (item) {
+            rowItems.forEach(function (item) {
                 roundedRect(ctx, x, y, item.width, pillH, pillH / 2);
-                ctx.fillStyle = "#e9e2d7";
+                ctx.fillStyle = "rgba(255,252,244,0.72)";
                 ctx.fill();
-                ctx.fillStyle = "#5d554c";
+                ctx.strokeStyle = "rgba(170,139,88,0.34)";
+                ctx.lineWidth = 1.4;
+                ctx.stroke();
+                ctx.fillStyle = "#554d43";
                 ctx.textAlign = "center";
-                drawText(ctx, item.text, x + item.width / 2, y + 33);
+                drawText(ctx, item.text, x + item.width / 2, y + 34);
                 x += item.width + gap;
             });
         });
@@ -317,46 +336,93 @@
     }
 
     function drawQr(ctx, qr) {
-        const size = 178;
-        const x = 116;
-        const y = 1738;
+        const size = 204;
+        const x = 108;
+        const y = 1710;
 
         ctx.save();
-        roundedRect(ctx, x - 14, y - 14, size + 28, size + 28, 28);
-        ctx.fillStyle = "#fffaf2";
+        roundedRect(ctx, x - 16, y - 16, size + 32, size + 32, 30);
+        ctx.fillStyle = "rgba(255,252,246,0.9)";
         ctx.fill();
+        ctx.strokeStyle = "rgba(172,143,98,0.22)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
         if (qr) {
             drawCoverImage(ctx, qr, x, y, size, size);
         } else {
-            ctx.fillStyle = "#ece5da";
+            ctx.fillStyle = "#eee7dc";
             ctx.fillRect(x, y, size, size);
             ctx.fillStyle = "#83786b";
-            ctx.font = "300 21px Georgia, 'Times New Roman', serif";
+            ctx.font = "300 22px Georgia, 'Times New Roman', serif";
             ctx.textAlign = "center";
-            wrapText(ctx, "报名码暂未放出", x + size / 2, y + 78, 128, 30, 2, "center");
+            wrapText(ctx, "报名码暂未放出", x + size / 2, y + 90, 142, 31, 2, "center");
         }
 
-        ctx.fillStyle = "#413a31";
-        ctx.font = "400 26px Georgia, 'Times New Roman', serif";
+        ctx.fillStyle = "#3f382f";
+        ctx.font = "400 30px Georgia, 'Times New Roman', serif";
         ctx.textAlign = "left";
-        drawText(ctx, "扫码报名", x + size + 42, y + 70);
-        drawText(ctx, "与祂同行", x + size + 42, y + 116);
+        drawText(ctx, "扫码进群，即可报名", x + size + 46, y + 92);
         ctx.restore();
     }
 
     function drawBrandBottom(ctx) {
         ctx.save();
         ctx.textAlign = "right";
-        ctx.fillStyle = "#5d554b";
+        ctx.fillStyle = "#6a6156";
         ctx.font = "300 25px Georgia, 'Times New Roman', serif";
-        drawText(ctx, "余生行走，不偏左右", 964, 1778);
-        drawText(ctx, "每一步，都算数", 964, 1822);
+        drawText(ctx, "余生行走，不偏左右", 964, 1816);
 
-        ctx.fillStyle = "#1f1c17";
-        ctx.font = "600 48px Arial, sans-serif";
+        ctx.fillStyle = "#1e1a15";
+        ctx.font = "600 54px Arial, sans-serif";
         drawText(ctx, "budao.org", 964, 1888);
         ctx.restore();
+    }
+
+    function eventMeta(data) {
+        const pieces = [
+            formatInvitationDate(data.date),
+            data.time ? data.time + " 集合" : ""
+        ].filter(Boolean);
+
+        return pieces.join(" · ");
+    }
+
+    function formatInvitationDate(date) {
+        const match = String(date || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+
+        if (!match) {
+            return "";
+        }
+
+        return Number(match[2]) + "月" + Number(match[3]) + "日";
+    }
+
+    function balancedPillRows(data) {
+        const first = [
+            data.time ? data.time + " 集合" : "",
+            data.duration ? "预计 " + data.duration : ""
+        ].filter(Boolean);
+
+        const second = [
+            data.distance,
+            data.difficulty ? "难度 " + data.difficulty : "",
+            data.weather
+        ].filter(Boolean);
+
+        const third = [
+            data.suitableFor ? "适合 " + data.suitableFor : ""
+        ].filter(Boolean);
+
+        const rows = [first, second, third].filter(function (row) {
+            return row.length > 0;
+        });
+
+        if (rows.length === 1 && rows[0].length > 3) {
+            return [rows[0].slice(0, 2), rows[0].slice(2)];
+        }
+
+        return rows.slice(0, 3);
     }
 
     function ensurePreview() {
