@@ -152,7 +152,7 @@
 
         drawBackground(ctx);
         drawBrandTop(ctx);
-        drawHero(ctx, hero, data.location);
+        drawHero(ctx, hero);
         drawMainCopy(ctx, data);
         drawInfoPills(ctx, data);
         drawQr(ctx, qr);
@@ -205,12 +205,12 @@
         ctx.restore();
     }
 
-    function drawHero(ctx, image, location) {
+    function drawHero(ctx, image) {
         const x = 70;
         const y = 126;
         const w = 940;
-        const h = 910;
-        const radius = 44;
+        const h = 930;
+        const radius = 52;
 
         ctx.save();
         ctx.shadowColor = "rgba(80,65,45,0.15)";
@@ -272,47 +272,43 @@
         ctx.fillStyle = veil;
         ctx.fillRect(x, y, w, h);
 
-        ctx.fillStyle = "rgba(255,250,238,0.76)";
-        ctx.font = "300 23px Georgia, 'Times New Roman', serif";
-        ctx.textAlign = "left";
-        drawText(ctx, location || "BUDAO", x + 54, y + h - 56);
         ctx.restore();
     }
 
     function drawMainCopy(ctx, data) {
         ctx.save();
-        ctx.fillStyle = "#7a7064";
-        ctx.font = "300 28px Georgia, 'Times New Roman', serif";
+        ctx.fillStyle = "#857b70";
+        ctx.font = "300 26px Georgia, 'Times New Roman', serif";
         ctx.textAlign = "center";
-        drawText(ctx, data.location, width / 2, 1116);
+        drawText(ctx, data.location, width / 2, 1126);
 
         ctx.fillStyle = "#2a241c";
-        ctx.font = "300 25px Georgia, 'Times New Roman', serif";
-        drawText(ctx, eventMeta(data), width / 2, 1164);
+        ctx.font = "300 24px Georgia, 'Times New Roman', serif";
+        drawText(ctx, eventMeta(data), width / 2, 1170);
 
         ctx.fillStyle = "#1d1914";
-        ctx.font = "600 58px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.title, width / 2, 1250, 780, 68, 2, "center");
+        ctx.font = "500 52px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, data.title, width / 2, 1244, 780, 62, 2, "center");
 
-        ctx.fillStyle = "#675f55";
-        ctx.font = "300 25px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.description, width / 2, 1394, 720, 40, 2, "center");
+        ctx.fillStyle = "#70685e";
+        ctx.font = "300 23px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, conciseDescription(data.description), width / 2, 1376, 690, 38, 2, "center");
         ctx.restore();
     }
 
     function drawInfoPills(ctx, data) {
         const rows = balancedPillRows(data);
-        const startY = 1502;
+        const startY = 1476;
         const gap = 18;
-        const pillH = 48;
+        const pillH = 46;
 
         ctx.save();
-        ctx.font = "300 22px Arial, sans-serif";
+        ctx.font = "300 21px Arial, sans-serif";
         rows.forEach(function (row, rowIndex) {
             const rowItems = row.map(function (pill) {
                 return {
                     text: pill,
-                    width: Math.min(286, Math.max(148, measurePill(ctx, pill)))
+                    width: Math.min(278, Math.max(142, measurePill(ctx, pill)))
                 };
             });
             const total = rowItems.reduce(function (sum, item) { return sum + item.width; }, 0) + gap * (rowItems.length - 1);
@@ -321,14 +317,14 @@
 
             rowItems.forEach(function (item) {
                 roundedRect(ctx, x, y, item.width, pillH, pillH / 2);
-                ctx.fillStyle = "rgba(255,252,244,0.72)";
+                ctx.fillStyle = "rgba(255,252,244,0.66)";
                 ctx.fill();
                 ctx.strokeStyle = "rgba(170,139,88,0.34)";
                 ctx.lineWidth = 1.4;
                 ctx.stroke();
                 ctx.fillStyle = "#554d43";
                 ctx.textAlign = "center";
-                drawText(ctx, fitText(ctx, item.text, item.width - 36), x + item.width / 2, y + 32);
+                drawText(ctx, fitText(ctx, item.text, item.width - 36), x + item.width / 2, y + 31);
                 x += item.width + gap;
             });
         });
@@ -336,9 +332,9 @@
     }
 
     function drawQr(ctx, qr) {
-        const size = 188;
-        const x = 116;
-        const y = 1662;
+        const size = 176;
+        const x = 120;
+        const y = 1658;
 
         ctx.save();
         roundedRect(ctx, x - 16, y - 16, size + 32, size + 32, 30);
@@ -360,9 +356,9 @@
         }
 
         ctx.fillStyle = "#3f382f";
-        ctx.font = "400 28px Georgia, 'Times New Roman', serif";
+        ctx.font = "400 27px Georgia, 'Times New Roman', serif";
         ctx.textAlign = "left";
-        drawText(ctx, "扫码进群，即可报名", x + size + 48, y + 94);
+        drawText(ctx, "扫码进群，即可报名", x + size + 48, y + 88);
         ctx.restore();
     }
 
@@ -370,12 +366,12 @@
         ctx.save();
         ctx.textAlign = "right";
         ctx.fillStyle = "#6a6156";
-        ctx.font = "300 25px Georgia, 'Times New Roman', serif";
-        drawText(ctx, "余生行走，不偏左右", 964, 1808);
+        ctx.font = "300 24px Georgia, 'Times New Roman', serif";
+        drawText(ctx, "余生行走，不偏左右", 964, 1802);
 
         ctx.fillStyle = "#1e1a15";
-        ctx.font = "600 56px Arial, sans-serif";
-        drawText(ctx, "budao.org", 964, 1882);
+        ctx.font = "600 58px Arial, sans-serif";
+        drawText(ctx, "budao.org", 964, 1884);
         ctx.restore();
     }
 
@@ -398,6 +394,15 @@
         return Number(match[2]) + "月" + Number(match[3]) + "日";
     }
 
+    function conciseDescription(description) {
+        const text = String(description || "")
+            .replace(/\s+/g, " ")
+            .replace(/。.*$/, "。")
+            .trim();
+
+        return text.length > 58 ? text.slice(0, 56) + "..." : text;
+    }
+
     function balancedPillRows(data) {
         const first = [
             data.time ? data.time + " 集合" : "",
@@ -407,14 +412,11 @@
         const second = [
             data.distance,
             data.difficulty ? "难度 " + data.difficulty : "",
-            data.weather
-        ].filter(Boolean);
-
-        const third = [
+            data.weather,
             data.suitableFor ? "适合 " + data.suitableFor : ""
         ].filter(Boolean);
 
-        const rows = [first, second, third].filter(function (row) {
+        const rows = [first, second].filter(function (row) {
             return row.length > 0;
         });
 
@@ -422,7 +424,7 @@
             return [rows[0].slice(0, 2), rows[0].slice(2)];
         }
 
-        return rows.slice(0, 3);
+        return rows.slice(0, 2);
     }
 
     function ensurePreview() {
