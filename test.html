@@ -8,6 +8,7 @@
 <title>超级星期六 - 步道</title>
 
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="invitation-engine.css">
 
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -624,9 +625,11 @@ fetch("/api/routes")
     .then(response=>response.json())
     .then(routes=>{
         activeRoutes = fixedRoutesOnly(Array.isArray(routes) ? routes : []);
+        window.BudaoActiveRoutes = activeRoutes;
 
         if(!activeRoutes.length){
             activeRoutes = fixedRoutesOnly(defaultRoutes);
+            window.BudaoActiveRoutes = activeRoutes;
         }
 
         renderRoutes(activeRoutes);
@@ -636,6 +639,7 @@ fetch("/api/routes")
     })
     .catch(()=>{
         activeRoutes = fixedRoutesOnly(defaultRoutes);
+        window.BudaoActiveRoutes = activeRoutes;
         renderRoutes(activeRoutes);
         prepareEvents(activeRoutes);
         updateAll();
@@ -713,6 +717,7 @@ function renderRoutes(routes){
                 </div>
                 <div class="route-timezone">${escapeHtml(route.timezone)} · ${escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}</div>
                 <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
+                <button class="invitation-trigger" type="button" data-route-index="${index}">发出请柬</button>
             </div>
         `;
 
@@ -1296,6 +1301,7 @@ function updateAll(){
     });
 }
 </script>
+<script src="invitation-engine.js"></script>
 
 </body>
 </html>
