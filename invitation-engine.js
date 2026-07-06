@@ -207,10 +207,10 @@
 
     function drawHero(ctx, image, location) {
         const x = 70;
-        const y = 118;
+        const y = 126;
         const w = 940;
-        const h = 1092;
-        const radius = 54;
+        const h = 910;
+        const radius = 44;
 
         ctx.save();
         ctx.shadowColor = "rgba(80,65,45,0.15)";
@@ -282,42 +282,42 @@
     function drawMainCopy(ctx, data) {
         ctx.save();
         ctx.fillStyle = "#7a7064";
-        ctx.font = "300 30px Georgia, 'Times New Roman', serif";
+        ctx.font = "300 28px Georgia, 'Times New Roman', serif";
         ctx.textAlign = "center";
-        drawText(ctx, data.location, width / 2, 1270);
+        drawText(ctx, data.location, width / 2, 1116);
 
         ctx.fillStyle = "#2a241c";
-        ctx.font = "300 27px Georgia, 'Times New Roman', serif";
-        drawText(ctx, eventMeta(data), width / 2, 1322);
+        ctx.font = "300 25px Georgia, 'Times New Roman', serif";
+        drawText(ctx, eventMeta(data), width / 2, 1164);
 
         ctx.fillStyle = "#1d1914";
-        ctx.font = "600 72px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.title, width / 2, 1412, 830, 86, 2, "center");
+        ctx.font = "600 58px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, data.title, width / 2, 1250, 780, 68, 2, "center");
 
         ctx.fillStyle = "#675f55";
-        ctx.font = "300 27px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.description, width / 2, 1548, 760, 44, 3, "center");
+        ctx.font = "300 25px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, data.description, width / 2, 1394, 720, 40, 2, "center");
         ctx.restore();
     }
 
     function drawInfoPills(ctx, data) {
         const rows = balancedPillRows(data);
-        const startY = 1626;
-        const gap = 20;
-        const pillH = 52;
+        const startY = 1502;
+        const gap = 18;
+        const pillH = 48;
 
         ctx.save();
-        ctx.font = "300 23px Arial, sans-serif";
+        ctx.font = "300 22px Arial, sans-serif";
         rows.forEach(function (row, rowIndex) {
             const rowItems = row.map(function (pill) {
                 return {
                     text: pill,
-                    width: Math.min(330, Math.max(156, measurePill(ctx, pill)))
+                    width: Math.min(286, Math.max(148, measurePill(ctx, pill)))
                 };
             });
             const total = rowItems.reduce(function (sum, item) { return sum + item.width; }, 0) + gap * (rowItems.length - 1);
             let x = (width - total) / 2;
-            const y = startY + rowIndex * (pillH + 15);
+            const y = startY + rowIndex * (pillH + 14);
 
             rowItems.forEach(function (item) {
                 roundedRect(ctx, x, y, item.width, pillH, pillH / 2);
@@ -328,7 +328,7 @@
                 ctx.stroke();
                 ctx.fillStyle = "#554d43";
                 ctx.textAlign = "center";
-                drawText(ctx, item.text, x + item.width / 2, y + 34);
+                drawText(ctx, fitText(ctx, item.text, item.width - 36), x + item.width / 2, y + 32);
                 x += item.width + gap;
             });
         });
@@ -336,9 +336,9 @@
     }
 
     function drawQr(ctx, qr) {
-        const size = 204;
-        const x = 108;
-        const y = 1710;
+        const size = 188;
+        const x = 116;
+        const y = 1662;
 
         ctx.save();
         roundedRect(ctx, x - 16, y - 16, size + 32, size + 32, 30);
@@ -360,9 +360,9 @@
         }
 
         ctx.fillStyle = "#3f382f";
-        ctx.font = "400 30px Georgia, 'Times New Roman', serif";
+        ctx.font = "400 28px Georgia, 'Times New Roman', serif";
         ctx.textAlign = "left";
-        drawText(ctx, "扫码进群，即可报名", x + size + 46, y + 92);
+        drawText(ctx, "扫码进群，即可报名", x + size + 48, y + 94);
         ctx.restore();
     }
 
@@ -371,11 +371,11 @@
         ctx.textAlign = "right";
         ctx.fillStyle = "#6a6156";
         ctx.font = "300 25px Georgia, 'Times New Roman', serif";
-        drawText(ctx, "余生行走，不偏左右", 964, 1816);
+        drawText(ctx, "余生行走，不偏左右", 964, 1808);
 
         ctx.fillStyle = "#1e1a15";
-        ctx.font = "600 54px Arial, sans-serif";
-        drawText(ctx, "budao.org", 964, 1888);
+        ctx.font = "600 56px Arial, sans-serif";
+        drawText(ctx, "budao.org", 964, 1882);
         ctx.restore();
     }
 
@@ -573,6 +573,16 @@
             value = value.slice(0, -4) + "...";
         }
         return value;
+    }
+
+    function fitText(ctx, text, maxWidth) {
+        const value = String(text || "");
+
+        if (ctx.measureText(value).width <= maxWidth) {
+            return value;
+        }
+
+        return trimToWidth(ctx, value, maxWidth);
     }
 
     function drawText(ctx, text, x, y) {
