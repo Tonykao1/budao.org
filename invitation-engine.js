@@ -151,8 +151,9 @@
         const qr = qrSource ? await loadImage(qrSource).catch(function () { return null; }) : null;
 
         drawBackground(ctx);
-        drawBrandTop(ctx);
+        drawPaperShell(ctx);
         drawHero(ctx, hero);
+        drawBrandTop(ctx);
         drawMainCopy(ctx, data);
         drawInfoPills(ctx, data);
         drawQr(ctx, qr);
@@ -183,165 +184,149 @@
 
     function drawBackground(ctx) {
         ctx.save();
-        ctx.fillStyle = "#f4f1eb";
+        ctx.fillStyle = "#f3eee7";
         ctx.fillRect(0, 0, width, height);
 
-        const glow = ctx.createRadialGradient(270, 260, 20, 270, 260, 720);
-        glow.addColorStop(0, "rgba(255,250,235,0.98)");
-        glow.addColorStop(0.48, "rgba(229,218,199,0.42)");
-        glow.addColorStop(1, "rgba(244,241,235,0)");
+        const glow = ctx.createRadialGradient(width / 2, 430, 60, width / 2, 430, 720);
+        glow.addColorStop(0, "rgba(255,252,244,0.82)");
+        glow.addColorStop(0.58, "rgba(235,226,214,0.18)");
+        glow.addColorStop(1, "rgba(243,238,231,0)");
         ctx.fillStyle = glow;
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
     }
 
+    function drawPaperShell(ctx) {
+        ctx.save();
+        ctx.shadowColor = "rgba(96,74,48,0.08)";
+        ctx.shadowBlur = 54;
+        ctx.shadowOffsetY = 28;
+        archedPanelPath(ctx, 190, 170, 700, 1560, 330);
+        ctx.fillStyle = "#fffefd";
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        archedPanelPath(ctx, 190, 170, 700, 1560, 330);
+        ctx.strokeStyle = "rgba(190,157,106,0.08)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+    }
+
     function drawBrandTop(ctx) {
         ctx.save();
-        ctx.fillStyle = "rgba(38,32,25,0.58)";
-        ctx.font = "500 30px Arial, sans-serif";
+        ctx.fillStyle = "#e9672c";
+        ctx.font = "400 31px 'Courier New', monospace";
         ctx.textAlign = "center";
-        ctx.letterSpacing = "18px";
-        drawText(ctx, "B U D A O", width / 2, 82);
+        drawText(ctx, "B U D A O", width / 2, 560);
+
+        ctx.strokeStyle = "#e9672c";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(width / 2 - 28, 612);
+        ctx.lineTo(width / 2 + 28, 612);
+        ctx.stroke();
         ctx.restore();
     }
 
     function drawHero(ctx, image) {
-        const x = 70;
-        const y = 126;
-        const w = 940;
-        const h = 930;
-        const radius = 52;
-
-        ctx.save();
-        ctx.shadowColor = "rgba(80,65,45,0.15)";
-        ctx.shadowBlur = 48;
-        ctx.shadowOffsetY = 28;
-        roundedRect(ctx, x, y, w, h, radius);
-        ctx.fillStyle = "rgba(255,250,240,0.7)";
-        ctx.fill();
-        ctx.restore();
+        const x = 270;
+        const y = 230;
+        const w = 540;
+        const h = 270;
+        const radius = 18;
 
         ctx.save();
         roundedRect(ctx, x, y, w, h, radius);
         ctx.clip();
 
         if (image) {
+            ctx.filter = "saturate(0.58) contrast(0.9) brightness(1.12)";
             drawCoverImage(ctx, image, x, y, w, h);
-            const warmth = ctx.createLinearGradient(x, y, x + w, y + h);
-            warmth.addColorStop(0, "rgba(255,242,210,0.2)");
-            warmth.addColorStop(0.48, "rgba(244,232,211,0.06)");
-            warmth.addColorStop(1, "rgba(84,66,44,0.26)");
+            ctx.filter = "none";
+            const warmth = ctx.createLinearGradient(x, y, x, y + h);
+            warmth.addColorStop(0, "rgba(255,255,255,0.42)");
+            warmth.addColorStop(0.52, "rgba(255,252,244,0.12)");
+            warmth.addColorStop(1, "rgba(255,255,255,0.28)");
             ctx.fillStyle = warmth;
-            ctx.fillRect(x, y, w, h);
-
-            const skySpace = ctx.createLinearGradient(0, y, 0, y + h * 0.46);
-            skySpace.addColorStop(0, "rgba(250,245,232,0.36)");
-            skySpace.addColorStop(1, "rgba(250,245,232,0)");
-            ctx.fillStyle = skySpace;
-            ctx.fillRect(x, y, w, h * 0.48);
-
-            const shade = ctx.createLinearGradient(0, y + h * 0.56, 0, y + h);
-            shade.addColorStop(0, "rgba(24,19,14,0)");
-            shade.addColorStop(1, "rgba(24,19,14,0.38)");
-            ctx.fillStyle = shade;
             ctx.fillRect(x, y, w, h);
         } else {
             const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
-            gradient.addColorStop(0, "#efe8db");
-            gradient.addColorStop(0.38, "#d8cbb8");
-            gradient.addColorStop(1, "#958b78");
+            gradient.addColorStop(0, "#fbf8f1");
+            gradient.addColorStop(0.46, "#e7ddcf");
+            gradient.addColorStop(1, "#c1b39f");
             ctx.fillStyle = gradient;
             ctx.fillRect(x, y, w, h);
 
-            ctx.fillStyle = "rgba(255,250,232,0.5)";
+            ctx.fillStyle = "rgba(255,255,255,0.48)";
             ctx.beginPath();
-            ctx.arc(x + 260, y + 250, 180, 0, Math.PI * 2);
+            ctx.arc(x + 150, y + 96, 82, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.strokeStyle = "rgba(255,250,232,0.34)";
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = "rgba(112,96,72,0.22)";
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(x + 90, y + h - 320);
-            ctx.bezierCurveTo(x + 280, y + h - 430, x + 560, y + h - 200, x + w - 84, y + h - 312);
+            ctx.moveTo(x + 70, y + h - 78);
+            ctx.bezierCurveTo(x + 180, y + h - 120, x + 350, y + h - 38, x + w - 54, y + h - 94);
             ctx.stroke();
         }
 
-        const veil = ctx.createLinearGradient(0, y + h - 220, 0, y + h);
-        veil.addColorStop(0, "rgba(0,0,0,0)");
-        veil.addColorStop(1, "rgba(0,0,0,0.18)");
-        ctx.fillStyle = veil;
-        ctx.fillRect(x, y, w, h);
+        ctx.restore();
 
+        ctx.save();
+        ctx.strokeStyle = "rgba(230,103,44,0.26)";
+        ctx.lineWidth = 1.2;
+        roundedRect(ctx, x, y, w, h, radius);
+        ctx.stroke();
         ctx.restore();
     }
 
     function drawMainCopy(ctx, data) {
         ctx.save();
-        ctx.fillStyle = "#857b70";
-        ctx.font = "300 26px Georgia, 'Times New Roman', serif";
+        ctx.fillStyle = "#7d7770";
+        ctx.font = "300 28px 'Courier New', monospace";
         ctx.textAlign = "center";
-        drawText(ctx, data.location, width / 2, 1126);
+        drawText(ctx, data.location, width / 2, 700);
 
-        ctx.fillStyle = "#2a241c";
-        ctx.font = "300 24px Georgia, 'Times New Roman', serif";
-        drawText(ctx, eventMeta(data), width / 2, 1170);
+        ctx.fillStyle = "#e9672c";
+        ctx.font = "300 25px 'Courier New', monospace";
+        drawText(ctx, eventMeta(data), width / 2, 756);
 
-        ctx.fillStyle = "#1d1914";
-        ctx.font = "500 52px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.title, width / 2, 1244, 780, 62, 2, "center");
+        ctx.fillStyle = "#2b2722";
+        ctx.font = "500 46px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, data.title, width / 2, 858, 560, 58, 2, "center");
 
-        ctx.fillStyle = "#70685e";
-        ctx.font = "300 23px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, conciseDescription(data.description), width / 2, 1376, 690, 38, 2, "center");
+        ctx.fillStyle = "#85807a";
+        ctx.font = "300 26px 'Courier New', monospace";
+        wrapText(ctx, invitationSentence(data.description), width / 2, 1010, 520, 38, 4, "center");
         ctx.restore();
     }
 
     function drawInfoPills(ctx, data) {
-        const rows = balancedPillRows(data);
-        const startY = 1476;
-        const gap = 18;
-        const pillH = 46;
+        const lines = invitationInfoLines(data);
 
         ctx.save();
-        ctx.font = "300 21px Arial, sans-serif";
-        rows.forEach(function (row, rowIndex) {
-            const rowItems = row.map(function (pill) {
-                return {
-                    text: pill,
-                    width: Math.min(278, Math.max(142, measurePill(ctx, pill)))
-                };
-            });
-            const total = rowItems.reduce(function (sum, item) { return sum + item.width; }, 0) + gap * (rowItems.length - 1);
-            let x = (width - total) / 2;
-            const y = startY + rowIndex * (pillH + 14);
-
-            rowItems.forEach(function (item) {
-                roundedRect(ctx, x, y, item.width, pillH, pillH / 2);
-                ctx.fillStyle = "rgba(255,252,244,0.66)";
-                ctx.fill();
-                ctx.strokeStyle = "rgba(170,139,88,0.34)";
-                ctx.lineWidth = 1.4;
-                ctx.stroke();
-                ctx.fillStyle = "#554d43";
-                ctx.textAlign = "center";
-                drawText(ctx, fitText(ctx, item.text, item.width - 36), x + item.width / 2, y + 31);
-                x += item.width + gap;
-            });
+        ctx.textAlign = "center";
+        lines.forEach(function (line, index) {
+            ctx.fillStyle = index === 1 ? "#e9672c" : "#7d7770";
+            ctx.font = "300 24px 'Courier New', monospace";
+            drawText(ctx, line, width / 2, 1228 + index * 48);
         });
         ctx.restore();
     }
 
     function drawQr(ctx, qr) {
-        const size = 176;
-        const x = 120;
-        const y = 1658;
+        const size = 150;
+        const x = width / 2 - size / 2;
+        const y = 1398;
 
         ctx.save();
-        roundedRect(ctx, x - 16, y - 16, size + 32, size + 32, 30);
-        ctx.fillStyle = "rgba(255,252,246,0.9)";
+        roundedRect(ctx, x - 14, y - 14, size + 28, size + 28, 18);
+        ctx.fillStyle = "#fffefd";
         ctx.fill();
-        ctx.strokeStyle = "rgba(172,143,98,0.22)";
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "rgba(230,103,44,0.18)";
+        ctx.lineWidth = 1.2;
         ctx.stroke();
 
         if (qr) {
@@ -355,23 +340,23 @@
             wrapText(ctx, "报名码暂未放出", x + size / 2, y + 90, 142, 31, 2, "center");
         }
 
-        ctx.fillStyle = "#3f382f";
-        ctx.font = "400 27px Georgia, 'Times New Roman', serif";
-        ctx.textAlign = "left";
-        drawText(ctx, "扫码进群，即可报名", x + size + 48, y + 88);
+        ctx.fillStyle = "#e9672c";
+        ctx.font = "300 23px 'Courier New', monospace";
+        ctx.textAlign = "center";
+        drawText(ctx, "扫码进群，即可报名", width / 2, y + size + 66);
         ctx.restore();
     }
 
     function drawBrandBottom(ctx) {
         ctx.save();
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#6a6156";
-        ctx.font = "300 24px Georgia, 'Times New Roman', serif";
-        drawText(ctx, "余生行走，不偏左右", 964, 1802);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#7d7770";
+        ctx.font = "300 24px 'Courier New', monospace";
+        drawText(ctx, "余生行走，不偏左右", width / 2, 1630);
 
         ctx.fillStyle = "#1e1a15";
-        ctx.font = "600 58px Arial, sans-serif";
-        drawText(ctx, "budao.org", 964, 1884);
+        ctx.font = "600 46px Arial, sans-serif";
+        drawText(ctx, "budao.org", width / 2, 1696);
         ctx.restore();
     }
 
@@ -401,6 +386,32 @@
             .trim();
 
         return text.length > 58 ? text.slice(0, 56) + "..." : text;
+    }
+
+    function invitationSentence(description) {
+        const text = conciseDescription(description);
+
+        if (!text) {
+            return "这一程，已经安静预备，等待同行的人一起出发。";
+        }
+
+        return text;
+    }
+
+    function invitationInfoLines(data) {
+        const first = [
+            data.duration ? "预计 " + data.duration : "",
+            data.distance
+        ].filter(Boolean).join("  |  ");
+
+        const second = [
+            data.difficulty ? "难度 " + data.difficulty : "",
+            data.suitableFor ? "适合 " + data.suitableFor : ""
+        ].filter(Boolean).join("  |  ");
+
+        const third = data.weather ? "天气 " + data.weather : "";
+
+        return [first, second, third].filter(Boolean).slice(0, 3);
     }
 
     function balancedPillRows(data) {
@@ -520,6 +531,16 @@
         ctx.arcTo(x + w, y + h, x, y + h, radius);
         ctx.arcTo(x, y + h, x, y, radius);
         ctx.arcTo(x, y, x + w, y, radius);
+        ctx.closePath();
+    }
+
+    function archedPanelPath(ctx, x, y, w, h, arch) {
+        ctx.beginPath();
+        ctx.moveTo(x, y + arch);
+        ctx.bezierCurveTo(x, y + arch * 0.34, x + w * 0.2, y, x + w / 2, y);
+        ctx.bezierCurveTo(x + w * 0.8, y, x + w, y + arch * 0.34, x + w, y + arch);
+        ctx.lineTo(x + w, y + h);
+        ctx.lineTo(x, y + h);
         ctx.closePath();
     }
 
