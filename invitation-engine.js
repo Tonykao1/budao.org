@@ -145,14 +145,11 @@
 
     async function drawInvitation(ctx, route, options) {
         const data = normalizeInvitationData(route);
-        const heroSource = options && options.withoutExternalImage ? "" : await imagePipeline.resolve(route);
         const qrSource = resolveImageSource(route && route.qrCode);
-        const hero = heroSource ? await loadImage(heroSource).catch(function () { return null; }) : null;
         const qr = qrSource ? await loadImage(qrSource).catch(function () { return null; }) : null;
 
         drawBackground(ctx);
         drawPaperShell(ctx);
-        drawHero(ctx, hero);
         drawBrandTop(ctx);
         drawMainCopy(ctx, data);
         drawInfoPills(ctx, data);
@@ -168,12 +165,16 @@
             imageSourceMode: route.imageSourceMode || imagePipeline.imageSourceMode,
             scripture: route.scripture || "",
             scriptureTheme: route.scriptureTheme || "",
+            scriptureText: route.scriptureText || "",
             scriptureImage: route.scriptureImage || "",
+            theme: route.theme || "",
             location,
             title: route.title || "步道同行",
             description: route.description || "",
+            leader: route.leader || route.host || leaderName(route),
             date: route.date || "",
             time: route.time || "",
+            meetingPlace: route.meetingPlace || route.meetingPoint || route.gatheringPlace || "",
             duration: route.duration || "",
             distance: route.distance || "",
             difficulty: route.difficulty || "",
@@ -201,13 +202,13 @@
         ctx.shadowColor = "rgba(96,74,48,0.08)";
         ctx.shadowBlur = 54;
         ctx.shadowOffsetY = 28;
-        archedPanelPath(ctx, 190, 170, 700, 1560, 330);
+        archedPanelPath(ctx, 230, 145, 620, 1640, 270);
         ctx.fillStyle = "#fffefd";
         ctx.fill();
         ctx.restore();
 
         ctx.save();
-        archedPanelPath(ctx, 190, 170, 700, 1560, 330);
+        archedPanelPath(ctx, 230, 145, 620, 1640, 270);
         ctx.strokeStyle = "rgba(190,157,106,0.08)";
         ctx.lineWidth = 1.5;
         ctx.stroke();
@@ -216,110 +217,65 @@
 
     function drawBrandTop(ctx) {
         ctx.save();
-        ctx.fillStyle = "#e9672c";
-        ctx.font = "400 31px 'Courier New', monospace";
+        ctx.fillStyle = "#26231f";
+        ctx.font = "400 25px 'Courier New', monospace";
         ctx.textAlign = "center";
-        drawText(ctx, "B U D A O", width / 2, 560);
+        drawText(ctx, "B U D A O", width / 2, 290);
 
-        ctx.strokeStyle = "#e9672c";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(width / 2 - 28, 612);
-        ctx.lineTo(width / 2 + 28, 612);
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    function drawHero(ctx, image) {
-        const x = 270;
-        const y = 230;
-        const w = 540;
-        const h = 270;
-        const radius = 18;
-
-        ctx.save();
-        roundedRect(ctx, x, y, w, h, radius);
-        ctx.clip();
-
-        if (image) {
-            ctx.filter = "saturate(0.58) contrast(0.9) brightness(1.12)";
-            drawCoverImage(ctx, image, x, y, w, h);
-            ctx.filter = "none";
-            const warmth = ctx.createLinearGradient(x, y, x, y + h);
-            warmth.addColorStop(0, "rgba(255,255,255,0.42)");
-            warmth.addColorStop(0.52, "rgba(255,252,244,0.12)");
-            warmth.addColorStop(1, "rgba(255,255,255,0.28)");
-            ctx.fillStyle = warmth;
-            ctx.fillRect(x, y, w, h);
-        } else {
-            const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
-            gradient.addColorStop(0, "#fbf8f1");
-            gradient.addColorStop(0.46, "#e7ddcf");
-            gradient.addColorStop(1, "#c1b39f");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(x, y, w, h);
-
-            ctx.fillStyle = "rgba(255,255,255,0.48)";
-            ctx.beginPath();
-            ctx.arc(x + 150, y + 96, 82, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = "rgba(112,96,72,0.22)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(x + 70, y + h - 78);
-            ctx.bezierCurveTo(x + 180, y + h - 120, x + 350, y + h - 38, x + w - 54, y + h - 94);
-            ctx.stroke();
-        }
-
-        ctx.restore();
-
-        ctx.save();
-        ctx.strokeStyle = "rgba(230,103,44,0.26)";
+        ctx.strokeStyle = "#b89c52";
         ctx.lineWidth = 1.2;
-        roundedRect(ctx, x, y, w, h, radius);
+        ctx.beginPath();
+        ctx.moveTo(width / 2 - 24, 340);
+        ctx.lineTo(width / 2 + 24, 340);
         ctx.stroke();
         ctx.restore();
     }
 
     function drawMainCopy(ctx, data) {
         ctx.save();
-        ctx.fillStyle = "#7d7770";
-        ctx.font = "300 28px 'Courier New', monospace";
-        ctx.textAlign = "center";
-        drawText(ctx, data.location, width / 2, 700);
-
-        ctx.fillStyle = "#e9672c";
+        ctx.fillStyle = "#b89c52";
         ctx.font = "300 25px 'Courier New', monospace";
-        drawText(ctx, eventMeta(data), width / 2, 756);
+        ctx.textAlign = "center";
+        drawText(ctx, "同行邀请", width / 2, 455);
 
-        ctx.fillStyle = "#2b2722";
-        ctx.font = "500 46px Georgia, 'Times New Roman', serif";
-        wrapText(ctx, data.title, width / 2, 858, 560, 58, 2, "center");
+        ctx.fillStyle = "#24211d";
+        ctx.font = "400 48px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, invitationTheme(data), width / 2, 585, 450, 60, 2, "center");
 
-        ctx.fillStyle = "#85807a";
-        ctx.font = "300 26px 'Courier New', monospace";
-        wrapText(ctx, invitationSentence(data.description), width / 2, 1010, 520, 38, 4, "center");
+        ctx.fillStyle = "#77716a";
+        ctx.font = "300 24px Georgia, 'Times New Roman', serif";
+        wrapText(ctx, invitationVerse(data), width / 2, 760, 440, 42, 3, "center");
+
+        ctx.strokeStyle = "rgba(184,156,82,0.48)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(width / 2 - 34, 910);
+        ctx.lineTo(width / 2 + 34, 910);
+        ctx.stroke();
         ctx.restore();
     }
 
     function drawInfoPills(ctx, data) {
-        const lines = invitationInfoLines(data);
+        const items = invitationInfoItems(data);
 
         ctx.save();
         ctx.textAlign = "center";
-        lines.forEach(function (line, index) {
-            ctx.fillStyle = index === 1 ? "#e9672c" : "#7d7770";
-            ctx.font = "300 24px 'Courier New', monospace";
-            drawText(ctx, line, width / 2, 1228 + index * 48);
+        items.forEach(function (item, index) {
+            const y = 960 + index * 100;
+            ctx.fillStyle = "#9a948c";
+            ctx.font = "500 17px Inter, Arial, sans-serif";
+            drawText(ctx, item.label, width / 2, y);
+            ctx.fillStyle = "#28241f";
+            ctx.font = "300 28px Georgia, 'Times New Roman', serif";
+            drawText(ctx, item.value, width / 2, y + 42);
         });
         ctx.restore();
     }
 
     function drawQr(ctx, qr) {
-        const size = 150;
+        const size = 138;
         const x = width / 2 - size / 2;
-        const y = 1398;
+        const y = 1378;
 
         ctx.save();
         roundedRect(ctx, x - 14, y - 14, size + 28, size + 28, 18);
@@ -340,33 +296,32 @@
             wrapText(ctx, "报名码暂未放出", x + size / 2, y + 90, 142, 31, 2, "center");
         }
 
-        ctx.fillStyle = "#e9672c";
-        ctx.font = "300 23px 'Courier New', monospace";
+        ctx.fillStyle = "#77716a";
+        ctx.font = "300 20px 'Courier New', monospace";
         ctx.textAlign = "center";
-        drawText(ctx, "扫码进群，即可报名", width / 2, y + size + 66);
+        drawText(ctx, "扫码进群，即可报名", width / 2, y + size + 58);
         ctx.restore();
     }
 
     function drawBrandBottom(ctx) {
         ctx.save();
         ctx.textAlign = "center";
+        roundedRect(ctx, width / 2 - 118, 1624, 236, 58, 29);
+        ctx.fillStyle = "#161616";
+        ctx.fill();
+
+        ctx.fillStyle = "#fffefd";
+        ctx.font = "400 22px 'Courier New', monospace";
+        drawText(ctx, "同行", width / 2, 1661);
+
         ctx.fillStyle = "#7d7770";
-        ctx.font = "300 24px 'Courier New', monospace";
-        drawText(ctx, "余生行走，不偏左右", width / 2, 1630);
+        ctx.font = "300 20px 'Courier New', monospace";
+        drawText(ctx, "余生行走，不偏左右", width / 2, 1738);
 
         ctx.fillStyle = "#1e1a15";
-        ctx.font = "600 46px Arial, sans-serif";
-        drawText(ctx, "budao.org", width / 2, 1696);
+        ctx.font = "600 34px Arial, sans-serif";
+        drawText(ctx, "budao.org", width / 2, 1795);
         ctx.restore();
-    }
-
-    function eventMeta(data) {
-        const pieces = [
-            formatInvitationDate(data.date),
-            data.time ? data.time + " 集合" : ""
-        ].filter(Boolean);
-
-        return pieces.join(" · ");
     }
 
     function formatInvitationDate(date) {
@@ -377,6 +332,54 @@
         }
 
         return Number(match[2]) + "月" + Number(match[3]) + "日";
+    }
+
+    function leaderName(route) {
+        const owner = String(route && route.owner || "").trim().toLowerCase();
+        const slot = String(route && route.slot || "").trim().toUpperCase();
+
+        if (slot === "IMS" || owner === "ims@budao.org") {
+            return "IMS";
+        }
+
+        if (slot === "BACBC" || owner === "bacbc@budao.org") {
+            return "BACBC";
+        }
+
+        return "Budao";
+    }
+
+    function invitationTheme(data) {
+        const theme = data.scriptureTheme || data.theme || data.title || "同行";
+
+        return String(theme).replace(/\s+/g, " ").trim();
+    }
+
+    function invitationVerse(data) {
+        const scriptureText = String(data.scriptureText || "").trim();
+        const scripture = String(data.scripture || "").trim();
+
+        if (scriptureText && scripture) {
+            return "“" + scriptureText.replace(/^["“]|["”]$/g, "") + "”\n" + scripture;
+        }
+
+        if (scriptureText) {
+            return "“" + scriptureText.replace(/^["“]|["”]$/g, "") + "”";
+        }
+
+        return invitationSentence(data.description);
+    }
+
+    function invitationInfoItems(data) {
+        const date = formatInvitationDate(data.date);
+        const meeting = data.meetingPlace || data.location;
+
+        return [
+            { label: "DATE", value: date || "待定" },
+            { label: "TIME", value: data.time ? data.time + " 集合" : "待定" },
+            { label: "LOCATION", value: meeting || "待定" },
+            { label: "LEADER", value: data.leader || "Budao" }
+        ];
     }
 
     function conciseDescription(description) {
@@ -396,46 +399,6 @@
         }
 
         return text;
-    }
-
-    function invitationInfoLines(data) {
-        const first = [
-            data.duration ? "预计 " + data.duration : "",
-            data.distance
-        ].filter(Boolean).join("  |  ");
-
-        const second = [
-            data.difficulty ? "难度 " + data.difficulty : "",
-            data.suitableFor ? "适合 " + data.suitableFor : ""
-        ].filter(Boolean).join("  |  ");
-
-        const third = data.weather ? "天气 " + data.weather : "";
-
-        return [first, second, third].filter(Boolean).slice(0, 3);
-    }
-
-    function balancedPillRows(data) {
-        const first = [
-            data.time ? data.time + " 集合" : "",
-            data.duration ? "预计 " + data.duration : ""
-        ].filter(Boolean);
-
-        const second = [
-            data.distance,
-            data.difficulty ? "难度 " + data.difficulty : "",
-            data.weather,
-            data.suitableFor ? "适合 " + data.suitableFor : ""
-        ].filter(Boolean);
-
-        const rows = [first, second].filter(function (row) {
-            return row.length > 0;
-        });
-
-        if (rows.length === 1 && rows[0].length > 3) {
-            return [rows[0].slice(0, 2), rows[0].slice(2)];
-        }
-
-        return rows.slice(0, 2);
     }
 
     function ensurePreview() {
@@ -598,26 +561,8 @@
         return value;
     }
 
-    function fitText(ctx, text, maxWidth) {
-        const value = String(text || "");
-
-        if (ctx.measureText(value).width <= maxWidth) {
-            return value;
-        }
-
-        return trimToWidth(ctx, value, maxWidth);
-    }
-
     function drawText(ctx, text, x, y) {
         ctx.fillText(String(text || ""), x, y);
-    }
-
-    function measurePill(ctx, text) {
-        ctx.save();
-        ctx.font = "300 24px Arial, sans-serif";
-        const size = ctx.measureText(text).width + 52;
-        ctx.restore();
-        return size;
     }
 
     function safeFileName(value) {
