@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>联系</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易彼益 - 步道</title>
+<link rel="stylesheet" href="style.css">
+<style>
+*{box-sizing:border-box}body{min-height:100vh;margin:0;background:#f7f6f2;color:#222}.yibiyi-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:96px 28px 64px}.yibiyi-frame{position:relative;width:min(88vw,980px);overflow:hidden;background:#16120e;box-shadow:0 34px 90px rgba(70,58,42,.12),0 8px 24px rgba(70,58,42,.06)}.yibiyi-image{display:block;width:100%;height:auto}.yibiyi-mark{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px 56px;background:linear-gradient(180deg,rgba(16,12,8,0) 42%,rgba(16,12,8,.18) 72%,rgba(16,12,8,.54) 100%);color:#fffaf0;text-align:center}.yibiyi-title{margin:0 0 14px;font-size:clamp(38px,7vw,72px);font-weight:300;letter-spacing:.22em;line-height:1.1}.yibiyi-soon{margin:0;color:rgba(255,250,240,.84);font-size:clamp(14px,2.2vw,19px);font-weight:300;letter-spacing:.36em;line-height:1.8}@media(max-width:640px){.yibiyi-page{padding:84px 18px 46px}.yibiyi-frame{width:min(90vw,520px)}.yibiyi-mark{padding-bottom:34px}}
+</style>
 </head>
 <body>
-
 <nav>
   <a href="/home.html">首页</a>
   <a href="/test.html">超级星期六</a>
@@ -15,29 +18,74 @@
   <a href="/what.html">同工</a>
   <a href="/contact.html">联系</a>
 </nav>
-
-<main class="contact-hero">
-
-  <h1>加入</h1>
-
-  <p class="hero-line">
-    在步道，迎接生命的更新<br>
-    你准备好了么？
-  </p>
-
-  <a href="https://eek6l943.jsjform.com/f/cGNNSs" target="_blank" class="join-button">
-    是的！
-  </a>
-
-  <p class="contact-note">
-    hello@budao.org
-  </p>
-
+<main class="yibiyi-page" aria-label="易彼益 即将推出">
+  <figure class="yibiyi-frame">
+    <svg class="yibiyi-image" viewBox="0 0 1456 816" role="img" aria-labelledby="yby-title yby-desc" xmlns="http://www.w3.org/2000/svg">
+      <title id="yby-title">易彼益，即将推出</title>
+      <desc id="yby-desc">一幅温暖室内光影中的亲密照看画面，用于易彼益即将推出页面。</desc>
+      <defs>
+        <radialGradient id="sun" cx="48%" cy="13%" r="62%">
+          <stop offset="0" stop-color="#fff4c8" stop-opacity="1"/>
+          <stop offset=".34" stop-color="#d99b57" stop-opacity=".72"/>
+          <stop offset="1" stop-color="#3a2016" stop-opacity="1"/>
+        </radialGradient>
+        <linearGradient id="floor" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#a35b28"/>
+          <stop offset=".52" stop-color="#e2a153"/>
+          <stop offset="1" stop-color="#6e341f"/>
+        </linearGradient>
+        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="18"/>
+        </filter>
+        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="10" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <rect width="1456" height="816" fill="url(#sun)"/>
+      <rect y="560" width="1456" height="256" fill="url(#floor)" opacity=".92"/>
+      <g opacity=".38" filter="url(#soft)">
+        <rect x="82" y="0" width="132" height="640" fill="#27160f"/>
+        <rect x="214" y="0" width="170" height="580" fill="#eec47d"/>
+        <rect x="1010" y="0" width="170" height="620" fill="#381c14"/>
+        <rect x="1190" y="0" width="190" height="660" fill="#2b1511"/>
+      </g>
+      <ellipse cx="754" cy="527" rx="438" ry="168" fill="#341d15" opacity=".36" filter="url(#soft)"/>
+      <g filter="url(#glow)">
+        <ellipse cx="826" cy="380" rx="224" ry="266" fill="#4b3227"/>
+        <ellipse cx="738" cy="352" rx="180" ry="232" fill="#715140"/>
+        <path d="M642 194 L702 82 L736 230 Z" fill="#5c3829"/>
+        <path d="M878 196 L998 104 L934 250 Z" fill="#3c241d"/>
+        <ellipse cx="798" cy="260" rx="92" ry="112" fill="#56372b"/>
+        <path d="M738 244 C780 276 835 278 878 246" fill="none" stroke="#c8945b" stroke-width="9" opacity=".72"/>
+        <path d="M774 312 C814 338 858 330 884 302" fill="none" stroke="#1e120e" stroke-width="12" stroke-linecap="round" opacity=".7"/>
+        <ellipse cx="790" cy="300" rx="11" ry="15" fill="#1b100d"/>
+        <ellipse cx="852" cy="292" rx="11" ry="15" fill="#1b100d"/>
+        <path d="M816 324 C808 348 824 356 840 326" fill="none" stroke="#d7ad76" stroke-width="8" stroke-linecap="round"/>
+        <path d="M685 338 C568 326 498 346 404 382" stroke="#f2dfb3" stroke-width="3" opacity=".72"/>
+        <path d="M884 338 C1012 308 1110 306 1222 334" stroke="#f2dfb3" stroke-width="3" opacity=".68"/>
+        <ellipse cx="566" cy="548" rx="136" ry="72" fill="#6f4d3d"/>
+        <ellipse cx="554" cy="505" rx="78" ry="62" fill="#8b6750"/>
+        <path d="M490 470 L520 404 L550 492 Z" fill="#6a4635"/>
+        <path d="M604 468 L668 424 L630 506 Z" fill="#513326"/>
+        <ellipse cx="556" cy="508" rx="10" ry="8" fill="#21120e"/>
+        <ellipse cx="860" cy="548" rx="166" ry="88" fill="#2f211c"/>
+        <ellipse cx="760" cy="512" rx="96" ry="72" fill="#7f5d49"/>
+        <path d="M700 476 L732 410 L760 490 Z" fill="#674331"/>
+        <path d="M810 478 L880 432 L842 514 Z" fill="#503127"/>
+        <ellipse cx="754" cy="522" rx="12" ry="10" fill="#21120e"/>
+        <ellipse cx="318" cy="616" rx="144" ry="62" fill="#5f3f31"/>
+        <ellipse cx="296" cy="560" rx="94" ry="64" fill="#806046"/>
+        <path d="M228 526 L270 458 L292 548 Z" fill="#65422f"/>
+        <path d="M342 526 L416 476 L378 562 Z" fill="#4b2e22"/>
+      </g>
+      <rect width="1456" height="816" fill="rgba(255,214,137,.18)"/>
+    </svg>
+    <figcaption class="yibiyi-mark">
+      <h1 class="yibiyi-title">易彼益</h1>
+      <p class="yibiyi-soon">即将推出</p>
+    </figcaption>
+  </figure>
 </main>
-
-<footer>
-  <p>© 2026 步道 budao.org</p>
-</footer>
-
 </body>
 </html>
