@@ -508,10 +508,6 @@ class="image-modal"
 id="imageModal"
 onclick="closeImage()">
 
-<img
-id="modalImage"
-class="image-modal-content">
-
 </div>
 
 <div
@@ -528,12 +524,20 @@ aria-hidden="true">
 <script>
 
 function openImage(src){
-    document.getElementById("imageModal").style.display = "flex";
-    document.getElementById("modalImage").src = src;
+    const modal =
+    document.getElementById("imageModal");
+
+    modal.innerHTML =
+    `<img src="${escapeAttribute(src)}" class="image-modal-content" alt="">`;
+    modal.style.display = "flex";
 }
 
 function closeImage(){
-    document.getElementById("imageModal").style.display = "none";
+    const modal =
+    document.getElementById("imageModal");
+
+    modal.style.display = "none";
+    modal.innerHTML = "";
 }
 
 function replaceBrokenImage(image){
