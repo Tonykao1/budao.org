@@ -482,8 +482,8 @@ button {
 
 @media (max-width: 640px) {
   nav {
-    justify-content: flex-start;
-    overflow-x: auto;
+    justify-content: center;
+    overflow-x: hidden;
   }
 
   .tongdao-shell {
@@ -491,7 +491,9 @@ button {
   }
 
   .tongdao-screen {
-    min-height: calc(100svh - 78px);
+    min-height: calc(100svh - 96px);
+    justify-content: flex-start;
+    gap: 22px;
     border-radius: 22px;
   }
 
@@ -503,6 +505,10 @@ button {
   .actions,
   .actions > div {
     width: 100%;
+  }
+
+  .actions {
+    margin-top: 24px;
   }
 
   .primary,
