@@ -6,6 +6,37 @@
     <title>Tent - Budao</title>
     <link rel="stylesheet" href="tent-style.css">
     <link rel="stylesheet" href="tent-word.css">
+    <style>
+      .publish-card-wrap {
+        --preview-scale: 0.78;
+        transform: translateY(76px) scale(0.76);
+      }
+
+      .presence.review-open .publish-card-wrap {
+        transform: translateY(0) scale(var(--preview-scale));
+      }
+
+      .presence.review-closing .publish-card-wrap {
+        transform: translateY(64px) scale(0.76);
+      }
+
+      .presence.publish-transition .publish-card-wrap,
+      .presence.publish-finished .publish-card-wrap {
+        transform: translateY(22px) scale(0.77);
+      }
+
+      @media (max-width: 620px) {
+        .publish-card-wrap {
+          --preview-scale: 0.62;
+        }
+      }
+
+      @media (min-height: 900px) and (min-width: 760px) {
+        .publish-card-wrap {
+          --preview-scale: 0.86;
+        }
+      }
+    </style>
   </head>
   <body>
     <main class="presence" aria-label="Tent">
@@ -239,6 +270,54 @@
         </section>
       </section>
     </main>
+    <script>
+      (function () {
+        const originalSetItem = Storage.prototype.setItem;
+
+        function stripHeavyDraftAssets(value) {
+          const trails = JSON.parse(value);
+
+          if (!Array.isArray(trails)) {
+            return value;
+          }
+
+          return JSON.stringify(trails.map(function (trail) {
+            const copy = JSON.parse(JSON.stringify(trail));
+
+            if (copy.source) {
+              copy.source.images = [];
+
+              if (String(copy.source.qrCode || "").indexOf("data:image/") === 0) {
+                copy.source.qrCode = "";
+              }
+            }
+
+            if (copy.testPage && copy.testPage.card) {
+              copy.testPage.card.images = [];
+            }
+
+            return copy;
+          }));
+        }
+
+        Storage.prototype.setItem = function (key, value) {
+          try {
+            return originalSetItem.call(this, key, value);
+          } catch (error) {
+            if (key !== "budao.tent.trails") {
+              throw error;
+            }
+
+            try {
+              return originalSetItem.call(this, key, stripHeavyDraftAssets(value));
+            } catch (secondError) {
+              this.removeItem(key);
+              return undefined;
+            }
+          }
+        };
+      }());
+    </script>
     <script src="tent-app.js"></script>
     <script src="tent-word.js"></script>
   </body>
