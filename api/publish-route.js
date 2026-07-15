@@ -45,7 +45,7 @@ module.exports = async function handler(request, response) {
     const current = await readRoutesFile();
     const routeToSave = normalizeRoute(route);
 
-    if (!allowedOwner(routeToSave.owner)) {
+    if (!allowedOwner(routeToSave.owner) || !routeToSave.slot) {
       sendJson(response, 403, { ok: false, error: "owner_not_allowed" });
       return;
     }
@@ -216,12 +216,14 @@ function contentsUrl() {
 
 function normalizeRoute(route) {
   const now = new Date().toISOString();
+  const owner = canonicalOwner(route.owner);
+  const slot = normalizeSlot(route.slot) || slotForOwner(owner) || slotForOwner(route.owner);
 
   const normalized = {
     id: route.id || route.routeId || "",
     routeId: route.routeId || route.id || "",
-    owner: canonicalOwner(route.owner),
-    slot: normalizeSlot(route.slot || slotForOwner(route.owner)),
+    owner,
+    slot,
     country: route.country || "",
     city: route.city || "",
     region: route.region || "",
@@ -247,7 +249,7 @@ function normalizeRoute(route) {
     updatedAt: now
   };
 
-  normalized.slot = normalizeSlot(normalized.slot || slotForOwner(normalized.owner));
+  normalized.slot = normalizeSlot(normalized.slot) || slotForOwner(normalized.owner);
   normalized.owner = slotOwners[normalized.slot] || normalized.owner;
   normalized.routeId = "budao-" + normalized.slot.toLowerCase();
   normalized.id = normalized.routeId;
