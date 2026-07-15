@@ -102,6 +102,10 @@ module.exports = async function handler(request, response) {
       })
       .filter(Boolean);
 
+    if (!routes.length) {
+      throw knownError("empty_routes_blocked", 409);
+    }
+
     const content = JSON.stringify(routes, null, 2) + "\n";
     const commit = await writeRoutesFile({
       content,
