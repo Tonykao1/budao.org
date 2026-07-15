@@ -273,6 +273,33 @@
     <script>
       (function () {
         const originalSetItem = Storage.prototype.setItem;
+        const originalFetch = window.fetch.bind(window);
+
+        window.fetch = function (input, init) {
+          const requestUrl = typeof input === "string" ? input : input && input.url || "";
+          const method = init && init.method || input && input.method || "GET";
+          const request = originalFetch(input, init);
+
+          if (requestUrl.indexOf("/api/publish-route") >= 0 && String(method).toUpperCase() === "POST") {
+            request.then(function (response) {
+              if (!response.ok) {
+                return;
+              }
+
+              response.clone().json().then(function (result) {
+                if (result && result.ok === false) {
+                  return;
+                }
+
+                window.setTimeout(function () {
+                  window.location.href = "https://budao.org/test.html?published=" + Date.now();
+                }, 1200);
+              }).catch(function () {});
+            }).catch(function () {});
+          }
+
+          return request;
+        };
 
         function stripHeavyDraftAssets(value) {
           const trails = JSON.parse(value);
