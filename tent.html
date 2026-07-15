@@ -272,6 +272,10 @@
     </main>
     <script>
       (function () {
+        window.BUDAO_PUBLISH_ENDPOINT = window.location.protocol === "file:" ?
+          "https://budao.org/api/publish-route-v2" :
+          "/api/publish-route-v2";
+
         const originalSetItem = Storage.prototype.setItem;
         const originalFetch = window.fetch.bind(window);
 
