@@ -1,12 +1,10 @@
 .invitation-trigger {
     display:inline-block;
     width:max-content;
-    align-self:center;
-    margin-top:14px;
-    padding:10px 20px;
-    border:1px solid rgba(17,17,17,0.16);
+    padding:12px 22px;
+    border:1px solid rgba(17,17,17,0.18);
     border-radius:999px;
-    background:transparent;
+    background:#fff;
     color:#39332b;
     cursor:pointer;
     font-size:13px;
@@ -17,7 +15,7 @@
 .invitation-trigger:hover,
 .invitation-trigger:focus-visible {
     transform:translateY(-1px);
-    background:#f4f1eb;
+    background:#f9f7f2;
     border-color:rgba(17,17,17,0.28);
     outline:0;
 }
