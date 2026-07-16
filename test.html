@@ -8,7 +8,7 @@
 <title>超级星期六 - 步道</title>
 
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="invitation-engine.css">
+<link rel="stylesheet" href="invitation-engine.css?v=20260716-meeting">
 
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -244,6 +244,64 @@ body{
     border-radius:999px;
 }
 
+.route-meeting{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    min-height:64px;
+    margin-top:22px;
+    padding:14px 16px;
+    border:1px solid rgba(125,112,92,0.12);
+    border-radius:18px;
+    background:#fbfaf7;
+}
+
+.meeting-map{
+    position:relative;
+    flex:0 0 54px;
+    width:54px;
+    height:38px;
+    overflow:hidden;
+    border-radius:12px;
+    background:
+    linear-gradient(140deg,transparent 0 42%,rgba(156,137,103,0.22) 43% 45%,transparent 46%),
+    linear-gradient(24deg,transparent 0 51%,rgba(156,137,103,0.18) 52% 54%,transparent 55%),
+    linear-gradient(90deg,rgba(156,137,103,0.12) 1px,transparent 1px),
+    linear-gradient(0deg,rgba(156,137,103,0.1) 1px,transparent 1px),
+    #f3efe7;
+    background-size:auto,auto,18px 18px,18px 18px,auto;
+}
+
+.meeting-map::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:#28231d;
+    box-shadow:0 0 0 5px rgba(40,35,29,0.08);
+    transform:translate(-50%,-50%);
+}
+
+.meeting-copy{
+    min-width:0;
+}
+
+.meeting-label{
+    margin-bottom:5px;
+    color:#9a9286;
+    font-size:11px;
+    letter-spacing:3px;
+}
+
+.meeting-value{
+    color:#4f493f;
+    font-size:14px;
+    line-height:1.6;
+}
+
 .route-info{
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
@@ -312,6 +370,14 @@ body{
 .route-button:focus-visible{
     opacity:0.75;
     outline:0;
+}
+
+.route-actions{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    width:100%;
 }
 
 .super-footer{
@@ -508,6 +574,10 @@ class="image-modal"
 id="imageModal"
 onclick="closeImage()">
 
+<img
+id="modalImage"
+class="image-modal-content">
+
 </div>
 
 <div
@@ -524,20 +594,12 @@ aria-hidden="true">
 <script>
 
 function openImage(src){
-    const modal =
-    document.getElementById("imageModal");
-
-    modal.innerHTML =
-    `<img src="${escapeAttribute(src)}" class="image-modal-content" alt="">`;
-    modal.style.display = "flex";
+    document.getElementById("imageModal").style.display = "flex";
+    document.getElementById("modalImage").src = src;
 }
 
 function closeImage(){
-    const modal =
-    document.getElementById("imageModal");
-
-    modal.style.display = "none";
-    modal.innerHTML = "";
+    document.getElementById("imageModal").style.display = "none";
 }
 
 function replaceBrokenImage(image){
@@ -709,6 +771,7 @@ function renderRoutes(routes){
                 <div class="route-location">${escapeHtml(locationLabel)}</div>
                 <h2>${escapeHtml(route.title)}</h2>
                 <div class="route-description">${escapeHtml(route.description).replace(/\n/g,"<br>")}</div>
+                ${meetingPlaceHtml(route)}
                 <div class="route-info">
                     ${parameterButton("time", route.time, route.time + " 集合")}
                     ${parameterButton("duration", route.duration, route.duration)}
@@ -720,8 +783,10 @@ function renderRoutes(routes){
                     ${route.equipmentMinimum ? parameterButton("equipmentMinimum", route.equipmentMinimum, "装备 " + route.equipmentMinimum) : ""}
                 </div>
                 <div class="route-timezone">${escapeHtml(route.timezone)} · ${escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}</div>
-                <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
-                <button class="invitation-trigger" type="button" data-route-index="${index}">发出请柬</button>
+                <div class="route-actions">
+                    <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
+                    <button class="invitation-trigger" type="button" data-route-index="${index}">分享邀请</button>
+                </div>
             </div>
         `;
 
@@ -737,6 +802,25 @@ function renderRoutes(routes){
             openQrModal(activeRoutes[Number(button.dataset.routeIndex)]);
         });
     });
+}
+
+function meetingPlaceHtml(route){
+    const place =
+    String(route.meetingPlace || route.meetingPoint || route.gatheringPlace || "").trim();
+
+    if(!place){
+        return "";
+    }
+
+    return `
+        <div class="route-meeting" aria-label="集合地点">
+            <span class="meeting-map" aria-hidden="true"></span>
+            <div class="meeting-copy">
+                <div class="meeting-label">集合地点</div>
+                <div class="meeting-value">${escapeHtml(place)}</div>
+            </div>
+        </div>
+    `;
 }
 
 function parameterButton(type,value,label){
@@ -1305,7 +1389,7 @@ function updateAll(){
     });
 }
 </script>
-<script src="invitation-engine.js"></script>
+<script src="invitation-engine.js?v=20260716-meeting"></script>
 
 </body>
 </html>
