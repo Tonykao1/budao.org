@@ -15,6 +15,7 @@
 
     function install() {
         ensurePreview();
+        installRouteCardEnhancements();
 
         document.addEventListener("click", function (event) {
             const trigger = event.target.closest(".invitation-trigger");
@@ -39,6 +40,67 @@
                 closeInvitation();
             }
         });
+    }
+
+    function installRouteCardEnhancements() {
+        enhanceRouteCards();
+
+        const grid = document.getElementById("routeGrid");
+
+        if (!grid) {
+            window.setTimeout(installRouteCardEnhancements, 300);
+            return;
+        }
+
+        const observer = new MutationObserver(enhanceRouteCards);
+        observer.observe(grid, { childList: true, subtree: true });
+    }
+
+    function enhanceRouteCards() {
+        const routes = window.BudaoActiveRoutes || [];
+        const cards = document.querySelectorAll(".route-card");
+
+        cards.forEach(function (card, index) {
+            const route = routes[index] || {};
+            const invitationButton = card.querySelector(".invitation-trigger");
+            const routeButton = card.querySelector(".route-button");
+
+            if (invitationButton) {
+                invitationButton.textContent = "分享邀请";
+            }
+
+            if (routeButton && invitationButton && !routeButton.closest(".route-actions")) {
+                const actions = document.createElement("div");
+                actions.className = "route-actions";
+                routeButton.parentNode.insertBefore(actions, routeButton);
+                actions.appendChild(routeButton);
+                actions.appendChild(invitationButton);
+            }
+
+            addMeetingPlace(card, route);
+        });
+    }
+
+    function addMeetingPlace(card, route) {
+        const place = String(route.meetingPlace || route.meetingPoint || route.gatheringPlace || "").trim();
+        const description = card.querySelector(".route-description");
+
+        if (!place || !description || card.querySelector(".route-meeting")) {
+            return;
+        }
+
+        const meeting = document.createElement("div");
+        meeting.className = "route-meeting";
+        meeting.setAttribute("aria-label", "集合地点");
+        meeting.innerHTML =
+            '<span class="meeting-map" aria-hidden="true"></span>' +
+            '<div class="meeting-copy">' +
+            '<div class="meeting-label">集合地点</div>' +
+            '<div class="meeting-value"></div>' +
+            '</div>';
+
+        meeting.querySelector(".meeting-value").textContent = place;
+        description.insertAdjacentElement("afterend", meeting);
     }
 
     async function openInvitation(route) {
