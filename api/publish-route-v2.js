@@ -266,6 +266,10 @@ function normalizeRoute(route) {
 function resolveImage(image) {
   const value = String(image || "");
 
+  if (value.indexOf("data:image/") === 0 && value.length > 240000) {
+    return "";
+  }
+
   if (value === "" ||
     value.indexOf("data:image/") === 0 ||
     value.indexOf("blob:") === 0 ||
