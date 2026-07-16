@@ -1,0 +1,3 @@
+Redeploy requested for Budao static pages.
+Timestamp: 2026-07-17T00:00:00Z
+Reason: refresh Super Saturday static shell and invitation assets.
