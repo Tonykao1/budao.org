@@ -3,6 +3,7 @@
 
     function install() {
         ensurePreview();
+        scheduleMeetingEnhancement();
 
         document.addEventListener("click", function (event) {
             const trigger = event.target.closest(".invitation-trigger");
@@ -23,6 +24,51 @@
             if (event.key === "Escape") {
                 closeInvitation();
             }
+        });
+    }
+
+    function scheduleMeetingEnhancement() {
+        enhanceMeetings();
+        window.setTimeout(enhanceMeetings, 800);
+        window.setTimeout(enhanceMeetings, 2200);
+    }
+
+    function enhanceMeetings() {
+        const routes = window.BudaoActiveRoutes || [];
+        const cards = document.querySelectorAll(".route-card");
+
+        cards.forEach(function (card, index) {
+            if (card.querySelector(".route-meeting")) {
+                return;
+            }
+
+            const route = routes[index] || {};
+            const description = card.querySelector(".route-description");
+            const place = String(
+                route.meetingPlace ||
+                route.meetingPoint ||
+                route.gatheringPlace ||
+                route.meetingLocation ||
+                route.assemblyPoint ||
+                ""
+            ).trim();
+
+            if (!description) {
+                return;
+            }
+
+            const meeting = document.createElement("div");
+            meeting.className = "route-meeting";
+            meeting.setAttribute("aria-label", "集合地点");
+            meeting.innerHTML =
+                '<span class="meeting-map" aria-hidden="true"></span>' +
+                '<div class="meeting-copy">' +
+                '<div class="meeting-label">集合地点</div>' +
+                '<div class="meeting-value"></div>' +
+                '</div>';
+
+            meeting.querySelector(".meeting-value").textContent = place || "集合地点待补充";
+            description.insertAdjacentElement("afterend", meeting);
         });
     }
 
