@@ -638,6 +638,7 @@ function resolveImage(value){
 
 let events = [];
 let activeRoutes = [];
+let countdownTimer = null;
 const fixedRouteSlots = ["IMS","BACBC"];
 
 const defaultRoutes = [
@@ -687,30 +688,45 @@ const defaultRoutes = [
 }
 ];
 
-fetch("/api/routes")
+activateRoutes(fixedRoutesOnly(defaultRoutes));
+
+const routesController =
+window.AbortController ? new AbortController() : null;
+
+const routesTimeout =
+window.setTimeout(()=>{
+    if(routesController){
+        routesController.abort();
+    }
+},6000);
+
+fetch("/api/routes?budao=" + Date.now(),routesController ? { signal:routesController.signal } : {})
     .then(response=>response.json())
     .then(routes=>{
-        activeRoutes = fixedRoutesOnly(Array.isArray(routes) ? routes : []);
-        window.BudaoActiveRoutes = activeRoutes;
+        window.clearTimeout(routesTimeout);
+        const nextRoutes = fixedRoutesOnly(Array.isArray(routes) ? routes : []);
 
-        if(!activeRoutes.length){
-            activeRoutes = fixedRoutesOnly(defaultRoutes);
-            window.BudaoActiveRoutes = activeRoutes;
+        if(nextRoutes.length){
+            activateRoutes(nextRoutes);
         }
-
-        renderRoutes(activeRoutes);
-        prepareEvents(activeRoutes);
-        updateAll();
-        setInterval(updateAll,1000);
     })
     .catch(()=>{
-        activeRoutes = fixedRoutesOnly(defaultRoutes);
-        window.BudaoActiveRoutes = activeRoutes;
-        renderRoutes(activeRoutes);
-        prepareEvents(activeRoutes);
-        updateAll();
-        setInterval(updateAll,1000);
+        window.clearTimeout(routesTimeout);
     });
+
+function activateRoutes(routes){
+    activeRoutes = routes;
+    window.BudaoActiveRoutes = activeRoutes;
+    renderRoutes(activeRoutes);
+    prepareEvents(activeRoutes);
+    updateAll();
+
+    if(countdownTimer){
+        window.clearInterval(countdownTimer);
+    }
+
+    countdownTimer = window.setInterval(updateAll,1000);
+}
 
 function prepareEvents(routes){
     events =
