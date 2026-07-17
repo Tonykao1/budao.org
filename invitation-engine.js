@@ -44,14 +44,7 @@
 
             const route = routes[index] || {};
             const description = card.querySelector(".route-description");
-            const place = String(
-                route.meetingPlace ||
-                route.meetingPoint ||
-                route.gatheringPlace ||
-                route.meetingLocation ||
-                route.assemblyPoint ||
-                ""
-            ).trim();
+            const place = meetingPlace(route);
 
             if (!description) {
                 return;
@@ -76,41 +69,111 @@
         const preview = ensurePreview();
         const frame = preview.querySelector(".invitation-frame");
         const status = preview.querySelector(".invitation-status");
-        const title = route.title || "步道同行";
-        const location = [route.country, route.city, route.region].filter(Boolean).join(" · ") || route.location || "";
-        const time = [route.date, route.time ? route.time + " 集合" : ""].filter(Boolean).join(" · ");
-        const qr = window.resolveImage ? window.resolveImage(route.qrCode) : route.qrCode;
 
-        frame.innerHTML =
-            '<div class="invitation-card-lite">' +
-                '<div class="invitation-lite-brand">B U D A O</div>' +
-                '<div class="invitation-lite-kicker">同行邀请</div>' +
-                '<h2></h2>' +
-                '<p class="invitation-lite-location"></p>' +
-                '<p class="invitation-lite-time"></p>' +
-                '<div class="invitation-lite-qr"></div>' +
-                '<p class="invitation-lite-caption">扫码进群，即可报名</p>' +
-                '<p class="invitation-lite-footer">余生行走，不偏左右<br><strong>budao.org</strong></p>' +
-            '</div>';
-
-        frame.querySelector("h2").textContent = title;
-        frame.querySelector(".invitation-lite-location").textContent = location;
-        frame.querySelector(".invitation-lite-time").textContent = time;
-
-        const qrBox = frame.querySelector(".invitation-lite-qr");
-        if (qr) {
-            const img = document.createElement("img");
-            img.alt = "活动二维码";
-            img.src = qr;
-            qrBox.appendChild(img);
-        } else {
-            qrBox.textContent = "报名码暂未放出";
-        }
-
+        frame.innerHTML = "";
+        frame.appendChild(createInvitationCard(route));
         status.textContent = "这一程，已经预备好发出。";
         preview.classList.add("open");
         preview.setAttribute("aria-hidden", "false");
         document.body.classList.add("invitation-open");
+    }
+
+    function createInvitationCard(route) {
+        const card = document.createElement("article");
+        const image = imageSource(route);
+        const qr = qrSource(route);
+        const place = meetingPlace(route);
+        const location = locationLabel(route);
+        const title = route.title || "步道同行";
+        const date = formatDate(route.date);
+        const time = route.time ? route.time + " 集合" : "时间待定";
+
+        card.className = "invitation-vatican-card";
+        card.innerHTML =
+            '<header class="iv-head">' +
+                '<div class="iv-title">INVITATION</div>' +
+                '<div class="iv-hairline" aria-hidden="true"></div>' +
+            '</header>' +
+            '<section class="iv-hero">' +
+                '<div class="iv-stamp">' +
+                    '<div class="iv-stamp-photo"></div>' +
+                    '<div class="iv-postmark" aria-hidden="true">' +
+                        '<span>BUDAO</span>' +
+                        '<small>WALK TOGETHER</small>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="iv-seal">' +
+                    '<div class="iv-qr"></div>' +
+                    '<div class="iv-seal-copy">' +
+                        '<span>SCAN TO JOIN</span>' +
+                        '<strong>扫码进群</strong>' +
+                    '</div>' +
+                '</div>' +
+            '</section>' +
+            '<section class="iv-copy">' +
+                '<p class="iv-location"></p>' +
+                '<h1></h1>' +
+                '<p class="iv-description"></p>' +
+                '<div class="iv-meta">' +
+                    '<p><span>DATE</span><strong class="iv-date"></strong></p>' +
+                    '<p><span>TIME</span><strong class="iv-time"></strong></p>' +
+                    '<p><span>MEETING POINT</span><strong class="iv-place"></strong></p>' +
+                '</div>' +
+                '<p class="iv-route-line"></p>' +
+            '</section>' +
+            '<footer class="iv-foot">' +
+                '<div class="iv-mini-seal">B</div>' +
+                '<div class="iv-walk-mark">余生行走，不偏左右</div>' +
+                '<div class="iv-site">budao.org</div>' +
+            '</footer>';
+
+        setText(card, ".iv-location", location || "同行地点待定");
+        setText(card, "h1", title);
+        setText(card, ".iv-description", oneSentence(route.description));
+        setText(card, ".iv-date", date || "日期待定");
+        setText(card, ".iv-time", time);
+        setText(card, ".iv-place", place || "集合地点待补充");
+        setText(card, ".iv-route-line", routeLine(route));
+
+        const photo = card.querySelector(".iv-stamp-photo");
+        if (image) {
+            const img = document.createElement("img");
+            img.alt = route.imageAlt || title;
+            img.src = image;
+            img.onerror = function () {
+                photo.classList.add("is-empty");
+                photo.textContent = location || "BUDAO";
+            };
+            photo.appendChild(img);
+        } else {
+            photo.classList.add("is-empty");
+            photo.textContent = location || "BUDAO";
+        }
+
+        const qrBox = card.querySelector(".iv-qr");
+        if (qr) {
+            const img = document.createElement("img");
+            img.alt = "活动二维码";
+            img.src = qr;
+            img.onerror = function () {
+                qrBox.classList.add("is-empty");
+                qrBox.textContent = "报名码暂未放出";
+            };
+            qrBox.appendChild(img);
+        } else {
+            qrBox.classList.add("is-empty");
+            qrBox.textContent = "报名码暂未放出";
+        }
+
+        return card;
+    }
+
+    function setText(root, selector, value) {
+        const target = root.querySelector(selector);
+
+        if (target) {
+            target.textContent = value || "";
+        }
     }
 
     function closeInvitation() {
@@ -174,6 +237,70 @@
 
         document.body.appendChild(preview);
         return preview;
+    }
+
+    function imageSource(route) {
+        const value = route && (route.image || route.imageUrl);
+
+        return window.resolveImage ? window.resolveImage(value) : String(value || "").trim();
+    }
+
+    function qrSource(route) {
+        const value = route && route.qrCode;
+
+        return window.resolveImage ? window.resolveImage(value) : String(value || "").trim();
+    }
+
+    function meetingPlace(route) {
+        return String(
+            route && (
+                route.meetingPlace ||
+                route.meetingPoint ||
+                route.gatheringPlace ||
+                route.meetingLocation ||
+                route.assemblyPoint ||
+                ""
+            ) || ""
+        ).trim();
+    }
+
+    function locationLabel(route) {
+        if (!route) {
+            return "";
+        }
+
+        return [route.country, route.city, route.region].filter(Boolean).join(" · ") ||
+            route.location ||
+            "";
+    }
+
+    function formatDate(date) {
+        const match = String(date || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+
+        if (!match) {
+            return "";
+        }
+
+        return Number(match[2]) + "月" + Number(match[3]) + "日";
+    }
+
+    function oneSentence(text) {
+        const clean = String(text || "").replace(/\s+/g, " ").trim();
+
+        if (!clean) {
+            return "这一程，已经安静预备，等待同行的人一起出发。";
+        }
+
+        return clean.length > 74 ? clean.slice(0, 72) + "…" : clean;
+    }
+
+    function routeLine(route) {
+        return [
+            route.distance,
+            route.duration,
+            route.difficulty,
+            route.suitableFor
+        ].filter(Boolean).join(" · ");
     }
 
     window.BudaoInvitationEngine = {
