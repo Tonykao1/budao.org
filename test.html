@@ -768,7 +768,7 @@ function renderRoutes(routes){
             <div class="route-image">
                 ${
                     image ?
-                    `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
+                    `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" loading="lazy" decoding="async" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
                     `<span class="route-image-placeholder" data-place="${escapeAttribute(locationLabel)}"></span>`
                 }
             </div>
