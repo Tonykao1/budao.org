@@ -298,8 +298,12 @@
         return [
             route.distance,
             route.duration,
+            route.surface,
+            route.elevation,
             route.difficulty,
-            route.suitableFor
+            route.suitableFor,
+            route.equipmentMinimum,
+            route.weather
         ].filter(Boolean).join(" · ");
     }
 
