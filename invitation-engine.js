@@ -415,13 +415,13 @@
         ctx.stroke();
 
         if (logo) {
-            drawContainImage(ctx, logo, 118, 1404, 76, 48);
+            drawContainImage(ctx, logo, 118, 1398, 108, 64);
         }
 
         ctx.fillStyle = "#6f6458";
         ctx.font = cnFont(400, 24);
         ctx.textAlign = "left";
-        ctx.fillText("余生行走，不偏左右", 214, 1432);
+        ctx.fillText("余生行走，不偏左右", 248, 1432);
 
         ctx.fillStyle = "#15110d";
         ctx.font = systemFont(750, 40);
@@ -430,7 +430,7 @@
 
         ctx.strokeStyle = "rgba(20,16,12,0.09)";
         ctx.beginPath();
-        ctx.moveTo(214, 1458);
+        ctx.moveTo(248, 1458);
         ctx.lineTo(962, 1458);
         ctx.stroke();
     }
