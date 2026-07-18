@@ -100,7 +100,7 @@
         const ctx = canvas.getContext("2d");
         const image = await loadImage(imageSource(route)).catch(function () { return null; });
         const qr = await loadImage(qrSource(route)).catch(function () { return null; });
-        const logo = await loadImage("budao-logo-mark.png").catch(function () { return null; });
+        const logo = await loadImage("budao-logo-mark.png?v=20260719").catch(function () { return null; });
 
         canvas.width = cardWidth;
         canvas.height = cardHeight;
@@ -415,7 +415,7 @@
         ctx.stroke();
 
         if (logo) {
-            drawContainImage(ctx, logo, 118, 1398, 108, 64);
+            drawContainImage(ctx, logo, 118, 1404, 104, 52);
         }
 
         ctx.fillStyle = "#6f6458";
