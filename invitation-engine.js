@@ -154,6 +154,7 @@
         ctx.moveTo(cardWidth / 2 - 44, 174);
         ctx.lineTo(cardWidth / 2 + 44, 174);
         ctx.stroke();
+
     }
 
     function drawStamp(ctx, image, location, route) {
@@ -218,13 +219,13 @@
         ctx.arc(0, 0, 50, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.strokeStyle = "rgba(43,49,55,0.43)";
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(43,49,55,0.36)";
+        ctx.lineWidth = 3.2;
         for (let i = 0; i < 5; i += 1) {
             const y = -44 + i * 18;
             ctx.beginPath();
-            ctx.moveTo(48, y);
-            ctx.lineTo(176, y - 12);
+            ctx.moveTo(48, y + i * 1.5);
+            ctx.lineTo(176 + i * 7, y - 14 + i * 2.5);
             ctx.stroke();
         }
 
@@ -237,68 +238,68 @@
 
     function drawLetter(ctx, route, data) {
         const x = 118;
-        const w = 620;
-        let y = 266;
+        const w = 600;
+        let y = 258;
 
         ctx.fillStyle = "#17130f";
-        ctx.font = cnFont(700, 86);
-        y = drawWrappedText(ctx, data.title, x, y, w, 92, 2);
+        ctx.font = cnFont(620, 78);
+        y = drawWrappedText(ctx, data.title, x, y, w, 86, 2);
 
-        y += 30;
+        y += 34;
         ctx.fillStyle = "#7a6b5b";
-        ctx.font = cnFont(500, 30);
+        ctx.font = cnFont(500, 29);
         ctx.fillText(data.location, x, y);
 
-        y += 56;
+        y += 54;
         ctx.fillStyle = "#2b251f";
-        ctx.font = cnFont(650, 34);
+        ctx.font = cnFont(620, 33);
         ctx.fillText(data.date + " · " + data.time, x, y);
 
-        y += 72;
+        y += 74;
         ctx.fillStyle = "#6c6258";
-        ctx.font = cnFont(400, 27);
+        ctx.font = cnFont(380, 26);
         ctx.fillText("这是一段被安静预备的路，也是一份邀请。", x, y);
 
-        y += 58;
-        ctx.fillStyle = "#514940";
-        ctx.font = cnFont(400, 31);
-        y = drawWrappedText(ctx, letterText(route.description), x, y, w + 16, 53, 3, true);
+        y += 56;
+        ctx.fillStyle = "#4f4840";
+        ctx.font = cnFont(360, 29);
+        y = drawWrappedText(ctx, letterText(route.description), x, y, w - 8, 52, 3, true);
 
         ctx.fillStyle = "#7d6f5f";
-        ctx.font = cnFont(400, 27);
-        drawWrappedText(ctx, "若你也愿意，就在这一天，与我们一同走一段路。", x, y + 42, w + 36, 46, 2);
+        ctx.font = cnFont(360, 26);
+        drawWrappedText(ctx, "若你也愿意，就在这一天，与我们一同走一段路。", x, y + 42, w - 8, 46, 2);
     }
 
     function drawMeetingCard(ctx, place) {
         const x = 118;
-        const y = 835;
-        const w = 704;
-        const h = 96;
+        const y = 840;
+        const w = 700;
+        const h = 92;
         const value = place || "集合地点待补充";
 
         ctx.save();
-        roundRect(ctx, x, y, w, h, 20);
-        ctx.fillStyle = "rgba(255,255,255,0.76)";
+        roundRect(ctx, x, y, w, h, 18);
+        ctx.fillStyle = "rgba(255,255,255,0.58)";
         ctx.fill();
-        ctx.strokeStyle = "rgba(184,156,82,0.34)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(184,156,82,0.28)";
+        ctx.lineWidth = 1.7;
         ctx.stroke();
 
-        ctx.fillStyle = "#9a8b79";
+        ctx.fillStyle = "#a0917d";
         drawSpacedText(ctx, "MEETING POINT", x + 32, y + 36, 13, 2.8, "Arial", "700", "left");
         ctx.fillStyle = "#332b24";
-        ctx.font = cnFont(600, 28);
+        ctx.font = cnFont(580, 27);
         ctx.textAlign = "left";
         ctx.fillText(trimToWidth(ctx, value, w - 250), x + 32, y + 70);
 
-        ctx.strokeStyle = "rgba(184,156,82,0.28)";
+        ctx.strokeStyle = "rgba(184,156,82,0.24)";
         ctx.beginPath();
         ctx.moveTo(x + w - 186, y + 22);
         ctx.lineTo(x + w - 186, y + h - 22);
         ctx.stroke();
 
-        ctx.fillStyle = "#8c8175";
-        ctx.font = systemFont(500, 19);
+        ctx.fillStyle = "#8d8378";
+        ctx.font = systemFont(460, 18);
         ctx.fillText("请预留到达与彼此等候的时间", x + w - 158, y + 58);
         ctx.restore();
     }
@@ -315,7 +316,9 @@
                 ["爬升", route.elevation]
             ],
             [
-                ["适合", route.suitableFor],
+                ["适合", route.suitableFor]
+            ],
+            [
                 ["装备", route.equipmentMinimum],
                 ["天气", route.weather]
             ]
@@ -324,19 +327,19 @@
         }).filter(function (row) { return row.length; });
 
         const startX = 118;
-        const startY = 965;
-        const gap = 18;
-        const rowH = 56;
-        const maxW = 650;
+        const startY = 972;
+        const gap = 16;
+        const rowH = 52;
+        const maxW = 590;
         let y = startY;
 
-        ctx.font = cnFont(500, 23);
+        ctx.font = cnFont(500, 22);
         rows.forEach(function (row) {
             const pills = row.map(function (pill) {
                 const text = pill[0] + " " + pill[1];
                 return {
                     text,
-                    width: Math.min(Math.max(ctx.measureText(text).width + 64, 150), 326)
+                    width: Math.min(Math.max(ctx.measureText(text).width + 58, 142), 302)
                 };
             });
             const total = pills.reduce(function (sum, pill) {
@@ -357,20 +360,20 @@
         roundRect(ctx, x, y, w, h, h / 2);
         ctx.fillStyle = "rgba(255,255,255,0.78)";
         ctx.fill();
-        ctx.strokeStyle = "rgba(184,156,82,0.34)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(184,156,82,0.32)";
+        ctx.lineWidth = 1.8;
         ctx.stroke();
         ctx.fillStyle = "#4f473d";
-        ctx.font = cnFont(500, 23);
+        ctx.font = cnFont(500, 22);
         ctx.textAlign = "center";
-        ctx.fillText(trimToWidth(ctx, text, w - 34), x + w / 2, y + 38);
+        ctx.fillText(trimToWidth(ctx, text, w - 32), x + w / 2, y + 35);
         ctx.restore();
     }
 
     function drawQrSeal(ctx, qr) {
-        const x = 786;
-        const y = 1058;
-        const size = 176;
+        const x = 800;
+        const y = 1102;
+        const size = 152;
 
         ctx.save();
         ctx.strokeStyle = "rgba(184,156,82,0.35)";
@@ -385,17 +388,17 @@
             ctx.fillStyle = "#f8f5ef";
             ctx.fillRect(x, y, size, size);
             ctx.fillStyle = "#6c6258";
-            ctx.font = cnFont(400, 24);
+            ctx.font = cnFont(400, 21);
             ctx.textAlign = "center";
-            drawWrappedText(ctx, "报名码暂未放出", x + size / 2 - 68, y + 76, 136, 34, 2);
+            drawWrappedText(ctx, "报名码暂未放出", x + size / 2 - 55, y + 68, 110, 30, 2);
         }
 
         ctx.fillStyle = "#8b7860";
-        drawSpacedText(ctx, "SCAN TO JOIN", x + size / 2, y + size + 54, 17, 4, "Arial", "700", "center");
+        drawSpacedText(ctx, "SCAN TO JOIN", x + size / 2, y + size + 48, 15, 3.6, "Arial", "700", "center");
         ctx.fillStyle = "#15110d";
-        ctx.font = cnFont(500, 30);
+        ctx.font = cnFont(560, 28);
         ctx.textAlign = "center";
-        ctx.fillText("扫码进群，即可报名", x + size / 2, y + size + 98);
+        ctx.fillText("扫码进群，即可报名", x + size / 2, y + size + 88);
         ctx.restore();
     }
 
