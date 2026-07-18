@@ -300,8 +300,10 @@
         ctx.stroke();
 
         ctx.fillStyle = "#8d8378";
-        ctx.font = systemFont(460, 18);
-        ctx.fillText("请预留到达与彼此等候的时间", x + w - 176, y + 58);
+        ctx.font = systemFont(460, 17);
+        ctx.textAlign = "left";
+        ctx.fillText("请预留到达", x + w - 166, y + 48);
+        ctx.fillText("与彼此等候的时间", x + w - 166, y + 70);
         ctx.restore();
     }
 
@@ -389,9 +391,10 @@
             ctx.fillStyle = "#f8f5ef";
             ctx.fillRect(x, y, size, size);
             ctx.fillStyle = "#6c6258";
-            ctx.font = cnFont(400, 21);
+            ctx.font = cnFont(400, 22);
             ctx.textAlign = "center";
-            drawWrappedText(ctx, "报名码暂未放出", x + 24, y + 70, size - 48, 30, 2);
+            ctx.fillText("报名码暂", x + size / 2, y + 70);
+            ctx.fillText("未放出", x + size / 2, y + 102);
         }
 
         ctx.fillStyle = "#8b7860";
@@ -517,7 +520,15 @@
     }
 
     function qrSource(route) {
-        const value = route && route.qrCode;
+        const value = route && (
+            route.qrCode ||
+            route.registrationQrCode ||
+            route.registrationQr ||
+            route.activityQrCode ||
+            route.qrImage ||
+            route.qr ||
+            ""
+        );
 
         return window.resolveImage ? window.resolveImage(value) : String(value || "").trim();
     }
