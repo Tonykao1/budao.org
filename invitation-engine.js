@@ -257,18 +257,18 @@
         ctx.fillText(data.date + " · " + data.time, x, y);
 
         y += 74;
-        ctx.fillStyle = "#6c6258";
-        ctx.font = cnFont(380, 26);
+        ctx.fillStyle = "#4b3424";
+        ctx.font = cnFont(420, 26);
         ctx.fillText("这是一段被安静预备的路，也是一份邀请。", x, y);
 
         y += 56;
         ctx.fillStyle = "#4f4840";
-        ctx.font = cnFont(360, 29);
-        y = drawWrappedText(ctx, letterText(route.description), x, y, w - 8, 52, 3, true);
+        ctx.font = handwritingFont(360, 27);
+        y = drawWrappedText(ctx, letterText(route.description), x, y, w - 8, 50, 3, true);
 
         ctx.fillStyle = "#7d6f5f";
         ctx.font = cnFont(360, 26);
-        drawWrappedText(ctx, "唯有祂感动你，让我们一路同行，共步主道……", x, y + 42, w - 8, 46, 2);
+        drawWrappedText(ctx, "唯有祂感动你，让我们一路同行，共步主道。", x, y + 42, w - 8, 46, 2);
     }
 
     function drawMeetingCard(ctx, place) {
@@ -393,8 +393,8 @@
             ctx.fillStyle = "#6c6258";
             ctx.font = cnFont(400, 22);
             ctx.textAlign = "center";
-            ctx.fillText("报名码暂", x + size / 2, y + 70);
-            ctx.fillText("未放出", x + size / 2, y + 102);
+            ctx.fillText("报名码", x + size / 2, y + 70);
+            ctx.fillText("暂未放出", x + size / 2, y + 102);
         }
 
         ctx.fillStyle = "#8b7860";
@@ -415,13 +415,13 @@
         ctx.stroke();
 
         if (logo) {
-            drawContainImage(ctx, logo, 118, 1408, 54, 42);
+            drawContainImage(ctx, logo, 118, 1404, 76, 48);
         }
 
         ctx.fillStyle = "#6f6458";
         ctx.font = cnFont(400, 24);
         ctx.textAlign = "left";
-        ctx.fillText("余生行走，不偏左右", 190, 1432);
+        ctx.fillText("余生行走，不偏左右", 214, 1432);
 
         ctx.fillStyle = "#15110d";
         ctx.font = systemFont(750, 40);
@@ -430,7 +430,7 @@
 
         ctx.strokeStyle = "rgba(20,16,12,0.09)";
         ctx.beginPath();
-        ctx.moveTo(190, 1458);
+        ctx.moveTo(214, 1458);
         ctx.lineTo(962, 1458);
         ctx.stroke();
     }
@@ -717,6 +717,10 @@
 
     function systemFont(weight, size) {
         return String(weight || 400) + " " + size + 'px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
+    }
+
+    function handwritingFont(weight, size) {
+        return String(weight || 400) + " " + size + 'px "Kaiti SC", "STKaiti", "Songti SC", "PingFang SC", serif';
     }
 
     function postmarkDate(date) {
