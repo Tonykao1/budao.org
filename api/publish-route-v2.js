@@ -247,7 +247,7 @@ function normalizeRoute(route) {
     meetingPlace: route.meetingPlace || "",
     participantRequirements: route.participantRequirements || "",
     image: resolveImage(route.image),
-    qrCode: resolveImage(route.qrCode),
+    qrCode: resolveQrImage(route.qrCode),
     imageAlt: route.imageAlt || route.title || "",
     createdAt: route.createdAt || now,
     updatedAt: now
@@ -269,6 +269,32 @@ function resolveImage(image) {
   if (value.indexOf("data:image/") === 0 && value.length > 240000) {
     return "";
   }
+
+  if (value === "" ||
+    value.indexOf("data:image/") === 0 ||
+    value.indexOf("blob:") === 0 ||
+    value.indexOf("http://") === 0 ||
+    value.indexOf("https://") === 0 ||
+    value.indexOf("/") === 0 ||
+    !/^[a-z]+:/i.test(value)) {
+    return value;
+  }
+
+  return "";
+}
+
+function resolveQrImage(image) {
+  const value = String(image || "");
+
+  if (value.indexOf("data:image/") === 0 && value.length > 700000) {
+    return "";
+  }
+
+  return resolveImageWithoutSizeLimit(value);
+}
+
+function resolveImageWithoutSizeLimit(image) {
+  const value = String(image || "");
 
   if (value === "" ||
     value.indexOf("data:image/") === 0 ||
