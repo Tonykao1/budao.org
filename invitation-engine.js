@@ -100,11 +100,10 @@
         const ctx = canvas.getContext("2d");
         const image = await loadImage(imageSource(route)).catch(function () { return null; });
         const qr = await loadImage(qrSource(route)).catch(function () { return null; });
-        const logo = await loadImage("budao-logo-black.png").catch(function () { return null; });
 
         canvas.width = cardWidth;
         canvas.height = cardHeight;
-        drawInvitation(ctx, route, image, qr, logo);
+        drawInvitation(ctx, route, image, qr);
 
         const blob = await canvasToBlob(canvas);
 
@@ -115,7 +114,7 @@
         };
     }
 
-    function drawInvitation(ctx, route, image, qr, logo) {
+    function drawInvitation(ctx, route, image, qr) {
         const place = meetingPlace(route);
         const location = locationLabel(route) || "同行地点待定";
         const title = route.title || "步道同行";
@@ -129,7 +128,7 @@
         drawMeetingCard(ctx, place);
         drawInfoPills(ctx, route);
         drawQrSeal(ctx, qr);
-        drawFooter(ctx, logo);
+        drawFooter(ctx);
     }
 
     function drawPaper(ctx) {
@@ -406,7 +405,7 @@
         ctx.restore();
     }
 
-    function drawFooter(ctx, logo) {
+    function drawFooter(ctx) {
         ctx.strokeStyle = "rgba(20,16,12,0.15)";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -414,9 +413,7 @@
         ctx.lineTo(962, 1384);
         ctx.stroke();
 
-        if (logo) {
-            drawContainImage(ctx, logo, 118, 1398, 108, 64);
-        }
+        drawBudaoMark(ctx, 118, 1428);
 
         ctx.fillStyle = "#6f6458";
         ctx.font = cnFont(400, 24);
@@ -433,6 +430,23 @@
         ctx.moveTo(248, 1458);
         ctx.lineTo(962, 1458);
         ctx.stroke();
+    }
+
+    function drawBudaoMark(ctx, x, y) {
+        ctx.save();
+        ctx.fillStyle = "#15110d";
+        ctx.font = '400 28px "Songti SC", "STSong", "Noto Serif SC", "PingFang SC", serif';
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("步道", x, y);
+
+        ctx.strokeStyle = "rgba(21,17,13,0.74)";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(x + 2, y + 11);
+        ctx.bezierCurveTo(x + 24, y + 5, x + 48, y + 7, x + 72, y + 1);
+        ctx.stroke();
+        ctx.restore();
     }
 
     function closeInvitation() {
