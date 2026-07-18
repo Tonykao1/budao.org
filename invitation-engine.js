@@ -100,10 +100,11 @@
         const ctx = canvas.getContext("2d");
         const image = await loadImage(imageSource(route)).catch(function () { return null; });
         const qr = await loadImage(qrSource(route)).catch(function () { return null; });
+        const logo = await loadImage("budao-logo-black.png").catch(function () { return null; });
 
         canvas.width = cardWidth;
         canvas.height = cardHeight;
-        drawInvitation(ctx, route, image, qr);
+        drawInvitation(ctx, route, image, qr, logo);
 
         const blob = await canvasToBlob(canvas);
 
@@ -114,7 +115,7 @@
         };
     }
 
-    function drawInvitation(ctx, route, image, qr) {
+    function drawInvitation(ctx, route, image, qr, logo) {
         const place = meetingPlace(route);
         const location = locationLabel(route) || "同行地点待定";
         const title = route.title || "步道同行";
@@ -128,7 +129,7 @@
         drawMeetingCard(ctx, place);
         drawInfoPills(ctx, route);
         drawQrSeal(ctx, qr);
-        drawFooter(ctx);
+        drawFooter(ctx, logo);
     }
 
     function drawPaper(ctx) {
@@ -267,7 +268,7 @@
 
         ctx.fillStyle = "#7d6f5f";
         ctx.font = cnFont(360, 26);
-        drawWrappedText(ctx, "若你也愿意，就在这一天，与我们一同走一段路。", x, y + 42, w - 8, 46, 2);
+        drawWrappedText(ctx, "唯有祂感动你，让我们一路同行，共步主道……", x, y + 42, w - 8, 46, 2);
     }
 
     function drawMeetingCard(ctx, place) {
@@ -300,7 +301,7 @@
 
         ctx.fillStyle = "#8d8378";
         ctx.font = systemFont(460, 18);
-        ctx.fillText("请预留到达与彼此等候的时间", x + w - 158, y + 58);
+        ctx.fillText("请预留到达与彼此等候的时间", x + w - 176, y + 58);
         ctx.restore();
     }
 
@@ -390,7 +391,7 @@
             ctx.fillStyle = "#6c6258";
             ctx.font = cnFont(400, 21);
             ctx.textAlign = "center";
-            drawWrappedText(ctx, "报名码暂未放出", x + size / 2 - 55, y + 68, 110, 30, 2);
+            drawWrappedText(ctx, "报名码暂未放出", x + 24, y + 70, size - 48, 30, 2);
         }
 
         ctx.fillStyle = "#8b7860";
@@ -402,7 +403,7 @@
         ctx.restore();
     }
 
-    function drawFooter(ctx) {
+    function drawFooter(ctx, logo) {
         ctx.strokeStyle = "rgba(20,16,12,0.15)";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -410,18 +411,14 @@
         ctx.lineTo(962, 1384);
         ctx.stroke();
 
-        ctx.strokeStyle = "rgba(184,156,82,0.42)";
-        ctx.lineWidth = 2;
-        circleStroke(ctx, 138, 1435, 20);
-        ctx.fillStyle = "#7a6f62";
-        ctx.font = systemFont(700, 16);
-        ctx.textAlign = "center";
-        ctx.fillText("B", 138, 1441);
+        if (logo) {
+            drawContainImage(ctx, logo, 118, 1408, 54, 42);
+        }
 
         ctx.fillStyle = "#6f6458";
         ctx.font = cnFont(400, 24);
         ctx.textAlign = "left";
-        ctx.fillText("余生行走，不偏左右", 178, 1432);
+        ctx.fillText("余生行走，不偏左右", 190, 1432);
 
         ctx.fillStyle = "#15110d";
         ctx.font = systemFont(750, 40);
@@ -430,7 +427,7 @@
 
         ctx.strokeStyle = "rgba(20,16,12,0.09)";
         ctx.beginPath();
-        ctx.moveTo(178, 1458);
+        ctx.moveTo(190, 1458);
         ctx.lineTo(962, 1458);
         ctx.stroke();
     }
