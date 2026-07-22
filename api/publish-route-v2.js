@@ -1,6 +1,6 @@
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = process.env.GITHUB_BRANCH || "main";
+const branch = process.env.GITHUB_PUBLISH_BRANCH || "security/content-publishing";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const fixedSlots = ["IMS", "BACBC"];
@@ -8,38 +8,24 @@ const slotOwners = {
   IMS: "IMS@budao.org",
   BACBC: "BACBC@budao.org"
 };
+const { getAuthenticatedPublisher } = require("./_security/auth");
+const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/http");
+const { clientIp, consume } = require("./_security/rate-limit");
+const { validateRoute } = require("./_security/route-schema");
 
 module.exports = async function handler(request, response) {
-  setCorsHeaders(response);
-
-  if (request.method === "OPTIONS") {
-    response.status(204).end();
-    return;
+  const parsed = requireJsonPost(request);
+  if (parsed.error) return sendJson(response, parsed.status, { ok: false, reason: parsed.error });
+  if (!requireSameOrigin(request)) return sendJson(response, 403, { ok: false, reason: "forbidden" });
+  const publisher = getAuthenticatedPublisher(request);
+  if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  if (!consume("publish:" + publisher.id + ":" + clientIp(request), 10, 60_000)) {
+    return sendJson(response, 429, { ok: false, reason: "rate_limited" });
   }
-
-  if (request.method !== "POST") {
-    sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
-    return;
-  }
-
-  if (!token) {
-    sendJson(response, 401, { ok: false, reason: "token_invalid" });
-    return;
-  }
-
-  let route;
-
-  try {
-    route = typeof request.body === "string" ? JSON.parse(request.body) : request.body;
-  } catch (error) {
-    sendJson(response, 400, { ok: false, reason: "bad_json" });
-    return;
-  }
-
-  if (!route || !route.title) {
-    sendJson(response, 400, { ok: false, reason: "missing_route" });
-    return;
-  }
+  if (!token || branch === "main") return sendJson(response, 503, { ok: false, reason: "publishing_unavailable" });
+  const validated = validateRoute(parsed.body);
+  if (validated.error) return sendJson(response, 400, { ok: false, reason: validated.error });
+  const route = { ...validated.value, owner: slotOwners[publisher.slot], slot: publisher.slot };
 
   try {
     const current = await readRoutesFile();
@@ -419,14 +405,4 @@ function knownError(reason, status) {
   error.reason = reason;
   error.status = status;
   return error;
-}
-
-function setCorsHeaders(response) {
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
-
-function sendJson(response, status, body) {
-  response.status(status).json(body);
 }

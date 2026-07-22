@@ -24,10 +24,6 @@
   const pendingTrailStorageKey = "budao.tent.pendingPublish";
   const publishEndpoint = window.BUDAO_PUBLISH_ENDPOINT ||
     (window.location.protocol === "file:" ? "https://budao.org/api/publish-route" : "/api/publish-route");
-  const admins = [
-    { email: "IMS@budao.org", password: "Budao2026!" },
-    { email: "BACBC@budao.org", password: "Budao2026!" }
-  ];
   const slotRouteDefaults = {
     IMS: {
       id: "budao-ims",
@@ -266,20 +262,26 @@
     event.preventDefault();
     const email = valueOf(entryForm, "email").toLowerCase();
     const password = valueOf(entryForm, "password");
-    const allowed = admins.find(function (admin) {
-      return admin.email.toLowerCase() === email && admin.password === password;
+    loginMessage.textContent = "正在验证…";
+    fetch("/api/auth/login", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    }).then(function (response) {
+      if (!response.ok) throw new Error("login_failed");
+      return response.json();
+    }).then(function (result) {
+      currentUserEmail = result.slot === "IMS" ? "IMS@budao.org" : "BACBC@budao.org";
+      entryForm.reset();
+      loginMessage.textContent = "";
+      presence.classList.add("entrance-open");
+      presence.classList.remove("route-open", "word-open");
+      loadOwnedRouteForCurrentUser();
+    }).catch(function () {
+      currentUserEmail = "";
+      loginMessage.textContent = "登录失败。";
     });
-
-    if (!allowed) {
-      loginMessage.textContent = "邮箱或密码错误。";
-      return;
-    }
-
-    currentUserEmail = allowed.email;
-    loginMessage.textContent = "";
-    presence.classList.add("entrance-open");
-    presence.classList.remove("route-open", "word-open");
-    loadOwnedRouteForCurrentUser();
   });
 
   pathChoices.forEach(function (choice) {
@@ -813,6 +815,10 @@
 
   function publishTrail(trail) {
     const route = toRouteJson(trail);
+    const payload = { ...route };
+    ["owner", "slot", "createdAt", "updatedAt"].forEach(function (key) { delete payload[key]; });
+    if (String(payload.image || "").startsWith("data:")) delete payload.image;
+    if (String(payload.qrCode || "").startsWith("data:")) delete payload.qrCode;
 
     window.localStorage.setItem(pendingTrailStorageKey, JSON.stringify(route));
 
@@ -821,7 +827,8 @@
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(route)
+      credentials: "same-origin",
+      body: JSON.stringify(payload)
     }).then(function (response) {
       if (!response.ok) {
         return response.json().catch(function () {

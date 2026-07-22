@@ -1,0 +1,10 @@
+{
+  "name": "budao-security-tests",
+  "private": true,
+  "scripts": {
+    "lint": "node --check api/publish-route.js && node --check api/publish-route-v2.js && node --check api/auth/login.js && node --check api/auth/session.js && node --check api/auth/logout.js && node --check app.js && node --check tent-app.js",
+    "typecheck": "node --test --test-name-pattern='schema modules load' test/security.test.js",
+    "test": "node --test test/security.test.js",
+    "build": "node scripts/security-build-check.js"
+  }
+}
