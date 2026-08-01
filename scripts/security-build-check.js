@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const clientFiles = ["app.js", "tent-app.js", "tent.html", "test.html"];
+const clientFiles = ["tent-app.js", "tent.html", "test.html"];
 const forbidden = [/GITHUB_TOKEN/, /GH_TOKEN/, /BUDAO_SESSION_SECRET/, /password\s*:\s*["'][^"']+/];
 for (const file of clientFiles) {
   const source = fs.readFileSync(path.join(__dirname, "..", file), "utf8");

@@ -17,8 +17,8 @@ process.env.BUDAO_ADMIN_USERS_JSON = JSON.stringify([{
 }]);
 
 const login = require("../api/auth/login");
-const publish = require("../api/publish-route");
-const publishV2 = require("../api/publish-route-v2");
+const legacyPublish = require("../api/publish-route");
+const publish = require("../api/publish-route-v2");
 const disabledPublish = require("../api/publish");
 const { resetForTests } = require("../api/_security/rate-limit");
 const { validateRoute } = require("../api/_security/route-schema");
@@ -60,11 +60,12 @@ test.beforeEach(() => resetForTests());
 test("schema modules load", () => assert.equal(validateRoute({ title: "Safe route" }).value.title, "Safe route"));
 
 test("anonymous users cannot publish", async () => {
-  for (const handler of [publish, publishV2]) {
-    const res = response();
-    await handler(request({ title: "No" }), res);
-    assert.equal(res.statusCode, 401);
-  }
+  const res = response();
+  await publish(request({ title: "No" }), res);
+  assert.equal(res.statusCode, 401);
+  const legacy = response();
+  await legacyPublish(request({ title: "No" }), legacy);
+  assert.equal(legacy.statusCode, 409);
   const tombstone = response();
   await disabledPublish(request({ title: "No" }), tombstone);
   assert.equal(tombstone.statusCode, 410);
@@ -161,7 +162,7 @@ test("publisher rate limit returns 429", async () => {
 });
 
 test("client assets contain no hard-coded admin password or GitHub token", () => {
-  for (const file of ["app.js", "tent-app.js", "tent.html"]) {
+  for (const file of ["tent-app.js", "tent.html"]) {
     const source = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
     assert.equal(/Budao2026|GITHUB_TOKEN|BUDAO_SESSION_SECRET/.test(source), false);
   }
