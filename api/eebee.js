@@ -22,7 +22,7 @@ module.exports = async function handler(request, response) {
     return sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
   } catch (error) {
     if (error && error.reason) return sendJson(response, error.status || 500, { ok: false, reason: error.reason });
-    return sendJson(response, 500, { ok: false, reason: "eebee_unavailable" });
+    return sendJson(response, 500, { ok: false, reason: "service_unavailable" });
   }
 };
 
@@ -39,7 +39,7 @@ async function handleGet(request, response) {
   }
 
   if (view === "admin") {
-    const publisher = requireTony(request);
+    const publisher = requireFulfiller(request);
     return sendJson(response, 200, { ok: true, admin: { id: publisher.id }, data: adminView(data) });
   }
 
@@ -70,12 +70,12 @@ async function handlePost(request, response) {
   } else if (action === "apply") {
     result = applyForOffering(request, data, parsed.body);
   } else {
-    const publisher = requireTony(request);
+    const publisher = requireFulfiller(request);
     result = adminAction(publisher, data, parsed.body);
   }
 
   const content = JSON.stringify(data, null, 2) + "\n";
-  const commit = await writeDataFile(content, current.sha, "Update Eebee data");
+  const commit = await writeDataFile(content, current.sha, "Update stewardship data");
   if (cookie) response.setHeader("Set-Cookie", cookie);
   return sendJson(response, 200, { ok: true, ...result, commit: commit.commit && commit.commit.sha ? commit.commit.sha : null });
 }
@@ -351,10 +351,10 @@ function contentsUrl() {
   return "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" + dataPath + "?ref=" + branch;
 }
 
-function requireTony(request) {
+function requireFulfiller(request) {
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) throw knownError("unauthorized", 401);
-  const allowed = process.env.EEBEE_PUBLISHER_USER_ID;
+  const allowed = process.env.STEWARDSHIP_OPERATOR_USER_ID;
   if (!allowed || publisher.id !== allowed) throw knownError("forbidden", 403);
   return publisher;
 }
@@ -421,7 +421,12 @@ function adminOffering(data, offering) {
 
 function adminApplication(data, application) {
   const user = data.users.find((item) => item.id === application.applicantUserId);
-  return { ...application, applicant: user ? publicUser(user) : null };
+  const { applicantEebeeCode, ...safeApplication } = application;
+  return {
+    ...safeApplication,
+    applicantEntrustedCode: displayEntrustedCode(applicantEebeeCode),
+    applicant: user ? publicUser(user) : null
+  };
 }
 
 function adminHandover(data, handover) {
@@ -429,7 +434,7 @@ function adminHandover(data, handover) {
 }
 
 function publicUser(user) {
-  return { id: user.id, eebeeCode: user.eebeeCode, displayName: user.displayName || "" };
+  return { id: user.id, entrustedCode: displayEntrustedCode(user.eebeeCode), displayName: user.displayName || "" };
 }
 
 function applicationsForUser(data, userId) {
@@ -442,7 +447,7 @@ function applicantView(data, application) {
   return {
     id: application.id,
     offeringId: application.offeringId,
-    applicantEebeeCode: application.applicantEebeeCode,
+    applicantEntrustedCode: displayEntrustedCode(application.applicantEebeeCode),
     reason: application.reason,
     intendedUse: application.intendedUse,
     additionalNote: application.additionalNote,
@@ -476,12 +481,16 @@ function readCookie(request, name) {
 }
 
 function uniqueEebeeCode(data) {
-  const existing = new Set(data.users.map((user) => user.eebeeCode));
+  const existing = new Set(data.users.flatMap((user) => [user.eebeeCode, displayEntrustedCode(user.eebeeCode)]));
   for (let attempt = 0; attempt < 20; attempt += 1) {
-    const code = "EB-" + randomBase32(10);
+    const code = randomBase32(10);
     if (!existing.has(code)) return code;
   }
   throw knownError("code_generation_failed", 500);
+}
+
+function displayEntrustedCode(value) {
+  return String(value || "").replace(/^EB-/, "");
 }
 
 function randomBase32(length) {
