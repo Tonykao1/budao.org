@@ -257,15 +257,14 @@ body{
 </nav>
 <main class="eebee-page">
   <section class="eebee-hero">
-    <p class="eebee-kicker">EEBEE</p>
     <h1>易彼益</h1>
-    <p>让资源在人与人之间继续产生益处。</p>
+    <p>让付出成为收获</p>
   </section>
 
   <div class="eebee-tabs">
-    <button class="eebee-tab is-active" data-view="resources">开放资源</button>
-    <button class="eebee-tab" data-view="me">我的编号</button>
-    <button class="eebee-tab" data-view="admin">Tony 管理</button>
+    <button class="eebee-tab is-active" data-view="resources">交托</button>
+    <button class="eebee-tab" data-view="me">受托</button>
+    <button class="eebee-tab" data-view="admin">成全</button>
   </div>
 
   <section id="resourcesView"></section>
@@ -285,6 +284,7 @@ const statusText = {
 
 const $ = (id)=>document.getElementById(id);
 const escapeHtml = (value)=>String(value || "").replace(/[&<>"']/g,(char)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
+const displayCode = (value)=>String(value || "").replace(/^EB-/,"");
 
 document.querySelectorAll(".eebee-tab").forEach((button)=>{
   button.addEventListener("click",()=>showView(button.dataset.view));
@@ -382,8 +382,8 @@ function renderApply(){
     <form class="eebee-form" id="registerForm">
       <p class="eebee-section-title">基础注册</p>
       <label class="eebee-field">昵称或称呼<input name="displayName" required maxlength="60"></label>
-      <label class="eebee-field">联系方式提示（仅 Tony 可见，可留邮箱/微信说明）<input name="contactNote" maxlength="160"></label>
-      <button class="eebee-button light" type="submit">获得易彼益编号</button>
+      <label class="eebee-field">联系方式提示（仅成全者可见，可留邮箱/微信说明）<input name="contactNote" maxlength="160"></label>
+      <button class="eebee-button light" type="submit">获得受托编号</button>
     </form>
     <form class="eebee-form" id="applyForm">
       <p class="eebee-section-title">承接申请</p>
@@ -411,13 +411,13 @@ async function submitRegister(event){
   const result = await apiPost({ action:"register", ...payload });
   state.me = { user:result.user, applications:[] };
   form.classList.add("hidden");
-  $("applyMessage").textContent = "你的易彼益编号：" + result.user.eebeeCode;
+  $("applyMessage").textContent = "你的受托编号：" + displayCode(result.user.entrustedCode);
 }
 
 async function submitApplication(event){
   event.preventDefault();
   if(!state.me || !state.me.user){
-    $("applyMessage").textContent = "请先获得易彼益编号。";
+    $("applyMessage").textContent = "请先获得受托编号。";
     return;
   }
   const form = event.currentTarget;
@@ -431,29 +431,29 @@ async function submitApplication(event){
     offlineHandoverAccepted:body.offlineHandoverAccepted === "on"
   });
   state.me.user = result.user;
-  $("applyMessage").innerHTML = `你的承接申请已经提交。资源不会自动分配，发布者将根据申请情况决定下一位承接者。<br>你的编号：${escapeHtml(result.user.eebeeCode)}`;
+  $("applyMessage").innerHTML = `你的承接申请已经提交。资源不会自动分配，发布者将根据申请情况决定下一位承接者。<br>受托编号：${escapeHtml(displayCode(result.user.entrustedCode))}`;
   form.querySelector("button[type=submit]").disabled = true;
 }
 
 function renderMe(){
   const me = state.me || {};
   if(!me.user){
-    $("meView").innerHTML = `<article class="eebee-panel"><h2>我的编号</h2><p>当你第一次申请“彼”时，系统会为你生成一个永久易彼益编号。</p></article>`;
+    $("meView").innerHTML = `<article class="eebee-panel"><h2>受托</h2><p>当你第一次申请“彼”时，系统会为你生成一个永久受托编号。</p></article>`;
     return;
   }
   $("meView").innerHTML = `<article class="eebee-panel">
-    <h2>${escapeHtml(me.user.eebeeCode)}</h2>
-    <p>${escapeHtml(me.user.displayName)}，这是你的永久易彼益编号。</p>
+    <h2>${escapeHtml(displayCode(me.user.entrustedCode))}</h2>
+    <p>${escapeHtml(me.user.displayName)}，这是你的永久受托编号。</p>
     <div class="eebee-list">${(me.applications || []).map((app)=>`<div class="eebee-row"><strong>${statusText[app.status] || app.status}</strong><p>${escapeHtml(app.reason)}</p>${app.handover ? `<p class="eebee-note">交接活动：${escapeHtml(app.handover.eventTitle || app.handover.eventId)}</p>` : ""}</div>`).join("") || "<p>暂时还没有申请记录。</p>"}</div>
   </article>`;
 }
 
 function renderAdminShell(){
-  $("adminView").innerHTML = `<article class="eebee-panel"><h2>Tony 管理</h2><p>正在读取管理区……</p></article>`;
+  $("adminView").innerHTML = `<article class="eebee-panel"><h2>成全</h2><p>正在读取……</p></article>`;
 }
 
 function renderAdminLocked(){
-  $("adminView").innerHTML = `<article class="eebee-panel"><h2>Tony 管理</h2><p>请先以 Tony 管理员身份进入 Tent 登录；同时需要配置 EEBEE_PUBLISHER_USER_ID。</p></article>`;
+  $("adminView").innerHTML = `<article class="eebee-panel"><h2>成全</h2><p>当前无法进入成全。</p></article>`;
 }
 
 function renderAdmin(){
@@ -526,7 +526,7 @@ async function saveOffering(event){
 function adminApplicationHtml(data, app){
   const offering = data.offerings.find((item)=>item.id === app.offeringId);
   return `<div class="eebee-row">
-    <strong>${escapeHtml(app.applicant?.eebeeCode || app.applicantEebeeCode)} · ${statusText[app.status] || app.status}</strong>
+    <strong>${escapeHtml(displayCode(app.applicant?.entrustedCode || app.applicantEntrustedCode || app.applicantEebeeCode))} · ${statusText[app.status] || app.status}</strong>
     <p class="eebee-note">${escapeHtml(app.applicant?.displayName || "")} 申请：${escapeHtml(offering?.resource?.title || app.offeringId)}</p>
     <p>${escapeHtml(app.reason)}</p>
     <p>${escapeHtml(app.intendedUse)}</p>
