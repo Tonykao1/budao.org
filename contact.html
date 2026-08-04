@@ -4,98 +4,249 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>易彼益 - 步道</title>
-
 <link rel="stylesheet" href="style.css">
-
 <style>
-* {
-  box-sizing: border-box;
+body{
+  min-height:100vh;
+  margin:0;
+  background:#f7f6f2;
+  color:#211f1b;
 }
-
-body {
-  min-height: 100vh;
-  margin: 0;
-  background: #f7f6f2;
-  color: #222;
+.eebee-page{
+  max-width:1040px;
+  margin:0 auto;
+  padding:120px 22px 86px;
 }
-
-.yibiyi-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 96px 28px 64px;
+.eebee-hero{
+  max-width:680px;
+  margin:0 auto 72px;
+  text-align:center;
 }
-
-.yibiyi-frame {
-  position: relative;
-  width: min(88vw, 980px);
-  overflow: hidden;
-  background: #16120e;
-  box-shadow:
-    0 34px 90px rgba(70, 58, 42, 0.12),
-    0 8px 24px rgba(70, 58, 42, 0.06);
+.eebee-kicker{
+  margin:0 0 18px;
+  color:#9a9287;
+  font-size:12px;
+  letter-spacing:.38em;
 }
-
-.yibiyi-image {
-  display: block;
-  width: 100%;
-  height: auto;
+.eebee-hero h1{
+  margin:0 0 22px;
+  font-size:clamp(44px,8vw,88px);
+  font-weight:300;
+  letter-spacing:.22em;
+  line-height:1.05;
 }
-
-.yibiyi-mark {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 24px 56px;
-  background: linear-gradient(
-    180deg,
-    rgba(16, 12, 8, 0) 42%,
-    rgba(16, 12, 8, 0.22) 72%,
-    rgba(16, 12, 8, 0.48) 100%
-  );
-  color: #fffaf0;
-  text-align: center;
+.eebee-hero p{
+  max-width:420px;
+  margin:0 auto;
+  color:#6e675e;
+  font-size:17px;
+  line-height:2;
+  letter-spacing:.08em;
 }
-
-.yibiyi-title {
-  margin: 0 0 14px;
-  font-size: clamp(38px, 7vw, 72px);
-  font-weight: 300;
-  letter-spacing: 0.22em;
-  line-height: 1.1;
+.eebee-tabs{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin:0 auto 44px;
+  flex-wrap:wrap;
 }
-
-.yibiyi-soon {
-  margin: 0;
-  color: rgba(255, 250, 240, 0.82);
-  font-size: clamp(14px, 2.2vw, 19px);
-  font-weight: 300;
-  letter-spacing: 0.36em;
-  line-height: 1.8;
+.eebee-tab,.eebee-button{
+  appearance:none;
+  border:1px solid rgba(43,39,33,.16);
+  background:#fffdf8;
+  color:#292620;
+  border-radius:999px;
+  padding:11px 22px;
+  font:500 14px/1 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+  letter-spacing:.08em;
+  cursor:pointer;
+  transition:opacity .2s ease, transform .2s ease, background .2s ease;
 }
-
-@media (max-width: 640px) {
-  .yibiyi-page {
-    padding: 84px 18px 46px;
-  }
-
-  .yibiyi-frame {
-    width: min(90vw, 520px);
-  }
-
-  .yibiyi-mark {
-    padding-bottom: 34px;
-  }
+.eebee-tab.is-active,.eebee-button.primary{
+  background:#080807;
+  color:#fff;
+  border-color:#080807;
+}
+.eebee-button.light{
+  background:transparent;
+}
+.eebee-button.danger{
+  border-color:rgba(120,44,32,.24);
+  color:#6d2c22;
+}
+.eebee-tab:hover,.eebee-button:hover{
+  opacity:.78;
+}
+.eebee-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:28px;
+  align-items:stretch;
+}
+.eebee-card,.eebee-panel{
+  background:#fffdf8;
+  border:1px solid rgba(35,31,25,.1);
+  box-shadow:0 24px 70px rgba(57,48,36,.07);
+}
+.eebee-card{
+  display:flex;
+  min-height:410px;
+  flex-direction:column;
+}
+.eebee-image{
+  display:flex;
+  aspect-ratio:4/3;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:linear-gradient(135deg,#efe8da,#d8cfbd);
+  color:#8b8173;
+  font-size:13px;
+  letter-spacing:.18em;
+}
+.eebee-image img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.eebee-card-body{
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  padding:24px;
+}
+.eebee-status{
+  width:max-content;
+  margin-bottom:16px;
+  border:1px solid rgba(184,156,82,.32);
+  border-radius:999px;
+  padding:7px 12px;
+  color:#8a7544;
+  font-size:12px;
+  letter-spacing:.12em;
+}
+.eebee-card h2,.eebee-panel h2{
+  margin:0 0 14px;
+  font-size:26px;
+  line-height:1.35;
+}
+.eebee-card p,.eebee-panel p{
+  color:#625b51;
+  font-size:15px;
+  line-height:1.9;
+}
+.eebee-card-actions{
+  display:flex;
+  gap:12px;
+  margin-top:auto;
+  flex-wrap:wrap;
+}
+.eebee-panel{
+  max-width:780px;
+  margin:0 auto 34px;
+  padding:34px;
+}
+.eebee-detail-image{
+  margin:-10px 0 30px;
+  overflow:hidden;
+  background:#eee7d9;
+}
+.eebee-detail-image img{
+  display:block;
+  width:100%;
+  max-height:440px;
+  object-fit:cover;
+}
+.eebee-section-title{
+  margin:38px 0 14px;
+  color:#9a9287;
+  font-size:12px;
+  letter-spacing:.22em;
+}
+.eebee-form{
+  display:grid;
+  gap:18px;
+}
+.eebee-field{
+  display:grid;
+  gap:8px;
+  color:#82796c;
+  font-size:12px;
+  letter-spacing:.14em;
+}
+.eebee-field input,.eebee-field textarea,.eebee-field select{
+  width:100%;
+  border:0;
+  border-bottom:1px solid rgba(38,34,28,.22);
+  border-radius:0;
+  background:transparent;
+  color:#28241f;
+  font:400 15px/1.7 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+  outline:0;
+  padding:8px 0;
+}
+.eebee-field textarea{
+  min-height:112px;
+  resize:vertical;
+}
+.eebee-check{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  margin:8px 0;
+  color:#4c463e;
+  line-height:1.8;
+}
+.eebee-actions{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.eebee-note{
+  color:#8b8173;
+  font-size:13px;
+  line-height:1.9;
+}
+.eebee-empty{
+  max-width:520px;
+  margin:0 auto;
+  color:#81786d;
+  text-align:center;
+  line-height:2;
+}
+.eebee-list{
+  display:grid;
+  gap:18px;
+}
+.eebee-row{
+  border-top:1px solid rgba(35,31,25,.1);
+  padding-top:18px;
+}
+.eebee-row strong{
+  display:block;
+  margin-bottom:7px;
+}
+.eebee-admin-layout{
+  display:grid;
+  grid-template-columns:minmax(280px,1fr) minmax(300px,1fr);
+  gap:28px;
+  align-items:start;
+}
+.eebee-admin-box{
+  border:1px solid rgba(35,31,25,.1);
+  background:rgba(255,255,255,.48);
+  padding:22px;
+}
+.hidden{display:none!important;}
+@media(max-width:760px){
+  .eebee-page{padding-top:96px;}
+  .eebee-admin-layout{grid-template-columns:1fr;}
+  .eebee-panel{padding:26px 20px;}
 }
 </style>
 </head>
-
 <body>
-
 <nav>
   <a href="/home.html">首页</a>
   <a href="/test.html">超级星期六</a>
@@ -104,16 +255,349 @@ body {
   <a href="/what.html">同工</a>
   <a href="/contact.html">易彼益</a>
 </nav>
+<main class="eebee-page">
+  <section class="eebee-hero">
+    <p class="eebee-kicker">EEBEE</p>
+    <h1>易彼益</h1>
+    <p>让资源在人与人之间继续产生益处。</p>
+  </section>
 
-<main class="yibiyi-page" aria-label="易彼益 即将推出">
-  <figure class="yibiyi-frame">
-    <img class="yibiyi-image" src="/yibiyi-coming-soon.jpg" alt="易彼益，即将推出">
-    <figcaption class="yibiyi-mark">
-      <h1 class="yibiyi-title">易彼益</h1>
-      <p class="yibiyi-soon">即将推出</p>
-    </figcaption>
-  </figure>
+  <div class="eebee-tabs">
+    <button class="eebee-tab is-active" data-view="resources">开放资源</button>
+    <button class="eebee-tab" data-view="me">我的编号</button>
+    <button class="eebee-tab" data-view="admin">Tony 管理</button>
+  </div>
+
+  <section id="resourcesView"></section>
+  <section id="detailView" class="hidden"></section>
+  <section id="applyView" class="hidden"></section>
+  <section id="meView" class="hidden"></section>
+  <section id="adminView" class="hidden"></section>
 </main>
 
+<script>
+const state = { data:null, me:null, selected:null, admin:null };
+const statusText = {
+  DRAFT:"草稿", OPEN:"可申请", MATCHED:"等待安排", HANDOVER_SCHEDULED:"已安排交接",
+  HANDED_OVER:"已完成交接", CLOSED:"已关闭", WITHDRAWN:"已撤回",
+  APPLIED:"已申请", SELECTED:"已选定", NOT_SELECTED:"未选定", REJECTED:"已婉拒"
+};
+
+const $ = (id)=>document.getElementById(id);
+const escapeHtml = (value)=>String(value || "").replace(/[&<>"']/g,(char)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
+
+document.querySelectorAll(".eebee-tab").forEach((button)=>{
+  button.addEventListener("click",()=>showView(button.dataset.view));
+});
+
+loadPublic();
+loadMe();
+
+async function loadPublic(){
+  const result = await apiGet("/api/eebee");
+  state.data = result.data || { offerings:[] };
+  renderResources();
+}
+
+async function loadMe(){
+  const result = await apiGet("/api/eebee?view=me");
+  state.me = result;
+}
+
+async function loadAdmin(){
+  const result = await apiGet("/api/eebee?view=admin");
+  state.admin = result.data;
+  renderAdmin();
+}
+
+function showView(view){
+  document.querySelectorAll(".eebee-tab").forEach((button)=>button.classList.toggle("is-active",button.dataset.view === view));
+  ["resourcesView","detailView","applyView","meView","adminView"].forEach((id)=>$(id).classList.add("hidden"));
+  if(view === "resources") $("resourcesView").classList.remove("hidden");
+  if(view === "me"){ renderMe(); $("meView").classList.remove("hidden"); }
+  if(view === "admin"){ renderAdminShell(); $("adminView").classList.remove("hidden"); loadAdmin().catch(()=>renderAdminLocked()); }
+}
+
+function renderResources(){
+  const offerings = (state.data && state.data.offerings) || [];
+  if(!offerings.length){
+    $("resourcesView").innerHTML = `<p class="eebee-empty">第一件资源还没有被安静放出。<br>当它出现时，会在这里等待下一位承接者。</p>`;
+    return;
+  }
+  $("resourcesView").innerHTML = `<div class="eebee-grid">${offerings.map(cardHtml).join("")}</div>`;
+  document.querySelectorAll("[data-open-offering]").forEach((button)=>button.addEventListener("click",()=>openDetail(button.dataset.openOffering)));
+}
+
+function cardHtml(offering){
+  const image = (offering.images || [])[0];
+  return `<article class="eebee-card">
+    <div class="eebee-image">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(offering.title)}">` : "易彼益"}</div>
+    <div class="eebee-card-body">
+      <span class="eebee-status">${statusText[offering.status] || offering.status}</span>
+      <h2>${escapeHtml(offering.title)}</h2>
+      <p>${escapeHtml(offering.description).slice(0,120)}</p>
+      <div class="eebee-card-actions">
+        <button class="eebee-button primary" data-open-offering="${escapeHtml(offering.id)}">查看</button>
+        ${offering.canApply ? `<button class="eebee-button light" data-open-offering="${escapeHtml(offering.id)}">彼</button>` : ""}
+      </div>
+    </div>
+  </article>`;
+}
+
+function openDetail(id){
+  state.selected = ((state.data && state.data.offerings) || []).find((item)=>item.id === id);
+  if(!state.selected) return;
+  const item = state.selected;
+  const image = (item.images || [])[0];
+  $("resourcesView").classList.add("hidden");
+  $("applyView").classList.add("hidden");
+  $("detailView").classList.remove("hidden");
+  $("detailView").innerHTML = `<article class="eebee-panel">
+    ${image ? `<div class="eebee-detail-image"><img src="${escapeHtml(image)}" alt="${escapeHtml(item.title)}"></div>` : ""}
+    <span class="eebee-status">${statusText[item.status] || item.status}</span>
+    <h2>${escapeHtml(item.title)}</h2>
+    <p>${escapeHtml(item.description)}</p>
+    <p class="eebee-section-title">为什么发起这次易</p>
+    <p>${escapeHtml(item.reasonForOffering)}</p>
+    <p class="eebee-section-title">对下一位承接者的期待</p>
+    <p>${escapeHtml(item.recipientExpectation)}</p>
+    ${item.impact ? `<p class="eebee-section-title">益</p><p>${escapeHtml(item.impact.recipientReflection || "")}</p><p>${escapeHtml(item.impact.publisherConfirmation || "")}</p>` : ""}
+    <div class="eebee-actions">
+      ${item.canApply ? `<button class="eebee-button primary" id="startApply">彼</button><span class="eebee-note">申请成为下一位承接者</span>` : ""}
+      <button class="eebee-button light" id="backToList">返回</button>
+    </div>
+  </article>`;
+  $("backToList").addEventListener("click",()=>{ $("detailView").classList.add("hidden"); $("resourcesView").classList.remove("hidden"); });
+  const start = $("startApply");
+  if(start) start.addEventListener("click",renderApply);
+}
+
+function renderApply(){
+  const item = state.selected;
+  $("detailView").classList.add("hidden");
+  $("applyView").classList.remove("hidden");
+  $("applyView").innerHTML = `<article class="eebee-panel">
+    <h2>彼</h2>
+    <p>申请成为《${escapeHtml(item.title)}》的下一位承接者。</p>
+    <form class="eebee-form" id="registerForm">
+      <p class="eebee-section-title">基础注册</p>
+      <label class="eebee-field">昵称或称呼<input name="displayName" required maxlength="60"></label>
+      <label class="eebee-field">联系方式提示（仅 Tony 可见，可留邮箱/微信说明）<input name="contactNote" maxlength="160"></label>
+      <button class="eebee-button light" type="submit">获得易彼益编号</button>
+    </form>
+    <form class="eebee-form" id="applyForm">
+      <p class="eebee-section-title">承接申请</p>
+      <label class="eebee-field">申请承接的理由<textarea name="reason" required minlength="6" maxlength="800"></textarea></label>
+      <label class="eebee-field">计划如何使用或照顾该资源<textarea name="intendedUse" required minlength="6" maxlength="800"></textarea></label>
+      <label class="eebee-field">补充说明<textarea name="additionalNote" maxlength="800"></textarea></label>
+      <label class="eebee-check"><input name="offlineHandoverAccepted" type="checkbox" required>我愿意在一次步道活动中完成现场交接</label>
+      <div class="eebee-actions">
+        <button class="eebee-button primary" type="submit">提交承接申请</button>
+        <button class="eebee-button light" type="button" id="cancelApply">返回</button>
+      </div>
+      <p class="eebee-note" id="applyMessage"></p>
+    </form>
+  </article>`;
+  $("cancelApply").addEventListener("click",()=>openDetail(item.id));
+  $("registerForm").addEventListener("submit",submitRegister);
+  $("applyForm").addEventListener("submit",submitApplication);
+  if(state.me && state.me.user) $("registerForm").classList.add("hidden");
+}
+
+async function submitRegister(event){
+  event.preventDefault();
+  const form = event.currentTarget;
+  const payload = Object.fromEntries(new FormData(form).entries());
+  const result = await apiPost({ action:"register", ...payload });
+  state.me = { user:result.user, applications:[] };
+  form.classList.add("hidden");
+  $("applyMessage").textContent = "你的易彼益编号：" + result.user.eebeeCode;
+}
+
+async function submitApplication(event){
+  event.preventDefault();
+  if(!state.me || !state.me.user){
+    $("applyMessage").textContent = "请先获得易彼益编号。";
+    return;
+  }
+  const form = event.currentTarget;
+  const body = Object.fromEntries(new FormData(form).entries());
+  const result = await apiPost({
+    action:"apply",
+    offeringId:state.selected.id,
+    reason:body.reason,
+    intendedUse:body.intendedUse,
+    additionalNote:body.additionalNote,
+    offlineHandoverAccepted:body.offlineHandoverAccepted === "on"
+  });
+  state.me.user = result.user;
+  $("applyMessage").innerHTML = `你的承接申请已经提交。资源不会自动分配，发布者将根据申请情况决定下一位承接者。<br>你的编号：${escapeHtml(result.user.eebeeCode)}`;
+  form.querySelector("button[type=submit]").disabled = true;
+}
+
+function renderMe(){
+  const me = state.me || {};
+  if(!me.user){
+    $("meView").innerHTML = `<article class="eebee-panel"><h2>我的编号</h2><p>当你第一次申请“彼”时，系统会为你生成一个永久易彼益编号。</p></article>`;
+    return;
+  }
+  $("meView").innerHTML = `<article class="eebee-panel">
+    <h2>${escapeHtml(me.user.eebeeCode)}</h2>
+    <p>${escapeHtml(me.user.displayName)}，这是你的永久易彼益编号。</p>
+    <div class="eebee-list">${(me.applications || []).map((app)=>`<div class="eebee-row"><strong>${statusText[app.status] || app.status}</strong><p>${escapeHtml(app.reason)}</p>${app.handover ? `<p class="eebee-note">交接活动：${escapeHtml(app.handover.eventTitle || app.handover.eventId)}</p>` : ""}</div>`).join("") || "<p>暂时还没有申请记录。</p>"}</div>
+  </article>`;
+}
+
+function renderAdminShell(){
+  $("adminView").innerHTML = `<article class="eebee-panel"><h2>Tony 管理</h2><p>正在读取管理区……</p></article>`;
+}
+
+function renderAdminLocked(){
+  $("adminView").innerHTML = `<article class="eebee-panel"><h2>Tony 管理</h2><p>请先以 Tony 管理员身份进入 Tent 登录；同时需要配置 EEBEE_PUBLISHER_USER_ID。</p></article>`;
+}
+
+function renderAdmin(){
+  const data = state.admin || { offerings:[], applications:[], handovers:[], impacts:[] };
+  $("adminView").innerHTML = `<div class="eebee-admin-layout">
+    <article class="eebee-panel">
+      <h2>新建或编辑一次“易”</h2>
+      <form class="eebee-form" id="offeringForm">
+        <label class="eebee-field">选择已有易<select name="offeringId"><option value="">新建资源</option>${data.offerings.map((off)=>`<option value="${escapeHtml(off.id)}">${escapeHtml(off.resource.title || off.id)}</option>`).join("")}</select></label>
+        <label class="eebee-field">资源名称<input name="title" required maxlength="120"></label>
+        <label class="eebee-field">资源说明<textarea name="description" required maxlength="1400"></textarea></label>
+        <label class="eebee-field">状态/品相<input name="condition" maxlength="120"></label>
+        <label class="eebee-field">类别<input name="category" maxlength="80"></label>
+        <label class="eebee-field">图片地址（首版使用 https 或 / 开头路径）<input name="image"></label>
+        <label class="eebee-field">为什么发起这次易<textarea name="reasonForOffering" required maxlength="1000"></textarea></label>
+        <label class="eebee-field">对承接者的期待<textarea name="recipientExpectation" required maxlength="1000"></textarea></label>
+        <label class="eebee-field">状态<select name="status"><option>DRAFT</option><option>OPEN</option><option>WITHDRAWN</option><option>CLOSED</option></select></label>
+        <button class="eebee-button primary" type="submit">暂时安放 / 发布</button>
+      </form>
+    </article>
+    <section class="eebee-panel">
+      <h2>承接申请</h2>
+      <div class="eebee-list">${data.applications.map((app)=>adminApplicationHtml(data, app)).join("") || "<p>暂时没有申请。</p>"}</div>
+    </section>
+    <section class="eebee-panel">
+      <h2>交接与益</h2>
+      <div class="eebee-list">${data.offerings.map((off)=>adminFlowHtml(data, off)).join("") || "<p>暂无资源。</p>"}</div>
+    </section>
+  </div>`;
+  const form = $("offeringForm");
+  form.addEventListener("submit",saveOffering);
+  form.offeringId.addEventListener("change",()=>fillOfferingForm(data, form.offeringId.value));
+  document.querySelectorAll("[data-admin-action]").forEach((button)=>button.addEventListener("click",adminButton));
+}
+
+function fillOfferingForm(data, id){
+  const form = $("offeringForm");
+  const off = data.offerings.find((item)=>item.id === id);
+  if(!off){ form.reset(); return; }
+  form.title.value = off.resource.title || "";
+  form.description.value = off.resource.description || "";
+  form.condition.value = off.resource.condition || "";
+  form.category.value = off.resource.category || "";
+  form.image.value = (off.resource.images || [])[0] || "";
+  form.reasonForOffering.value = off.reasonForOffering || "";
+  form.recipientExpectation.value = off.recipientExpectation || "";
+  form.status.value = off.status || "DRAFT";
+}
+
+async function saveOffering(event){
+  event.preventDefault();
+  const form = event.currentTarget;
+  const raw = Object.fromEntries(new FormData(form).entries());
+  await apiPost({
+    action:"saveOffering",
+    offeringId:raw.offeringId,
+    title:raw.title,
+    description:raw.description,
+    condition:raw.condition,
+    category:raw.category,
+    images:raw.image ? [raw.image] : [],
+    reasonForOffering:raw.reasonForOffering,
+    recipientExpectation:raw.recipientExpectation,
+    status:raw.status
+  });
+  await loadPublic();
+  await loadAdmin();
+}
+
+function adminApplicationHtml(data, app){
+  const offering = data.offerings.find((item)=>item.id === app.offeringId);
+  return `<div class="eebee-row">
+    <strong>${escapeHtml(app.applicant?.eebeeCode || app.applicantEebeeCode)} · ${statusText[app.status] || app.status}</strong>
+    <p class="eebee-note">${escapeHtml(app.applicant?.displayName || "")} 申请：${escapeHtml(offering?.resource?.title || app.offeringId)}</p>
+    <p>${escapeHtml(app.reason)}</p>
+    <p>${escapeHtml(app.intendedUse)}</p>
+    <div class="eebee-actions">
+      <button class="eebee-button light" data-admin-action="selectApplication" data-application-id="${escapeHtml(app.id)}">选定</button>
+      <button class="eebee-button danger" data-admin-action="rejectApplication" data-application-id="${escapeHtml(app.id)}">婉拒</button>
+    </div>
+  </div>`;
+}
+
+function adminFlowHtml(data, off){
+  const handover = data.handovers.find((item)=>item.offeringId === off.id);
+  const impact = handover ? data.impacts.find((item)=>item.handoverId === handover.id) : null;
+  return `<div class="eebee-row">
+    <strong>${escapeHtml(off.resource.title || off.id)} · ${statusText[off.status] || off.status}</strong>
+    <label class="eebee-field">步道活动 ID<input id="eventId-${off.id}" value="${escapeHtml(handover?.eventId || "")}" placeholder="例如 budao-ims"></label>
+    <label class="eebee-field">活动名称<input id="eventTitle-${off.id}" value="${escapeHtml(handover?.eventTitle || "")}" placeholder="例如 百望山"></label>
+    <label class="eebee-field">交接备注<textarea id="handoverNote-${off.id}">${escapeHtml(handover?.note || "")}</textarea></label>
+    <div class="eebee-actions">
+      <button class="eebee-button light" data-admin-action="scheduleHandover" data-offering-id="${escapeHtml(off.id)}">绑定步道活动</button>
+      <button class="eebee-button primary" data-admin-action="confirmHandover" data-offering-id="${escapeHtml(off.id)}">确认交接完成</button>
+      <button class="eebee-button danger" data-admin-action="revokeSelection" data-offering-id="${escapeHtml(off.id)}">撤销选定</button>
+    </div>
+    ${handover && handover.status === "COMPLETED" ? `<div class="eebee-form">
+      <label class="eebee-field">承接者一句话反馈<textarea id="recipientReflection-${handover.id}">${escapeHtml(impact?.recipientReflection || "")}</textarea></label>
+      <label class="eebee-field">发布者或见证人确认<textarea id="publisherConfirmation-${handover.id}">${escapeHtml(impact?.publisherConfirmation || "")}</textarea></label>
+      <button class="eebee-button light" data-admin-action="saveImpact" data-handover-id="${escapeHtml(handover.id)}">安放益记录</button>
+    </div>` : ""}
+  </div>`;
+}
+
+async function adminButton(event){
+  const button = event.currentTarget;
+  const action = button.dataset.adminAction;
+  const body = { action };
+  if(button.dataset.applicationId) body.applicationId = button.dataset.applicationId;
+  if(button.dataset.offeringId){
+    const id = button.dataset.offeringId;
+    body.offeringId = id;
+    body.eventId = $("eventId-" + id)?.value || "";
+    body.eventTitle = $("eventTitle-" + id)?.value || "";
+    body.note = $("handoverNote-" + id)?.value || "";
+  }
+  if(button.dataset.handoverId){
+    const id = button.dataset.handoverId;
+    body.handoverId = id;
+    body.recipientReflection = $("recipientReflection-" + id)?.value || "";
+    body.publisherConfirmation = $("publisherConfirmation-" + id)?.value || "";
+  }
+  await apiPost(body);
+  await loadPublic();
+  await loadAdmin();
+}
+
+async function apiGet(url){
+  const response = await fetch(url, { credentials:"include" });
+  if(!response.ok) throw new Error("request_failed");
+  return response.json();
+}
+
+async function apiPost(body){
+  const response = await fetch("/api/eebee", {
+    method:"POST",
+    credentials:"include",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(body)
+  });
+  const result = await response.json().catch(()=>({ ok:false }));
+  if(!response.ok || !result.ok) throw new Error(result.reason || "request_failed");
+  return result;
+}
+</script>
 </body>
 </html>
