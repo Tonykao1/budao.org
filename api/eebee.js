@@ -5,7 +5,7 @@ const { clientIp, consume } = require("./_security/rate-limit");
 
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = process.env.GITHUB_PUBLISH_BRANCH || "security/content-publishing";
+const branch = process.env.GITHUB_PUBLISH_BRANCH || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const dataPath = "eebee-data.json";
 const USER_COOKIE = "eebee_user_session";
@@ -53,7 +53,7 @@ async function handlePost(request, response) {
   if (!consume("eebee:" + clientIp(request), 30, 60_000)) {
     return sendJson(response, 429, { ok: false, reason: "rate_limited" });
   }
-  if (!token || branch === "main") return sendJson(response, 503, { ok: false, reason: "storage_unavailable" });
+  if (!token) return sendJson(response, 503, { ok: false, reason: "storage_unavailable" });
 
   const action = stringField(parsed.body.action, 40);
   if (!action) return sendJson(response, 400, { ok: false, reason: "missing_action" });
