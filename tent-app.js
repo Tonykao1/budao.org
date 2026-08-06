@@ -864,7 +864,7 @@
 
     return new Promise(function (resolve, reject) {
       function check() {
-        fetch("https://budao.org/routes.json?budao=" + Date.now(), {
+        fetch("https://budao.org/api/routes?budao=" + Date.now(), {
           cache: "no-store"
         }).then(function (response) {
           if (!response.ok) {
