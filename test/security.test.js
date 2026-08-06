@@ -7,7 +7,8 @@ const test = require("node:test");
 process.env.NODE_ENV = "test";
 process.env.BUDAO_SESSION_SECRET = "test-only-session-secret-at-least-32-bytes";
 process.env.GITHUB_TOKEN = "test-token-never-logged";
-process.env.GITHUB_PUBLISH_BRANCH = "security/content-publishing";
+process.env.GITHUB_PUBLISH_BRANCH = "main";
+process.env.GITHUB_BRANCH = "main";
 
 const salt = Buffer.from("fixed-test-salt");
 const hash = crypto.scryptSync("unique-test-password", salt, 32).toString("base64url");
@@ -118,7 +119,7 @@ test("oversized and wrong-content-type requests are rejected", async () => {
   assert.equal(res.statusCode, 415);
 });
 
-test("valid publisher writes only the controlled branch and repeat content is idempotent", async () => {
+test("valid publisher writes the shared routes branch and repeat content is idempotent", async () => {
   const cookie = await loginCookie();
   const calls = [];
   let storedContent = Buffer.from("[]").toString("base64");
@@ -136,7 +137,7 @@ test("valid publisher writes only the controlled branch and repeat content is id
   const put = calls.find((call) => call.options && call.options.method === "PUT");
   assert.ok(put);
   const upstream = JSON.parse(put.options.body);
-  assert.equal(upstream.branch, "security/content-publishing");
+  assert.equal(upstream.branch, "main");
   assert.equal(put.url.includes("/contents/routes.json"), true);
   assert.equal(JSON.stringify(first.body).includes(process.env.GITHUB_TOKEN), false);
 
@@ -147,16 +148,17 @@ test("valid publisher writes only the controlled branch and repeat content is id
   assert.equal(calls.filter((call) => call.options && call.options.method === "PUT").length, 1);
 });
 
-test("server configuration fails closed when publishing branch is main", async () => {
+test("server configuration fails closed without a publishing token", async () => {
   const cookie = await loginCookie();
   const modulePath = require.resolve("../api/publish-route-v2");
   delete require.cache[modulePath];
-  process.env.GITHUB_PUBLISH_BRANCH = "main";
-  const mainPublisher = require(modulePath);
+  const token = process.env.GITHUB_TOKEN;
+  delete process.env.GITHUB_TOKEN;
+  const unavailablePublisher = require(modulePath);
   const res = response();
-  await mainPublisher(request({ title: "Never main" }, { headers: { cookie } }), res);
+  await unavailablePublisher(request({ title: "No token" }, { headers: { cookie } }), res);
   assert.equal(res.statusCode, 503);
-  process.env.GITHUB_PUBLISH_BRANCH = "security/content-publishing";
+  process.env.GITHUB_TOKEN = token;
   delete require.cache[modulePath];
 });
 

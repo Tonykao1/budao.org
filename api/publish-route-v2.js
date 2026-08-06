@@ -1,6 +1,6 @@
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = process.env.GITHUB_PUBLISH_BRANCH || "security/content-publishing";
+const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const fixedSlots = ["IMS", "BACBC"];
@@ -22,7 +22,7 @@ module.exports = async function handler(request, response) {
   if (!consume("publish:" + publisher.id + ":" + clientIp(request), 10, 60_000)) {
     return sendJson(response, 429, { ok: false, reason: "rate_limited" });
   }
-  if (!token || branch === "main") return sendJson(response, 503, { ok: false, reason: "publishing_unavailable" });
+  if (!token) return sendJson(response, 503, { ok: false, reason: "publishing_unavailable" });
   const validated = validateRoute(parsed.body);
   if (validated.error) return sendJson(response, 400, { ok: false, reason: validated.error });
   const route = { ...validated.value, owner: slotOwners[publisher.slot], slot: publisher.slot };
