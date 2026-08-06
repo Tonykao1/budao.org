@@ -15,11 +15,13 @@ process.env.BUDAO_ADMIN_USERS_JSON = JSON.stringify([{
   id: "publisher-ims", email: "publisher@example.test",
   passwordHash: "scrypt$" + salt.toString("base64url") + "$" + hash, slot: "IMS"
 }]);
+process.env.STEWARDSHIP_OPERATOR_USER_ID = "publisher-ims";
 
 const login = require("../api/auth/login");
 const legacyPublish = require("../api/publish-route");
 const publish = require("../api/publish-route-v2");
 const disabledPublish = require("../api/publish");
+const eebee = require("../api/eebee");
 const { resetForTests } = require("../api/_security/rate-limit");
 const { validateRoute } = require("../api/_security/route-schema");
 
@@ -55,7 +57,17 @@ async function loginCookie() {
   return res.headers["set-cookie"].split(";")[0];
 }
 
+function signedPublisherCookie(sub = "publisher-ims", slot = "IMS") {
+  const payload = Buffer.from(JSON.stringify({
+    iss: "budao.org", aud: "budao-admin", sub, role: "publisher", slot,
+    exp: Math.floor(Date.now() / 1000) + 600
+  })).toString("base64url");
+  const signature = crypto.createHmac("sha256", process.env.BUDAO_SESSION_SECRET).update(payload).digest("base64url");
+  return "budao_admin_session=" + payload + "." + signature;
+}
+
 test.beforeEach(() => resetForTests());
+test.beforeEach(() => { delete global.__lastEebeeEmail; });
 
 test("schema modules load", () => assert.equal(validateRoute({ title: "Safe route" }).value.title, "Safe route"));
 
@@ -166,4 +178,130 @@ test("client assets contain no hard-coded admin password or GitHub token", () =>
     const source = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
     assert.equal(/Budao2026|GITHUB_TOKEN|BUDAO_SESSION_SECRET/.test(source), false);
   }
+});
+
+test("eebee only allows configured operator to create offerings", async () => {
+  const cookie = await loginCookie();
+  let stored = Buffer.from(JSON.stringify({ users: [], resources: [], offerings: [], applications: [], handovers: [], impacts: [] })).toString("base64");
+  global.fetch = async (_url, options) => {
+    if (!options || options.method === "GET") {
+      return { ok: true, status: 200, json: async () => ({ sha: "eebee-sha", content: stored }) };
+    }
+    stored = JSON.parse(options.body).content;
+    return { ok: true, status: 200, json: async () => ({ commit: { sha: "eebee-commit" } }) };
+  };
+  const res = response();
+  await eebee(request({
+    action: "saveOffering",
+    title: "一件真实资源",
+    description: "可以继续产生益处的资源。",
+    reasonForOffering: "愿它继续被使用。",
+    recipientExpectation: "愿承接者好好照顾。",
+    status: "OPEN"
+  }, { headers: { cookie } }), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(JSON.parse(Buffer.from(stored, "base64").toString("utf8")).offerings[0].status, "OPEN");
+
+  const forbidden = response();
+  await eebee(request({ action: "saveOffering", title: "No" }, { headers: { cookie: signedPublisherCookie("someone-else") } }), forbidden);
+  assert.equal(forbidden.statusCode, 403);
+});
+
+test("eebee email verification creates one stable code and secure session before duplicate applications", async () => {
+  let data = {
+    users: [],
+    sessions: [],
+    emailVerifications: [],
+    resources: [{ id: "res_1", title: "背包", description: "一个背包", condition: "良好", category: "户外", images: [], createdByUserId: "publisher-ims", currentStewardUserId: "publisher-ims", createdAt: "now", updatedAt: "now" }],
+    offerings: [{ id: "off_1", resourceId: "res_1", publisherUserId: "publisher-ims", reasonForOffering: "继续使用", recipientExpectation: "照顾它", status: "OPEN", publishedAt: "now", closedAt: "", createdAt: "now", updatedAt: "now" }],
+    applications: [],
+    handovers: [],
+    impacts: []
+  };
+  let stored = Buffer.from(JSON.stringify(data)).toString("base64");
+  global.fetch = async (_url, options) => {
+    if (!options || options.method === "GET") {
+      return { ok: true, status: 200, json: async () => ({ sha: "eebee-sha", content: stored }) };
+    }
+    stored = JSON.parse(options.body).content;
+    data = JSON.parse(Buffer.from(stored, "base64").toString("utf8"));
+    return { ok: true, status: 200, json: async () => ({ commit: { sha: "eebee-commit" } }) };
+  };
+
+  const directRegister = response();
+  await eebee(request({ action: "register", displayName: "同行者" }), directRegister);
+  assert.equal(directRegister.statusCode, 400);
+
+  const requested = response();
+  await eebee(request({ action: "requestEmailCode", email: "walker@example.test", displayName: "同行者", principlesAccepted: true }), requested);
+  assert.equal(requested.statusCode, 200);
+  assert.equal(requested.body.sent, true);
+  assert.equal(global.__lastEebeeEmail.email, "walker@example.test");
+  assert.equal(data.users.length, 0);
+
+  const verify = response();
+  await eebee(request({ action: "verifyEmailCode", email: "walker@example.test", displayName: "同行者", principlesAccepted: true, code: global.__lastEebeeEmail.code }), verify);
+  assert.equal(verify.statusCode, 200);
+  assert.match(verify.body.user.entrustedCode, /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}$/);
+  const userCookie = verify.headers["set-cookie"].split(";")[0];
+  assert.equal(userCookie.includes(data.users[0].id), false);
+  assert.equal(data.sessions.length, 1);
+  assert.ok(data.sessions[0].tokenHash);
+  assert.equal(data.sessions[0].tokenHash.includes(userCookie.split("=")[1]), false);
+
+  const first = response();
+  await eebee(request({ action: "apply", offeringId: "off_1", reason: "我需要它同行", intendedUse: "会在步道中使用并照顾", offlineHandoverAccepted: true }, { headers: { cookie: userCookie } }), first);
+  assert.equal(first.statusCode, 200);
+  assert.equal(first.body.duplicate, false);
+
+  const second = response();
+  await eebee(request({ action: "apply", offeringId: "off_1", reason: "重复申请", intendedUse: "重复计划", offlineHandoverAccepted: true }, { headers: { cookie: userCookie } }), second);
+  assert.equal(second.statusCode, 200);
+  assert.equal(second.body.duplicate, true);
+  assert.equal(data.users.length, 1);
+  assert.equal(data.applications.length, 1);
+});
+
+test("eebee handover requires selection and completion before impact", async () => {
+  const cookie = await loginCookie();
+  let data = {
+    users: [{ id: "user_1", eebeeCode: "EB-23456789AB", displayName: "同行者", contactNote: "", createdAt: "now", updatedAt: "now" }],
+    resources: [{ id: "res_1", title: "背包", description: "一个背包", condition: "良好", category: "户外", images: [], createdByUserId: "publisher-ims", currentStewardUserId: "publisher-ims", createdAt: "now", updatedAt: "now" }],
+    offerings: [{ id: "off_1", resourceId: "res_1", publisherUserId: "publisher-ims", reasonForOffering: "继续使用", recipientExpectation: "照顾它", status: "OPEN", publishedAt: "now", closedAt: "", createdAt: "now", updatedAt: "now" }],
+    applications: [{ id: "app_1", offeringId: "off_1", applicantUserId: "user_1", applicantEebeeCode: "EB-23456789AB", reason: "需要", intendedUse: "照顾", additionalNote: "", offlineHandoverAccepted: true, status: "APPLIED", createdAt: "now", updatedAt: "now" }],
+    handovers: [],
+    impacts: []
+  };
+  let stored = Buffer.from(JSON.stringify(data)).toString("base64");
+  global.fetch = async (_url, options) => {
+    if (!options || options.method === "GET") {
+      return { ok: true, status: 200, json: async () => ({ sha: "eebee-sha", content: stored }) };
+    }
+    stored = JSON.parse(options.body).content;
+    data = JSON.parse(Buffer.from(stored, "base64").toString("utf8"));
+    return { ok: true, status: 200, json: async () => ({ commit: { sha: "eebee-commit" } }) };
+  };
+
+  const blocked = response();
+  await eebee(request({ action: "scheduleHandover", offeringId: "off_1", eventId: "budao-ims", eventTitle: "百望山" }, { headers: { cookie } }), blocked);
+  assert.equal(blocked.statusCode, 409);
+
+  const select = response();
+  await eebee(request({ action: "selectApplication", applicationId: "app_1" }, { headers: { cookie } }), select);
+  assert.equal(select.statusCode, 200);
+  const schedule = response();
+  await eebee(request({ action: "scheduleHandover", offeringId: "off_1", eventId: "budao-ims", eventTitle: "百望山" }, { headers: { cookie } }), schedule);
+  assert.equal(schedule.statusCode, 200);
+
+  const earlyImpact = response();
+  await eebee(request({ action: "saveImpact", handoverId: data.handovers[0].id, recipientReflection: "感谢", publisherConfirmation: "完成" }, { headers: { cookie } }), earlyImpact);
+  assert.equal(earlyImpact.statusCode, 409);
+
+  const confirm = response();
+  await eebee(request({ action: "confirmHandover", offeringId: "off_1" }, { headers: { cookie } }), confirm);
+  assert.equal(confirm.statusCode, 200);
+  const impact = response();
+  await eebee(request({ action: "saveImpact", handoverId: data.handovers[0].id, recipientReflection: "感谢", publisherConfirmation: "完成" }, { headers: { cookie } }), impact);
+  assert.equal(impact.statusCode, 200);
+  assert.equal(data.impacts.length, 1);
 });
