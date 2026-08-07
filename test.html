@@ -688,8 +688,6 @@ const defaultRoutes = [
 }
 ];
 
-activateRoutes(fixedRoutesOnly(defaultRoutes));
-
 const routesController =
 window.AbortController ? new AbortController() : null;
 
@@ -708,10 +706,13 @@ fetch("/api/routes?budao=" + Date.now(),routesController ? { signal:routesContro
 
         if(nextRoutes.length){
             activateRoutes(nextRoutes);
+        } else {
+            activateRoutes(fixedRoutesOnly(defaultRoutes));
         }
     })
     .catch(()=>{
         window.clearTimeout(routesTimeout);
+        activateRoutes(fixedRoutesOnly(defaultRoutes));
     });
 
 function activateRoutes(routes){

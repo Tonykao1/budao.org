@@ -1,6 +1,6 @@
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = process.env.GITHUB_BRANCH || "main";
+const branch = "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const fixedSlots = ["IMS", "BACBC"];
@@ -21,9 +21,10 @@ module.exports = async function handler(request, response) {
   try {
     const routes = await readRoutes();
 
-    response.setHeader("Cache-Control", "s-maxage=0, stale-while-revalidate=30");
+    response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     sendJson(response, 200, fixedRoutesOnly(routes));
   } catch (error) {
+    response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     sendJson(response, 200, []);
   }
 };
