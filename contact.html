@@ -450,6 +450,7 @@ function renderResources(){
   }
   $("resourcesView").innerHTML = `<div class="eebee-grid">${offerings.map(cardHtml).join("")}</div>`;
   document.querySelectorAll("[data-open-offering]").forEach((button)=>button.addEventListener("click",()=>openDetail(button.dataset.openOffering)));
+  document.querySelectorAll("[data-apply-offering]").forEach((button)=>button.addEventListener("click",()=>openApply(button.dataset.applyOffering)));
 }
 
 function renderNeeds(){
@@ -460,6 +461,7 @@ function renderNeeds(){
   }
   $("needsView").innerHTML = `<div class="eebee-grid">${offerings.map(cardHtml).join("")}</div>`;
   $("needsView").querySelectorAll("[data-open-offering]").forEach((button)=>button.addEventListener("click",()=>openDetail(button.dataset.openOffering)));
+  $("needsView").querySelectorAll("[data-apply-offering]").forEach((button)=>button.addEventListener("click",()=>openApply(button.dataset.applyOffering)));
 }
 
 function renderImpact(){
@@ -503,10 +505,17 @@ function cardHtml(offering){
       <p>${escapeHtml(offering.description).slice(0,120)}</p>
       <div class="eebee-card-actions">
         <button class="eebee-button primary" data-open-offering="${escapeHtml(offering.id)}">查看</button>
-        ${offering.canApply ? `<button class="eebee-button light" data-open-offering="${escapeHtml(offering.id)}">彼</button>` : ""}
+        ${offering.canApply ? `<button class="eebee-button light" data-apply-offering="${escapeHtml(offering.id)}">彼</button>` : ""}
       </div>
     </div>
   </article>`;
+}
+
+function openApply(id){
+  state.selected = ((state.data && state.data.offerings) || []).find((item)=>item.id === id);
+  if(!state.selected) return;
+  state.returnView = state.view || "needs";
+  renderApply();
 }
 
 function openDetail(id){
@@ -547,11 +556,20 @@ function renderApply(){
   $("applyView").innerHTML = `<article class="eebee-panel">
     <h2>彼</h2>
     <p>申请成为《${escapeHtml(item.title)}》的下一位承接者。</p>
-    <form class="eebee-form" id="registerForm">
-      <p class="eebee-section-title">基础注册</p>
-      <label class="eebee-field">昵称或称呼<input name="displayName" required maxlength="60"></label>
-      <label class="eebee-field">联系方式提示（仅成全者可见，可留邮箱/微信说明）<input name="contactNote" maxlength="160"></label>
-      <button class="eebee-button light" type="submit">获得受托编号</button>
+    <form class="eebee-form" id="registerForm" autocomplete="on">
+      <p class="eebee-section-title">成为受托者</p>
+      <label class="eebee-field">邮箱<input name="email" type="email" required maxlength="254" autocomplete="email"></label>
+      <label class="eebee-field">昵称<input name="displayName" required maxlength="60" autocomplete="name"></label>
+      <label class="eebee-check"><input name="principlesAccepted" type="checkbox" required>我愿意遵守《易彼益原则》：不争抢，不转卖，在真实需要中承接，并让资源继续产生益处。</label>
+      <div class="eebee-actions">
+        <button class="eebee-button light" type="submit">发送邮箱验证码</button>
+        <span class="eebee-note" id="registerMessage"></span>
+      </div>
+    </form>
+    <form class="eebee-form hidden" id="verifyForm">
+      <p class="eebee-section-title">邮箱验证码</p>
+      <label class="eebee-field">验证码<input name="code" inputmode="numeric" required maxlength="12" autocomplete="one-time-code"></label>
+      <button class="eebee-button light" type="submit">生成受托编号</button>
     </form>
     <form class="eebee-form" id="applyForm">
       <p class="eebee-section-title">承接申请</p>
@@ -568,6 +586,7 @@ function renderApply(){
   </article>`;
   $("cancelApply").addEventListener("click",()=>openDetail(item.id));
   $("registerForm").addEventListener("submit",submitRegister);
+  $("verifyForm").addEventListener("submit",submitVerification);
   $("applyForm").addEventListener("submit",submitApplication);
   if(state.me && state.me.user) $("registerForm").classList.add("hidden");
 }
@@ -576,10 +595,31 @@ async function submitRegister(event){
   event.preventDefault();
   const form = event.currentTarget;
   const payload = Object.fromEntries(new FormData(form).entries());
-  const result = await apiPost({ action:"register", ...payload });
+  await apiPost({
+    action:"requestEmailCode",
+    email:payload.email,
+    displayName:payload.displayName,
+    principlesAccepted:payload.principlesAccepted === "on"
+  });
+  $("registerMessage").textContent = "验证码已经发出，请查看邮箱。";
+  $("verifyForm").classList.remove("hidden");
+}
+
+async function submitVerification(event){
+  event.preventDefault();
+  const registerPayload = Object.fromEntries(new FormData($("registerForm")).entries());
+  const verifyPayload = Object.fromEntries(new FormData(event.currentTarget).entries());
+  const result = await apiPost({
+    action:"verifyEmailCode",
+    email:registerPayload.email,
+    displayName:registerPayload.displayName,
+    principlesAccepted:registerPayload.principlesAccepted === "on",
+    code:verifyPayload.code
+  });
   state.me = { user:result.user, applications:[] };
   $("meAccess").classList.remove("hidden");
-  form.classList.add("hidden");
+  $("registerForm").classList.add("hidden");
+  $("verifyForm").classList.add("hidden");
   $("applyMessage").textContent = "你的受托编号：" + displayCode(result.user.entrustedCode);
 }
 

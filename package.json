@@ -1,0 +1,23 @@
+{
+  "name": "budao-security-tests",
+  "private": true,
+  "scripts": {
+    "lint": "node --check api/publish-route.js && node --check api/publish-route-v2.js && node --check api/eebee.js && node --check api/auth/login.js && node --check api/auth/session.js && node --check api/auth/logout.js && node --check api/stewardship/health.js && node --check auth/stewardship/config.js && node --check auth/stewardship/steward-code.js && node --check auth/stewardship/session-token.js && node --check auth/stewardship/challenge.js && node --check db/client.js && node --check db/schema.js && node --check drizzle.config.js && node --check tent-app.js",
+    "typecheck": "node --test --test-concurrency=1 --test-name-pattern='schema modules load|stewardship schema' test/security.test.js test/stewardship-infra.test.js",
+    "test": "node --test --test-concurrency=1 test/security.test.js test/stewardship-infra.test.js",
+    "build": "node scripts/security-build-check.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:check": "drizzle-kit check"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "@simplewebauthn/browser": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.2",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.39.3"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.4"
+  }
+}

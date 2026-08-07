@@ -9,7 +9,8 @@ const branch = process.env.GITHUB_PUBLISH_BRANCH || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const dataPath = "eebee-data.json";
 const USER_COOKIE = "eebee_user_session";
-const USER_SESSION_TTL = 60 * 60 * 24 * 365 * 5;
+const USER_SESSION_TTL = 60 * 60 * 24 * 180;
+const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const STATUS = ["DRAFT", "OPEN", "MATCHED", "HANDOVER_SCHEDULED", "HANDED_OVER", "CLOSED", "WITHDRAWN"];
 const APP_STATUS = ["APPLIED", "SELECTED", "NOT_SELECTED", "REJECTED"];
 const HANDOVER_STATUS = ["SCHEDULED", "COMPLETED"];
@@ -63,10 +64,14 @@ async function handlePost(request, response) {
   let result;
   let cookie = "";
 
-  if (action === "register") {
-    const outcome = registerUser(request, data, parsed.body);
+  if (action === "requestEmailCode") {
+    result = await requestEmailCode(data, parsed.body);
+  } else if (action === "verifyEmailCode") {
+    const outcome = verifyEmailCode(data, parsed.body);
     result = outcome.result;
     cookie = outcome.cookie;
+  } else if (action === "register") {
+    throw knownError("email_verification_required", 400);
   } else if (action === "apply") {
     result = applyForOffering(request, data, parsed.body);
   } else {
@@ -80,23 +85,70 @@ async function handlePost(request, response) {
   return sendJson(response, 200, { ok: true, ...result, commit: commit.commit && commit.commit.sha ? commit.commit.sha : null });
 }
 
-function registerUser(request, data, body) {
-  const existing = getEebeeUser(request, data);
-  if (existing) return { result: { user: publicUser(existing) }, cookie: "" };
+async function requestEmailCode(data, body) {
+  const email = normalizeEmail(requiredString(body.email, 5, 254, "email"));
+  if (!isEmail(email)) throw knownError("invalid_email", 400);
+  const displayName = requiredString(body.displayName, 1, 60, "displayName");
+  if (body.principlesAccepted !== true) throw knownError("principles_required", 400);
 
-  const now = new Date().toISOString();
-  const user = {
-    id: "user_" + crypto.randomUUID(),
-    eebeeCode: uniqueEebeeCode(data),
-    displayName: requiredString(body.displayName, 1, 60, "displayName"),
-    contactNote: stringField(body.contactNote, 160),
-    createdAt: now,
-    updatedAt: now
+  const now = new Date();
+  const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+  const emailHash = emailLookupHash(email);
+  const verification = {
+    id: "ev_" + crypto.randomUUID(),
+    emailHash,
+    codeHash: hashSecret(code),
+    displayName,
+    expiresAt: new Date(now.getTime() + EMAIL_CODE_TTL_MS).toISOString(),
+    consumedAt: "",
+    attempts: 0,
+    createdAt: now.toISOString()
   };
-  data.users.push(user);
+  data.emailVerifications = data.emailVerifications.filter((item) => item.emailHash !== emailHash || item.consumedAt || new Date(item.expiresAt).getTime() <= now.getTime());
+  data.emailVerifications.push(verification);
+  await sendVerificationEmail(email, code);
+  return { sent: true };
+}
+
+function verifyEmailCode(data, body) {
+  const email = normalizeEmail(requiredString(body.email, 5, 254, "email"));
+  if (!isEmail(email)) throw knownError("invalid_email", 400);
+  const code = requiredString(body.code, 4, 12, "code").replace(/\s+/g, "");
+  const displayName = requiredString(body.displayName, 1, 60, "displayName");
+  if (body.principlesAccepted !== true) throw knownError("principles_required", 400);
+  const now = new Date();
+  const emailHash = emailLookupHash(email);
+  const verification = data.emailVerifications
+    .filter((item) => item.emailHash === emailHash && !item.consumedAt)
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  if (!verification || new Date(verification.expiresAt).getTime() <= now.getTime()) throw knownError("verification_expired", 400);
+  if (verification.attempts >= 5) throw knownError("verification_locked", 429);
+  verification.attempts += 1;
+  if (!safeEqual(verification.codeHash, hashSecret(code))) throw knownError("verification_invalid", 400);
+  verification.consumedAt = now.toISOString();
+
+  let user = data.users.find((item) => item.emailHash === emailHash);
+  if (!user) {
+    user = {
+      id: "user_" + crypto.randomUUID(),
+      eebeeCode: uniqueEebeeCode(data),
+      emailHash,
+      emailMasked: maskEmail(email),
+      displayName,
+      contactNote: "",
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
+    };
+    data.users.push(user);
+  } else {
+    user.displayName = displayName || user.displayName;
+    user.emailMasked = user.emailMasked || maskEmail(email);
+    user.updatedAt = now.toISOString();
+  }
+  const session = createUserSession(data, user.id, now);
   return {
     result: { user: publicUser(user) },
-    cookie: createUserCookie(user.id, process.env.NODE_ENV !== "test")
+    cookie: createUserCookie(session.token, process.env.NODE_ENV !== "test")
   };
 }
 
@@ -363,6 +415,8 @@ function normalizeData(data) {
   const base = data && typeof data === "object" ? data : {};
   return {
     users: Array.isArray(base.users) ? base.users : [],
+    sessions: Array.isArray(base.sessions) ? base.sessions : [],
+    emailVerifications: Array.isArray(base.emailVerifications) ? base.emailVerifications : [],
     resources: Array.isArray(base.resources) ? base.resources : [],
     offerings: Array.isArray(base.offerings) ? base.offerings : [],
     applications: Array.isArray(base.applications) ? base.applications : [],
@@ -372,7 +426,7 @@ function normalizeData(data) {
 }
 
 function emptyData() {
-  return { users: [], resources: [], offerings: [], applications: [], handovers: [], impacts: [] };
+  return { users: [], sessions: [], emailVerifications: [], resources: [], offerings: [], applications: [], handovers: [], impacts: [] };
 }
 
 function publicView(data) {
@@ -434,7 +488,7 @@ function adminHandover(data, handover) {
 }
 
 function publicUser(user) {
-  return { id: user.id, entrustedCode: displayEntrustedCode(user.eebeeCode), displayName: user.displayName || "" };
+  return { entrustedCode: displayEntrustedCode(user.eebeeCode), displayName: user.displayName || "", emailMasked: user.emailMasked || "" };
 }
 
 function applicationsForUser(data, userId) {
@@ -458,15 +512,37 @@ function applicantView(data, application) {
 }
 
 function getEebeeUser(request, data) {
-  const id = readCookie(request, USER_COOKIE);
-  if (!id) return null;
-  return data.users.find((user) => user.id === id) || null;
+  const token = readCookie(request, USER_COOKIE);
+  if (!token) return null;
+  const tokenHash = hashSecret(token);
+  const now = Date.now();
+  const session = data.sessions.find((item) => item.tokenHash === tokenHash && !item.revokedAt && new Date(item.expiresAt).getTime() > now);
+  if (!session) return null;
+  session.lastSeenAt = new Date().toISOString();
+  return data.users.find((user) => user.id === session.userId) || null;
 }
 
-function createUserCookie(userId, secure = true) {
+function createUserSession(data, userId, now = new Date()) {
+  const token = crypto.randomBytes(48).toString("base64url");
+  const session = {
+    id: "ses_" + crypto.randomUUID(),
+    userId,
+    tokenHash: hashSecret(token),
+    expiresAt: new Date(now.getTime() + USER_SESSION_TTL * 1000).toISOString(),
+    createdAt: now.toISOString(),
+    lastSeenAt: now.toISOString(),
+    revokedAt: ""
+  };
+  data.sessions = data.sessions.filter((item) => item.userId !== userId || new Date(item.expiresAt).getTime() > now.getTime());
+  data.sessions.push(session);
+  return { token };
+}
+
+function createUserCookie(token, secure = true) {
   return [
-    USER_COOKIE + "=" + userId,
+    USER_COOKIE + "=" + token,
     "Path=/",
+    "HttpOnly",
     secure ? "Secure" : "",
     "SameSite=Lax",
     "Max-Age=" + USER_SESSION_TTL
@@ -483,14 +559,19 @@ function readCookie(request, name) {
 function uniqueEebeeCode(data) {
   const existing = new Set(data.users.flatMap((user) => [user.eebeeCode, displayEntrustedCode(user.eebeeCode)]));
   for (let attempt = 0; attempt < 20; attempt += 1) {
-    const code = randomBase32(10);
+    const code = formatEntrustedCode(randomBase32(12));
     if (!existing.has(code)) return code;
   }
   throw knownError("code_generation_failed", 500);
 }
 
 function displayEntrustedCode(value) {
-  return String(value || "").replace(/^EB-/, "");
+  const cleaned = String(value || "").replace(/^EB-/, "").replace(/-/g, "");
+  return cleaned.length === 12 ? formatEntrustedCode(cleaned) : cleaned;
+}
+
+function formatEntrustedCode(value) {
+  return String(value || "").replace(/(.{4})(.{4})(.{4})/, "$1-$2-$3");
 }
 
 function randomBase32(length) {
@@ -540,4 +621,58 @@ function knownError(reason, status) {
   error.reason = reason;
   error.status = status;
   return error;
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
+}
+
+function emailLookupHash(email) {
+  const secret = process.env.STEWARDSHIP_LOOKUP_HMAC_KEY || process.env.BUDAO_SESSION_SECRET || "test-only-eebee-email-key";
+  return crypto.createHmac("sha256", secret).update(normalizeEmail(email)).digest("base64url");
+}
+
+function hashSecret(value) {
+  const secret = process.env.STEWARDSHIP_SESSION_SECRET || process.env.BUDAO_SESSION_SECRET || "test-only-eebee-session-key";
+  return crypto.createHmac("sha256", secret).update(String(value)).digest("base64url");
+}
+
+function safeEqual(left, right) {
+  const a = Buffer.from(String(left));
+  const b = Buffer.from(String(right));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function maskEmail(email) {
+  const [name, domain] = normalizeEmail(email).split("@");
+  const prefix = name.length <= 2 ? name[0] || "*" : name.slice(0, 2);
+  return prefix + "***@" + domain;
+}
+
+async function sendVerificationEmail(email, code) {
+  if (process.env.NODE_ENV === "test") {
+    global.__lastEebeeEmail = { email, code };
+    return;
+  }
+  const resendKey = process.env.RESEND_API_KEY;
+  const from = process.env.EEBEE_EMAIL_FROM || process.env.STEWARDSHIP_EMAIL_FROM || process.env.EMAIL_FROM;
+  if (!resendKey || !from) throw knownError("email_unavailable", 503);
+  const result = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + resendKey,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from,
+      to: email,
+      subject: "你的易彼益验证码",
+      text: "你的易彼益验证码是：" + code + "\n\n10 分钟内有效。若不是你本人操作，可以忽略这封邮件。"
+    })
+  });
+  if (!result.ok) throw knownError("email_unavailable", 503);
 }
