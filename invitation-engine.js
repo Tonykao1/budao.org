@@ -2,6 +2,12 @@
     const previewId = "budaoInvitationPreview";
     const cardWidth = 1080;
     const cardHeight = 1530;
+    const closedStampOptions = [
+        { src: "budao-dalong-1.png?v=20260812", weight: 1 },
+        { src: "budao-dalong-3.png?v=20260812", weight: 3 },
+        { src: "budao-dalong-5.png?v=20260812", weight: 5 }
+    ];
+    const closedStampCache = new Map();
     let currentInvitation = null;
 
     function install() {
@@ -98,13 +104,15 @@
     async function createInvitation(route) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
+        const registrationOpen = isRegistrationOpen(route);
         const image = await loadImage(imageSource(route)).catch(function () { return null; });
-        const qr = await loadImage(qrSource(route)).catch(function () { return null; });
+        const qr = registrationOpen ? await loadImage(qrSource(route)).catch(function () { return null; }) : null;
+        const closedStamp = registrationOpen ? null : await loadImage(closedStampSource(route)).catch(function () { return null; });
         const logo = await loadImage("budao-logo-mark.png?v=20260719").catch(function () { return null; });
 
         canvas.width = cardWidth;
         canvas.height = cardHeight;
-        drawInvitation(ctx, route, image, qr, logo);
+        drawInvitation(ctx, route, image, qr, logo, registrationOpen, closedStamp);
 
         const blob = await canvasToBlob(canvas);
 
@@ -115,7 +123,7 @@
         };
     }
 
-    function drawInvitation(ctx, route, image, qr, logo) {
+    function drawInvitation(ctx, route, image, qr, logo, registrationOpen, closedStamp) {
         const place = meetingPlace(route);
         const location = locationLabel(route) || "同行地点待定";
         const title = route.title || "步道同行";
@@ -128,7 +136,7 @@
         drawLetter(ctx, route, { title, location, date, time, place });
         drawMeetingCard(ctx, place);
         drawInfoPills(ctx, route);
-        drawQrSeal(ctx, qr);
+        drawQrSeal(ctx, qr, registrationOpen, closedStamp);
         drawFooter(ctx, logo);
     }
 
@@ -373,10 +381,34 @@
         ctx.restore();
     }
 
-    function drawQrSeal(ctx, qr) {
+    function drawQrSeal(ctx, qr, registrationOpen, closedStamp) {
         const x = 800;
         const y = 1102;
         const size = 152;
+
+        if (!registrationOpen) {
+            ctx.save();
+            if (closedStamp) {
+                drawContainImage(ctx, closedStamp, x - 8, y - 34, size + 16, size + 52);
+            } else {
+                ctx.fillStyle = "#f8f5ef";
+                ctx.fillRect(x, y, size, size);
+                ctx.fillStyle = "#6c6258";
+                ctx.font = cnFont(400, 22);
+                ctx.textAlign = "center";
+                ctx.fillText("本期报名", x + size / 2, y + 70);
+                ctx.fillText("已截止", x + size / 2, y + 102);
+            }
+            ctx.fillStyle = "#8b7860";
+            ctx.font = cnFont(500, 18);
+            ctx.textAlign = "center";
+            ctx.fillText("此程已封缄", x + size / 2, y + size + 48);
+            ctx.fillStyle = "#15110d";
+            ctx.font = cnFont(560, 28);
+            ctx.fillText("本期报名已截止", x + size / 2, y + size + 88);
+            ctx.restore();
+            return;
+        }
 
         ctx.save();
         ctx.strokeStyle = "rgba(184,156,82,0.35)";
@@ -531,6 +563,53 @@
         );
 
         return window.resolveImage ? window.resolveImage(value) : String(value || "").trim();
+    }
+
+    function isRegistrationOpen(route) {
+        if (typeof window.isQrRegistrationOpen === "function") {
+            return window.isQrRegistrationOpen(route);
+        }
+
+        return true;
+    }
+
+    function closedStampSource(route) {
+        const key = routeKey(route);
+
+        if (closedStampCache.has(key)) {
+            return closedStampCache.get(key);
+        }
+
+        const totalWeight = closedStampOptions.reduce(function (sum, option) {
+            return sum + option.weight;
+        }, 0);
+        let cursor = Math.random() * totalWeight;
+        let selected = closedStampOptions[closedStampOptions.length - 1].src;
+
+        for (const option of closedStampOptions) {
+            cursor -= option.weight;
+
+            if (cursor <= 0) {
+                selected = option.src;
+                break;
+            }
+        }
+
+        closedStampCache.set(key, selected);
+        return selected;
+    }
+
+    function routeKey(route) {
+        return String(
+            route && (
+                route.id ||
+                route.routeId ||
+                route.slot ||
+                route.title ||
+                route.date ||
+                ""
+            ) || "default"
+        );
     }
 
     function meetingPlace(route) {
