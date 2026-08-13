@@ -6,6 +6,10 @@
   const qualities = [0.76, 0.68, 0.6, 0.52, 0.46];
   const originalFetch = window.fetch.bind(window);
 
+  window.BudaoImagePipeline = Object.assign({}, window.BudaoImagePipeline, {
+    compressRouteImage: compressRouteImage
+  });
+
   window.fetch = function (input, init) {
     const requestUrl = typeof input === "string" ? input : input && input.url || "";
     const method = init && init.method || input && input.method || "GET";
