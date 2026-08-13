@@ -387,8 +387,13 @@
         presence.classList.remove("saved-resting");
         presence.classList.add("review-open");
       }, reduceMotion ? 1 : 1000);
-    }).catch(function () {
-      routeMessage.textContent = "图片暂时无法安放。";
+    }).catch(function (error) {
+      if (error && (error.name === "NotReadableError" || error.name === "SecurityError")) {
+        routeMessage.textContent = "浏览器暂时无法读取所选图片，请重新选择。";
+        return;
+      }
+
+      routeMessage.textContent = "这条步道暂时无法安放，请稍后再试。";
     });
   });
 
@@ -686,17 +691,14 @@
           }
 
           compressor(dataUrl).then(function (compressed) {
-            if (!compressed) {
-              reject(new Error("image_compression_failed"));
-              return;
-            }
-
             resolve({
               name: file.name,
-              type: "image/jpeg",
-              dataUrl: compressed
+              type: compressed ? "image/jpeg" : file.type,
+              dataUrl: compressed || dataUrl
             });
-          }).catch(reject);
+          }).catch(function () {
+            resolve({ name: file.name, type: file.type, dataUrl: dataUrl });
+          });
         });
 
         reader.addEventListener("error", reject);
@@ -716,7 +718,13 @@
       const reader = new FileReader();
 
       reader.addEventListener("load", function () {
-        compressQrForDraft(String(reader.result || "")).then(resolve).catch(reject);
+        const dataUrl = String(reader.result || "");
+
+        compressQrForDraft(dataUrl).then(function (compressed) {
+          resolve(compressed || dataUrl);
+        }).catch(function () {
+          resolve(dataUrl);
+        });
       });
 
       reader.addEventListener("error", reject);
@@ -1059,8 +1067,7 @@
 
   function renderRoutePreview(trail) {
     const route = toRouteJson(trail);
-    const previewImage = firstImagePreview();
-    const image = resolveImage(previewImage || route.image);
+    const image = resolveImage(route.image);
     const card = document.createElement("div");
 
     card.className = "route-card";
