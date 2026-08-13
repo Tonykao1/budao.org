@@ -668,7 +668,7 @@
   }
 
   function imageFiles() {
-    return Array.from(routeImages.files || []);
+    return Array.from(routeImages.files || []).slice(0, 1);
   }
 
   function readImageDataUrls() {
@@ -677,11 +677,26 @@
         const reader = new FileReader();
 
         reader.addEventListener("load", function () {
-          resolve({
-            name: file.name,
-            type: file.type,
-            dataUrl: reader.result
-          });
+          const dataUrl = String(reader.result || "");
+          const compressor = window.BudaoImagePipeline && window.BudaoImagePipeline.compressRouteImage;
+
+          if (!compressor) {
+            resolve({ name: file.name, type: file.type, dataUrl: dataUrl });
+            return;
+          }
+
+          compressor(dataUrl).then(function (compressed) {
+            if (!compressed) {
+              reject(new Error("image_compression_failed"));
+              return;
+            }
+
+            resolve({
+              name: file.name,
+              type: "image/jpeg",
+              dataUrl: compressed
+            });
+          }).catch(reject);
         });
 
         reader.addEventListener("error", reject);
@@ -701,11 +716,43 @@
       const reader = new FileReader();
 
       reader.addEventListener("load", function () {
-        resolve(reader.result || "");
+        compressQrForDraft(String(reader.result || "")).then(resolve).catch(reject);
       });
 
       reader.addEventListener("error", reject);
       reader.readAsDataURL(file);
+    });
+  }
+
+  function compressQrForDraft(dataUrl) {
+    if (dataUrl.indexOf("data:image/") !== 0) {
+      return Promise.reject(new Error("invalid_qr_image"));
+    }
+
+    return new Promise(function (resolve, reject) {
+      const image = new Image();
+
+      image.addEventListener("load", function () {
+        const size = 420;
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        const sourceWidth = image.naturalWidth || image.width;
+        const sourceHeight = image.naturalHeight || image.height;
+        const scale = Math.min(size * 0.86 / sourceWidth, size * 0.86 / sourceHeight);
+        const width = sourceWidth * scale;
+        const height = sourceHeight * scale;
+
+        canvas.width = size;
+        canvas.height = size;
+        context.imageSmoothingEnabled = false;
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, size, size);
+        context.drawImage(image, (size - width) / 2, (size - height) / 2, width, height);
+        resolve(canvas.toDataURL("image/png"));
+      });
+
+      image.addEventListener("error", reject);
+      image.src = dataUrl;
     });
   }
 
