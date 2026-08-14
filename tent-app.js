@@ -22,6 +22,7 @@
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const trailStorageKey = "budao.tent.trails";
   const pendingTrailStorageKey = "budao.tent.pendingPublish";
+  const draftImages = window.BudaoTentDraftImages;
   const publishEndpoint = window.BUDAO_PUBLISH_ENDPOINT ||
     (window.location.protocol === "file:" ? "https://budao.org/api/publish-route" : "/api/publish-route");
   const slotRouteDefaults = {
@@ -269,8 +270,10 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
     }).then(function (response) {
-      if (!response.ok) throw new Error("login_failed");
-      return response.json();
+      return response.json().catch(function () { return {}; }).then(function (body) {
+        if (!response.ok) throw loginError(body.reason || "api_failed", response.status);
+        return body;
+      });
     }).then(function (result) {
       currentUserEmail = result.slot === "IMS" ? "IMS@budao.org" : "BACBC@budao.org";
       entryForm.reset();
@@ -278,9 +281,9 @@
       presence.classList.add("entrance-open");
       presence.classList.remove("route-open", "word-open");
       loadOwnedRouteForCurrentUser();
-    }).catch(function () {
+    }).catch(function (error) {
       currentUserEmail = "";
-      loginMessage.textContent = "登录失败。";
+      loginMessage.textContent = loginFailureText(error);
     });
   });
 
@@ -376,20 +379,29 @@
         trails.unshift(trail);
       }
 
-      window.localStorage.setItem(trailStorageKey, JSON.stringify(trails));
-      routeMessage.textContent = "这条步道已经暂时安放。";
+      const draftResult = draftImages.persistDraft(window.localStorage, trailStorageKey, trails);
+      routeMessage.textContent = draftResult.saved ?
+        "这条步道已经暂时安放。" : draftResult.quotaExceeded ?
+          "图片已预览，但本地保存空间不足。" :
+          "图片已预览，但草稿未能保存在此浏览器。";
       publishWhisper.textContent = "这条步道已经暂时安放。";
       presence.classList.add("saved-resting");
       presence.classList.remove("review-open", "review-closing", "publish-transition", "publish-finished");
-      renderRoutePreview(trail);
+      try {
+        renderRoutePreview(trail);
+      } catch (error) {
+        routeMessage.textContent = "图片已经读入，但预览暂时无法呈现。";
+        presence.classList.remove("saved-resting");
+        return;
+      }
 
       window.setTimeout(function () {
         presence.classList.remove("saved-resting");
         presence.classList.add("review-open");
       }, reduceMotion ? 1 : 1000);
     }).catch(function (error) {
-      if (error && (error.name === "NotReadableError" || error.name === "SecurityError")) {
-        routeMessage.textContent = "浏览器暂时无法读取所选图片，请重新选择。";
+      if (error && error.reason === "image_read_failed") {
+        routeMessage.textContent = "图片读取失败，请重新选择。";
         return;
       }
 
@@ -677,33 +689,9 @@
   }
 
   function readImageDataUrls() {
+    const compressor = window.BudaoImagePipeline && window.BudaoImagePipeline.compressRouteImage;
     return Promise.all(imageFiles().map(function (file) {
-      return new Promise(function (resolve, reject) {
-        const reader = new FileReader();
-
-        reader.addEventListener("load", function () {
-          const dataUrl = String(reader.result || "");
-          const compressor = window.BudaoImagePipeline && window.BudaoImagePipeline.compressRouteImage;
-
-          if (!compressor) {
-            resolve({ name: file.name, type: file.type, dataUrl: dataUrl });
-            return;
-          }
-
-          compressor(dataUrl).then(function (compressed) {
-            resolve({
-              name: file.name,
-              type: compressed ? "image/jpeg" : file.type,
-              dataUrl: compressed || dataUrl
-            });
-          }).catch(function () {
-            resolve({ name: file.name, type: file.type, dataUrl: dataUrl });
-          });
-        });
-
-        reader.addEventListener("error", reject);
-        reader.readAsDataURL(file);
-      });
+      return draftImages.prepareRouteImage(file, { FileReaderCtor: FileReader, compressor });
     }));
   }
 
@@ -870,20 +858,27 @@
 
   function publishTrail(trail) {
     const route = toRouteJson(trail);
-    const payload = { ...route };
-    ["owner", "slot", "createdAt", "updatedAt"].forEach(function (key) { delete payload[key]; });
-    if (String(payload.image || "").startsWith("data:")) delete payload.image;
-    if (String(payload.qrCode || "").startsWith("data:")) delete payload.qrCode;
 
-    window.localStorage.setItem(pendingTrailStorageKey, JSON.stringify(route));
+    return uploadRouteImageIfNeeded(route, trail).then(function (uploadedRoute) {
+      const payload = { ...uploadedRoute };
+      ["owner", "slot", "createdAt", "updatedAt"].forEach(function (key) { delete payload[key]; });
+      if (String(payload.image || "").startsWith("data:")) throw publishError("image_upload_failed");
+      if (String(payload.qrCode || "").startsWith("data:")) delete payload.qrCode;
 
-    return fetch(publishEndpoint, {
+      try {
+        window.localStorage.setItem(pendingTrailStorageKey, JSON.stringify(uploadedRoute));
+      } catch (error) {
+        window.localStorage.removeItem(pendingTrailStorageKey);
+      }
+
+      return fetch(publishEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       credentials: "same-origin",
       body: JSON.stringify(payload)
+      });
     }).then(function (response) {
       if (!response.ok) {
         return response.json().catch(function () {
@@ -905,6 +900,42 @@
 
       return waitForPublishedRoute(route);
     });
+  }
+
+  function uploadRouteImageIfNeeded(route, trail) {
+    return draftImages.ensureManagedRouteImage(route, sendRouteImagePayload).then(function (result) {
+      if (result.uploaded) rememberUploadedRouteImage(trail, result.route);
+      return result.route;
+    }).catch(function (error) {
+      throw error && error.reason ? error : publishError("image_upload_failed");
+    });
+  }
+
+  function sendRouteImagePayload(imagePayload) {
+    return fetch("/api/upload-route-image", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(imagePayload)
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (body) {
+        if (!response.ok || !body.url) throw publishError(body.reason || "image_upload_failed");
+        return body.url;
+      });
+    });
+  }
+
+  function rememberUploadedRouteImage(trail, uploadedRoute) {
+    draftImages.rememberManagedRouteImage(trail, uploadedRoute.image, uploadedRoute.imageAlt);
+    activeTrail = trail;
+    routeImages.value = "";
+    updateRetainedImageState(uploadedRoute.image, uploadedRoute.imageAlt);
+
+    const trails = readSavedTrails();
+    const existingIndex = trails.findIndex(function (item) { return item.id === trail.id; });
+    if (existingIndex >= 0) trails[existingIndex] = trail;
+    else trails.unshift(trail);
+    draftImages.persistDraft(window.localStorage, trailStorageKey, trails);
   }
 
   function activeTrailFor(title, date, time, location) {
@@ -975,6 +1006,9 @@
   }
 
   function publishFailureText(error) {
+    if (error && ["image_upload_failed", "invalid_image", "unsupported_image_type", "image_too_large", "upload_failed", "upload_conflict", "upload_unavailable"].includes(error.reason)) {
+      return "路线图片还没有被送出，请保留当前页面后重试。";
+    }
     if (error && error.reason === "route_limit_reached") {
       return "你已经安放了两条步道。";
     }
@@ -984,6 +1018,18 @@
     }
 
     return "这段路已经预备好，还需要被送出。";
+  }
+
+  function loginError(reason, status) {
+    const error = new Error(reason);
+    error.reason = reason;
+    error.status = status;
+    return error;
+  }
+
+  function loginFailureText(error) {
+    if (error && error.status === 401) return "邮箱或密码错误";
+    return "登录服务暂时不可用，请稍后再试";
   }
 
   function resolveImage(value) {

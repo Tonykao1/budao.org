@@ -12,6 +12,7 @@ const { getAuthenticatedPublisher } = require("./_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/http");
 const { clientIp, consume } = require("./_security/rate-limit");
 const { validateRoute } = require("./_security/route-schema");
+const { isManagedRouteImageUrl } = require("./_security/route-image");
 
 module.exports = async function handler(request, response) {
   const parsed = requireJsonPost(request);
@@ -38,6 +39,12 @@ module.exports = async function handler(request, response) {
 
     const existing = findExistingRoute(current.routes, routeToSave);
     const share = sharePayload(routeToSave);
+    const existingImage = existing ? existing.image || existing.imageUrl || "" : "";
+
+    if (routeToSave.image && routeToSave.image !== existingImage &&
+        !isManagedRouteImageUrl(routeToSave.image, publisher.slot, { owner, repo, branch })) {
+      return sendJson(response, 400, { ok: false, reason: "untrusted_image_url" });
+    }
 
     const existingSlot = existing ? normalizeSlot(existing.slot || slotForOwner(existing.owner)) : "";
     if (existing && existingSlot !== routeToSave.slot) {
@@ -49,7 +56,7 @@ module.exports = async function handler(request, response) {
       routeToSave.id = existing.id || existing.routeId || routeToSave.id;
       routeToSave.routeId = existing.routeId || existing.id || routeToSave.routeId;
       routeToSave.createdAt = existing.createdAt || routeToSave.createdAt;
-      routeToSave.image = routeToSave.image || existing.image || existing.imageUrl || "";
+      routeToSave.image = routeToSave.image || existingImage;
       routeToSave.qrCode = routeToSave.qrCode || existing.qrCode || "";
       routeToSave.imageAlt = routeToSave.imageAlt || existing.imageAlt || routeToSave.title || "";
     }

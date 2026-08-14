@@ -55,6 +55,26 @@ function authenticateCredentials(email, password) {
   return { id: user.id, role: "publisher", slot: user.slot };
 }
 
+function authConfigurationStatus() {
+  const rawUsers = process.env.BUDAO_ADMIN_USERS_JSON;
+  let usersValid = false;
+
+  if (rawUsers) {
+    try {
+      const parsed = JSON.parse(rawUsers);
+      usersValid = Array.isArray(parsed) && parsed.length > 0 && configuredUsers().length === parsed.length;
+    } catch (error) {
+      usersValid = false;
+    }
+  }
+
+  const secret = process.env.BUDAO_SESSION_SECRET;
+  return {
+    usersValid,
+    sessionSecretValid: typeof secret === "string" && secret.length >= 32
+  };
+}
+
 function configuredUsers() {
   let parsed;
   try {
@@ -66,8 +86,19 @@ function configuredUsers() {
   if (!Array.isArray(parsed)) return [];
   return parsed.filter((user) => user && typeof user.id === "string" && user.id.length <= 160 &&
     typeof user.email === "string" && user.email.length <= 254 &&
-    typeof user.passwordHash === "string" && user.passwordHash.length <= 256 &&
+    validPasswordHash(user.passwordHash) &&
     ["IMS", "BACBC"].includes(user.slot));
+}
+
+function validPasswordHash(value) {
+  if (typeof value !== "string" || value.length > 256) return false;
+  const pieces = value.split("$");
+  if (pieces.length !== 3 || pieces[0] !== "scrypt") return false;
+  try {
+    return Buffer.from(pieces[1], "base64url").length > 0 && Buffer.from(pieces[2], "base64url").length === 32;
+  } catch (error) {
+    return false;
+  }
 }
 
 function createSessionCookie(user, secure = true) {
@@ -118,6 +149,7 @@ function safeEqual(left, right) {
 }
 
 module.exports = {
+  authConfigurationStatus,
   authenticateCredentials,
   clearSessionCookie,
   createSessionCookie,

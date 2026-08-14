@@ -1,4 +1,4 @@
-const { authenticateCredentials, createSessionCookie } = require("../_security/auth");
+const { authConfigurationStatus, authenticateCredentials, createSessionCookie } = require("../_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("../_security/http");
 const { clientIp, consume } = require("../_security/rate-limit");
 
@@ -8,6 +8,14 @@ module.exports = async function handler(request, response) {
   if (!requireSameOrigin(request)) return sendJson(response, 403, { ok: false, reason: "forbidden" });
   if (!consume("login:" + clientIp(request), 5, 15 * 60_000)) {
     return sendJson(response, 429, { ok: false, reason: "rate_limited" });
+  }
+
+  const configuration = authConfigurationStatus();
+  if (!configuration.usersValid) {
+    return sendJson(response, 503, { ok: false, reason: "user_configuration_unavailable" });
+  }
+  if (!configuration.sessionSecretValid) {
+    return sendJson(response, 503, { ok: false, reason: "session_configuration_unavailable" });
   }
 
   const keys = Object.keys(parsed.body);

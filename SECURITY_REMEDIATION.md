@@ -36,9 +36,9 @@
 - **原风险：** 无认证、Content-Type/总体大小/字段长度/schema/速率限制；匿名请求可反复制造 GitHub commits 和资源消耗。
 - **根因：** 直接信任任意 JSON 并传入 normalize/commit 流程。
 - **修改文件：** `api/_security/http.js`, `api/_security/route-schema.js`, `api/_security/rate-limit.js`, `api/publish-route-v2.js`, `tent-app.js`。
-- **修复方式：** 统一要求 POST 和 `application/json`；请求体最大 48 KiB、对象深度最多 3、最多 30 个字段。显式 allowlist 和每字段长度限制，未知/敏感/mass-assignment 字段一律拒绝；owner、slot、role、userId、repository、branch、path、Token、审批和审计字段均不能由客户端提交。图片只允许 HTTPS 或安全相对路径；data URI 新发布被禁用。按用户+IP 每分钟最多 10 次发布，登录按 IP 每 15 分钟最多 5 次。已有内容相同则不再 PUT，保持幂等。
+- **修复方式：** 统一要求 POST 和 `application/json`；请求体最大 48 KiB、对象深度最多 3、最多 30 个字段。显式 allowlist 和每字段长度限制，未知/敏感/mass-assignment 字段一律拒绝；owner、slot、role、userId、repository、branch、path、Token、审批和审计字段均不能由客户端提交。新路线图片经认证上传并校验 MIME、签名、尺寸和大小后写入受控路径；路线发布只接受对应的受管 HTTPS URL。按用户+IP 每分钟最多 10 次发布，登录按 IP 每 15 分钟最多 5 次。已有内容相同则不再 PUT，保持幂等。
 - **测试证据：** 覆盖超大请求 413、错误 Content-Type 415、超长 title 400、branch/repository/path/owner 等未知敏感字段 400、第 11 次发布 429、相同内容第二次提交不产生 PUT。
-- **剩余风险：** 当前限流是单 Serverless 实例内存桶；多实例生产环境必须叠加 Vercel Firewall/持久化 KV 或外部限流服务，才能形成全局强限制。新内嵌图片发布暂时关闭，已有 data URI 不删除且文本更新时由服务端保留；后续应迁移至受控对象存储。
+- **剩余风险：** 当前限流是单 Serverless 实例内存桶；多实例生产环境必须叠加 Vercel Firewall/持久化 KV 或外部限流服务，才能形成全局强限制。路线图片当前存于 GitHub 仓库的 `route-assets/<slot>/<random>.<ext>`，`routes.json` 只保存受管 HTTPS URL；图片规模明显增长时应迁移至专用对象存储。
 
 ## 3. Authentication and Authorization Changes
 
@@ -66,7 +66,7 @@
 - **大小：** 序列化/原始请求最大 48 KiB；否则 413。部署平台还应设置更外层的请求限制。
 - **复杂度：** 顶层必须是普通对象；最大嵌套深度 3；最多 30 个字段；数组和对象字段不在 schema 内，因此被拒绝。
 - **Schema：** 只接受路线内容 allowlist；所有字段必须是字符串并满足独立最大长度；未知字段拒绝。
-- **图片：** HTTPS 或安全相对路径；禁止 `http:`, `data:`, `blob:` 和其他 scheme。旧数据不删除。
+- **图片：** 新图片只接受认证上传接口返回的受管 HTTPS URL；禁止客户端把 `http:`, `data:`, `blob:`、任意远程 URL 或其他 scheme 写入路线。旧数据不删除。
 - **身份字段：** owner/slot/role/isAdmin/userId/ownerId/createdBy/approvalState 等服务端决定字段全部拒绝。
 - **GitHub 字段：** repository/repo/branch/path/filePath/githubToken/token/commitTarget 全部拒绝。
 - **限流：** 登录 IP 维度 5/15 分钟；发布 user ID + IP 维度 10/分钟。生产需部署级共享限流作为第二层。
@@ -115,7 +115,7 @@
 2. 应用内存限流不是跨实例全局限流，生产必须配置部署层/持久化限流。
 3. 最小本地身份系统没有 MFA、集中撤销、密码重置或身份提供商审计；短期可用，长期应迁移到单一成熟 IdP。
 4. 静态管理页面外壳可公开加载；真实权限只在 API。需在 Preview 验证所有未来管理 API 都复用同一服务端边界。
-5. data URI 新图片发布已禁用；旧图片保留。受控文件存储、真实 MIME 检测和上传配额尚未实现。
+5. data URI 新图片发布已禁用；旧图片保留。当前受认证上传使用 GitHub `route-assets` 作为静态架构下的受控实现，并设有 MIME、签名、尺寸、大小和频率限制；图片规模明显增长时应迁移至专用对象存储。
 6. GitHub/Vercel 的 Token scope、环境隔离、分支规则、日志、WAF、响应头和线上路由仍需人工验证。
 7. 未对生产或 Preview 发起请求，未进行真实 GitHub commit/PR 动态验证；测试使用完全虚构的本地凭据和 mock GitHub API。
 8. 没有第三方依赖和 TypeScript，因此测试/静态语法检查不能代替未来引入构建系统后的完整 SCA/typecheck。

@@ -1,12 +1,12 @@
 const MAX_BODY_BYTES = 48 * 1024;
 
-function requireJsonPost(request) {
+function requireJsonPost(request, maxBodyBytes = MAX_BODY_BYTES) {
   if (request.method !== "POST") return { error: "method_not_allowed", status: 405 };
   const contentType = String(request.headers && request.headers["content-type"] || "").toLowerCase();
   if (!contentType.startsWith("application/json")) return { error: "unsupported_media_type", status: 415 };
 
   const raw = typeof request.body === "string" ? request.body : JSON.stringify(request.body || null);
-  if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) return { error: "payload_too_large", status: 413 };
+  if (Buffer.byteLength(raw, "utf8") > maxBodyBytes) return { error: "payload_too_large", status: 413 };
 
   try {
     const body = typeof request.body === "string" ? JSON.parse(request.body) : request.body;
