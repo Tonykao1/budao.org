@@ -53,25 +53,40 @@
   function compressRouteImage(dataUrl) {
     return loadImage(dataUrl).then(function (image) {
       let fallback = "";
+      let widthIndex = 0;
+      let qualityIndex = 0;
+      const startedAt = Date.now();
 
-      for (let widthIndex = 0; widthIndex < widths.length; widthIndex += 1) {
+      function encodeNext() {
+        if (Date.now() - startedAt >= 6500) return "";
+
         const width = widths[widthIndex];
         const height = Math.round(width / targetRatio);
+        const result = renderCoverImage(image, width, height, qualities[qualityIndex]);
 
-        for (let qualityIndex = 0; qualityIndex < qualities.length; qualityIndex += 1) {
-          const result = renderCoverImage(image, width, height, qualities[qualityIndex]);
+        if (!fallback || result.length < fallback.length) fallback = result;
+        if (result.length <= maxDataUrlLength) return result;
 
-          if (!fallback || result.length < fallback.length) {
-            fallback = result;
-          }
-
-          if (result.length <= maxDataUrlLength) {
-            return result;
-          }
+        qualityIndex += 1;
+        if (qualityIndex >= qualities.length) {
+          qualityIndex = 0;
+          widthIndex += 1;
         }
+
+        if (widthIndex >= widths.length) {
+          return fallback && fallback.length <= maxDataUrlLength * 1.1 ? fallback : "";
+        }
+
+        return yieldToBrowser().then(encodeNext);
       }
 
-      return fallback && fallback.length <= maxDataUrlLength * 1.1 ? fallback : "";
+      return encodeNext();
+    });
+  }
+
+  function yieldToBrowser() {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 0);
     });
   }
 

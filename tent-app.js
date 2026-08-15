@@ -12,6 +12,7 @@
   const clearImageButton = ensureClearImageButton();
   const qrNote = document.querySelector(".qr-note");
   const routeMessage = document.querySelector(".route-message");
+  const routeSubmitButton = routeForm.querySelector(".quiet-submit");
   const publishWhisper = document.querySelector(".publish-whisper");
   const routePreview = document.getElementById("routePreview");
   const returnEditButton = document.querySelector(".return-edit");
@@ -362,11 +363,22 @@
     qrNote.textContent = file ? file.name : "还没有选择活动码";
   });
 
+  const placeTrail = draftImages.createSubmissionGuard({
+    setMessage: function (message) {
+      routeMessage.textContent = message;
+    },
+    setProcessing: function (processing) {
+      routeSubmitButton.disabled = processing;
+      routeSubmitButton.setAttribute("aria-busy", processing ? "true" : "false");
+      routeSubmitButton.classList.toggle("processing", processing);
+    }
+  });
+
   routeForm.addEventListener("submit", function (event) {
     event.preventDefault();
-    routeMessage.textContent = "";
 
-    buildTrailRecord(routeForm).then(function (trail) {
+    placeTrail(function () {
+      return buildTrailRecord(routeForm).then(function (trail) {
       activeTrail = trail;
       const trails = readSavedTrails();
       const existingIndex = trails.findIndex(function (item) {
@@ -380,6 +392,7 @@
       }
 
       const draftResult = draftImages.persistDraft(window.localStorage, trailStorageKey, trails);
+      if (!draftResult.saved) reportDraftStageFailure("draft persistence", draftResult.error);
       routeMessage.textContent = draftResult.saved ?
         "这条步道已经暂时安放。" : draftResult.quotaExceeded ?
           "图片已预览，但本地保存空间不足。" :
@@ -390,6 +403,7 @@
       try {
         renderRoutePreview(trail);
       } catch (error) {
+        reportDraftStageFailure("preview render", error);
         routeMessage.textContent = "图片已经读入，但预览暂时无法呈现。";
         presence.classList.remove("saved-resting");
         return;
@@ -399,13 +413,14 @@
         presence.classList.remove("saved-resting");
         presence.classList.add("review-open");
       }, reduceMotion ? 1 : 1000);
-    }).catch(function (error) {
+      }).catch(function (error) {
       if (error && error.reason === "image_read_failed") {
         routeMessage.textContent = "图片读取失败，请重新选择。";
         return;
       }
 
       routeMessage.textContent = "这条步道暂时无法安放，请稍后再试。";
+      });
     });
   });
 
@@ -691,8 +706,18 @@
   function readImageDataUrls() {
     const compressor = window.BudaoImagePipeline && window.BudaoImagePipeline.compressRouteImage;
     return Promise.all(imageFiles().map(function (file) {
-      return draftImages.prepareRouteImage(file, { FileReaderCtor: FileReader, compressor });
+      return draftImages.prepareRouteImage(file, {
+        FileReaderCtor: FileReader,
+        compressor,
+        compressionTimeoutMs: 7000,
+        onDiagnostic: reportDraftStageFailure
+      });
     }));
+  }
+
+  function reportDraftStageFailure(stage, error) {
+    const reason = error && error.reason ? error.reason : error && error.name ? error.name : "unknown";
+    console.warn("[Tent draft] " + stage + " failed: " + reason);
   }
 
   function readQrCodeDataUrl() {

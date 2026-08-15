@@ -163,6 +163,66 @@ test("draft image read failures are explicit and compression failures fall back 
   assert.equal(compressed.dataUrl, "data:image/jpeg;base64,BBBB");
 });
 
+test("draft image compression timeout falls back to the original image", async () => {
+  class GoodReader {
+    addEventListener(name, callback) { this[name] = callback; }
+    readAsDataURL() { this.result = "data:image/png;base64,AAAA"; this.load(); }
+  }
+
+  const diagnostics = [];
+  const result = await draftImages.prepareRouteImage(
+    { name: "route.png", type: "image/png" },
+    {
+      FileReaderCtor: GoodReader,
+      compressor: () => new Promise(() => {}),
+      compressionTimeoutMs: 10,
+      onDiagnostic: (stage, error) => diagnostics.push([stage, error.reason])
+    }
+  );
+
+  assert.equal(result.dataUrl, "data:image/png;base64,AAAA");
+  assert.deepEqual(diagnostics, [["image compression", "image_compression_timeout"]]);
+});
+
+test("route placement shows processing immediately, restores after success or failure and ignores rapid repeats", async () => {
+  let message = "";
+  let processing = false;
+  let calls = 0;
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const run = draftImages.createSubmissionGuard({
+    setMessage(value) { message = value; },
+    setProcessing(value) { processing = value; }
+  });
+
+  const first = run(async () => { calls += 1; await gate; return "saved"; });
+  const second = run(async () => { calls += 1; return "duplicate"; });
+
+  assert.equal(message, "正在安放这条步道…");
+  assert.equal(processing, true);
+  assert.equal(calls, 0);
+  assert.deepEqual(await second, { skipped: true });
+  release();
+  assert.equal(await first, "saved");
+  assert.equal(calls, 1);
+  assert.equal(processing, false);
+
+  await assert.rejects(run(async () => { throw new Error("save failed"); }), /save failed/);
+  assert.equal(processing, false);
+});
+
+test("client route placement wires processing UI and four diagnostic stages", () => {
+  const source = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "tent-app.js"), "utf8");
+  const draftSource = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "tent-draft-images.js"), "utf8");
+  assert.match(source, /createSubmissionGuard/);
+  assert.match(draftSource, /正在安放这条步道…/);
+  assert.match(source, /routeSubmitButton\.disabled = processing/);
+  assert.match(source, /compressionTimeoutMs: 7000/);
+  for (const stage of ["image read", "image compression", "draft persistence", "preview render"]) {
+    assert.match(source + draftSource, new RegExp(stage));
+  }
+});
+
 test("draft persistence reports quota exhaustion instead of silently stripping images", () => {
   const quota = Object.assign(new Error("full"), { name: "QuotaExceededError" });
   const storage = { setItem() { throw quota; } };
