@@ -354,3 +354,24 @@ test("client renders a prepared route preview and reports preview failure separa
   assert.match(source, /图片已经读入，但预览暂时无法呈现。/);
   assert.match(source, /图片读取失败，请重新选择。/);
 });
+
+test('timezone select exists and normalization rules are present', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'tent.html'), 'utf8');
+  const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'tent-app.js'), 'utf8');
+
+  // tent.html should use a select for timezone
+  assert.match(html, /<select name="timezone">/);
+
+  // normalizeTimezone helper and mappings
+  assert.match(source, /function normalizeTimezone\(/);
+  assert.match(source, /"China\/Beijing"\s*:\s*"Asia\/Shanghai"/);
+  assert.match(source, /"US\/Pacific"\s*:\s*"America\/Los_Angeles"/);
+
+  // buildTrailRecord should call normalizeTimezone when constructing timezone
+  assert.match(source, /const timezoneRaw = valueOf\(form, "timezone"\)/);
+  assert.match(source, /const timezone = normalizeTimezone\(timezoneRaw/);
+
+  // slotRouteDefaults contain IMS and BACBC defaults
+  assert.match(source, /IMS:\s*\{[\s\S]*timezone:\s*"Asia\/Shanghai"/);
+  assert.match(source, /BACBC:\s*\{[\s\S]*timezone:\s*"America\/Los_Angeles"/);
+});
