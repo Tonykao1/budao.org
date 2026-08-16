@@ -98,3 +98,23 @@ test('client payload strips meetingPoint and preserves meetingPlace and other de
   // Ensure publishTrail payload deletion list includes meetingPoint and the original keys
   assert.match(source, /\["owner",\s*"slot",\s*"createdAt",\s*"updatedAt",\s*"meetingPoint"\]/);
 });
+
+test('meeting module preserves meetingPlace fallback and does not write meetingPoint', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'tent-meeting-module.js'), 'utf8');
+
+  // meetingPlace fallback should include legacy meetingPoint and gatheringPlace
+  assert.match(src, /route\.meetingPlace\s*=\s*place\s*\|\|\s*route\.meetingPlace\s*\|\|\s*route\.meetingPoint\s*\|\|\s*route\.gatheringPlace\s*\|\|\s*""/);
+
+  // Ensure we do NOT re-write meetingPoint into the payload
+  assert.doesNotMatch(src, /route\.meetingPoint\s*=\s*route\.meetingPlace/);
+});
+
+test('meeting fallback includes meetingPoint and gatheringPlace as legacy sources', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'tent-meeting-module.js'), 'utf8');
+  assert.match(src, /route\.meetingPoint/);
+  assert.match(src, /route\.gatheringPlace/);
+});

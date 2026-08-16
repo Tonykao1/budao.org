@@ -76,8 +76,11 @@
           const route = JSON.parse(init.body);
 
           if (route && typeof route === "object") {
+            // Ensure meetingPlace is populated from various legacy sources,
+            // but do not write `meetingPoint` back into the payload. The
+            // server accepts `meetingPlace` only; legacy `meetingPoint` or
+            // `gatheringPlace` are used as fallbacks.
             route.meetingPlace = place || route.meetingPlace || route.meetingPoint || route.gatheringPlace || "";
-            route.meetingPoint = route.meetingPlace;
             init = {
               ...init,
               body: JSON.stringify(route)
