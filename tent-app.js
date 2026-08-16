@@ -886,9 +886,8 @@
 
     return uploadRouteImageIfNeeded(route, trail).then(function (uploadedRoute) {
       const payload = { ...uploadedRoute };
-      ["owner", "slot", "createdAt", "updatedAt"].forEach(function (key) { delete payload[key]; });
+      ["owner", "slot", "createdAt", "updatedAt", "meetingPoint"].forEach(function (key) { delete payload[key]; });
       if (String(payload.image || "").startsWith("data:")) throw publishError("image_upload_failed");
-      if (String(payload.qrCode || "").startsWith("data:")) delete payload.qrCode;
 
       try {
         window.localStorage.setItem(pendingTrailStorageKey, JSON.stringify(uploadedRoute));
@@ -923,14 +922,49 @@
         window.localStorage.setItem("budao.tent.lastShareImageUrl", result.shareImageUrl);
       }
 
+      // If the server returned a non-empty commit SHA, treat publish as successful
+      // and avoid waiting for routes.json propagation. Only fall back to polling
+      // when commit is missing/null/empty (compat with older responses).
+      try {
+        const commit = result && typeof result.commit === "string" ? result.commit.trim() : null;
+        if (commit) {
+          try { window.localStorage.removeItem(pendingTrailStorageKey); } catch (e) {}
+          return Promise.resolve();
+        }
+      } catch (e) {
+        // If anything unexpected happens, fall back to existing behavior.
+      }
+
       return waitForPublishedRoute(route);
     });
   }
 
   function uploadRouteImageIfNeeded(route, trail) {
+    // First ensure main route image is uploaded if it's a data: URL.
     return draftImages.ensureManagedRouteImage(route, sendRouteImagePayload).then(function (result) {
-      if (result.uploaded) rememberUploadedRouteImage(trail, result.route);
-      return result.route;
+      var updated = result.route;
+      var imageUploaded = result.uploaded;
+
+      // If there's a data: QR code, upload it via the same upload endpoint.
+      if (String(updated.qrCode || "").startsWith("data:")) {
+        var payload = draftImages.dataUrlPayload(updated.qrCode);
+        if (!payload) return Promise.reject(publishError("image_upload_failed"));
+
+        return sendRouteImagePayload(payload).then(function (url) {
+          updated = { ...updated, qrCode: url };
+          // Remember uploaded assets (image and/or qr) on the trail so retries reuse them.
+          try { rememberUploadedRouteImage(trail, updated); } catch (e) {}
+          return updated;
+        }).catch(function (error) {
+          throw error && error.reason ? error : publishError("image_upload_failed");
+        });
+      }
+
+      if (imageUploaded) {
+        try { rememberUploadedRouteImage(trail, updated); } catch (e) {}
+      }
+
+      return updated;
     }).catch(function (error) {
       throw error && error.reason ? error : publishError("image_upload_failed");
     });
@@ -952,6 +986,16 @@
 
   function rememberUploadedRouteImage(trail, uploadedRoute) {
     draftImages.rememberManagedRouteImage(trail, uploadedRoute.image, uploadedRoute.imageAlt);
+    // Persist uploaded QR code URL back into the trail source so subsequent
+    // publish attempts reuse the managed URL instead of re-uploading.
+    if (uploadedRoute && typeof uploadedRoute.qrCode === "string" && uploadedRoute.qrCode.startsWith("https://")) {
+      try {
+        if (!trail.source) trail.source = {};
+        trail.source.qrCode = uploadedRoute.qrCode;
+        routeQrCode.value = "";
+        if (qrNote) qrNote.textContent = "已保留活动码";
+      } catch (e) {}
+    }
     activeTrail = trail;
     routeImages.value = "";
     updateRetainedImageState(uploadedRoute.image, uploadedRoute.imageAlt);
