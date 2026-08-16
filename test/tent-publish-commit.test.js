@@ -99,6 +99,21 @@ test('client payload strips meetingPoint and preserves meetingPlace and other de
   assert.match(source, /\["owner",\s*"slot",\s*"createdAt",\s*"updatedAt",\s*"meetingPoint"\]/);
 });
 
+test('qrCode data: URLs are uploaded and replaced with managed URL', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const source = fs.readFileSync(path.join(__dirname, '..', 'tent-app.js'), 'utf8');
+
+  // uploadRouteImageIfNeeded should call draftImages.dataUrlPayload for QR data
+  assert.match(source, /dataUrlPayload\(updated\.qrCode\)/);
+
+  // ensure we no longer delete qrCode in publishTrail; upload should occur earlier
+  assert.doesNotMatch(source, /delete payload\.qrCode/);
+
+  // ensure we set the managed URL back into the route before remembering
+  assert.match(source, /updated\s*=\s*\{\s*\.\.\.updated,\s*qrCode:\s*url\s*\}/);
+});
+
 test('meeting module preserves meetingPlace fallback and does not write meetingPoint', () => {
   const fs = require('node:fs');
   const path = require('node:path');
