@@ -565,7 +565,7 @@
     setValue(routeForm, "distance", route.distance || "");
     setValue(routeForm, "elevationGain", route.elevation || "");
     setValue(routeForm, "routeLocation", locationForForm(route));
-    setValue(routeForm, "timezone", route.timezone || "Asia/Shanghai");
+    setValue(routeForm, "timezone", normalizeTimezone(route.timezone || (route.slot === "BACBC" ? "America/Los_Angeles" : "Asia/Shanghai"), route.slot === "BACBC" ? "America/Los_Angeles" : "Asia/Shanghai"));
     setValue(routeForm, "duration", route.duration || "");
     setValue(routeForm, "meetingPlace", route.meetingPlace || "");
     setValue(routeForm, "surfaceDescription", route.surface || "");
@@ -590,7 +590,7 @@
     setValue(routeForm, "distance", source.distance || "");
     setValue(routeForm, "elevationGain", source.elevationGain || "");
     setValue(routeForm, "routeLocation", source.routeLocation || "");
-    setValue(routeForm, "timezone", source.timezone || "Asia/Shanghai");
+    setValue(routeForm, "timezone", normalizeTimezone(source.timezone || (source.slot === "BACBC" ? "America/Los_Angeles" : "Asia/Shanghai"), source.slot === "BACBC" ? "America/Los_Angeles" : "Asia/Shanghai"));
     setValue(routeForm, "duration", source.duration || "");
     setValue(routeForm, "meetingPlace", source.meetingPlace || "");
     setValue(routeForm, "surfaceDescription", source.surfaceDescription || "");
@@ -653,6 +653,30 @@
 
   function normalizeEmail(value) {
     return String(value || "").trim().toLowerCase();
+  }
+
+  function normalizeTimezone(value, fallback) {
+    // Keep fallback as a valid IANA timezone string (e.g. 'Asia/Shanghai')
+    const mapping = {
+      "China/Beijing": "Asia/Shanghai",
+      "Beijing": "Asia/Shanghai",
+      "China/Shanghai": "Asia/Shanghai",
+      "US/Pacific": "America/Los_Angeles",
+      "US/Eastern": "America/New_York"
+    };
+
+    const raw = String(value || "").trim();
+    if (!raw) return fallback || "Asia/Shanghai";
+
+    if (mapping[raw]) return mapping[raw];
+
+    try {
+      // If it's a valid IANA timezone, this will not throw.
+      Intl.DateTimeFormat(undefined, { timeZone: raw });
+      return raw;
+    } catch (e) {
+      return fallback || "Asia/Shanghai";
+    }
   }
 
   function ensureClearImageButton() {
@@ -803,14 +827,15 @@
     const distance = valueOf(form, "distance");
     const elevationGain = valueOf(form, "elevationGain");
     const routeLocation = valueOf(form, "routeLocation");
-    const timezone = valueOf(form, "timezone") || "Asia/Shanghai";
+    const slot = slotForEmail(currentUserEmail);
+    const timezoneRaw = valueOf(form, "timezone") || (slot === "BACBC" ? "America/Los_Angeles" : "Asia/Shanghai");
+    const timezone = normalizeTimezone(timezoneRaw, slot === "BACBC" ? "America/Los_Angeles" : "Asia/Shanghai");
     const surfaceDescription = valueOf(form, "surfaceDescription");
     const duration = valueOf(form, "duration");
     const participantRequirements = valueOf(form, "participantRequirements");
     const itinerary = valueOf(form, "itinerary");
     const meetingPlace = valueOf(form, "meetingPlace");
     const location = routeLocation || meetingPlace;
-    const slot = slotForEmail(currentUserEmail);
     const routeId = slot ? "budao-" + slot.toLowerCase() : slugify([normalizedTrailDate, meetingTime, routeName, location].filter(Boolean).join("-"));
 
     return Promise.all([readImageDataUrls(), readQrCodeDataUrl()]).then(function (assets) {
@@ -1302,8 +1327,9 @@
     }
 
     const target = new Date(normalizeDate(date) + "T" + (time || "00:00") + ":00");
+    const tz = normalizeTimezone(timezone, "Asia/Shanghai");
     const utcDate = new Date(target.toLocaleString("en-US", { timeZone: "UTC" }));
-    const localDate = new Date(target.toLocaleString("en-US", { timeZone: timezone }));
+    const localDate = new Date(target.toLocaleString("en-US", { timeZone: tz }));
     const offsetHours = Math.round((localDate - utcDate) / (1000 * 60 * 60));
 
     return "UTC" + (offsetHours >= 0 ? "+" : "") + offsetHours;
@@ -1311,7 +1337,7 @@
 
   function getEventState(event) {
     const now = new Date();
-    const localNow = new Date(now.toLocaleString("en-US", { timeZone: event.timezone }));
+    const localNow = new Date(now.toLocaleString("en-US", { timeZone: normalizeTimezone(event.timezone, "Asia/Shanghai") }));
     const start = new Date(normalizeDate(event.date) + "T" + event.time + ":00");
     const end = new Date(start.getTime() + event.duration * 60 * 1000);
 
