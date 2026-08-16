@@ -923,6 +923,19 @@
         window.localStorage.setItem("budao.tent.lastShareImageUrl", result.shareImageUrl);
       }
 
+      // If the server returned a non-empty commit SHA, treat publish as successful
+      // and avoid waiting for routes.json propagation. Only fall back to polling
+      // when commit is missing/null/empty (compat with idempotent/older responses).
+      try {
+        const commit = result && typeof result.commit === "string" ? result.commit.trim() : null;
+        if (commit) {
+          try { window.localStorage.removeItem(pendingTrailStorageKey); } catch (e) {}
+          return Promise.resolve();
+        }
+      } catch (e) {
+        // If anything unexpected happens, fall back to existing behavior.
+      }
+
       return waitForPublishedRoute(route);
     });
   }
