@@ -886,7 +886,7 @@
 
     return uploadRouteImageIfNeeded(route, trail).then(function (uploadedRoute) {
       const payload = { ...uploadedRoute };
-      ["owner", "slot", "createdAt", "updatedAt"].forEach(function (key) { delete payload[key]; });
+      ["owner", "slot", "createdAt", "updatedAt", "meetingPoint"].forEach(function (key) { delete payload[key]; });
       if (String(payload.image || "").startsWith("data:")) throw publishError("image_upload_failed");
       if (String(payload.qrCode || "").startsWith("data:")) delete payload.qrCode;
 

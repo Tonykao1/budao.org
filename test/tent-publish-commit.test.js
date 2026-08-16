@@ -86,3 +86,15 @@ test('publish commit short-circuit cases 1..8', async () => {
   passed++;
   assert.equal(passed, 9);
 });
+
+test('client payload strips meetingPoint and preserves meetingPlace and other deletions', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const source = fs.readFileSync(path.join(__dirname, '..', 'tent-app.js'), 'utf8');
+
+  // Ensure toRouteJson uses source.meetingPlace as fallback for location
+  assert.match(source, /const\s+location\s*=\s*source\.routeLocation\s*\|\|\s*source\.meetingPlace/);
+
+  // Ensure publishTrail payload deletion list includes meetingPoint and the original keys
+  assert.match(source, /\["owner",\s*"slot",\s*"createdAt",\s*"updatedAt",\s*"meetingPoint"\]/);
+});
