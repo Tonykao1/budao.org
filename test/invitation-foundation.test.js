@@ -61,7 +61,7 @@ describe('Invitation Foundation Phase 1A (18 cases)', () => {
     };
 
     // dynamic import to pick up env changes
-    const modUrl = new URL('../api/create-invitation.js', import.meta.url).href + '?cb=' + Date.now();
+    const modUrl = new URL('../api/invitation.js', import.meta.url).href + '?cb=' + Date.now();
     const mod = await import(modUrl);
     const handler = mod.default || mod;
     return { handler, stored, calls };

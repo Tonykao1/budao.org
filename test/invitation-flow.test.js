@@ -91,7 +91,7 @@ describe('Invitation Flow behavior tests', ()=>{
     await new Promise(r=>setTimeout(r,0));
 
     assert.strictEqual(fetchCalled, 1, 'fetch should be called once');
-    assert.ok(lastRequest.url.includes('/api/create-invitation'));
+    assert.ok(lastRequest.url.includes('/api/invitation'));
     assert.strictEqual(lastRequest.opts.method, 'POST');
     assert.strictEqual(lastRequest.opts.credentials, 'same-origin');
     const parsed = JSON.parse(lastRequest.body);

@@ -68,7 +68,7 @@
       IN_FLIGHT.set(button, true);
       setProcessing(button, true);
 
-      const res = await fetch('/api/create-invitation', {
+      const res = await fetch('/api/invitation', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },

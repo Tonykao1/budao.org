@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/i/:id", "destination": "/invitation.html?id=:id" }
+    { "source": "/i/:id", "destination": "/invitation.html?id=:id" },
+    { "source": "/api/create-invitation", "destination": "/api/invitation" }
   ]
 }
