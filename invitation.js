@@ -12,9 +12,15 @@
 
   function safeText(el, text){ el.textContent = text || ''; }
 
-  function getIdFromQuery(){
+  function getIdFromLocation(){
     const params = new URLSearchParams(location.search);
-    return params.get('id') || '';
+    const queryId = params.get('id') || '';
+    if (isValidId(queryId)) return queryId;
+
+    const pathMatch = String(location.pathname || '').match(/^\/i\/([^/]+)$/);
+    if (!pathMatch) return queryId;
+
+    try { return decodeURIComponent(pathMatch[1]); } catch (error) { return ''; }
   }
 
   function isValidId(id){ return /^[A-Za-z0-9]{4,64}$/.test(id); }
@@ -61,7 +67,7 @@
   }
 
   async function main(){
-    const id = getIdFromQuery();
+    const id = getIdFromLocation();
     if (!isValidId(id)){
       loading.style.display='none'; notfound.style.display='block'; notfound.textContent='无效的邀请标识。';
       return;

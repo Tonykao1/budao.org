@@ -1,7 +1,36 @@
 import assert from 'node:assert';
 import { describe, it, beforeEach } from 'node:test';
+import fs from 'node:fs';
+import vm from 'node:vm';
 
 function base64(s){ return Buffer.from(s,'utf8').toString('base64'); }
+
+async function clientRequestFor(location) {
+  const elements = new Map();
+  const element = () => ({ style: {}, textContent: '', appendChild() {}, removeChild() {}, firstChild: null });
+  ['#loading', '#notfound', '#invitation', '#title', '#meta', '#image-wrap', '#description', '#meeting-place', '#participation']
+    .forEach((selector) => elements.set(selector, element()));
+  let onReady;
+  let requestedUrl = '';
+  const context = {
+    URLSearchParams,
+    decodeURIComponent,
+    location,
+    document: {
+      querySelector: (selector) => elements.get(selector),
+      addEventListener: (name, callback) => { if (name === 'DOMContentLoaded') onReady = callback; },
+      createElement: () => element()
+    },
+    fetch: async (url) => {
+      requestedUrl = url;
+      return { status: 404, ok: false };
+    }
+  };
+
+  vm.runInNewContext(fs.readFileSync(new URL('../invitation.js', import.meta.url), 'utf8'), context);
+  await onReady();
+  return requestedUrl;
+}
 
 describe('Invitation Read API', () => {
   beforeEach(() => { global.fetch = undefined; delete process.env.GITHUB_TOKEN; });
@@ -148,6 +177,16 @@ describe('Invitation Read API', () => {
     // ensure existing index.html still present
     const fs = await import('node:fs');
     assert.ok(fs.existsSync(new URL('../index.html', import.meta.url)));
+  });
+
+  it('CASE 18: permanent /i/{id} pathname resolves the invitation id', async ()=>{
+    const url = await clientRequestFor({ pathname: '/i/IAUWtpB2Z', search: '' });
+    assert.strictEqual(url, '/api/invitation?id=IAUWtpB2Z');
+  });
+
+  it('CASE 19: legacy invitation.html query id remains supported', async ()=>{
+    const url = await clientRequestFor({ pathname: '/invitation.html', search: '?id=ABCD1234' });
+    assert.strictEqual(url, '/api/invitation?id=ABCD1234');
   });
 
 });
