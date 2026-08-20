@@ -1,0 +1,38 @@
+{
+  "id": "yBwb9QFg",
+  "sourceRoute": {
+    "routeId": "budao-ims"
+  },
+  "facts": {
+    "title": "宽沟环线",
+    "location": "中国·北京·怀柔",
+    "date": "2026-08-22",
+    "time": "07:30",
+    "timezone": "Asia/Shanghai",
+    "duration": "3小时",
+    "distance": "5.5千米",
+    "elevation": "327米",
+    "surface": "铺装路、石阶、少量土路",
+    "difficulty": "中等",
+    "suitableFor": "8岁以上儿童、具备体能基础长者可参与",
+    "equipmentMinimum": "徒步鞋",
+    "participantRequirements": "",
+    "meetingPlace": "详见活动群通知",
+    "description": "三面青山，一湾湖水，循林而行，把初秋走成清凉。在宽窄中品味人生，于山水间数算恩典。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/2f3c7fee08ce5217f6502ff88d872d28.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/f7ed8cce40871adfe028dbb8c5cf5d7d.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-08-20T14:18:34.039Z",
+  "createdBy": "budao-ims"
+}
