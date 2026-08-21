@@ -350,7 +350,7 @@ body {
   align-items: center;
   gap: 8px 52px;
   width: min(100%, 600px);
-  margin: 88px auto 0;
+  margin: 62px auto 0;
   padding-top: 54px;
   border-top: 1px solid var(--line);
   text-align: left;
@@ -409,7 +409,7 @@ body {
   align-items: center;
   gap: 22px;
   width: min(100%, 1000px);
-  margin: 104px auto 0;
+  margin: 72px auto 0;
   padding: 26px 0 0;
   border-top: 1px solid rgba(20, 16, 12, .16);
 }
