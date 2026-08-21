@@ -14,6 +14,13 @@ class FakeElement {
     this.children = [];
     this.attributes = {};
     this.textContent = '';
+    this.classList = {
+      add: (...classNames) => {
+        const names = new Set(String(this.className).split(' ').filter(Boolean));
+        classNames.forEach((className) => names.add(className));
+        this.className = Array.from(names).join(' ');
+      }
+    };
   }
 
   get firstChild() { return this.children[0] || null; }
@@ -39,6 +46,24 @@ function fakeDocument() {
 function hasClass(element, className) {
   if (String(element.className).split(' ').includes(className)) return true;
   return element.children.some((child) => hasClass(child, className));
+}
+
+function findByClass(element, className) {
+  if (String(element.className).split(' ').includes(className)) return element;
+  for (const child of element.children) {
+    const match = findByClass(child, className);
+    if (match) return match;
+  }
+  return null;
+}
+
+function findAll(element, predicate) {
+  const matches = predicate(element) ? [element] : [];
+  return element.children.reduce((items, child) => items.concat(findAll(child, predicate)), matches);
+}
+
+function directClassIndex(element, className) {
+  return element.children.findIndex((child) => String(child.className).split(' ').includes(className));
 }
 
 function snapshot(overrides = {}) {
@@ -126,6 +151,15 @@ describe('Invitation Mode B Phase 2B', () => {
     assert.strictEqual(JSON.stringify(input), before);
   });
 
+  it('does not mutate the ViewModel while rendering', () => {
+    const documentRef = fakeDocument();
+    const container = new FakeElement('div', documentRef);
+    const viewModel = modeB.snapshotToModeBViewModel(snapshot());
+    const before = JSON.stringify(viewModel);
+    modeB.renderModeB(container, viewModel);
+    assert.strictEqual(JSON.stringify(viewModel), before);
+  });
+
   it('contains no BudaoActiveRoutes access', () => {
     const source = fs.readFileSync(new URL('../invitation-mode-b.js', import.meta.url), 'utf8');
     assert.ok(!source.includes('BudaoActiveRoutes'));
@@ -167,7 +201,7 @@ describe('Invitation Mode B Phase 2B', () => {
     );
   });
 
-  it('renders the semantic Mode B postcard regions without Canvas', () => {
+  it('renders the full invitation regions in semantic reading order without Canvas', () => {
     const documentRef = fakeDocument();
     const container = new FakeElement('div', documentRef);
     const viewModel = modeB.snapshotToModeBViewModel(snapshot());
@@ -175,9 +209,70 @@ describe('Invitation Mode B Phase 2B', () => {
     const card = container.firstChild;
 
     assert.ok(card);
-    ['mode-b-heading', 'mode-b-stamp', 'mode-b-letter', 'mode-b-meeting',
-      'mode-b-pills', 'mode-b-participation', 'mode-b-footer']
+    ['mode-b-heading', 'mode-b-destination', 'mode-b-intent', 'mode-b-meeting',
+      'mode-b-letter', 'mode-b-facts', 'mode-b-primary-facts',
+      'mode-b-secondary-details', 'mode-b-participation', 'mode-b-footer']
       .forEach((className) => assert.ok(hasClass(card, className), className));
+
+    const destinationIndex = directClassIndex(card, 'mode-b-destination');
+    const intentIndex = directClassIndex(card, 'mode-b-intent');
+    const meetingIndex = directClassIndex(card, 'mode-b-meeting');
+    const letterIndex = directClassIndex(card, 'mode-b-letter');
+    const factsIndex = directClassIndex(card, 'mode-b-facts');
+    const participationIndex = directClassIndex(card, 'mode-b-participation');
+    assert.ok(destinationIndex < intentIndex);
+    assert.ok(intentIndex < meetingIndex);
+    assert.ok(meetingIndex < letterIndex);
+    assert.ok(letterIndex < factsIndex);
+    assert.ok(factsIndex < participationIndex);
     assert.ok(!fs.readFileSync(new URL('../invitation-mode-b.js', import.meta.url), 'utf8').includes('canvas'));
+  });
+
+  it('renders one meaningful primary destination image', () => {
+    const documentRef = fakeDocument();
+    const container = new FakeElement('div', documentRef);
+    modeB.renderModeB(container, modeB.snapshotToModeBViewModel(snapshot()));
+    const destination = findByClass(container.firstChild, 'mode-b-destination');
+    const images = findAll(destination, (element) => element.tagName === 'img');
+
+    assert.strictEqual(images.length, 1);
+    assert.strictEqual(images[0].alt, '百望山 目的地影像');
+    assert.strictEqual(images[0].src, 'https://images.example/baiwang.jpg');
+  });
+
+  it('uses semantic definition lists for primary and secondary facts', () => {
+    const documentRef = fakeDocument();
+    const container = new FakeElement('div', documentRef);
+    modeB.renderModeB(container, modeB.snapshotToModeBViewModel(snapshot()));
+    const card = container.firstChild;
+    const primary = findByClass(card, 'mode-b-primary-facts');
+    const secondary = findByClass(card, 'mode-b-secondary-details');
+
+    assert.strictEqual(primary.tagName, 'dl');
+    assert.strictEqual(secondary.tagName, 'dl');
+    assert.strictEqual(findAll(primary, (element) => element.tagName === 'dt').length, 4);
+    assert.strictEqual(findAll(primary, (element) => element.tagName === 'dd').length, 4);
+    assert.ok(findAll(secondary, (element) => element.tagName === 'dt').length > 0);
+    assert.ok(!hasClass(card, 'mode-b-pills'));
+  });
+
+  it('keeps QR and no-participation states structurally composed', () => {
+    const documentRef = fakeDocument();
+    const qrContainer = new FakeElement('div', documentRef);
+    const noneContainer = new FakeElement('div', documentRef);
+    modeB.renderModeB(qrContainer, modeB.snapshotToModeBViewModel(snapshot()));
+    modeB.renderModeB(noneContainer, modeB.snapshotToModeBViewModel(snapshot({
+      participation: { type: 'none', artifact: '' }
+    })));
+
+    const qrParticipation = findByClass(qrContainer.firstChild, 'mode-b-participation');
+    const noneParticipation = findByClass(noneContainer.firstChild, 'mode-b-participation');
+    const qrSeal = findByClass(qrParticipation, 'mode-b-qr');
+    const noneSeal = findByClass(noneParticipation, 'mode-b-qr');
+    assert.ok(qrSeal);
+    assert.ok(noneSeal);
+    assert.strictEqual(findAll(qrSeal, (element) => element.tagName === 'img').length, 1);
+    assert.strictEqual(findAll(noneSeal, (element) => element.tagName === 'img').length, 0);
+    assert.ok(String(noneSeal.className).includes('is-empty'));
   });
 });

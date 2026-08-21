@@ -14,6 +14,7 @@
     ['equipmentMinimum', '装备'],
     ['weather', '天气']
   ];
+  const PRIMARY_FACT_KEYS = new Set(['distance', 'duration', 'difficulty', 'suitableFor']);
 
   function text(value) {
     return typeof value === 'string' || typeof value === 'number'
@@ -155,6 +156,27 @@
     return element;
   }
 
+  function appendDefinition(documentRef, list, label, value, className) {
+    const item = documentRef.createElement('div');
+    if (className) item.className = className;
+    appendText(documentRef, item, 'dt', '', label);
+    appendText(documentRef, item, 'dd', '', value);
+    list.appendChild(item);
+    return item;
+  }
+
+  function appendFactList(documentRef, parent, className, label, facts) {
+    if (!facts.length) return null;
+    const list = documentRef.createElement('dl');
+    list.className = className;
+    list.setAttribute('aria-label', label);
+    facts.forEach(function (fact) {
+      appendDefinition(documentRef, list, fact.label, fact.value, 'mode-b-fact');
+    });
+    parent.appendChild(list);
+    return list;
+  }
+
   function renderModeB(container, input) {
     if (!container || !container.ownerDocument) throw new Error('mode_b_container_required');
     const documentRef = container.ownerDocument;
@@ -173,47 +195,44 @@
     heading.appendChild(hairline);
     card.appendChild(heading);
 
-    const lead = documentRef.createElement('section');
-    lead.className = 'mode-b-lead';
-    const copy = documentRef.createElement('div');
-    copy.className = 'mode-b-lead-copy';
-    appendText(documentRef, copy, 'h1', 'mode-b-title', viewModel.title);
-    if (viewModel.location) appendText(documentRef, copy, 'p', 'mode-b-location', viewModel.location);
-    const schedule = [viewModel.date, viewModel.time ? viewModel.time + ' 集合' : ''].filter(Boolean).join(' · ');
-    if (schedule) appendText(documentRef, copy, 'p', 'mode-b-schedule', schedule);
-    lead.appendChild(copy);
-
-    const stamp = documentRef.createElement('figure');
-    stamp.className = 'mode-b-stamp';
+    const destination = documentRef.createElement('figure');
+    destination.className = 'mode-b-destination mode-b-stamp';
+    destination.setAttribute('aria-label', viewModel.title + ' 目的地');
     if (viewModel.visual.source) {
       const image = documentRef.createElement('img');
       image.src = viewModel.visual.source;
-      image.alt = viewModel.title + ' 路线影像';
+      image.alt = viewModel.title + ' 目的地影像';
       image.addEventListener('error', function () {
-        stamp.classList.add('is-empty');
+        destination.classList.add('is-empty');
         image.remove();
-        appendText(documentRef, stamp, 'span', 'mode-b-stamp-empty', '此程影像静候');
+        appendText(documentRef, destination, 'span', 'mode-b-stamp-empty', '此程影像静候');
       });
-      stamp.appendChild(image);
+      destination.appendChild(image);
     } else {
-      stamp.classList.add('is-empty');
-      appendText(documentRef, stamp, 'span', 'mode-b-stamp-empty', '此程影像静候');
+      destination.classList.add('is-empty');
+      appendText(documentRef, destination, 'span', 'mode-b-stamp-empty', '此程影像静候');
     }
     const postmark = documentRef.createElement('span');
     postmark.className = 'mode-b-postmark';
     postmark.setAttribute('aria-hidden', 'true');
     appendText(documentRef, postmark, 'strong', '', 'BUDAO');
     appendText(documentRef, postmark, 'small', '', viewModel.date || 'POST');
-    stamp.appendChild(postmark);
-    lead.appendChild(stamp);
-    card.appendChild(lead);
+    destination.appendChild(postmark);
+    card.appendChild(destination);
 
-    const letter = documentRef.createElement('section');
-    letter.className = 'mode-b-letter';
-    appendText(documentRef, letter, 'p', 'mode-b-preface', '这是一段被安静预备的路，也是一份邀请。');
-    if (viewModel.description) appendText(documentRef, letter, 'p', 'mode-b-description', viewModel.description);
-    appendText(documentRef, letter, 'p', 'mode-b-call', '唯有祂感动你，让我们一路同行，共步主道。');
-    card.appendChild(letter);
+    const intent = documentRef.createElement('section');
+    intent.className = 'mode-b-intent';
+    appendText(documentRef, intent, 'h1', 'mode-b-title', viewModel.title);
+    appendText(documentRef, intent, 'p', 'mode-b-preface', '这是一段被安静预备的路，也是一份邀请。');
+
+    const occasion = documentRef.createElement('dl');
+    occasion.className = 'mode-b-occasion';
+    occasion.setAttribute('aria-label', '同行时间与地点');
+    if (viewModel.date) appendDefinition(documentRef, occasion, '日期', viewModel.date, 'mode-b-occasion-date');
+    if (viewModel.time) appendDefinition(documentRef, occasion, '时间', viewModel.time + ' 集合', 'mode-b-occasion-time');
+    if (viewModel.location) appendDefinition(documentRef, occasion, '地点', viewModel.location, 'mode-b-occasion-location');
+    if (occasion.children.length) intent.appendChild(occasion);
+    card.appendChild(intent);
 
     if (viewModel.meetingPlace) {
       const meeting = documentRef.createElement('section');
@@ -227,18 +246,21 @@
       card.appendChild(meeting);
     }
 
-    if (viewModel.pills.length) {
-      const pills = documentRef.createElement('ul');
-      pills.className = 'mode-b-pills';
-      pills.setAttribute('aria-label', '路线信息');
-      viewModel.pills.forEach(function (pill) {
-        const item = documentRef.createElement('li');
-        item.setAttribute('data-pill-key', pill.key);
-        appendText(documentRef, item, 'span', '', pill.label + ' ' + pill.value);
-        pills.appendChild(item);
-      });
-      card.appendChild(pills);
-    }
+    const letter = documentRef.createElement('section');
+    letter.className = 'mode-b-letter';
+    letter.setAttribute('aria-label', '同行邀请');
+    if (viewModel.description) appendText(documentRef, letter, 'p', 'mode-b-description', viewModel.description);
+    appendText(documentRef, letter, 'p', 'mode-b-call', '唯有祂感动你，让我们一路同行，共步主道。');
+    card.appendChild(letter);
+
+    const facts = documentRef.createElement('section');
+    facts.className = 'mode-b-facts';
+    facts.setAttribute('aria-label', '路线信息');
+    const primaryFacts = viewModel.pills.filter(function (fact) { return PRIMARY_FACT_KEYS.has(fact.key); });
+    const secondaryFacts = viewModel.pills.filter(function (fact) { return !PRIMARY_FACT_KEYS.has(fact.key); });
+    appendFactList(documentRef, facts, 'mode-b-primary-facts', '主要路线信息', primaryFacts);
+    appendFactList(documentRef, facts, 'mode-b-secondary-details', '其他路线细节', secondaryFacts);
+    if (primaryFacts.length || secondaryFacts.length) card.appendChild(facts);
 
     const participation = documentRef.createElement('section');
     participation.className = 'mode-b-participation';
