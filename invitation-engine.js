@@ -102,40 +102,50 @@
     }
 
     async function createInvitation(route) {
+        const modeB = window.BudaoInvitationModeB;
+
+        if (!modeB || typeof modeB.routeToModeBViewModel !== "function") {
+            throw new Error("mode_b_unavailable");
+        }
+
+        const viewModel = modeB.routeToModeBViewModel(Object.assign({}, route, {
+            image: imageSource(route),
+            qrCode: qrSource(route)
+        }));
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         const registrationOpen = isRegistrationOpen(route);
-        const image = await loadImage(imageSource(route)).catch(function () { return null; });
-        const qr = registrationOpen ? await loadImage(qrSource(route)).catch(function () { return null; }) : null;
-        const closedStamp = registrationOpen ? null : await loadImage(closedStampSource(route)).catch(function () { return null; });
+        const image = await loadImage(viewModel.visual.source).catch(function () { return null; });
+        const qr = registrationOpen ? await loadImage(viewModel.participation.artifact).catch(function () { return null; }) : null;
+        const closedStamp = registrationOpen ? null : await loadImage(closedStampSource(viewModel)).catch(function () { return null; });
         const logo = await loadImage("budao-logo-mark.png?v=20260719").catch(function () { return null; });
 
         canvas.width = cardWidth;
         canvas.height = cardHeight;
-        drawInvitation(ctx, route, image, qr, logo, registrationOpen, closedStamp);
+        drawInvitation(ctx, viewModel, image, qr, logo, registrationOpen, closedStamp);
 
         const blob = await canvasToBlob(canvas);
 
         return {
             blob,
-            route,
+            viewModel,
             url: URL.createObjectURL(blob)
         };
     }
 
-    function drawInvitation(ctx, route, image, qr, logo, registrationOpen, closedStamp) {
-        const place = meetingPlace(route);
-        const location = locationLabel(route) || "同行地点待定";
-        const title = route.title || "步道同行";
-        const date = formatDate(route.date) || "日期待定";
-        const time = route.time ? route.time + " 集合" : "时间待定";
+    function drawInvitation(ctx, viewModel, image, qr, logo, registrationOpen, closedStamp) {
+        const place = viewModel.meetingPlace;
+        const location = viewModel.location || "同行地点待定";
+        const title = viewModel.title || "步道同行";
+        const date = formatDate(viewModel.date) || "日期待定";
+        const time = viewModel.time ? viewModel.time + " 集合" : "时间待定";
 
         drawPaper(ctx);
         drawTop(ctx);
-        drawStamp(ctx, image, location, route);
-        drawLetter(ctx, route, { title, location, date, time, place });
+        drawStamp(ctx, image, location, viewModel);
+        drawLetter(ctx, viewModel, { title, location, date, time, place });
         drawMeetingCard(ctx, place);
-        drawInfoPills(ctx, route);
+        drawInfoPills(ctx, viewModel.pills);
         drawQrSeal(ctx, qr, registrationOpen, closedStamp);
         drawFooter(ctx, logo);
     }
@@ -245,7 +255,7 @@
         ctx.restore();
     }
 
-    function drawLetter(ctx, route, data) {
+    function drawLetter(ctx, viewModel, data) {
         const x = 118;
         const w = 600;
         let y = 258;
@@ -272,7 +282,7 @@
         y += 56;
         ctx.fillStyle = "#4f4840";
         ctx.font = handwritingFont(360, 27);
-        y = drawWrappedText(ctx, letterText(route.description), x, y, w - 8, 50, 3, true);
+        y = drawWrappedText(ctx, letterText(viewModel.description), x, y, w - 8, 50, 3, true);
 
         ctx.fillStyle = "#7d6f5f";
         ctx.font = cnFont(360, 26);
@@ -315,26 +325,17 @@
         ctx.restore();
     }
 
-    function drawInfoPills(ctx, route) {
+    function drawInfoPills(ctx, sourcePills) {
+        const pillMap = new Map((sourcePills || []).map(function (pill) {
+            return [pill.key, pill];
+        }));
         const rows = [
-            [
-                ["距离", route.distance],
-                ["预计", route.duration],
-                ["难度", route.difficulty]
-            ],
-            [
-                ["路面", route.surface],
-                ["爬升", route.elevation]
-            ],
-            [
-                ["适合", route.suitableFor]
-            ],
-            [
-                ["装备", route.equipmentMinimum],
-                ["天气", route.weather]
-            ]
-        ].map(function (row) {
-            return row.filter(function (item) { return item[1]; });
+            ["distance", "duration", "difficulty"],
+            ["surface", "elevation"],
+            ["suitableFor"],
+            ["equipmentMinimum", "weather"]
+        ].map(function (keys) {
+            return keys.map(function (key) { return pillMap.get(key); }).filter(Boolean);
         }).filter(function (row) { return row.length; });
 
         const startX = 118;
@@ -347,7 +348,7 @@
         ctx.font = cnFont(500, 22);
         rows.forEach(function (row) {
             const pills = row.map(function (pill) {
-                const text = pill[0] + " " + pill[1];
+                const text = pill.label + " " + pill.value;
                 return {
                     text,
                     width: Math.min(Math.max(ctx.measureText(text).width + 58, 142), 302)
@@ -489,7 +490,7 @@
 
         const file = new File(
             [currentInvitation.blob],
-            safeFileName(currentInvitation.route.title || "budao-invitation") + ".png",
+            safeFileName(currentInvitation.viewModel.title || "budao-invitation") + ".png",
             { type: "image/png" }
         );
 
@@ -497,7 +498,7 @@
             try {
                 await navigator.share({
                     files: [file],
-                    title: currentInvitation.route.title || "步道同行",
+                    title: currentInvitation.viewModel.title || "步道同行",
                     text: "这一程，好像正在等你。"
                 });
                 status.textContent = "请柬已经发出。";
@@ -573,8 +574,8 @@
         return true;
     }
 
-    function closedStampSource(route) {
-        const key = routeKey(route);
+    function closedStampSource(viewModel) {
+        const key = viewModel && viewModel.key ? viewModel.key : "default";
 
         if (closedStampCache.has(key)) {
             return closedStampCache.get(key);
@@ -597,19 +598,6 @@
 
         closedStampCache.set(key, selected);
         return selected;
-    }
-
-    function routeKey(route) {
-        return String(
-            route && (
-                route.id ||
-                route.routeId ||
-                route.slot ||
-                route.title ||
-                route.date ||
-                ""
-            ) || "default"
-        );
     }
 
     function meetingPlace(route) {

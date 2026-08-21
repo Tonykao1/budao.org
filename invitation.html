@@ -8,22 +8,13 @@
 </head>
 <body>
   <main id="app">
-    <header>
-      <h1>Budao 邀请</h1>
-    </header>
-    <section id="content">
-      <div id="loading">加载中…</div>
-      <div id="notfound" style="display:none">邀请未找到。</div>
-      <article id="invitation" style="display:none">
-        <h2 id="title"></h2>
-        <div id="meta"></div>
-        <div id="meeting-place" style="font-weight:normal;color:#333;margin-top:0.25rem"></div>
-        <div id="image-wrap"></div>
-        <p id="description"></p>
-        <div id="participation"></div>
-      </article>
+    <section id="content" aria-live="polite">
+      <p id="loading">邀请正在展开…</p>
+      <p id="notfound" hidden>邀请未找到。</p>
+      <div id="invitation-root" hidden></div>
     </section>
   </main>
+  <script src="/invitation-mode-b.js" defer></script>
   <script src="/invitation.js" defer></script>
 </body>
 </html>

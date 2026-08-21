@@ -8,7 +8,7 @@ function base64(s){ return Buffer.from(s,'utf8').toString('base64'); }
 async function clientRequestFor(location) {
   const elements = new Map();
   const element = () => ({ style: {}, textContent: '', appendChild() {}, removeChild() {}, firstChild: null });
-  ['#loading', '#notfound', '#invitation', '#title', '#meta', '#image-wrap', '#description', '#meeting-place', '#participation']
+  ['#loading', '#notfound', '#invitation-root']
     .forEach((selector) => elements.set(selector, element()));
   let onReady;
   let requestedUrl = '';
@@ -142,6 +142,8 @@ describe('Invitation Read API', () => {
     const fs = await import('node:fs');
     const exists = fs.existsSync(new URL('../invitation.html', import.meta.url));
     assert.ok(exists);
+    const html = fs.readFileSync(new URL('../invitation.html', import.meta.url), 'utf8');
+    assert.ok(html.indexOf('/invitation-mode-b.js') < html.indexOf('/invitation.js'));
   });
 
   it('CASE 12: invitation.js avoids innerHTML', async ()=>{
@@ -150,13 +152,13 @@ describe('Invitation Read API', () => {
   });
 
   it('CASE 13: visual.source non-https not rendered (client logic)', async ()=>{
-    const code = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation.js', import.meta.url),'utf8'));
-    assert.ok(code.includes("inv.visual.source") && code.includes("https://"));
+    const modeB = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation-mode-b.js', import.meta.url),'utf8'));
+    assert.ok(modeB.includes("parsed.protocol === 'https:'"));
   });
 
   it('CASE 14: legacy_qr non-https not rendered', async ()=>{
-    const code = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation.js', import.meta.url),'utf8'));
-    assert.ok(code.includes("inv.participation.type === 'legacy_qr'"));
+    const modeB = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation-mode-b.js', import.meta.url),'utf8'));
+    assert.ok(modeB.includes("type === 'legacy_qr'") && modeB.includes('safeHttpsUrl'));
   });
 
   it('CASE 15: 404 UI state exists in invitation.html', async ()=>{
@@ -187,6 +189,18 @@ describe('Invitation Read API', () => {
   it('CASE 19: legacy invitation.html query id remains supported', async ()=>{
     const url = await clientRequestFor({ pathname: '/invitation.html', search: '?id=ABCD1234' });
     assert.strictEqual(url, '/api/invitation?id=ABCD1234');
+  });
+
+  it('CASE 20: permanent reader uses the Snapshot Mode B adapter', async ()=>{
+    const code = fs.readFileSync(new URL('../invitation.js', import.meta.url), 'utf8');
+    assert.ok(code.includes('snapshotToModeBViewModel'));
+    assert.ok(code.includes('renderModeB'));
+  });
+
+  it('CASE 21: permanent reader introduces no Route API dependency', async ()=>{
+    const code = fs.readFileSync(new URL('../invitation.js', import.meta.url), 'utf8');
+    assert.ok(!code.includes('/api/routes'));
+    assert.ok(!code.includes('BudaoActiveRoutes'));
   });
 
 });
