@@ -94,9 +94,10 @@ body {
 
 .mode-b-destination {
   position: relative;
-  width: 100%;
-  height: clamp(480px, 58svh, 720px);
-  margin: clamp(34px, 5vw, 58px) 0 0;
+  width: min(100%, 840px);
+  height: auto;
+  aspect-ratio: 2.1 / 1;
+  margin: clamp(34px, 5vw, 58px) auto 0;
   padding: clamp(12px, 1.5vw, 18px);
   background: #fff;
   filter: drop-shadow(0 13px 24px rgba(37, 28, 18, .11));
@@ -181,7 +182,7 @@ body {
 .mode-b-title {
   margin: 0;
   color: #111;
-  font-size: clamp(48px, 7vw, 78px);
+  font-size: clamp(42px, 5.8vw, 66px);
   font-weight: 650;
   letter-spacing: 0;
   line-height: 1.14;
@@ -301,17 +302,14 @@ body {
 .mode-b-primary-facts {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border-top: 1px solid rgba(61, 48, 35, .1);
+  border-bottom: 1px solid rgba(61, 48, 35, .1);
 }
 
 .mode-b-primary-facts .mode-b-fact {
   min-width: 0;
   padding: 24px 18px 26px;
-  border-right: 1px solid var(--line);
 }
-
-.mode-b-primary-facts .mode-b-fact:last-child { border-right: 0; }
 
 .mode-b-primary-facts dd {
   margin: 10px 0 0;
@@ -352,7 +350,7 @@ body {
   align-items: center;
   gap: 8px 52px;
   width: min(100%, 600px);
-  margin: 106px auto 0;
+  margin: 88px auto 0;
   padding-top: 54px;
   border-top: 1px solid var(--line);
   text-align: left;
@@ -523,11 +521,9 @@ body {
 
   .mode-b-primary-facts .mode-b-fact {
     padding: 20px 12px;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid rgba(61, 48, 35, .08);
   }
 
-  .mode-b-primary-facts .mode-b-fact:nth-child(2n) { border-right: 0; }
   .mode-b-primary-facts .mode-b-fact:nth-last-child(-n + 2) { border-bottom: 0; }
   .mode-b-primary-facts dd { font-size: 15px; }
 
