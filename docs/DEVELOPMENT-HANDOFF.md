@@ -175,6 +175,72 @@ Mobile Mode B at 375px and 430px.
 
 Mobile validation must not reopen the frozen desktop design unless a genuine shared responsive defect is discovered.
 
+# Phase 2C Mobile Mode B — FROZEN
+
+## Validation
+
+- 375 × 812: PASS
+- 430 × 932: PASS
+- no horizontal overflow
+- destination image responsive behavior approved
+- title hierarchy approved
+- schedule/location responsive behavior approved
+- Meeting Point responsive behavior approved
+- narrative readability approved
+- primary facts responsive layout approved
+- secondary details responsive layout approved
+- participation / QR responsive behavior approved
+- footer responsive behavior approved
+
+## Vercel Preview Toolbar note
+
+During Preview validation, a black circular floating control was observed.
+
+It was confirmed to be Vercel Toolbar / Preview Feedback UI injected by the Vercel Preview platform.
+
+It is NOT part of Budao Invitation UI.
+
+Do not add repository CSS or application logic that depends on Vercel private iframe/shadow-DOM selectors merely to hide this Preview-only control.
+
+For visual validation, use Vercel Toolbar's own Hide Toolbar / Disable for Session option where needed.
+
+This is not a production Invitation defect.
+
+## Change policy
+
+Mobile Mode B is now frozen together with Desktop Mode B.
+
+Do not casually modify:
+- destination image behavior
+- mobile title scale
+- schedule/location layout
+- Meeting Point
+- narrative typography
+- facts layout
+- QR sizing
+- footer
+- mobile spacing
+
+Future changes require:
+1. confirmed responsive bug
+2. confirmed accessibility defect
+3. explicit new design phase
+4. approved product requirement
+
+## Phase 2C final status
+
+Desktop Mode B: FROZEN
+Mobile Mode B: FROZEN
+
+Phase 2C: COMPLETE
+
+## Next phase
+
+Phase 2D — Canvas / Share Artifact Unification
+
+Goal:
+make permanent Invitation and generated share artifact use the same Mode B expression language without changing the frozen Snapshot/API architecture.
+
 Contact: the codebase owner (refer to repo maintainers) for approvals and branch policies.
 
 -- End of DEVELOPMENT-HANDOFF baseline --
