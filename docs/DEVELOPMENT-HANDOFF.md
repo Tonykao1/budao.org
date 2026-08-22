@@ -106,6 +106,75 @@ After creating or reviewing change candidates, run only:
 
 Do NOT run: `git add`, `git commit`, `git push`, `git deploy`, `git restore`, `git clean` on frozen items.
 
+# Phase 2C Desktop Mode B — FROZEN
+
+Frozen baseline:
+`689cacdb905a694e0c69e35a45cb818e3554334f`
+
+## Architecture frozen
+
+- Route : Invitation = 1:N
+- Invitation Snapshot is immutable
+- Permanent invitation URL remains `/i/{id}`
+- Permanent invitation reads Snapshot only
+- No `/api/routes` dependency
+- No `BudaoActiveRoutes` dependency on permanent invitation
+- No Route write-back
+- Invitation creation remains authenticated
+- Public Snapshot read remains public
+- Permanent invitation does not use Canvas
+- Legacy Canvas sharing remains separate and preserved
+
+## Desktop Mode B visual baseline frozen
+
+The following desktop visual decisions are approved and must not be casually changed:
+
+- Full digital invitation-space composition
+- INVITATION editorial identity
+- Destination image scale and position
+- Postal perforation treatment
+- Postmark treatment
+- Route-title scale and hierarchy
+- Invitation-intent hierarchy
+- Date / time / location presentation
+- Meeting Point treatment
+- Narrative typography and reading width
+- Primary facts treatment
+- Secondary details treatment
+- QR size and participation treatment
+- Budao footer treatment
+- Current desktop vertical rhythm
+
+## Change policy
+
+Do not modify the frozen Desktop Mode B baseline merely for subjective visual preference.
+
+Future changes require one of:
+
+1. confirmed functional bug
+2. confirmed accessibility/responsive defect
+3. explicit new design phase/version
+4. deliberate product requirement approved before implementation
+
+Do not silently alter the frozen visual baseline while implementing unrelated features.
+
+## Validation baseline at freeze
+
+- tests: 100 / 100 passed
+- lint: PASS
+- build: PASS
+- git diff --check: PASS
+- architecture regression: none found
+
+## Next step
+
+Desktop Mode B is closed for visual iteration.
+
+Next validation target:
+Mobile Mode B at 375px and 430px.
+
+Mobile validation must not reopen the frozen desktop design unless a genuine shared responsive defect is discovered.
+
 Contact: the codebase owner (refer to repo maintainers) for approvals and branch policies.
 
 -- End of DEVELOPMENT-HANDOFF baseline --
