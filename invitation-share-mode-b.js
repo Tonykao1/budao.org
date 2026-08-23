@@ -38,8 +38,8 @@
     narrative: Object.freeze({ x: 118, y: 1024, width: 844, height: 126 }),
     primaryFacts: Object.freeze({ x: 118, y: 1188, width: 554, height: 126 }),
     secondaryDetails: Object.freeze({ x: 118, y: 1326, width: 554, height: 82 }),
-    participation: Object.freeze({ x: 748, y: 1188, width: 214, height: 236 }),
-    footer: Object.freeze({ x: 118, y: 1436, width: 844, height: 62 })
+    participation: Object.freeze({ x: 748, y: 1180, width: 214, height: 236 }),
+    footer: Object.freeze({ x: 118, y: 1442, width: 844, height: 46 })
   });
 
   function stableHash(value) {
@@ -428,25 +428,22 @@
         });
       drawRule(ctx, box.x + 628, box.y + 12, box.x + 628, box.y + 70,
         'rgba(184,156,82,0.28)', 1);
-      drawBoundedText(ctx, '请预留到达\n与彼此等候的时间'.replace(/\n/g, ' '), box.x + 656,
-        box.y + 35, 188, {
+      drawBoundedText(ctx, '请预留到达与', box.x + 656, box.y + 32, 188, {
           color: '#8d8378',
           size: 15,
-          lineHeight: 23,
-          maxLines: 2
+          maxLines: 1
+        });
+      drawBoundedText(ctx, '彼此等候的时间', box.x + 656, box.y + 55, 188, {
+          color: '#8d8378',
+          size: 15,
+          maxLines: 1
         });
     },
 
     narrative: function (ctx, viewModel) {
       const box = ARTIFACT_LAYOUT.narrative;
-      drawBoundedText(ctx, '同行邀请', box.x, box.y + 18, 120, {
-        color: '#9a8d7d',
-        size: 13,
-        weight: 700,
-        maxLines: 1
-      });
       drawBoundedText(ctx, text(viewModel.description) ||
-        '这一程，已经安静预备，等待同行的人一起出发。', box.x, box.y + 54, box.width, {
+        '这一程，已经安静预备，等待同行的人一起出发。', box.x, box.y + 34, box.width, {
           color: '#5b5147',
           family: '"Kaiti SC", "STKaiti", "Songti SC", serif',
           size: 22,
@@ -465,7 +462,8 @@
         const row = Math.floor(index / 2);
         drawFact(ctx, facts.get(key), box.x + column * 296, box.y + row * 66, columnWidth, {
           labelSize: 13,
-          valueSize: 20,
+          valueSize: 16,
+          valueWeight: 600,
           valueOffset: 27,
           lineHeight: 24,
           maxLines: TEXT_LIMITS.primaryFactValue
@@ -478,18 +476,23 @@
       const facts = safeFacts(viewModel).filter(function (fact) {
         return !PRIMARY_FACT_KEYS.has(fact.key);
       }).slice(0, 4);
-      const columnWidth = 258;
+      const columnWidth = 268;
       facts.forEach(function (fact, index) {
         const column = index % 2;
         const row = Math.floor(index / 2);
-        drawFact(ctx, fact, box.x + column * 296, box.y + row * 42, columnWidth, {
-          labelColor: '#9b9083',
-          labelSize: 11,
-          valueColor: '#6f655b',
-          valueSize: 15,
-          valueWeight: 400,
-          valueOffset: 21,
-          lineHeight: 19,
+        const x = box.x + column * 286;
+        const y = box.y + 16 + row * 34;
+        drawBoundedText(ctx, fact.label, x, y, 40, {
+          color: '#9b9083',
+          size: 11,
+          weight: 700,
+          maxLines: 1
+        });
+        drawBoundedText(ctx, fact.value, x + 48, y, columnWidth - 48, {
+          color: '#332b24',
+          size: 16,
+          weight: 600,
+          lineHeight: 17,
           maxLines: TEXT_LIMITS.secondaryDetailValue
         });
       });
@@ -497,6 +500,8 @@
 
     participation: function (ctx, viewModel, renderState, assets) {
       const box = ARTIFACT_LAYOUT.participation;
+      drawRule(ctx, box.x - 32, box.y, box.x - 32, box.y + box.height,
+        'rgba(184,156,82,0.28)', 1);
       if (!renderState.registrationOpen) {
         if (!drawContainAsset(ctx, assets.closedStampImage, {
           x: box.x + 12,
@@ -572,24 +577,24 @@
       drawRule(ctx, box.x, box.y, box.x + box.width, box.y, 'rgba(20,16,12,0.16)', 1);
       if (!drawContainAsset(ctx, assets.logoImage, {
         x: box.x,
-        y: box.y + 14,
-        width: 92,
-        height: 40
+        y: box.y + 5,
+        width: 76,
+        height: 36
       })) {
-        drawBoundedText(ctx, 'BUDAO', box.x, box.y + 43, 92, {
+        drawBoundedText(ctx, 'BUDAO', box.x, box.y + 33, 76, {
           color: '#15110d',
-          size: 20,
+          size: 18,
           weight: 700,
           maxLines: 1
         });
       }
-      drawBoundedText(ctx, '余生行走，不偏左右', box.x + 122, box.y + 42, 330, {
+      drawBoundedText(ctx, '余生行走，不偏左右', box.x + 104, box.y + 32, 330, {
         color: '#6f6458',
         family: '"Songti SC", "Times New Roman", serif',
         size: 20,
         maxLines: 1
       });
-      drawBoundedText(ctx, 'budao.org', box.x + box.width, box.y + 44, 250, {
+      drawBoundedText(ctx, 'budao.org', box.x + box.width, box.y + 34, 250, {
         align: 'right',
         color: '#15110d',
         size: 32,

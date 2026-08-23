@@ -257,14 +257,20 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.ok(calls.some((call) => call[1] === '适合'));
   });
 
-  it('27. keeps secondary details visually subordinate by contract', () => {
+  it('27. unifies actual-data typography while labels remain subordinate', () => {
     const { ctx } = rendered({});
-    const primary = textCallsWithin(ctx, artifact.ARTIFACT_LAYOUT.primaryFacts);
-    const secondary = textCallsWithin(ctx, artifact.ARTIFACT_LAYOUT.secondaryDetails);
-    const primaryFonts = primary.map((call) => call[4]).join(' ');
-    const secondaryFonts = secondary.map((call) => call[4]).join(' ');
-    assert.match(primaryFonts, /20px/);
-    assert.match(secondaryFonts, /15px/);
+    const primaryValue = ctx.calls.find((call) => call[0] === 'fillText' && call[1] === '8 千米');
+    const primaryLabel = ctx.calls.find((call) => call[0] === 'fillText' && call[1] === '距离');
+    const secondaryValue = ctx.calls.find((call) => call[0] === 'fillText' && call[1] === '山径');
+    const secondaryLabel = ctx.calls.find((call) => call[0] === 'fillText' && call[1] === '路面');
+    assert.match(primaryValue[4], /600 16px/);
+    assert.match(secondaryValue[4], /600 16px/);
+    assert.strictEqual(primaryValue[5], '#332b24');
+    assert.strictEqual(secondaryValue[5], '#332b24');
+    assert.match(primaryLabel[4], /13px/);
+    assert.match(secondaryLabel[4], /11px/);
+    assert.notStrictEqual(primaryLabel[5], primaryValue[5]);
+    assert.notStrictEqual(secondaryLabel[5], secondaryValue[5]);
     assert.ok(artifact.ARTIFACT_LAYOUT.secondaryDetails.height < artifact.ARTIFACT_LAYOUT.primaryFacts.height);
   });
 
@@ -273,17 +279,20 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     const calls = textCallsWithin(ctx, artifact.ARTIFACT_LAYOUT.meeting);
     assert.ok(calls.some((call) => call[1] === 'MEETING POINT'));
     assert.ok(calls.some((call) => call[1] === '东门集合'));
+    assert.ok(calls.some((call) => call[1] === '请预留到达与'));
+    assert.ok(calls.some((call) => call[1] === '彼此等候的时间'));
+    assert.ok(!calls.some((call) => call[1] === '间'));
   });
 
   it('29. caps narrative deterministically at three lines', () => {
     const input = viewModel();
     input.description = '这是一段很长的同行叙述。'.repeat(80);
     const { ctx, result } = rendered({ viewModel: input });
-    const narrative = textCallsWithin(ctx, artifact.ARTIFACT_LAYOUT.narrative)
-      .filter((call) => call[1] !== '同行邀请');
+    const narrative = textCallsWithin(ctx, artifact.ARTIFACT_LAYOUT.narrative);
     assert.strictEqual(result.textLimits.narrative, 3);
     assert.strictEqual(narrative.length, 3);
     assert.ok(narrative[2][1].endsWith('…'));
+    assert.ok(!ctx.calls.some((call) => call[0] === 'fillText' && call[1] === '同行邀请'));
   });
 
   it('30. bounds a long Chinese title to two lines', () => {
@@ -367,7 +376,41 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.strictEqual(result.stages.at(-1), 'footer');
   });
 
-  it('38. keeps the renderer usable with a lightweight Canvas mock', () => {
+  it('38. keeps secondary details compact and horizontally paired', () => {
+    const { ctx } = rendered({});
+    const box = artifact.ARTIFACT_LAYOUT.secondaryDetails;
+    const surfaceLabel = ctx.calls.find((call) => call[0] === 'fillText' && call[1] === '路面');
+    const surfaceValue = ctx.calls.find((call) => call[0] === 'fillText' && call[1] === '山径');
+    assert.ok(surfaceLabel);
+    assert.ok(surfaceValue);
+    assert.strictEqual(surfaceLabel[3], surfaceValue[3]);
+    assert.strictEqual(surfaceValue[2] - surfaceLabel[2], 48);
+    assert.ok(surfaceLabel[2] >= box.x && surfaceValue[2] <= box.x + box.width);
+    assert.match(surfaceLabel[4], /700 11px/);
+    assert.strictEqual(surfaceLabel[5], '#9b9083');
+    assert.match(surfaceValue[4], /600 16px/);
+    assert.strictEqual(surfaceValue[5], '#332b24');
+  });
+
+  it('39. separates participation editorially without changing QR geometry', () => {
+    const qr = { id: 'qr', width: 300, height: 300 };
+    const { ctx } = rendered({ assets: { qrImage: qr } });
+    const box = artifact.ARTIFACT_LAYOUT.participation;
+    assert.ok(ctx.calls.some((call) => call[0] === 'moveTo' &&
+      call[1] === box.x - 32 && call[2] === box.y));
+    const imageCall = ctx.calls.find((call) => call[0] === 'drawImage' && call[1] === qr);
+    assert.deepStrictEqual(imageCall.slice(-4), [box.x + 30, box.y + 18, 154, 154]);
+    assert.ok(ctx.calls.some((call) => call[0] === 'fillRect' &&
+      call[1] === box.x + 12 && call[2] === box.y && call[3] === 190 && call[4] === 190));
+  });
+
+  it('40. gives the publication footer whitespace after participation', () => {
+    const participation = artifact.ARTIFACT_LAYOUT.participation;
+    const footer = artifact.ARTIFACT_LAYOUT.footer;
+    assert.ok(footer.y - (participation.y + participation.height) >= 24);
+  });
+
+  it('41. keeps the renderer usable with a lightweight Canvas mock', () => {
     const ctx = {
       fillRect() {},
       fillText() {},
