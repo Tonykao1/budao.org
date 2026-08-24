@@ -1,821 +1,359 @@
-(function () {
+(function (root, factory) {
+    const api = factory(root || {});
+    if (typeof module === "object" && module.exports) module.exports = { createInvitationEngine: factory };
+    if (root && root.document) {
+        root.BudaoInvitationEngine = api;
+        api.install();
+    }
+}(typeof globalThis !== "undefined" ? globalThis : this, function (runtime) {
+    "use strict";
+
     const previewId = "budaoInvitationPreview";
     const cardWidth = 1080;
     const cardHeight = 1530;
-    const closedStampOptions = [
-        { src: "budao-dalong-1.png?v=20260812", weight: 1 },
-        { src: "budao-dalong-3.png?v=20260812", weight: 3 },
-        { src: "budao-dalong-5.png?v=20260812", weight: 5 }
-    ];
-    const closedStampCache = new Map();
+    const logoSource = "budao-logo-mark.png?v=20260719";
+    const closedStampSources = Object.freeze({
+        "1": "budao-dalong-1.png?v=20260812",
+        "3": "budao-dalong-3.png?v=20260812",
+        "5": "budao-dalong-5.png?v=20260812"
+    });
     let currentInvitation = null;
+    let activeTrigger = null;
+    let generationId = 0;
+    let installed = false;
 
     function install() {
+        if (installed || !runtime.document) return;
+        installed = true;
         ensurePreview();
         scheduleMeetingEnhancement();
-
-        document.addEventListener("click", function (event) {
-            const trigger = event.target.closest(".invitation-trigger");
-
-            if (!trigger) {
-                return;
-            }
-
-            const routes = window.BudaoActiveRoutes || [];
+        runtime.document.addEventListener("click", function (event) {
+            const trigger = event.target && event.target.closest
+                ? event.target.closest(".invitation-trigger")
+                : null;
+            if (!trigger) return;
+            const routes = runtime.BudaoActiveRoutes || [];
             const route = routes[Number(trigger.dataset.routeIndex || "-1")];
-
-            if (route) {
-                openInvitation(route);
-            }
+            if (route) openInvitation(route, trigger);
         });
-
-        document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape") {
-                closeInvitation();
-            }
-        });
+        runtime.document.addEventListener("keydown", handleDialogKeydown);
     }
 
     function scheduleMeetingEnhancement() {
         enhanceMeetings();
-        window.setTimeout(enhanceMeetings, 800);
-        window.setTimeout(enhanceMeetings, 2200);
+        if (typeof runtime.setTimeout === "function") {
+            runtime.setTimeout(enhanceMeetings, 800);
+            runtime.setTimeout(enhanceMeetings, 2200);
+        }
     }
 
     function enhanceMeetings() {
-        const routes = window.BudaoActiveRoutes || [];
-        const cards = document.querySelectorAll(".route-card");
-
+        const routes = runtime.BudaoActiveRoutes || [];
+        const cards = runtime.document.querySelectorAll(".route-card");
         cards.forEach(function (card, index) {
-            if (card.querySelector(".route-meeting")) {
-                return;
-            }
-
-            const route = routes[index] || {};
+            if (card.querySelector(".route-meeting")) return;
             const description = card.querySelector(".route-description");
-            const place = meetingPlace(route);
-
-            if (!description) {
-                return;
-            }
-
-            const meeting = document.createElement("div");
+            if (!description) return;
+            const meeting = runtime.document.createElement("div");
             meeting.className = "route-meeting";
             meeting.setAttribute("aria-label", "集合地点");
             meeting.innerHTML =
                 '<span class="meeting-map" aria-hidden="true"></span>' +
-                '<div class="meeting-copy">' +
-                '<div class="meeting-label">集合地点</div>' +
-                '<div class="meeting-value"></div>' +
-                '</div>';
-
-            meeting.querySelector(".meeting-value").textContent = place || "集合地点待补充";
+                '<div class="meeting-copy"><div class="meeting-label">集合地点</div>' +
+                '<div class="meeting-value"></div></div>';
+            meeting.querySelector(".meeting-value").textContent =
+                meetingPlace(routes[index] || {}) || "集合地点待补充";
             description.insertAdjacentElement("afterend", meeting);
         });
     }
 
-    async function openInvitation(route) {
+    async function openInvitation(route, trigger) {
         const preview = ensurePreview();
         const frame = preview.querySelector(".invitation-frame");
-        const status = preview.querySelector(".invitation-status");
-
-        currentInvitation = null;
-        frame.innerHTML = '<div class="invitation-preparing">请柬正在安静预备。</div>';
-        status.textContent = "";
+        const requestId = ++generationId;
+        activeTrigger = trigger || runtime.document.activeElement || null;
+        releaseCurrentInvitation();
+        setPreviewState(preview, "generating", "请柬正在安静预备。", "请柬正在生成。", true);
         preview.classList.add("open");
         preview.setAttribute("aria-hidden", "false");
-        document.body.classList.add("invitation-open");
+        runtime.document.body.classList.add("invitation-open");
+        focusDialog(preview);
 
         try {
-            currentInvitation = await createInvitation(route);
-            const image = document.createElement("img");
-
-            image.src = currentInvitation.url;
-            image.alt = (route.title || "步道同行") + " 邀约卡";
-            frame.innerHTML = "";
-            frame.appendChild(image);
-            status.textContent = "这一程，已经预备好发出。";
+            const generated = await createInvitation(route);
+            if (requestId !== generationId || !preview.classList.contains("open")) return;
+            const url = runtime.URL.createObjectURL(generated.blob);
+            releaseCurrentInvitation();
+            currentInvitation = Object.assign({}, generated, { url });
+            const image = runtime.document.createElement("img");
+            image.src = url;
+            image.alt = (generated.viewModel.title || "步道同行") + " Mode B 分享请柬";
+            frame.replaceChildren(image);
+            setPreviewState(preview, "ready", "", "这一程，已经预备好发出。", false);
+            configureReadyActions(preview);
         } catch (error) {
-            frame.innerHTML = '<div class="invitation-preparing">请柬暂时没有生成，请稍后再试。</div>';
-            status.textContent = "";
+            if (requestId !== generationId) return;
+            releaseCurrentInvitation();
+            setPreviewState(preview, "failure", "请柬暂时没有生成，请稍后再试。", "请柬暂时没有生成。", true);
         }
     }
 
     async function createInvitation(route) {
-        const modeB = window.BudaoInvitationModeB;
-
-        if (!modeB || typeof modeB.routeToModeBViewModel !== "function") {
-            throw new Error("mode_b_unavailable");
+        const modeB = runtime.BudaoInvitationModeB;
+        const artifact = runtime.BudaoInvitationShareModeB;
+        if (!modeB || typeof modeB.routeToModeBViewModel !== "function") throw new Error("mode_b_unavailable");
+        if (!artifact || typeof artifact.renderModeBShareArtifact !== "function" ||
+            typeof artifact.selectClosedVariant !== "function") {
+            throw new Error("mode_b_share_renderer_unavailable");
         }
+        if (!runtime.document || typeof runtime.document.createElement !== "function") throw new Error("canvas_unavailable");
 
         const viewModel = modeB.routeToModeBViewModel(Object.assign({}, route, {
             image: imageSource(route),
             qrCode: qrSource(route)
         }));
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
         const registrationOpen = isRegistrationOpen(route);
-        const image = await loadImage(viewModel.visual.source).catch(function () { return null; });
-        const qr = registrationOpen ? await loadImage(viewModel.participation.artifact).catch(function () { return null; }) : null;
-        const closedStamp = registrationOpen ? null : await loadImage(closedStampSource(viewModel)).catch(function () { return null; });
-        const logo = await loadImage("budao-logo-mark.png?v=20260719").catch(function () { return null; });
-
+        const closedVariant = registrationOpen ? null : artifact.selectClosedVariant(viewModel.key);
+        const renderState = Object.freeze({ registrationOpen, closedVariant });
+        const canvas = runtime.document.createElement("canvas");
+        if (!canvas || typeof canvas.getContext !== "function") throw new Error("canvas_unavailable");
         canvas.width = cardWidth;
         canvas.height = cardHeight;
-        drawInvitation(ctx, viewModel, image, qr, logo, registrationOpen, closedStamp);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("canvas_context_unavailable");
 
-        const blob = await canvasToBlob(canvas);
-
-        return {
-            blob,
-            viewModel,
-            url: URL.createObjectURL(blob)
-        };
-    }
-
-    function drawInvitation(ctx, viewModel, image, qr, logo, registrationOpen, closedStamp) {
-        const place = viewModel.meetingPlace;
-        const location = viewModel.location || "同行地点待定";
-        const title = viewModel.title || "步道同行";
-        const date = formatDate(viewModel.date) || "日期待定";
-        const time = viewModel.time ? viewModel.time + " 集合" : "时间待定";
-
-        drawPaper(ctx);
-        drawTop(ctx);
-        drawStamp(ctx, image, location, viewModel);
-        drawLetter(ctx, viewModel, { title, location, date, time, place });
-        drawMeetingCard(ctx, place);
-        drawInfoPills(ctx, viewModel.pills);
-        drawQrSeal(ctx, qr, registrationOpen, closedStamp);
-        drawFooter(ctx, logo);
-    }
-
-    function drawPaper(ctx) {
-        ctx.fillStyle = "#fbfaf7";
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-        ctx.strokeStyle = "rgba(61,48,35,0.12)";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(42, 42, cardWidth - 84, cardHeight - 84);
-
-        ctx.fillStyle = "rgba(184,156,82,0.08)";
-        ctx.beginPath();
-        ctx.arc(870, 146, 96, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    function drawTop(ctx) {
-        ctx.fillStyle = "#12100d";
-        drawSpacedText(ctx, "INVITATION", cardWidth / 2, 126, 62, 20, "Times New Roman", "700", "center");
-
-        ctx.strokeStyle = "rgba(184,156,82,0.45)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(cardWidth / 2 - 44, 174);
-        ctx.lineTo(cardWidth / 2 + 44, 174);
-        ctx.stroke();
-
-    }
-
-    function drawStamp(ctx, image, location, route) {
-        const x = 718;
-        const y = 226;
-        const w = 232;
-        const h = 304;
-
-        ctx.save();
-        drawStampPaper(ctx, x, y, w, h);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(x + 16, y + 16, w - 32, h - 32);
-
-        if (image) {
-            drawCoverImage(ctx, image, x + 24, y + 24, w - 48, h - 48);
-        } else {
-            const gradient = ctx.createLinearGradient(x, y, x + w, y + h);
-            gradient.addColorStop(0, "#efe8d9");
-            gradient.addColorStop(1, "#c9bda7");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(x + 24, y + 24, w - 48, h - 48);
-            ctx.fillStyle = "rgba(55,47,36,0.42)";
-            drawWrappedText(ctx, location, x + 38, y + h / 2 - 20, w - 76, 22, 2);
-        }
-
-        drawPostmark(ctx, x + 98, y + 148, route);
-        ctx.restore();
-    }
-
-    function drawStampPaper(ctx, x, y, w, h) {
-        ctx.save();
-        ctx.fillStyle = "#fff";
-        ctx.shadowColor = "rgba(37,28,18,0.14)";
-        ctx.shadowBlur = 20;
-        ctx.shadowOffsetY = 10;
-        ctx.fillRect(x, y, w, h);
-        ctx.restore();
-
-        ctx.fillStyle = "#fbfaf7";
-        for (let i = 9; i < w; i += 20) {
-            circle(ctx, x + i, y, 6);
-            circle(ctx, x + i, y + h, 6);
-        }
-        for (let i = 9; i < h; i += 20) {
-            circle(ctx, x, y + i, 6);
-            circle(ctx, x + w, y + i, 6);
-        }
-    }
-
-    function drawPostmark(ctx, cx, cy, route) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(-0.12);
-        ctx.strokeStyle = "rgba(43,49,55,0.56)";
-        ctx.lineWidth = 3.4;
-        ctx.beginPath();
-        ctx.arc(0, 0, 66, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.arc(0, 0, 50, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = "rgba(43,49,55,0.36)";
-        ctx.lineWidth = 3.2;
-        for (let i = 0; i < 5; i += 1) {
-            const y = -44 + i * 18;
-            ctx.beginPath();
-            ctx.moveTo(48, y + i * 1.5);
-            ctx.lineTo(176 + i * 7, y - 14 + i * 2.5);
-            ctx.stroke();
-        }
-
-        ctx.fillStyle = "rgba(52,54,60,0.62)";
-        drawSpacedText(ctx, "BUDAO", 0, -12, 18, 2, "Courier New", "700", "center");
-        drawSpacedText(ctx, postmarkDate(route && route.date), 0, 12, 11, 1, "Courier New", "700", "center");
-        drawSpacedText(ctx, "WALK", 0, 34, 10, 1.5, "Courier New", "700", "center");
-        ctx.restore();
-    }
-
-    function drawLetter(ctx, viewModel, data) {
-        const x = 118;
-        const w = 600;
-        let y = 258;
-
-        ctx.fillStyle = "#17130f";
-        ctx.font = cnFont(620, 78);
-        y = drawWrappedText(ctx, data.title, x, y, w, 86, 2);
-
-        y += 34;
-        ctx.fillStyle = "#7a6b5b";
-        ctx.font = cnFont(500, 29);
-        ctx.fillText(data.location, x, y);
-
-        y += 54;
-        ctx.fillStyle = "#2b251f";
-        ctx.font = cnFont(620, 33);
-        ctx.fillText(data.date + " · " + data.time, x, y);
-
-        y += 74;
-        ctx.fillStyle = "#4b3424";
-        ctx.font = cnFont(420, 26);
-        ctx.fillText("这是一段被安静预备的路，也是一份邀请。", x, y);
-
-        y += 56;
-        ctx.fillStyle = "#4f4840";
-        ctx.font = handwritingFont(360, 27);
-        y = drawWrappedText(ctx, letterText(viewModel.description), x, y, w - 8, 50, 3, true);
-
-        ctx.fillStyle = "#7d6f5f";
-        ctx.font = cnFont(360, 26);
-        drawWrappedText(ctx, "唯有祂感动你，让我们一路同行，共步主道。", x, y + 42, w - 8, 46, 2);
-    }
-
-    function drawMeetingCard(ctx, place) {
-        const x = 118;
-        const y = 840;
-        const w = 700;
-        const h = 92;
-        const value = place || "集合地点待补充";
-
-        ctx.save();
-        roundRect(ctx, x, y, w, h, 18);
-        ctx.fillStyle = "rgba(255,255,255,0.58)";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(184,156,82,0.28)";
-        ctx.lineWidth = 1.7;
-        ctx.stroke();
-
-        ctx.fillStyle = "#a0917d";
-        drawSpacedText(ctx, "MEETING POINT", x + 32, y + 36, 13, 2.8, "Arial", "700", "left");
-        ctx.fillStyle = "#332b24";
-        ctx.font = cnFont(580, 27);
-        ctx.textAlign = "left";
-        ctx.fillText(trimToWidth(ctx, value, w - 250), x + 32, y + 70);
-
-        ctx.strokeStyle = "rgba(184,156,82,0.24)";
-        ctx.beginPath();
-        ctx.moveTo(x + w - 186, y + 22);
-        ctx.lineTo(x + w - 186, y + h - 22);
-        ctx.stroke();
-
-        ctx.fillStyle = "#8d8378";
-        ctx.font = systemFont(460, 17);
-        ctx.textAlign = "left";
-        ctx.fillText("请预留到达", x + w - 166, y + 48);
-        ctx.fillText("与彼此等候的时间", x + w - 166, y + 70);
-        ctx.restore();
-    }
-
-    function drawInfoPills(ctx, sourcePills) {
-        const pillMap = new Map((sourcePills || []).map(function (pill) {
-            return [pill.key, pill];
-        }));
-        const rows = [
-            ["distance", "duration", "difficulty"],
-            ["surface", "elevation"],
-            ["suitableFor"],
-            ["equipmentMinimum", "weather"]
-        ].map(function (keys) {
-            return keys.map(function (key) { return pillMap.get(key); }).filter(Boolean);
-        }).filter(function (row) { return row.length; });
-
-        const startX = 118;
-        const startY = 972;
-        const gap = 16;
-        const rowH = 52;
-        const maxW = 590;
-        let y = startY;
-
-        ctx.font = cnFont(500, 22);
-        rows.forEach(function (row) {
-            const pills = row.map(function (pill) {
-                const text = pill.label + " " + pill.value;
-                return {
-                    text,
-                    width: Math.min(Math.max(ctx.measureText(text).width + 58, 142), 302)
-                };
-            });
-            const total = pills.reduce(function (sum, pill) {
-                return sum + pill.width;
-            }, 0) + gap * (pills.length - 1);
-            let x = startX + Math.max(0, (maxW - total) / 2);
-
-            pills.forEach(function (pill) {
-                drawPill(ctx, x, y, pill.width, rowH, pill.text);
-                x += pill.width + gap;
-            });
-            y += rowH + gap;
+        const loaded = await Promise.all([
+            loadOptionalImage(viewModel.visual.source),
+            registrationOpen ? loadOptionalImage(viewModel.participation.artifact) : Promise.resolve(null),
+            loadOptionalImage(logoSource),
+            registrationOpen ? Promise.resolve(null) : loadOptionalImage(closedStampSources[closedVariant])
+        ]);
+        artifact.renderModeBShareArtifact(ctx, viewModel, renderState, {
+            destinationImage: loaded[0],
+            qrImage: loaded[1],
+            logoImage: loaded[2],
+            closedStampImage: loaded[3]
         });
+        const blob = await canvasToBlob(canvas);
+        return { blob, viewModel, renderState };
     }
 
-    function drawPill(ctx, x, y, w, h, text) {
-        ctx.save();
-        roundRect(ctx, x, y, w, h, h / 2);
-        ctx.fillStyle = "rgba(255,255,255,0.78)";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(184,156,82,0.32)";
-        ctx.lineWidth = 1.8;
-        ctx.stroke();
-        ctx.fillStyle = "#4f473d";
-        ctx.font = cnFont(500, 22);
-        ctx.textAlign = "center";
-        ctx.fillText(trimToWidth(ctx, text, w - 32), x + w / 2, y + 35);
-        ctx.restore();
+    function setPreviewState(preview, state, frameMessage, statusMessage, disabled) {
+        const frame = preview.querySelector(".invitation-frame");
+        preview.dataset.state = state;
+        if (frameMessage) {
+            frame.innerHTML = '<div class="invitation-preparing"></div>';
+            frame.querySelector(".invitation-preparing").textContent = frameMessage;
+        }
+        preview.querySelector(".invitation-status").textContent = statusMessage;
+        preview.querySelector("[data-invitation-share]").disabled = disabled;
+        preview.querySelector("[data-invitation-download]").disabled = disabled;
     }
 
-    function drawQrSeal(ctx, qr, registrationOpen, closedStamp) {
-        const x = 800;
-        const y = 1102;
-        const size = 152;
-
-        if (!registrationOpen) {
-            ctx.save();
-            if (closedStamp) {
-                drawContainImage(ctx, closedStamp, x - 8, y - 34, size + 16, size + 52);
-            } else {
-                ctx.fillStyle = "#f8f5ef";
-                ctx.fillRect(x, y, size, size);
-                ctx.fillStyle = "#6c6258";
-                ctx.font = cnFont(400, 22);
-                ctx.textAlign = "center";
-                ctx.fillText("本期报名", x + size / 2, y + 70);
-                ctx.fillText("已截止", x + size / 2, y + 102);
-            }
-            ctx.fillStyle = "#8b7860";
-            ctx.font = cnFont(500, 18);
-            ctx.textAlign = "center";
-            ctx.fillText("此程已封缄", x + size / 2, y + size + 48);
-            ctx.fillStyle = "#15110d";
-            ctx.font = cnFont(560, 28);
-            ctx.fillText("本期报名已截止", x + size / 2, y + size + 88);
-            ctx.restore();
-            return;
-        }
-
-        ctx.save();
-        ctx.strokeStyle = "rgba(184,156,82,0.35)";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x - 20, y - 20, size + 40, size + 40);
-
-        if (qr) {
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(x, y, size, size);
-            drawContainImage(ctx, qr, x, y, size, size);
-        } else {
-            ctx.fillStyle = "#f8f5ef";
-            ctx.fillRect(x, y, size, size);
-            ctx.fillStyle = "#6c6258";
-            ctx.font = cnFont(400, 22);
-            ctx.textAlign = "center";
-            ctx.fillText("报名码", x + size / 2, y + 70);
-            ctx.fillText("暂未放出", x + size / 2, y + 102);
-        }
-
-        ctx.fillStyle = "#8b7860";
-        drawSpacedText(ctx, "SCAN TO JOIN", x + size / 2, y + size + 48, 15, 3.6, "Arial", "700", "center");
-        ctx.fillStyle = "#15110d";
-        ctx.font = cnFont(560, 28);
-        ctx.textAlign = "center";
-        ctx.fillText("扫码进群，即可报名", x + size / 2, y + size + 88);
-        ctx.restore();
-    }
-
-    function drawFooter(ctx, logo) {
-        ctx.strokeStyle = "rgba(20,16,12,0.15)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(118, 1384);
-        ctx.lineTo(962, 1384);
-        ctx.stroke();
-
-        if (logo) {
-            drawContainImage(ctx, logo, 118, 1404, 104, 52);
-        }
-
-        ctx.fillStyle = "#6f6458";
-        ctx.font = cnFont(400, 24);
-        ctx.textAlign = "left";
-        ctx.fillText("余生行走，不偏左右", 248, 1432);
-
-        ctx.fillStyle = "#15110d";
-        ctx.font = systemFont(750, 40);
-        ctx.textAlign = "right";
-        ctx.fillText("budao.org", 962, 1438);
-
-        ctx.strokeStyle = "rgba(20,16,12,0.09)";
-        ctx.beginPath();
-        ctx.moveTo(248, 1458);
-        ctx.lineTo(962, 1458);
-        ctx.stroke();
-    }
-
-    function closeInvitation() {
-        const preview = document.getElementById(previewId);
-
-        if (!preview) {
-            return;
-        }
-
-        preview.classList.remove("open");
-        preview.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("invitation-open");
+    function configureReadyActions(preview) {
+        const share = preview.querySelector("[data-invitation-share]");
+        const download = preview.querySelector("[data-invitation-download]");
+        const supported = webShareFilesSupported();
+        share.hidden = !supported;
+        share.disabled = !supported;
+        download.hidden = false;
+        download.disabled = false;
     }
 
     async function shareInvitation() {
         const status = ensurePreview().querySelector(".invitation-status");
-
         if (!currentInvitation) {
             status.textContent = "请柬还没有预备好。";
             return;
         }
-
-        const file = new File(
-            [currentInvitation.blob],
-            safeFileName(currentInvitation.viewModel.title || "budao-invitation") + ".png",
-            { type: "image/png" }
-        );
-
-        if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-            try {
-                await navigator.share({
-                    files: [file],
-                    title: currentInvitation.viewModel.title || "步道同行",
-                    text: "这一程，好像正在等你。"
-                });
-                status.textContent = "请柬已经发出。";
-            } catch (error) {
-                status.textContent = "请柬仍在这里，等你再次发出。";
-            }
+        const file = invitationFile(currentInvitation);
+        if (!webShareFilesSupported(file)) {
+            status.textContent = "当前浏览器不支持直接分享图片，请使用“下载图片”保存。";
             return;
         }
+        try {
+            await runtime.navigator.share({
+                files: [file],
+                title: currentInvitation.viewModel.title || "步道同行",
+                text: "这一程，好像正在等你。"
+            });
+            status.textContent = "请柬已经发出。";
+        } catch (error) {
+            status.textContent = error && error.name === "AbortError"
+                ? "已取消分享，请柬仍在这里。"
+                : "分享未完成，可再次尝试或下载保存。";
+        }
+    }
 
-        status.textContent = "当前浏览器不能直接分享图片。请长按或右键这张请柬保存后发出。";
+    function downloadInvitation() {
+        const status = ensurePreview().querySelector(".invitation-status");
+        if (!currentInvitation) {
+            status.textContent = "请柬还没有预备好。";
+            return;
+        }
+        const link = runtime.document.createElement("a");
+        link.href = currentInvitation.url;
+        link.download = invitationFileName(currentInvitation.viewModel);
+        link.setAttribute("aria-label", "下载活动请柬 PNG");
+        if (typeof link.click === "function") link.click();
+        status.textContent = "请柬图片已开始下载。";
+    }
+
+    function closeInvitation() {
+        const preview = runtime.document.getElementById(previewId);
+        if (!preview) return;
+        generationId += 1;
+        preview.classList.remove("open");
+        preview.setAttribute("aria-hidden", "true");
+        runtime.document.body.classList.remove("invitation-open");
+        releaseCurrentInvitation();
+        if (activeTrigger && typeof activeTrigger.focus === "function") activeTrigger.focus();
+        activeTrigger = null;
+    }
+
+    function releaseCurrentInvitation() {
+        if (currentInvitation && currentInvitation.url) runtime.URL.revokeObjectURL(currentInvitation.url);
+        currentInvitation = null;
     }
 
     function ensurePreview() {
-        let preview = document.getElementById(previewId);
-
-        if (preview) {
-            return preview;
-        }
-
-        preview = document.createElement("div");
+        let preview = runtime.document.getElementById(previewId);
+        if (preview) return preview;
+        preview = runtime.document.createElement("div");
         preview.id = previewId;
         preview.className = "invitation-preview";
         preview.setAttribute("aria-hidden", "true");
         preview.innerHTML =
-            '<div class="invitation-shell" role="dialog" aria-modal="true" aria-label="活动请柬">' +
+            '<div class="invitation-shell" role="dialog" aria-modal="true" aria-labelledby="budaoInvitationTitle">' +
+                '<h2 id="budaoInvitationTitle" class="invitation-dialog-title">活动请柬预览</h2>' +
                 '<div class="invitation-frame"></div>' +
                 '<div class="invitation-actions">' +
-                    '<button type="button" data-invitation-close>返回</button>' +
-                    '<button type="button" data-invitation-share>确认分享</button>' +
+                    '<button type="button" data-invitation-close aria-label="关闭活动请柬预览">返回</button>' +
+                    '<button type="button" data-invitation-download disabled>下载图片</button>' +
+                    '<button type="button" data-invitation-share disabled>确认分享</button>' +
                 '</div>' +
-                '<p class="invitation-status" aria-live="polite"></p>' +
+                '<p class="invitation-status" aria-live="polite" aria-atomic="true"></p>' +
             '</div>';
-
         preview.addEventListener("click", function (event) {
-            if (event.target === preview || event.target.closest("[data-invitation-close]")) {
-                closeInvitation();
-            }
-
-            if (event.target.closest("[data-invitation-share]")) {
-                shareInvitation();
-            }
+            if (event.target === preview || event.target.closest("[data-invitation-close]")) closeInvitation();
+            else if (event.target.closest("[data-invitation-share]")) shareInvitation();
+            else if (event.target.closest("[data-invitation-download]")) downloadInvitation();
         });
-
-        document.body.appendChild(preview);
+        runtime.document.body.appendChild(preview);
         return preview;
     }
 
-    function imageSource(route) {
-        const value = route && (route.image || route.imageUrl);
-
-        return window.resolveImage ? window.resolveImage(value) : String(value || "").trim();
-    }
-
-    function qrSource(route) {
-        const value = route && (
-            route.qrCode ||
-            route.registrationQrCode ||
-            route.registrationQr ||
-            route.activityQrCode ||
-            route.qrImage ||
-            route.qr ||
-            ""
-        );
-
-        return window.resolveImage ? window.resolveImage(value) : String(value || "").trim();
-    }
-
-    function isRegistrationOpen(route) {
-        if (typeof window.isQrRegistrationOpen === "function") {
-            return window.isQrRegistrationOpen(route);
+    function handleDialogKeydown(event) {
+        const preview = runtime.document.getElementById(previewId);
+        if (!preview || !preview.classList.contains("open")) return;
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeInvitation();
+            return;
         }
-
-        return true;
+        if (event.key !== "Tab") return;
+        const focusable = Array.from(preview.querySelectorAll("button:not([disabled]):not([hidden])"));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && runtime.document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && runtime.document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
     }
 
-    function closedStampSource(viewModel) {
-        const key = viewModel && viewModel.key ? viewModel.key : "default";
-
-        if (closedStampCache.has(key)) {
-            return closedStampCache.get(key);
-        }
-
-        const totalWeight = closedStampOptions.reduce(function (sum, option) {
-            return sum + option.weight;
-        }, 0);
-        let cursor = Math.random() * totalWeight;
-        let selected = closedStampOptions[closedStampOptions.length - 1].src;
-
-        for (const option of closedStampOptions) {
-            cursor -= option.weight;
-
-            if (cursor <= 0) {
-                selected = option.src;
-                break;
-            }
-        }
-
-        closedStampCache.set(key, selected);
-        return selected;
+    function focusDialog(preview) {
+        const close = preview.querySelector("[data-invitation-close]");
+        if (close && typeof close.focus === "function") close.focus();
     }
 
-    function meetingPlace(route) {
-        return String(
-            route && (
-                route.meetingPlace ||
-                route.meetingPoint ||
-                route.gatheringPlace ||
-                route.meetingLocation ||
-                route.assemblyPoint ||
-                ""
-            ) || ""
-        ).trim();
-    }
-
-    function locationLabel(route) {
-        if (!route) {
-            return "";
-        }
-
-        return [route.country, route.city, route.region].filter(Boolean).join(" · ") ||
-            route.location ||
-            "";
-    }
-
-    function formatDate(date) {
-        const match = String(date || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
-
-        if (!match) {
-            return "";
-        }
-
-        return Number(match[2]) + "月" + Number(match[3]) + "日";
-    }
-
-    function letterText(text) {
-        const clean = String(text || "").replace(/\s+/g, " ").trim();
-
-        if (!clean) {
-            return "这一程，已经安静预备，等待同行的人一起出发。";
-        }
-
-        return clean.length > 96 ? clean.slice(0, 94) + "…" : clean;
+    function loadOptionalImage(src) {
+        return loadImage(src).catch(function () { return null; });
     }
 
     function loadImage(src) {
         return new Promise(function (resolve, reject) {
-            if (!src) {
-                reject(new Error("empty image"));
+            if (!src || typeof runtime.Image !== "function") {
+                reject(new Error("image_unavailable"));
                 return;
             }
-
-            const image = new Image();
+            const image = new runtime.Image();
             image.crossOrigin = "anonymous";
-            image.onload = function () {
-                resolve(image);
-            };
-            image.onerror = reject;
+            image.onload = function () { resolve(image); };
+            image.onerror = function () { reject(new Error("image_load_failed")); };
             image.src = src;
         });
     }
 
     function canvasToBlob(canvas) {
         return new Promise(function (resolve, reject) {
+            if (!canvas || typeof canvas.toBlob !== "function") {
+                reject(new Error("canvas_blob_unavailable"));
+                return;
+            }
             canvas.toBlob(function (blob) {
-                if (blob) {
-                    resolve(blob);
-                } else {
-                    reject(new Error("empty canvas"));
-                }
-            }, "image/png", 0.95);
+                if (blob) resolve(blob);
+                else reject(new Error("canvas_blob_empty"));
+            }, "image/png");
         });
     }
 
-    function drawCoverImage(ctx, image, x, y, w, h) {
-        const scale = Math.max(w / image.width, h / image.height);
-        const sw = w / scale;
-        const sh = h / scale;
-        const sx = (image.width - sw) / 2;
-        const sy = (image.height - sh) / 2;
-
-        ctx.drawImage(image, sx, sy, sw, sh, x, y, w, h);
+    function invitationFile(invitation) {
+        return new runtime.File([invitation.blob], invitationFileName(invitation.viewModel), { type: "image/png" });
     }
 
-    function drawContainImage(ctx, image, x, y, w, h) {
-        const scale = Math.min(w / image.width, h / image.height);
-        const dw = image.width * scale;
-        const dh = image.height * scale;
-        const dx = x + (w - dw) / 2;
-        const dy = y + (h - dh) / 2;
-
-        ctx.drawImage(image, dx, dy, dw, dh);
+    function invitationFileName(viewModel) {
+        return safeFileName(viewModel && viewModel.title || "budao-invitation") + ".png";
     }
 
-    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines, ellipsis) {
-        const words = Array.from(String(text || ""));
-        let line = "";
-        let lines = [];
-
-        words.forEach(function (char) {
-            const test = line + char;
-            if (ctx.measureText(test).width > maxWidth && line) {
-                lines.push(line);
-                line = char;
-            } else {
-                line = test;
-            }
-        });
-
-        if (line) {
-            lines.push(line);
+    function webShareFilesSupported(file) {
+        if (!runtime.navigator || typeof runtime.navigator.share !== "function" ||
+            typeof runtime.navigator.canShare !== "function" || typeof runtime.File !== "function") return false;
+        const candidate = file || new runtime.File([new runtime.Blob([])], "budao-invitation.png", { type: "image/png" });
+        try {
+            return runtime.navigator.canShare({ files: [candidate] });
+        } catch (error) {
+            return false;
         }
-
-        if (maxLines && lines.length > maxLines) {
-            lines = lines.slice(0, maxLines);
-            if (ellipsis) {
-                lines[lines.length - 1] = trimToWidth(ctx, lines[lines.length - 1] + "…", maxWidth);
-            }
-        }
-
-        lines.forEach(function (lineText, index) {
-            ctx.fillText(lineText, x, y + index * lineHeight);
-        });
-
-        return y + lines.length * lineHeight;
     }
 
-    function drawSpacedText(ctx, text, x, y, size, spacing, family, weight, align) {
-        ctx.font = (weight || "400") + " " + size + "px " + family;
-        ctx.textAlign = "left";
-
-        const chars = Array.from(text);
-        const total = chars.reduce(function (sum, char) {
-            return sum + ctx.measureText(char).width;
-        }, 0) + spacing * (chars.length - 1);
-
-        let start = align === "center" ? x - total / 2 : x;
-
-        chars.forEach(function (char) {
-            ctx.fillText(char, start, y);
-            start += ctx.measureText(char).width + spacing;
-        });
+    function imageSource(route) {
+        const value = route && (route.image || route.imageUrl);
+        return runtime.resolveImage ? runtime.resolveImage(value) : String(value || "").trim();
     }
 
-    function trimToWidth(ctx, text, maxWidth) {
-        let value = String(text || "");
-
-        while (value.length > 1 && ctx.measureText(value).width > maxWidth) {
-            value = value.slice(0, -2) + "…";
-        }
-
-        return value;
+    function qrSource(route) {
+        const value = route && (route.qrCode || route.registrationQrCode || route.registrationQr ||
+            route.activityQrCode || route.qrImage || route.qr || "");
+        return runtime.resolveImage ? runtime.resolveImage(value) : String(value || "").trim();
     }
 
-    function roundRect(ctx, x, y, w, h, r) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-        ctx.lineTo(x + w, y + h - r);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        ctx.lineTo(x + r, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
-        ctx.closePath();
+    function isRegistrationOpen(route) {
+        return typeof runtime.isQrRegistrationOpen === "function"
+            ? Boolean(runtime.isQrRegistrationOpen(route))
+            : true;
     }
 
-    function circle(ctx, x, y, r) {
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    function circleStroke(ctx, x, y, r) {
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-
-    function cnFont(weight, size) {
-        return String(weight || 400) + " " + size + 'px "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif';
-    }
-
-    function systemFont(weight, size) {
-        return String(weight || 400) + " " + size + 'px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
-    }
-
-    function handwritingFont(weight, size) {
-        return String(weight || 400) + " " + size + 'px "Kaiti SC", "STKaiti", "Songti SC", "PingFang SC", serif';
-    }
-
-    function postmarkDate(date) {
-        const match = String(date || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
-        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-
-        if (!match) {
-            return "POST";
-        }
-
-        return months[Number(match[2]) - 1] + " " + String(Number(match[3])).padStart(2, "0");
+    function meetingPlace(route) {
+        return String(route && (route.meetingPlace || route.meetingPoint || route.gatheringPlace ||
+            route.meetingLocation || route.assemblyPoint || "") || "").trim();
     }
 
     function safeFileName(value) {
-        return String(value || "budao-invitation")
-            .replace(/[\\/:*?"<>|]+/g, "-")
-            .replace(/\s+/g, "-")
-            .slice(0, 64);
+        return String(value || "budao-invitation").replace(/[\\/:*?"<>|]+/g, "-")
+            .replace(/\s+/g, "-").slice(0, 64);
     }
 
-    window.BudaoInvitationEngine = {
+    return {
+        install,
         open: openInvitation,
-        share: shareInvitation
+        close: closeInvitation,
+        share: shareInvitation,
+        download: downloadInvitation,
+        createArtifact: createInvitation,
+        _state: function () { return currentInvitation; }
     };
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", install);
-    } else {
-        install();
-    }
-}());
+}));

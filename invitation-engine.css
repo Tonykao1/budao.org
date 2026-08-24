@@ -118,6 +118,18 @@
     gap:18px;
 }
 
+.invitation-dialog-title {
+    position:absolute;
+    width:1px;
+    height:1px;
+    padding:0;
+    margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    border:0;
+}
+
 .invitation-frame {
     width:min(88vw,430px);
     aspect-ratio:1080/1530;
@@ -167,6 +179,11 @@
 .invitation-actions button:focus-visible {
     color:#fffaf0;
     outline:0;
+}
+
+.invitation-actions button:disabled {
+    cursor:not-allowed;
+    opacity:0.42;
 }
 
 .invitation-status {
