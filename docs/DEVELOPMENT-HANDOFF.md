@@ -356,6 +356,80 @@ Expected concerns:
 
 Permanent `/i/{id}` Mode B remains frozen and must not change.
 
+# Phase 2D.3 Existing Share Flow Integration — COMPLETE / FROZEN
+
+Integration commit:
+`fd77aea66072726f2defac37b0aafe884eec0f98`
+
+## Frozen architecture and integration contract
+
+- The existing route-card “分享邀请” entry remains the integration entry point.
+- The selected Route is converted through `routeToModeBViewModel()` before rendering.
+- Live registration state is calculated by the integration layer and passed to the renderer as explicit `renderState`.
+- The frozen Mode B Share Artifact renderer consumes only the Mode B ViewModel, explicit `renderState`, and explicit assets.
+- OPEN renders the route QR; CLOSED replaces it with the deterministic closed artifact or stable fallback.
+- The generated artifact remains a 1080 × 1530 PNG.
+- The integration supports Web Share where available and an explicit “下载图片” fallback.
+- Phase 2D.3 does not redesign or visually tune the frozen Phase 2D.2 renderer.
+
+Frozen renderer SHA-256:
+`44fda8cbff84bfaa310c908e7ae8e34b17880a176f1dc34b2e15b5147ef474cf`
+
+## Object URL lifecycle contract
+
+- At most one active preview Object URL is retained.
+- A previous preview Object URL is revoked before replacement.
+- The active Object URL is revoked when the preview closes.
+- Failed or superseded generation paths clean up any Object URL they created.
+- Object URL lifecycle remains the responsibility of the integration layer, not the frozen renderer.
+
+## Accessibility and focus contract
+
+- The preview is exposed as a labelled modal dialog.
+- Generation and action states are announced through the existing accessible status treatment.
+- Share and download controls reflect unavailable or generating states.
+- Focus moves into the preview when it opens and remains contained while the modal is active.
+- Escape and the close control dismiss the preview.
+- Focus returns to the originating “分享邀请” control after dismissal.
+
+## Automated validation baseline at freeze
+
+- tests: 167 / 167 / 0
+- Phase 2D.3 integration tests: 26 / 26 passed
+- frozen Mode B renderer tests: 41 / 41 passed
+- lint: PASS
+- build: PASS
+- git diff --check: PASS
+
+## Real-browser validation
+
+Human validation on the Vercel Preview deployment: PASS.
+
+- The real Kuangou Route successfully generated the frozen Mode B Share Artifact.
+- The complete `Route → routeToModeBViewModel() → explicit live renderState → frozen renderer` path worked correctly.
+- CLOSED registration correctly replaced the QR with a deterministic Dalong stamp.
+- Repeated generation of the same Route produced the same `5` Dalong stamp, confirming deterministic closed-variant behavior in real-browser use.
+- “下载图片” successfully downloaded the generated PNG.
+- The downloaded artifact visually matched the approved and frozen Mode B Share Artifact.
+- Artifact dimensions remained 1080 × 1530.
+
+## Architecture unchanged
+
+- Permanent `/i/{id}` Mode B remains unchanged and frozen.
+- The frozen Phase 2D.2 renderer and its visual contract remain unchanged.
+- Snapshot schema, Snapshot read behavior, API contracts, and Route persistence remain unchanged.
+- No Route write-back, `/api/routes` dependency, or `BudaoActiveRoutes` dependency was added to the permanent invitation page.
+
+## Freeze policy
+
+Phase 2D.3 is COMPLETE / FROZEN.
+
+Future changes to the frozen integration contract require an explicit freeze exception. Phase 2D.4 is final regression and release validation, not a reopening of the Phase 2C permanent Mode B design or Phase 2D.2 Share Artifact visual contract.
+
+## Next phase
+
+Phase 2D.4 — Final Regression / Release Validation
+
 Contact: the codebase owner (refer to repo maintainers) for approvals and branch policies.
 
 -- End of DEVELOPMENT-HANDOFF baseline --
