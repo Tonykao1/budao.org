@@ -241,6 +241,121 @@ Phase 2D — Canvas / Share Artifact Unification
 Goal:
 make permanent Invitation and generated share artifact use the same Mode B expression language without changing the frozen Snapshot/API architecture.
 
+# Phase 2D.2 Mode B Share Artifact Visual Contract — COMPLETE / FROZEN
+
+Frozen commit:
+`f18a183a537052b171b4459bac51039af3b0d8b9`
+
+## Frozen artifact dimensions
+
+- Canvas: 1080 × 1530
+- Aspect ratio: 12:17
+
+## Frozen composition
+
+- Warm editorial paper
+- Restrained INVITATION identity
+- Dominant destination image
+- Postal / perforation / postmark language
+- Route-title hierarchy
+- Invitation intent
+- Date / time / location
+- Meeting Point
+- Bounded narrative
+- Route facts
+- Participation / QR or closed state
+- Budao publication footer
+
+## Frozen typography principle
+
+All actual route data values use the same visual weight: `16px / 600 / #332b24`.
+
+This includes both previously classified primary and secondary data:
+
+- distance
+- duration
+- difficulty
+- suitableFor
+- surface
+- elevation
+- equipment
+- weather when available
+
+Labels remain smaller, gray, and subordinate.
+
+## Frozen participation contract
+
+- QR frame: 190 × 190
+- QR image: 154 × 154
+- QR quiet zone is preserved
+- OPEN renders the QR artifact
+- CLOSED renders a deterministic closed artifact or stable fallback
+- No `Math.random()`
+- The renderer does not calculate live registration time
+
+## Frozen renderer architecture
+
+The renderer consumes only:
+
+- Mode B ViewModel
+- Explicit `renderState`
+- Explicit assets
+
+The renderer must not:
+
+- Read Route directly
+- Access `/api/routes`
+- Access `BudaoActiveRoutes`
+- Access DOM
+- Fetch network resources
+- Invoke Web Share
+- Create or revoke Object URLs
+- Use `Date.now()`
+- Use `Math.random()`
+
+## Deterministic closed variant
+
+A stable Mode B ViewModel key deterministically selects closed variant `1`, `3`, or `5`, preserving the approved 1:3:5 weighting.
+
+## Validation baseline at freeze
+
+- tests: 141 / 141 / 0
+- lint: PASS
+- build: PASS
+- git diff --check: PASS
+- human visual review: APPROVED
+- final Kuangou artifact: APPROVED
+
+## Freeze policy
+
+Phase 2D.3 is INTEGRATION ONLY.
+
+Phase 2D.3 may connect the frozen renderer to the existing “分享邀请” workflow, but MUST NOT redesign or visually tune the Phase 2D.2 artifact.
+
+Any future visual modification to the frozen Share Artifact requires an explicit freeze exception.
+
+## Next phase
+
+Phase 2D.3 — Existing Share Flow Integration
+
+Primary objective:
+connect the frozen Mode B Share Artifact renderer to the real route-card “分享邀请” flow.
+
+Expected concerns:
+
+- Route selection
+- `routeToModeBViewModel()`
+- Registration `renderState` calculation
+- Asset loading
+- Renderer invocation
+- Preview lifecycle
+- Web Share
+- Download fallback
+- Object URL cleanup
+- Accessibility / focus management
+
+Permanent `/i/{id}` Mode B remains frozen and must not change.
+
 Contact: the codebase owner (refer to repo maintainers) for approvals and branch policies.
 
 -- End of DEVELOPMENT-HANDOFF baseline --
