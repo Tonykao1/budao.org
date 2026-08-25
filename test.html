@@ -8,7 +8,7 @@
 <title>超级星期六 - 步道</title>
 
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="invitation-engine.css?v=20260716-meeting">
+<link rel="stylesheet" href="invitation-engine.css?v=20260824-mode-b-share">
 
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -803,6 +803,7 @@ function renderRoutes(routes){
                 <div class="route-actions">
                     <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
                     <button class="invitation-trigger" type="button" data-route-index="${index}">分享邀请</button>
+                    <button class="invitation-create" type="button" data-route-index="${index}">生成邀请</button>
                 </div>
             </div>
         `;
@@ -1406,7 +1407,10 @@ function updateAll(){
     });
 }
 </script>
-<script src="invitation-engine.js?v=20260716-meeting"></script>
+    <script src="/invitation-mode-b.js"></script>
+    <script src="/invitation-share-mode-b.js"></script>
+    <script src="invitation-engine.js?v=20260824-mode-b-share"></script>
+    <script src="/route-invitation-action.js" defer></script>
 
 </body>
 </html>

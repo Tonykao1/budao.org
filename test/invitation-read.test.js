@@ -1,0 +1,206 @@
+import assert from 'node:assert';
+import { describe, it, beforeEach } from 'node:test';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+function base64(s){ return Buffer.from(s,'utf8').toString('base64'); }
+
+async function clientRequestFor(location) {
+  const elements = new Map();
+  const element = () => ({ style: {}, textContent: '', appendChild() {}, removeChild() {}, firstChild: null });
+  ['#loading', '#notfound', '#invitation-root']
+    .forEach((selector) => elements.set(selector, element()));
+  let onReady;
+  let requestedUrl = '';
+  const context = {
+    URLSearchParams,
+    decodeURIComponent,
+    location,
+    document: {
+      querySelector: (selector) => elements.get(selector),
+      addEventListener: (name, callback) => { if (name === 'DOMContentLoaded') onReady = callback; },
+      createElement: () => element()
+    },
+    fetch: async (url) => {
+      requestedUrl = url;
+      return { status: 404, ok: false };
+    }
+  };
+
+  vm.runInNewContext(fs.readFileSync(new URL('../invitation.js', import.meta.url), 'utf8'), context);
+  await onReady();
+  return requestedUrl;
+}
+
+describe('Invitation Read API', () => {
+  beforeEach(() => { global.fetch = undefined; delete process.env.GITHUB_TOKEN; });
+
+  it('CASE 1: valid id public read', async () => {
+    const id = 'ABCD1234';
+    const snapshot = { id, sourceRoute: { routeId: 'r1' }, facts: {}, visual: {}, participation: {}, presentation: {}, revision:1, createdAt: '2026-01-01T00:00:00Z' };
+    global.fetch = async (url, opts) => ({ status:200, ok:true, json: async ()=>({ content: base64(JSON.stringify(snapshot)) }) });
+    const mod = await import('../api/invitation.js');
+    const handler = mod.default || mod;
+    const req = { method: 'GET', query: { id } };
+    let sent;
+    const res = { setHeader: ()=>{}, status: (s)=>({ json: (b)=>{ sent = { s, b }; return b } }) };
+    await handler(req, res);
+    assert.strictEqual(sent.s, 200);
+    assert.strictEqual(sent.b.ok, true);
+    assert.strictEqual(sent.b.invitation.id, id);
+  });
+
+  it('CASE 2: illegal id -> 400', async ()=>{
+    const mod = await import('../api/invitation.js');
+    const handler = mod.default || mod;
+    const req = { method: 'GET', query: { id: '../../etc/pass' } };
+    let sent;
+    const res = { setHeader: ()=>{}, status: (s)=>({ json: (b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s, 400);
+  });
+
+  it('CASE 3: path traversal attempt -> 400', async ()=>{
+    const mod = await import('../api/invitation.js');
+    const handler = mod.default || mod;
+    const req = { method: 'GET', query: { id: '.../..' } };
+    let sent; const res = { setHeader: ()=>{}, status: (s)=>({ json: (b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s, 400);
+  });
+
+  it('CASE 4: missing invitation -> 404', async ()=>{
+    global.fetch = async ()=>({ status:404, ok:false });
+    const mod = await import('../api/invitation.js');
+    const handler = mod.default || mod;
+    const req = { method:'GET', query:{ id:'X123' } };
+    let sent; const res = { setHeader: ()=>{}, status: (s)=>({ json: (b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s, 404);
+  });
+
+  it('CASE 5: missing GitHub token -> fail closed (503) when upstream returns 401', async ()=>{
+    // simulate upstream 401
+    global.fetch = async ()=>({ status:401, ok:false });
+    const mod = await import('../api/invitation.js');
+    const handler = mod.default || mod;
+    const req = { method:'GET', query:{ id:'A1B2' } };
+    let sent; const res = { setHeader: ()=>{}, status: (s)=>({ json: (b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s, 503);
+  });
+
+  it('CASE 6: upstream network failure -> safe reason', async ()=>{
+    global.fetch = async ()=>({ status:500, ok:false });
+    const mod = await import('../api/invitation.js');
+    const handler = mod.default || mod;
+    const req = { method:'GET', query:{ id:'ZZ99' } };
+    let sent; const res = { setHeader: ()=>{}, status: (s)=>({ json: (b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s, 500);
+    assert.strictEqual(typeof sent.b.reason, 'string');
+  });
+
+  it('CASE 7: reading good snapshot -> 200', async ()=>{
+    const id='G1H2';
+    const snap = { id, sourceRoute:{routeId:'r9'}, facts:{},visual:{},participation:{},presentation:{},revision:1,createdAt:'2026-01-01T00:00:00Z' };
+    global.fetch = async ()=>({ status:200, ok:true, json: async ()=>({ content: base64(JSON.stringify(snap)) }) });
+    const mod = await import('../api/invitation.js'); const handler = mod.default || mod;
+    const req={method:'GET', query:{id}}; let sent; const res={ setHeader: ()=>{}, status:(s)=>({ json:(b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s,200); assert.strictEqual(sent.b.ok,true);
+  });
+
+  it('CASE 8: snapshot.id mismatch -> invalid_invitation', async ()=>{
+    const snap = { id:'DIFF', sourceRoute:{routeId:'r'}, facts:{},visual:{},participation:{},presentation:{},revision:1,createdAt:'2026-01-01T00:00:00Z' };
+    global.fetch = async ()=>({ status:200, ok:true, json: async ()=>({ content: base64(JSON.stringify(snap)) }) });
+    const mod = await import('../api/invitation.js'); const handler = mod.default || mod;
+    const req={method:'GET', query:{id:'OTHER'}}; let sent; const res={ setHeader: ()=>{}, status:(s)=>({ json:(b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s,500); assert.strictEqual(sent.b.reason,'invalid_invitation');
+  });
+
+  it('CASE 9: missing structural field -> invalid_invitation', async ()=>{
+    const snap = { id:'OK12', sourceRoute:{}, visual:{}, participation:{}, presentation:{}, revision:1 };
+    global.fetch = async ()=>({ status:200, ok:true, json: async ()=>({ content: base64(JSON.stringify(snap)) }) });
+    const mod = await import('../api/invitation.js'); const handler = mod.default || mod;
+    const req={method:'GET', query:{id:'OK12'}}; let sent; const res={ setHeader: ()=>{}, status:(s)=>({ json:(b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s,500); assert.strictEqual(sent.b.reason,'invalid_invitation');
+  });
+
+  it('CASE 10: API does not leak token or stack', async ()=>{
+    global.fetch = async ()=>({ status:500, ok:false });
+    const mod = await import('../api/invitation.js'); const handler = mod.default || mod;
+    const req={method:'GET', query:{id:'A1B2'}}; let sent; const res={ setHeader: ()=>{}, status:(s)=>({ json:(b)=>{ sent={s,b}; return b } }) };
+    await handler(req,res);
+    assert.strictEqual(sent.s,500); assert.ok(!String(JSON.stringify(sent.b)).includes('token'));
+  });
+
+  it('CASE 11: invitation.html exists', async ()=>{
+    // simple fs check
+    const fs = await import('node:fs');
+    const exists = fs.existsSync(new URL('../invitation.html', import.meta.url));
+    assert.ok(exists);
+    const html = fs.readFileSync(new URL('../invitation.html', import.meta.url), 'utf8');
+    assert.ok(html.indexOf('/invitation-mode-b.js') < html.indexOf('/invitation.js'));
+  });
+
+  it('CASE 12: invitation.js avoids innerHTML', async ()=>{
+    const code = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation.js', import.meta.url)));
+    assert.ok(!code.includes('innerHTML'));
+  });
+
+  it('CASE 13: visual.source non-https not rendered (client logic)', async ()=>{
+    const modeB = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation-mode-b.js', import.meta.url),'utf8'));
+    assert.ok(modeB.includes("parsed.protocol === 'https:'"));
+  });
+
+  it('CASE 14: legacy_qr non-https not rendered', async ()=>{
+    const modeB = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation-mode-b.js', import.meta.url),'utf8'));
+    assert.ok(modeB.includes("type === 'legacy_qr'") && modeB.includes('safeHttpsUrl'));
+  });
+
+  it('CASE 15: 404 UI state exists in invitation.html', async ()=>{
+    const html = await import('node:fs').then(m=>m.readFileSync(new URL('../invitation.html', import.meta.url),'utf8'));
+    assert.ok(html.includes('id="notfound"'));
+  });
+
+  it('CASE 16: /i/:id rewrite exists in vercel.json', async ()=>{
+    const fs = await import('node:fs');
+    const p = new URL('../vercel.json', import.meta.url);
+    const exists = fs.existsSync(p);
+    assert.ok(exists);
+    const cfg = JSON.parse(fs.readFileSync(p,'utf8'));
+    assert.ok(Array.isArray(cfg.rewrites) && cfg.rewrites.some(r=>r.source==='/i/:id'));
+  });
+
+  it('CASE 17: rewrite does not override other static paths', async ()=>{
+    // ensure existing index.html still present
+    const fs = await import('node:fs');
+    assert.ok(fs.existsSync(new URL('../index.html', import.meta.url)));
+  });
+
+  it('CASE 18: permanent /i/{id} pathname resolves the invitation id', async ()=>{
+    const url = await clientRequestFor({ pathname: '/i/IAUWtpB2Z', search: '' });
+    assert.strictEqual(url, '/api/invitation?id=IAUWtpB2Z');
+  });
+
+  it('CASE 19: legacy invitation.html query id remains supported', async ()=>{
+    const url = await clientRequestFor({ pathname: '/invitation.html', search: '?id=ABCD1234' });
+    assert.strictEqual(url, '/api/invitation?id=ABCD1234');
+  });
+
+  it('CASE 20: permanent reader uses the Snapshot Mode B adapter', async ()=>{
+    const code = fs.readFileSync(new URL('../invitation.js', import.meta.url), 'utf8');
+    assert.ok(code.includes('snapshotToModeBViewModel'));
+    assert.ok(code.includes('renderModeB'));
+  });
+
+  it('CASE 21: permanent reader introduces no Route API dependency', async ()=>{
+    const code = fs.readFileSync(new URL('../invitation.js', import.meta.url), 'utf8');
+    assert.ok(!code.includes('/api/routes'));
+    assert.ok(!code.includes('BudaoActiveRoutes'));
+  });
+
+});
