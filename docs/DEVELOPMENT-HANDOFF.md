@@ -430,6 +430,107 @@ Future changes to the frozen integration contract require an explicit freeze exc
 
 Phase 2D.4 — Final Regression / Release Validation
 
+# Phase 2D.4 — FINAL REGRESSION / RELEASE AUDIT — FROZEN
+
+## Release audit result
+
+RELEASE AUDIT: PASS
+
+## Frozen release findings
+
+- Permanent Mode B regression: PASS
+- Snapshot/API/Route regression: PASS
+- Share Artifact architecture: PASS
+- Determinism: PASS
+- Failure states: PASS
+- Object URL lifecycle: PASS
+- Accessibility/interaction: PASS
+
+## Validation baseline
+
+- Phase1A: 18/18
+- Phase1B: 21/21
+- Phase1C: 5/5
+- Permanent Mode B: 15/15
+- Share renderer: 41/41
+- Share integration: 26/26
+- Total: 167/167/0
+- lint: PASS
+- build: PASS
+- git diff --check: PASS
+
+## Human validation
+
+- Real Vercel Preview validation: PASS
+- Real Kuangou route generated frozen Mode B Share Artifact
+- Closed registration correctly rendered deterministic Dalong stamp
+- Same route repeatedly generated the same 5-value Dalong stamp
+- PNG download successfully validated
+- Artifact dimensions: 1080×1530
+- Human visual review: PASS
+
+## Merge audit
+
+Merge base:
+`57475b50a91c52421f49672052da922a68a47c73`
+
+Branch delta:
+
+- 20 files
+- 4,532 insertions
+- 715 deletions
+
+Known unrelated working-tree items do NOT enter merge:
+
+- deleted MP3: NO
+- `worktrees/`: NO
+
+## Dependency/security note
+
+The two existing Dependabot findings on the default branch were NOT introduced by Invitation Foundation.
+
+They require separate review and are not a blocker for this release.
+
+## Release classification
+
+- P0: none
+- P1: none
+- P2: none
+- P3: none
+
+Notes:
+
+- existing Node typeless-package reparsing warnings are non-blocking
+- default-branch Dependabot issues are separate
+
+## Final status
+
+- Phase 2C: COMPLETE / FROZEN
+- Phase 2D.1: COMPLETE / FROZEN
+- Phase 2D.2: COMPLETE / FROZEN
+- Phase 2D.3: COMPLETE / FROZEN
+- Phase 2D.4: COMPLETE / FROZEN
+
+Invitation Engine Mode B:
+READY TO MERGE / RELEASE
+
+SAFE TO MERGE: YES
+SAFE TO RELEASE/DEPLOY: YES
+
+## Change policy
+
+Do not reopen frozen Invitation Foundation phases for cleanup, subjective visual tuning, or unrelated refactoring.
+
+Future changes require:
+
+1. confirmed bug
+2. confirmed accessibility defect
+3. explicit new product phase/version
+4. approved new requirement
+
+Next action:
+merge through the normal reviewed workflow.
+
 Contact: the codebase owner (refer to repo maintainers) for approvals and branch policies.
 
 -- End of DEVELOPMENT-HANDOFF baseline --
