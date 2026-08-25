@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/f7ed8cce40871adfe028dbb8c5cf5d7d.png",
     "imageAlt": "kg.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-08-18T03:13:59.354Z"
+    "updatedAt": "2026-08-25T13:23:03.606Z"
   },
   {
     "id": "budao-bacbc",
@@ -35,26 +35,26 @@
     "slot": "BACBC",
     "country": "中国",
     "city": "北京",
-    "region": "顺义",
-    "location": "中国· 北京 · 顺义",
-    "title": "故城记忆",
-    "description": "六点，我们从故城出发。\n不追赶落日，只与它同行。\n\n两小时，把城市交给晚风，\n把脚步交给道路，\n把未说完的话，交给身旁的人。\n\n没有远方需要抵达——\n当暮色落下，灯火初上，\n我们恰好走回生活。",
+    "region": "昌平",
+    "location": "中国· 北京 · 昌平",
+    "title": "奥北森林公园",
+    "description": "六点，我们从奥北森林出发。\n初秋晚风里，平坦路畅行。\n两小时，不赶远方，只与爱的人携手走回灯火温柔。",
     "time": "18:00",
     "duration": "2小时",
     "distance": "5公里",
     "surface": "铺装路",
     "elevation": "<50米",
     "difficulty": "简单",
-    "suitableFor": "长者、亲子友好",
-    "equipmentMinimum": "运动鞋 / 饮水 /驱蚊",
+    "suitableFor": "长者、亲子友好，无障碍通行",
+    "equipmentMinimum": "便鞋 / 饮水 /驱蚊",
     "timezone": "Asia/Shanghai",
-    "date": "2026-08-16",
-    "meetingPlace": "故城记忆公园80号门",
+    "date": "2026-08-29",
+    "meetingPlace": "奥北森林公园4号停车场（近北门）",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/762f13c6ce222232872ffe3e26bb3c41.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/5bdcd61bf6c1774f89d5ca7bc0264212.png",
-    "imageAlt": "gcjy.jpg",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/6acd90d283c8ee6e67506eb571073e6c.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/d83ce6e9e9f0b5f7985dfb0f887e10e6.png",
+    "imageAlt": "ab.jpeg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-08-18T03:13:59.355Z"
+    "updatedAt": "2026-08-25T13:23:03.604Z"
   }
 ]
