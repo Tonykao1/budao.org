@@ -1,6 +1,8 @@
-.invitation-trigger {
+.invitation-trigger,
+.invitation-create {
     display:inline-block;
     width:max-content;
+    min-height:42px;
     padding:12px 22px;
     border:1px solid rgba(17,17,17,0.18);
     border-radius:999px;
@@ -12,12 +14,32 @@
     transition:background-color 240ms ease,color 240ms ease,border-color 240ms ease,transform 240ms ease;
 }
 
+.invitation-create {
+    border-color:rgba(17,17,17,0.08);
+    color:#756f66;
+}
+
 .invitation-trigger:hover,
-.invitation-trigger:focus-visible {
+.invitation-trigger:focus-visible,
+.invitation-create:hover,
+.invitation-create:focus-visible {
     transform:translateY(-1px);
     background:#f9f7f2;
     border-color:rgba(17,17,17,0.28);
     outline:0;
+}
+
+.invitation-create:hover,
+.invitation-create:focus-visible {
+    border-color:rgba(17,17,17,0.18);
+    color:#4f493f;
+}
+
+.invitation-trigger:disabled,
+.invitation-create:disabled {
+    cursor:wait;
+    opacity:0.52;
+    transform:none;
 }
 
 .route-meeting{
@@ -80,10 +102,63 @@
 
 .route-actions{
     display:flex;
+    flex-wrap:wrap;
     align-items:center;
     justify-content:center;
     gap:12px;
     width:100%;
+}
+
+.invitation-create-result {
+    flex:0 0 100%;
+    width:100%;
+    min-width:0;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:8px 14px;
+    margin-top:4px;
+    color:#81796e;
+    font-size:12px;
+    line-height:1.6;
+    letter-spacing:0.08em;
+    text-align:center;
+}
+
+.invitation-create-result-actions {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+}
+
+.invitation-create-action {
+    min-height:38px;
+    padding:8px 15px;
+    border:1px solid rgba(17,17,17,0.1);
+    border-radius:999px;
+    background:transparent;
+    color:#625b51;
+    cursor:pointer;
+    font-size:12px;
+    letter-spacing:0.08em;
+    white-space:nowrap;
+    transition:background-color 240ms ease,color 240ms ease,border-color 240ms ease;
+}
+
+.invitation-create-action:hover,
+.invitation-create-action:focus-visible {
+    background:#f9f7f2;
+    border-color:rgba(17,17,17,0.2);
+    color:#39332b;
+    outline:0;
+}
+
+.invitation-create-feedback {
+    flex:0 0 100%;
+    min-height:1.6em;
+    color:#91897e;
 }
 
 .invitation-preview {
@@ -506,6 +581,25 @@ body.invitation-open footer {
 }
 
 @media(max-width:620px) {
+    .route-actions {
+        gap:10px;
+    }
+
+    .invitation-trigger,
+    .invitation-create {
+        min-height:44px;
+        padding-inline:17px;
+    }
+
+    .invitation-create-result {
+        max-width:100%;
+        margin-top:2px;
+    }
+
+    .invitation-create-action {
+        min-height:42px;
+    }
+
     .invitation-preview {
         padding:18px;
     }

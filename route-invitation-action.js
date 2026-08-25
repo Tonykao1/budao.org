@@ -9,35 +9,35 @@
   function createResultNode(){
     const wrap = document.createElement('div');
     wrap.className = 'invitation-create-result';
-    wrap.style.marginTop = '6px';
-    wrap.style.fontSize = '0.95em';
+    wrap.setAttribute('aria-live', 'polite');
+    wrap.setAttribute('aria-atomic', 'true');
     return wrap;
   }
 
   function setProcessing(button, processing){
     button.disabled = processing;
-    button.textContent = processing ? '正在生成邀请…' : '生成邀请';
+    button.textContent = processing ? '正在创建邀请页…' : '创建邀请页';
   }
 
-  function showMessageOnCard(button, message, actions){
+  function resultNodeFor(button){
     const container = findActionContainer(button);
-    if(!container) return;
+    if(!container) return null;
     let result = container.querySelector('.invitation-create-result');
     if(!result){
       result = createResultNode();
       container.appendChild(result);
     }
-    // clear children safely
+    return result;
+  }
+
+  function showMessageOnCard(button, message){
+    const result = resultNodeFor(button);
+    if(!result) return;
     result.replaceChildren();
     const p = document.createElement('div');
+    p.className = 'invitation-create-message';
     p.textContent = message;
     result.appendChild(p);
-    if(Array.isArray(actions)){
-      const btnRow = document.createElement('div');
-      btnRow.style.marginTop = '6px';
-      actions.forEach(a=> btnRow.appendChild(a));
-      result.appendChild(btnRow);
-    }
   }
 
   function buildActionButton(label, onClick){
@@ -49,18 +49,54 @@
     return b;
   }
 
+  function showSuccessOnCard(button, invitationUrl){
+    const result = resultNodeFor(button);
+    if(!result) return;
+    result.replaceChildren();
+
+    const message = document.createElement('div');
+    message.className = 'invitation-create-message';
+    message.textContent = '邀请页已创建';
+
+    const actions = document.createElement('div');
+    actions.className = 'invitation-create-result-actions';
+    const feedback = document.createElement('div');
+    feedback.className = 'invitation-create-feedback';
+    feedback.setAttribute('aria-live', 'polite');
+
+    const openBtn = buildActionButton('打开', ()=> window.open(invitationUrl, '_blank', 'noopener'));
+    const copyBtn = buildActionButton('复制链接', async ()=>{
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(invitationUrl);
+          feedback.textContent = '链接已复制';
+        } else {
+          throw new Error('clipboard_unavailable');
+        }
+      }catch(e){
+        feedback.textContent = '复制失败，请重试或使用“打开”。';
+      }
+    });
+
+    actions.appendChild(openBtn);
+    actions.appendChild(copyBtn);
+    result.appendChild(message);
+    result.appendChild(actions);
+    result.appendChild(feedback);
+  }
+
   async function handleCreate(button){
     if(IN_FLIGHT.get(button)) return; // already in flight for this button
     const idx = button.dataset.routeIndex;
     const routes = window.BudaoActiveRoutes || [];
     const route = routes[Number(idx)];
     if(!route){
-      showMessageOnCard(button, '无法生成邀请。');
+      showMessageOnCard(button, '无法创建邀请页。');
       return;
     }
     const routeId = (typeof route.routeId === 'string' && route.routeId.trim()) ? route.routeId : (typeof route.id === 'string' ? route.id : '');
     if(!routeId){
-      showMessageOnCard(button, '无法生成邀请。');
+      showMessageOnCard(button, '无法创建邀请页。');
       return;
     }
 
@@ -79,29 +115,17 @@
         const body = await res.json();
         const id = body && body.id;
         if (!id) {
-          showMessageOnCard(button, '生成失败，请稍后再试。');
+          showMessageOnCard(button, '创建失败，请稍后再试。');
           return;
         }
         const invitationUrl = new URL('/i/' + encodeURIComponent(id), window.location.origin).href;
-        const openBtn = buildActionButton('打开邀请', ()=> window.open(invitationUrl, '_blank', 'noopener'));
-        const copyBtn = buildActionButton('复制链接', async ()=>{
-          try{
-            if(navigator.clipboard && navigator.clipboard.writeText){
-              await navigator.clipboard.writeText(invitationUrl);
-            } else {
-              throw new Error('clipboard_unavailable');
-            }
-          }catch(e){
-            showMessageOnCard(button, '复制失败，请手动打开邀请。');
-          }
-        });
-        showMessageOnCard(button, '邀请已生成', [openBtn, copyBtn]);
+        showSuccessOnCard(button, invitationUrl);
       } else if (res.status === 400) {
-        showMessageOnCard(button, '无法生成邀请。');
+        showMessageOnCard(button, '无法创建邀请页。');
       } else if (res.status === 401) {
         showMessageOnCard(button, '请先登录带领人账户。');
       } else if (res.status === 403) {
-        showMessageOnCard(button, '你没有权限为这条路线生成邀请。');
+        showMessageOnCard(button, '你没有权限为这条路线创建邀请页。');
       } else if (res.status === 404) {
         showMessageOnCard(button, '未找到这条路线。');
       } else if (res.status === 429) {
@@ -109,10 +133,10 @@
       } else if (res.status === 503) {
         showMessageOnCard(button, '邀请服务暂时不可用。');
       } else {
-        showMessageOnCard(button, '生成失败，请稍后再试。');
+        showMessageOnCard(button, '创建失败，请稍后再试。');
       }
     }catch(e){
-      showMessageOnCard(button, '生成失败，请稍后再试。');
+      showMessageOnCard(button, '创建失败，请稍后再试。');
     }finally{
       IN_FLIGHT.set(button, false);
       setProcessing(button, false);

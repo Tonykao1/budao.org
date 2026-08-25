@@ -81,7 +81,7 @@ describe('Invitation Flow behavior tests', ()=>{
     const route = { routeId: 'route-xyz', id: 'legacy' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='生成邀请';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
     actions.appendChild(button);
 
     // dispatch click
@@ -109,7 +109,7 @@ describe('Invitation Flow behavior tests', ()=>{
     const route = { routeId: 'r1' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='生成邀请';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
     actions.appendChild(button);
 
     dom.dispatchClick({ target: button, preventDefault: ()=>{} });
@@ -117,21 +117,21 @@ describe('Invitation Flow behavior tests', ()=>{
     dom.dispatchClick({ target: button, preventDefault: ()=>{} });
     // during flight, button should be disabled
     assert.strictEqual(button.disabled, true);
-    assert.strictEqual(button.textContent, '正在生成邀请…');
+    assert.strictEqual(button.textContent, '正在创建邀请页…');
     // resolve fetch
     resolveFetch();
     await new Promise(r=>setTimeout(r,0));
     // now fetchCalls should be 1 and button restored
     assert.strictEqual(fetchCalls, 1);
     assert.strictEqual(button.disabled, false);
-    assert.strictEqual(button.textContent, '生成邀请');
+    assert.strictEqual(button.textContent, '创建邀请页');
   });
 
   it('maps error status codes to messages and shows copy/open UI on success', async ()=>{
     const route = { routeId: 'r2' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='生成邀请';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
     actions.appendChild(button);
 
     // helper to run mock response and return displayed text
@@ -145,11 +145,11 @@ describe('Invitation Flow behavior tests', ()=>{
 
     let txt;
     txt = await runWithResponse({ status:400, ok:false });
-    assert.strictEqual(txt, '无法生成邀请。');
+    assert.strictEqual(txt, '无法创建邀请页。');
     txt = await runWithResponse({ status:401, ok:false });
     assert.strictEqual(txt, '请先登录带领人账户。');
     txt = await runWithResponse({ status:403, ok:false });
-    assert.strictEqual(txt, '你没有权限为这条路线生成邀请。');
+    assert.strictEqual(txt, '你没有权限为这条路线创建邀请页。');
     txt = await runWithResponse({ status:404, ok:false });
     assert.strictEqual(txt, '未找到这条路线。');
     txt = await runWithResponse({ status:429, ok:false });
@@ -157,19 +157,21 @@ describe('Invitation Flow behavior tests', ()=>{
     txt = await runWithResponse({ status:503, ok:false });
     assert.strictEqual(txt, '邀请服务暂时不可用。');
     txt = await runWithResponse({ status:500, ok:false });
-    assert.strictEqual(txt, '生成失败，请稍后再试。');
+    assert.strictEqual(txt, '创建失败，请稍后再试。');
 
     // success case: use a fresh container/button to avoid previous state
     global.fetch = async ()=>({ status:201, ok:true, json: async ()=>({ ok:true, id: 'ID 123' }) });
     let opened = null; global.window.open = (url, target, features)=>{ opened = { url, target, features }; };
     let copied = null; global.navigator.clipboard = { writeText: async (t)=>{ copied = t; } };
     const actions2 = document.createElement('div'); actions2.className='route-actions';
-    const button2 = document.createElement('button'); button2.className='invitation-create'; button2.dataset.routeIndex='0'; button2.textContent='生成邀请';
+    const button2 = document.createElement('button'); button2.className='invitation-create'; button2.dataset.routeIndex='0'; button2.textContent='创建邀请页';
     actions2.appendChild(button2);
     dom.dispatchClick({ target: button2, preventDefault: ()=>{} });
     await new Promise(r=>setTimeout(r,0));
     const res = actions2.querySelector('.invitation-create-result');
-    assert.strictEqual(res && res.children[0] && res.children[0].textContent, '邀请已生成');
+    assert.strictEqual(res && res.children[0] && res.children[0].textContent, '邀请页已创建');
+    assert.strictEqual(res.children[1].children[0].textContent, '打开');
+    assert.strictEqual(res.children[1].children[1].textContent, '复制链接');
     // find open and copy buttons
     const openBtn = res.querySelector && res.querySelector('.invitation-create-action');
     // trigger open via click on first action
@@ -187,6 +189,7 @@ describe('Invitation Flow behavior tests', ()=>{
     if(copyBtn && copyBtn.click){ copyBtn.click(); }
     await new Promise(r=>setTimeout(r,0));
     assert.ok(copied && copied.startsWith(global.window.location.origin));
+    assert.strictEqual(res.children[2].textContent, '链接已复制');
 
     // clipboard reject case: ensure UI shows stable failure message
     // use a fresh create to isolate
@@ -194,20 +197,23 @@ describe('Invitation Flow behavior tests', ()=>{
     let copiedArg = null; let clipboardCalled = false;
     global.navigator.clipboard = { writeText: async (t)=>{ clipboardCalled = true; copiedArg = t; return Promise.reject(new Error('boom')); } };
     const actions3 = document.createElement('div'); actions3.className='route-actions';
-    const button3 = document.createElement('button'); button3.className='invitation-create'; button3.dataset.routeIndex='0'; button3.textContent='生成邀请';
+    const button3 = document.createElement('button'); button3.className='invitation-create'; button3.dataset.routeIndex='0'; button3.textContent='创建邀请页';
     actions3.appendChild(button3);
     dom.dispatchClick({ target: button3, preventDefault: ()=>{} });
     await new Promise(r=>setTimeout(r,0));
     const res3 = actions3.querySelector('.invitation-create-result');
-    assert.strictEqual(res3 && res3.children[0] && res3.children[0].textContent, '邀请已生成');
+    assert.strictEqual(res3 && res3.children[0] && res3.children[0].textContent, '邀请页已创建');
     const copyBtn3 = res3.children[1] && res3.children[1].children[1];
     if(copyBtn3 && copyBtn3.click){ copyBtn3.click(); }
     await new Promise(r=>setTimeout(r,0));
     assert.strictEqual(clipboardCalled, true);
     assert.ok(copiedArg && copiedArg.startsWith(global.window.location.origin));
-    // failure UI message must be the runtime's stable user-facing string
-    const failMsg = actions3.querySelector('.invitation-create-result');
-    assert.strictEqual(failMsg && failMsg.children[0] && failMsg.children[0].textContent, '复制失败，请手动打开邀请。');
+    // Clipboard failure must preserve the permanent URL actions and success state.
+    const failState = actions3.querySelector('.invitation-create-result');
+    assert.strictEqual(failState.children[0].textContent, '邀请页已创建');
+    assert.strictEqual(failState.children[1].children[0].textContent, '打开');
+    assert.strictEqual(failState.children[1].children[1].textContent, '复制链接');
+    assert.strictEqual(failState.children[2].textContent, '复制失败，请重试或使用“打开”。');
   });
 
   it('does not call fetch when routeId missing', async ()=>{
@@ -239,7 +245,7 @@ describe('Invitation Flow behavior tests', ()=>{
     const route = { routeId: 'same-route', id: 'legacy' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='生成邀请';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
     actions.appendChild(button);
 
     // first click -> pending
@@ -252,7 +258,7 @@ describe('Invitation Flow behavior tests', ()=>{
     await new Promise(r=>setTimeout(r,0));
     // after first completes
     assert.strictEqual(button.disabled, false);
-    assert.strictEqual(button.textContent, '生成邀请');
+    assert.strictEqual(button.textContent, '创建邀请页');
 
     // second click -> immediate second fetch
     // prepare clipboard capture to verify second invitation URL later
@@ -270,7 +276,7 @@ describe('Invitation Flow behavior tests', ()=>{
 
     // verify latest UI copies SECOND456 when clicking its copy button
     const res = actions.querySelector('.invitation-create-result');
-    assert.strictEqual(res && res.children[0] && res.children[0].textContent, '邀请已生成');
+    assert.strictEqual(res && res.children[0] && res.children[0].textContent, '邀请页已创建');
     const copyBtn = res.children[1] && res.children[1].children[1];
     if(copyBtn && copyBtn.click){ copyBtn.click(); }
     await new Promise(r=>setTimeout(r,0));
@@ -278,5 +284,23 @@ describe('Invitation Flow behavior tests', ()=>{
 
     // ensure route object unchanged (no added invitation fields)
     assert.ok(route.routeId === 'same-route' && route.id === 'legacy');
+  });
+
+  it('keeps Share Artifact and permanent Invitation actions semantically independent', ()=>{
+    const html = fs.readFileSync(new URL('../test.html', import.meta.url), 'utf8');
+    assert.match(html, /class="invitation-trigger"[^>]*>分享邀请<\/button>/);
+    assert.match(html, /class="invitation-create"[^>]*>创建邀请页<\/button>/);
+    assert.ok(!/class="[^"]*invitation-create[^"]*invitation-trigger/.test(html));
+    assert.ok(!routeActionCode.includes('BudaoInvitationShareModeB'));
+    assert.ok(!routeActionCode.includes('BudaoInvitationEngine'));
+  });
+
+  it('keeps desktop and 375/430 action layouts within the shared pill contract', ()=>{
+    const css = fs.readFileSync(new URL('../invitation-engine.css', import.meta.url), 'utf8');
+    assert.match(css, /\.invitation-trigger,\s*\.invitation-create\s*\{/);
+    assert.match(css, /\.route-actions\s*\{[^}]*flex-wrap:wrap/s);
+    assert.match(css, /\.invitation-create-result\s*\{[^}]*flex:0 0 100%[^}]*min-width:0/s);
+    assert.match(css, /@media\(max-width:620px\)[\s\S]*\.invitation-trigger,[\s\S]*\.invitation-create\s*\{[^}]*min-height:44px/);
+    assert.match(css, /\.invitation-create-result\s*\{[^}]*max-width:100%/s);
   });
 });
