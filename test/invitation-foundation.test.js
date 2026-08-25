@@ -1,4 +1,6 @@
 import assert from 'node:assert';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
 import { beforeEach, describe, it } from 'node:test';
 import { resetForTests as resetRateLimit } from '../api/_security/rate-limit.js';
 
@@ -13,7 +15,7 @@ function makeResponse() {
 
 function base64(s) { return Buffer.from(s, 'utf8').toString('base64'); }
 
-describe('Invitation Foundation Phase 1A (18 cases)', () => {
+describe('Invitation Foundation Phase 1A (19 cases)', () => {
   beforeEach(() => {
     resetRateLimit();
     global.fetch = undefined;
@@ -126,6 +128,37 @@ describe('Invitation Foundation Phase 1A (18 cases)', () => {
     assert.notStrictEqual(id1, id2);
     // two stored files
     assert.strictEqual(stored.size, 2);
+  });
+
+  it('19. invitation ids use unbiased rejection sampling', async () => {
+    const routes = [{ routeId: 'r-random', title: 'T', slot: 'IMS' }];
+    const { handler } = await setupHandler({ routes, token: 'tk' });
+    const cookie = await makePublisherCookie({ id: 'pub-random', slot: 'IMS' });
+    const originalRandomBytes = crypto.randomBytes;
+    const requestedLengths = [];
+    const samples = [
+      Buffer.from([216, 255, 0, 53, 54, 107, 108, 161]),
+      Buffer.from([215, 1])
+    ];
+
+    crypto.randomBytes = (length) => {
+      requestedLengths.push(length);
+      return samples.shift();
+    };
+
+    try {
+      const res = makeResponse();
+      await handler(makeReq(cookie, { routeId: 'r-random' }), res);
+      assert.strictEqual(res._last().body.id, 'A9A9A99B');
+      assert.deepStrictEqual(requestedLengths, [8, 2]);
+    } finally {
+      crypto.randomBytes = originalRandomBytes;
+    }
+
+    const source = fs.readFileSync(new URL('../api/invitation.js', import.meta.url), 'utf8');
+    assert.match(source, /maxUnbiased\s*=\s*256\s*-\s*\(256\s*%\s*alphabet\.length\)/);
+    assert.match(source, /if\s*\(byte\s*>=\s*maxUnbiased\)\s*continue/);
+    assert.ok(!source.includes('Math.random'));
   });
 
   it('8. snapshot remains unchanged after route modification', async () => {

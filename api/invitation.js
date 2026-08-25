@@ -245,11 +245,18 @@ async function createInvitationFile(snapshot) {
 
 function generateId(length) {
   const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  const bytes = crypto.randomBytes(length);
+  const maxUnbiased = 256 - (256 % alphabet.length);
   let out = '';
-  for (let i = 0; i < length; i++) {
-    out += alphabet[bytes[i] % alphabet.length];
+
+  while (out.length < length) {
+    const bytes = crypto.randomBytes(length - out.length);
+    for (const byte of bytes) {
+      if (byte >= maxUnbiased) continue;
+      out += alphabet[byte % alphabet.length];
+      if (out.length === length) break;
+    }
   }
+
   return out;
 }
 
