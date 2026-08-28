@@ -1,0 +1,38 @@
+{
+  "id": "JXKzaEg5",
+  "sourceRoute": {
+    "routeId": "budao-bacbc"
+  },
+  "facts": {
+    "title": "奥北森林公园",
+    "location": "中国· 北京 · 昌平",
+    "date": "2026-08-29",
+    "time": "18:00",
+    "timezone": "Asia/Shanghai",
+    "duration": "2小时",
+    "distance": "5公里",
+    "elevation": "<50米",
+    "surface": "铺装路",
+    "difficulty": "简单",
+    "suitableFor": "长者、亲子友好，无障碍通行",
+    "equipmentMinimum": "便鞋 / 饮水 /驱蚊",
+    "participantRequirements": "",
+    "meetingPlace": "奥北森林公园4号停车场（近北门）",
+    "description": "六点，我们从奥北森林出发。\n初秋晚风里，平坦路畅行。\n两小时，不赶远方，只与爱的人携手走回灯火温柔。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/6acd90d283c8ee6e67506eb571073e6c.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/d83ce6e9e9f0b5f7985dfb0f887e10e6.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-08-28T14:42:51.911Z",
+  "createdBy": "budao-bacbc"
+}
