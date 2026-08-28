@@ -81,7 +81,7 @@ describe('Invitation Flow behavior tests', ()=>{
     const route = { routeId: 'route-xyz', id: 'legacy' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='封存步道';
     actions.appendChild(button);
 
     // dispatch click
@@ -109,7 +109,7 @@ describe('Invitation Flow behavior tests', ()=>{
     const route = { routeId: 'r1' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='封存步道';
     actions.appendChild(button);
 
     dom.dispatchClick({ target: button, preventDefault: ()=>{} });
@@ -117,21 +117,21 @@ describe('Invitation Flow behavior tests', ()=>{
     dom.dispatchClick({ target: button, preventDefault: ()=>{} });
     // during flight, button should be disabled
     assert.strictEqual(button.disabled, true);
-    assert.strictEqual(button.textContent, '正在创建邀请页…');
+    assert.strictEqual(button.textContent, '正在封存步道…');
     // resolve fetch
     resolveFetch();
     await new Promise(r=>setTimeout(r,0));
     // now fetchCalls should be 1 and button restored
     assert.strictEqual(fetchCalls, 1);
     assert.strictEqual(button.disabled, false);
-    assert.strictEqual(button.textContent, '创建邀请页');
+    assert.strictEqual(button.textContent, '封存步道');
   });
 
   it('maps error status codes to messages and shows copy/open UI on success', async ()=>{
     const route = { routeId: 'r2' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='封存步道';
     actions.appendChild(button);
 
     // helper to run mock response and return displayed text
@@ -145,11 +145,11 @@ describe('Invitation Flow behavior tests', ()=>{
 
     let txt;
     txt = await runWithResponse({ status:400, ok:false });
-    assert.strictEqual(txt, '无法创建邀请页。');
+    assert.strictEqual(txt, '无法封存步道。');
     txt = await runWithResponse({ status:401, ok:false });
     assert.strictEqual(txt, '请先登录带领人账户。');
     txt = await runWithResponse({ status:403, ok:false });
-    assert.strictEqual(txt, '你没有权限为这条路线创建邀请页。');
+    assert.strictEqual(txt, '你没有权限封存这条步道。');
     txt = await runWithResponse({ status:404, ok:false });
     assert.strictEqual(txt, '未找到这条路线。');
     txt = await runWithResponse({ status:429, ok:false });
@@ -164,7 +164,7 @@ describe('Invitation Flow behavior tests', ()=>{
     let opened = null; global.window.open = (url, target, features)=>{ opened = { url, target, features }; };
     let copied = null; global.navigator.clipboard = { writeText: async (t)=>{ copied = t; } };
     const actions2 = document.createElement('div'); actions2.className='route-actions';
-    const button2 = document.createElement('button'); button2.className='invitation-create'; button2.dataset.routeIndex='0'; button2.textContent='创建邀请页';
+    const button2 = document.createElement('button'); button2.className='invitation-create'; button2.dataset.routeIndex='0'; button2.textContent='封存步道';
     actions2.appendChild(button2);
     dom.dispatchClick({ target: button2, preventDefault: ()=>{} });
     await new Promise(r=>setTimeout(r,0));
@@ -197,7 +197,7 @@ describe('Invitation Flow behavior tests', ()=>{
     let copiedArg = null; let clipboardCalled = false;
     global.navigator.clipboard = { writeText: async (t)=>{ clipboardCalled = true; copiedArg = t; return Promise.reject(new Error('boom')); } };
     const actions3 = document.createElement('div'); actions3.className='route-actions';
-    const button3 = document.createElement('button'); button3.className='invitation-create'; button3.dataset.routeIndex='0'; button3.textContent='创建邀请页';
+    const button3 = document.createElement('button'); button3.className='invitation-create'; button3.dataset.routeIndex='0'; button3.textContent='封存步道';
     actions3.appendChild(button3);
     dom.dispatchClick({ target: button3, preventDefault: ()=>{} });
     await new Promise(r=>setTimeout(r,0));
@@ -245,7 +245,7 @@ describe('Invitation Flow behavior tests', ()=>{
     const route = { routeId: 'same-route', id: 'legacy' };
     global.window.BudaoActiveRoutes = [route];
     const actions = document.createElement('div'); actions.className='route-actions';
-    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='创建邀请页';
+    const button = document.createElement('button'); button.className='invitation-create'; button.dataset.routeIndex='0'; button.textContent='封存步道';
     actions.appendChild(button);
 
     // first click -> pending
@@ -258,7 +258,7 @@ describe('Invitation Flow behavior tests', ()=>{
     await new Promise(r=>setTimeout(r,0));
     // after first completes
     assert.strictEqual(button.disabled, false);
-    assert.strictEqual(button.textContent, '创建邀请页');
+    assert.strictEqual(button.textContent, '封存步道');
 
     // second click -> immediate second fetch
     // prepare clipboard capture to verify second invitation URL later
@@ -289,7 +289,7 @@ describe('Invitation Flow behavior tests', ()=>{
   it('keeps Share Artifact and permanent Invitation actions semantically independent', ()=>{
     const html = fs.readFileSync(new URL('../test.html', import.meta.url), 'utf8');
     assert.match(html, /class="invitation-trigger"[^>]*>分享邀请<\/button>/);
-    assert.match(html, /class="invitation-create"[^>]*>创建邀请页<\/button>/);
+    assert.match(html, /class="invitation-create"[^>]*>封存步道<\/button>/);
     assert.ok(!/class="[^"]*invitation-create[^"]*invitation-trigger/.test(html));
     assert.ok(!routeActionCode.includes('BudaoInvitationShareModeB'));
     assert.ok(!routeActionCode.includes('BudaoInvitationEngine'));

@@ -16,7 +16,7 @@
 
   function setProcessing(button, processing){
     button.disabled = processing;
-    button.textContent = processing ? '正在创建邀请页…' : '创建邀请页';
+    button.textContent = processing ? '正在封存步道…' : '封存步道';
   }
 
   function resultNodeFor(button){
@@ -91,12 +91,12 @@
     const routes = window.BudaoActiveRoutes || [];
     const route = routes[Number(idx)];
     if(!route){
-      showMessageOnCard(button, '无法创建邀请页。');
+      showMessageOnCard(button, '无法封存步道。');
       return;
     }
     const routeId = (typeof route.routeId === 'string' && route.routeId.trim()) ? route.routeId : (typeof route.id === 'string' ? route.id : '');
     if(!routeId){
-      showMessageOnCard(button, '无法创建邀请页。');
+      showMessageOnCard(button, '无法封存步道。');
       return;
     }
 
@@ -121,11 +121,11 @@
         const invitationUrl = new URL('/i/' + encodeURIComponent(id), window.location.origin).href;
         showSuccessOnCard(button, invitationUrl);
       } else if (res.status === 400) {
-        showMessageOnCard(button, '无法创建邀请页。');
+        showMessageOnCard(button, '无法封存步道。');
       } else if (res.status === 401) {
         showMessageOnCard(button, '请先登录带领人账户。');
       } else if (res.status === 403) {
-        showMessageOnCard(button, '你没有权限为这条路线创建邀请页。');
+        showMessageOnCard(button, '你没有权限封存这条步道。');
       } else if (res.status === 404) {
         showMessageOnCard(button, '未找到这条路线。');
       } else if (res.status === 429) {
