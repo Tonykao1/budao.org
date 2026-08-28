@@ -22,11 +22,11 @@
     "date": "2026-08-29",
     "meetingPlace": "百望山东门",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/4a52a3342da38ad5604ae7bd6669b389.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/f7ed8cce40871adfe028dbb8c5cf5d7d.png",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/c3e036434df8aeb91e297207717ee07a.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/3438685fb40fbbfdf34d9855a8af2402.png",
     "imageAlt": "bws3.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-08-28T11:12:17.952Z"
+    "updatedAt": "2026-08-28T11:22:10.498Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,6 +55,6 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/d83ce6e9e9f0b5f7985dfb0f887e10e6.png",
     "imageAlt": "ab.jpeg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-08-28T11:12:17.953Z"
+    "updatedAt": "2026-08-28T11:22:10.499Z"
   }
 ]
