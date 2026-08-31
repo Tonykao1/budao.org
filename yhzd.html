@@ -17,24 +17,22 @@
 body{
     background:#050505;
     color:#f5f1e8;
-    font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+    font-family:"PingFang SC", "Helvetica Neue", sans-serif;
     overflow-x:hidden;
 }
 
 nav{
     position:relative;
-    z-index:2;
+    z-index:10;
 }
 
 /* 背景星点 */
 .stars{
     position:fixed;
-    width:100%;
-    height:100%;
-    top:0;
-    left:0;
+    inset:0;
     z-index:0;
     overflow:hidden;
+    pointer-events:none;
 }
 
 .star{
@@ -53,46 +51,44 @@ nav{
     100%{opacity:0.1;}
 }
 
-/* 中央暖光 */
+/* 中央暖光：仍然属于整个“营火之地”，而不是任何一张照片 */
 .glow{
     position:fixed;
-    width:800px;
-    height:800px;
+    width:min(900px, 82vw);
+    aspect-ratio:1;
     background:radial-gradient(circle, rgba(255,140,0,0.12), transparent 70%);
     left:50%;
-    top:200px;
+    top:180px;
     transform:translateX(-50%);
     z-index:0;
+    pointer-events:none;
 }
 
-/* 内容 */
-.container{
+/* 桌面：文字层与影像层共享同一片空间，但不配对 */
+.memory-stage{
     position:relative;
     z-index:2;
-    width:90%;
-    max-width:900px;
-    margin:auto;
-    padding-top:120px;
-    padding-bottom:200px;
+    width:min(1480px, 96vw);
+    height:1780px;
+    margin:0 auto;
 }
 
-/* 标题 */
 .top{
+    position:absolute;
+    left:50%;
+    top:250px;
+    width:min(620px, 42vw);
+    transform:translateX(-50%);
     text-align:center;
-    margin-bottom:180px;
-}
-
-.top small{
-    letter-spacing:8px;
-    color:#777;
-    font-size:12px;
+    z-index:4;
 }
 
 .top h1{
-    font-size:72px;
+    font-size:clamp(58px, 5vw, 76px);
     font-weight:200;
     margin-top:30px;
     margin-bottom:40px;
+    line-height:1.2;
 }
 
 .top p{
@@ -101,118 +97,186 @@ nav{
     font-size:20px;
 }
 
-/* 留言 */
-.message{
-    margin:140px 0;
-    max-width:640px;
-    line-height:1.9;
-    font-size:34px;
-    font-weight:200;
-    opacity:0;
-    transform:translateY(40px);
-    animation:fadeUp 1.5s forwards;
-    word-break: keep-all;
-padding: 0 10px;
+.spark-link{
+    display:block;
+    text-align:center;
+    color:#666;
+    text-decoration:none;
+    letter-spacing:5px;
+    font-size:16px;
+    font-weight:300;
+    transition:0.4s;
+    animation:sparkBreath 3.5s ease-in-out infinite;
 }
 
-.message:nth-child(even){
-    margin-left:auto;
-    text-align:right;
+.top .spark-link{
+    margin:0 auto;
+}
+
+.bottom-spark{
+    position:relative;
+    z-index:2;
+    margin:20px auto 90px;
+}
+
+.spark-link:hover{
+    color:#aaa;
+    letter-spacing:7px;
+}
+
+@keyframes sparkBreath{
+    0%{opacity:0.45; transform:scale(1);}
+    50%{opacity:1; transform:scale(1.04);}
+    100%{opacity:0.45; transform:scale(1);}
+}
+
+/* 文字：仍沿用原来的随机“同行之后”逻辑，只改变空间编排 */
+.messages-layer{
+    position:absolute;
+    inset:0;
+    z-index:5;
+    pointer-events:none;
+}
+
+.message{
+    position:absolute;
+    max-width:460px;
+    line-height:1.75;
+    font-size:clamp(25px, 1.9vw, 33px);
+    font-weight:200;
+    opacity:0;
+    transform:translateY(24px);
+    animation:fadeUp 1.45s forwards;
+    word-break:keep-all;
+    padding:0 10px;
 }
 
 .message small{
     display:block;
-    margin-top:25px;
+    margin-top:22px;
     font-size:12px;
     letter-spacing:4px;
-    color:#666;
+    color:#555;
 }
+
+.message-1{left:10%; top:125px; width:31%;}
+.message-2{right:3%; top:180px; width:25%; text-align:left;}
+.message-3{left:16%; top:700px; width:31%;}
+.message-4{left:45%; top:900px; width:24%; text-align:center;}
+.message-5{right:2%; top:830px; width:27%;}
+.message-6{left:4%; top:1190px; width:25%;}
+.message-7{right:18%; top:1280px; width:28%; text-align:right;}
+.message-8{left:31%; top:1515px; width:34%; text-align:center;}
 
 @keyframes fadeUp{
-    to{
-        opacity:1;
-        transform:translateY(0);
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* 图片：固定的是空间位置，不是裁切框。图片保持摄影者原始宽高比。 */
+.images-layer{
+    position:absolute;
+    inset:0;
+    z-index:3;
+    pointer-events:none;
+}
+
+.image-slot{
+    position:absolute;
+}
+
+.image-slot img{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:6px;
+    opacity:0;
+    transition:opacity .55s ease;
+    box-shadow:0 0 28px rgba(180,100,20,0.05);
+}
+
+.image-slot img.is-loaded{
+    opacity:1;
+}
+
+.image-slot-1{left:1.5%; top:360px; width:min(30vw, 445px);}
+.image-slot-2{right:25%; top:85px; width:min(12vw, 185px);}
+.image-slot-3{right:2.5%; top:540px; width:min(22vw, 320px);}
+.image-slot-4{right:31%; top:745px; width:min(13vw, 195px);}
+.image-slot-5{left:2.5%; top:850px; width:min(11vw, 155px);}
+.image-slot-6{left:20%; top:1070px; width:min(24vw, 355px);}
+
+/* 手机/窄屏：暂不强行复制桌面构图，保留原有文字阅读体验。 */
+@media(max-width:980px){
+    .memory-stage{
+        width:90%;
+        height:auto;
+        margin:auto;
+        padding-top:90px;
+        padding-bottom:130px;
     }
-}
 
-/* 尾部 */
-.footer{
-    text-align:center;
-    margin-top:200px;
-    color:#555;
-    letter-spacing:6px;
-    font-size:12px;
-}
-
-/* 手机 */
-@media(max-width:768px){
+    .top{
+        position:relative;
+        left:auto;
+        top:auto;
+        width:100%;
+        transform:none;
+        margin-bottom:150px;
+    }
 
     .top h1{
         font-size:48px;
     }
 
+    .messages-layer{
+        position:relative;
+        inset:auto;
+    }
+
     .message{
+        position:relative;
+        left:auto !important;
+        right:auto !important;
+        top:auto !important;
+        width:auto !important;
+        max-width:640px;
         font-size:24px;
         margin:100px 0;
+        text-align:left !important;
     }
 
-}
- .spark-link{
-
-    display:block;
-
-    text-align:center;
-
-    margin:140px auto 50px auto;
-
-    color:#666;
-
-    text-decoration:none;
-
-    letter-spacing:5px;
-
-    font-size:16px;
-
-    font-weight:300;
-
-    transition:0.4s;
-
-    animation:
-    sparkBreath 3.5s ease-in-out infinite;
-}
-
-.spark-link:hover{
-
-    color:#111;
-
-    letter-spacing:7px;
-}
-
-/* 星火呼吸 */
-
-@keyframes sparkBreath{
-
-    0%{
-        opacity:0.45;
-        transform:scale(1);
+    .message:nth-child(even){
+        margin-left:auto;
+        text-align:right !important;
     }
 
-    50%{
+    .images-layer{
+        display:none;
+    }
+
+    .bottom-spark{
+        margin-top:0;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+    .star,
+    .spark-link,
+    .message{
+        animation:none;
+    }
+
+    .message,
+    .image-slot img{
         opacity:1;
-        transform:scale(1.04);
+        transform:none;
+        transition:none;
     }
-
-    100%{
-        opacity:0.45;
-        transform:scale(1);
-    }
-
 }
 </style>
 </head>
 
 <body>
-
 <nav aria-label="主导航">
   <a href="/home.html">首页</a>
   <a href="/test.html">超级星期六</a>
@@ -222,159 +286,170 @@ padding: 0 10px;
   <a href="/contact.html">易彼益</a>
 </nav>
 
-<div class="stars"></div>
-<div class="glow"></div>
+<div class="stars" aria-hidden="true"></div>
+<div class="glow" aria-hidden="true"></div>
 
-<div class="container">
+<main class="memory-stage">
+    <section class="top" aria-labelledby="campfire-title">
+        <a class="spark-link" href="lsxh.html">✦ 路上星火</a>
+        <h1 id="campfire-title">营火之地</h1>
+        <p>有些话，<br>只有走过的人才会说出来。</p>
+    </section>
 
-    <div class="top">
-      <a class="spark-link" href="lsxh.html">
-✦ 路上星火
-</a>
-        <h1>营火之地</h1>
-
-        <p>
-            有些话，<br>
-            只有走过的人才会说出来。
-        </p>
+    <div class="images-layer" id="images-layer" aria-label="同行影像">
+        <div class="image-slot image-slot-1" data-orientation="landscape" data-sizes="(max-width: 980px) 0px, 445px"></div>
+        <div class="image-slot image-slot-2" data-orientation="portrait" data-sizes="(max-width: 980px) 0px, 185px"></div>
+        <div class="image-slot image-slot-3" data-orientation="landscape" data-sizes="(max-width: 980px) 0px, 320px"></div>
+        <div class="image-slot image-slot-4" data-orientation="portrait" data-sizes="(max-width: 980px) 0px, 195px"></div>
+        <div class="image-slot image-slot-5" data-orientation="landscape" data-sizes="(max-width: 980px) 0px, 155px"></div>
+        <div class="image-slot image-slot-6" data-orientation="landscape" data-sizes="(max-width: 980px) 0px, 355px"></div>
     </div>
-<div id="messages-container"></div>
 
+    <div class="messages-layer" id="messages-container" aria-live="off"></div>
+</main>
 
-
+<a class="spark-link bottom-spark" href="lsxh.html">✦ 路上星火</a>
 
 <script>
+(function () {
+    /* 星点 */
+    const stars = document.querySelector('.stars');
 
-/* 星点 */
-
-const stars = document.querySelector('.stars');
-
-for(let i=0;i<80;i++){
-
-    const star = document.createElement('div');
-
-    star.classList.add('star');
-
-    star.style.left = Math.random()*100 + '%';
-    star.style.top = Math.random()*100 + '%';
-
-    star.style.animationDuration =
-        (2 + Math.random()*5) + 's';
-
-    stars.appendChild(star);
-}
-
-
-/* 留言库 */
-
-const allMessages = [
-
-"一路上都悬念不断......",
-
-"如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！",
-
-"还有整体节奏，何时走动何时休息都计划得很精准啊。",
-
-"恩典多多，收获满满",
-
-"今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！",
-
-"7—88岁的徒步团太壮观了！",
-
-"今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。",
-
-"很巧妙的设计",
-
-"一个老少咸宜，充满喜乐的身心灵快乐之旅！",
-
-"有幸参加了这次活动，都是意外的惊喜。",
-
-"感谢弟兄们搭建的信心之道。",
-
-"经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。",
-
-"可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！",
-
-"认识和不认识人的都在认真听故事。",
-
-"感恩遇见",
-
-"用心带领，详尽的总结复盘，感恩。",
-
-"感恩祂。",
-
-"很棒的经历",
-
-"今天的安排，很舒适又得着。",
-
-"感恩弟兄姐妹们彼此敞开的分享和陪伴！",
-
-"很棒的体验，很有趣的经历",
-
-"当天去时候怕迟到，超速百分之十被罚。",
-
-"强度一点都不大，感觉还没缓过来。",
-
-"113层，2034个台阶，300米......",
-
-"活动太有意义了，身心被滋养，还结识了更多同路人。",
-
-"非常被安慰",
-
-"大家建立了信任而且让这份关系延续。",
-    
-"我期待未来步道同赏京城。",
-
-"顺利找到包了",
-
-"我居然是第一个到的",
-
-"我都期待好久了，哎！祷告我明天生龙活虎！",
-
-"我相信人与人的每一次相遇都是奇迹。",
-    
-"感恩这段相遇与安排，拆掉心墙，看见光。",
-
-"Grateful for this.",
-
-];
-
-
-/* 随机排序 */
-
-const shuffled = allMessages.sort(() => 0.5 - Math.random());
-
-/* 每次显示8条 */
-
-const selected = shuffled.slice(0, 8);
-
-const container =
-document.getElementById('messages-container');
-
-
-selected.forEach((msg, index) => {
-
-    const div = document.createElement('div');
-
-    div.className = 'message';
-
-    if(index % 2 === 1){
-        div.style.marginLeft = 'auto';
-        div.style.textAlign = 'right';
+    for (let i = 0; i < 80; i += 1) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDuration = (2 + Math.random() * 5) + 's';
+        stars.appendChild(star);
     }
 
-    div.innerHTML = `
-        “${msg}”
-        <small>一次同行之后</small>
-    `;
+    /* 留言库：与图片池完全独立 */
+    const allMessages = [
+        "一路上都悬念不断......",
+        "如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！",
+        "还有整体节奏，何时走动何时休息都计划得很精准啊。",
+        "恩典多多，收获满满",
+        "今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！",
+        "7—88岁的徒步团太壮观了！",
+        "今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。",
+        "很巧妙的设计",
+        "一个老少咸宜，充满喜乐的身心灵快乐之旅！",
+        "有幸参加了这次活动，都是意外的惊喜。",
+        "感谢弟兄们搭建的信心之道。",
+        "经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。",
+        "可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！",
+        "认识和不认识人的都在认真听故事。",
+        "感恩遇见",
+        "用心带领，详尽的总结复盘，感恩。",
+        "感恩祂。",
+        "很棒的经历",
+        "今天的安排，很舒适又得着。",
+        "感恩弟兄姐妹们彼此敞开的分享和陪伴！",
+        "很棒的体验，很有趣的经历",
+        "当天去时候怕迟到，超速百分之十被罚。",
+        "强度一点都不大，感觉还没缓过来。",
+        "113层，2034个台阶，300米......",
+        "活动太有意义了，身心被滋养，还结识了更多同路人。",
+        "非常被安慰",
+        "大家建立了信任而且让这份关系延续。",
+        "我期待未来步道同赏京城。",
+        "顺利找到包了",
+        "我居然是第一个到的",
+        "我都期待好久了，哎！祷告我明天生龙活虎！",
+        "我相信人与人的每一次相遇都是奇迹。",
+        "感恩这段相遇与安排，拆掉心墙，看见光。",
+        "Grateful for this."
+    ];
 
-    container.appendChild(div);
+    function shuffledCopy(items) {
+        const copy = items.slice();
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
 
-});
+    const selectedMessages = shuffledCopy(allMessages).slice(0, 8);
+    const messagesContainer = document.getElementById('messages-container');
 
+    selectedMessages.forEach(function (msg, index) {
+        const div = document.createElement('div');
+        div.className = 'message message-' + (index + 1);
+        div.style.animationDelay = (index * 90) + 'ms';
+
+        const quote = document.createTextNode('“' + msg + '”');
+        const small = document.createElement('small');
+        small.textContent = '一次同行之后';
+
+        div.appendChild(quote);
+        div.appendChild(small);
+        messagesContainer.appendChild(div);
+    });
+
+    /* 图片池：只决定图，不读取任何留言信息，也不存在图文配对关系。 */
+    if (window.matchMedia('(max-width: 980px)').matches) return;
+
+    fetch('/images/yhzd/manifest.json', { cache: 'no-cache' })
+        .then(function (response) {
+            if (!response.ok) throw new Error('image manifest unavailable');
+            return response.json();
+        })
+        .then(function (manifest) {
+            const images = Array.isArray(manifest.images) ? manifest.images : [];
+            const slots = Array.from(document.querySelectorAll('.image-slot'));
+            const used = new Set();
+
+            slots.forEach(function (slot, slotIndex) {
+                const orientation = slot.dataset.orientation;
+                let pool = images.filter(function (item) {
+                    return item.orientation === orientation && !used.has(item.id);
+                });
+
+                if (!pool.length) {
+                    pool = images.filter(function (item) {
+                        return !used.has(item.id);
+                    });
+                }
+
+                if (!pool.length) return;
+
+                const item = pool[Math.floor(Math.random() * pool.length)];
+                used.add(item.id);
+
+                const img = document.createElement('img');
+                img.alt = '步道同行照片';
+                img.decoding = 'async';
+                img.loading = slotIndex < 2 ? 'eager' : 'lazy';
+                if (slotIndex === 0) img.fetchPriority = 'high';
+
+                if (Number.isFinite(item.width) && Number.isFinite(item.height)) {
+                    img.width = item.width;
+                    img.height = item.height;
+                }
+
+                const small = item['480'];
+                const large = item['960'];
+                if (!small || !small.src) return;
+
+                img.src = small.src;
+                if (large && large.src) {
+                    img.srcset = small.src + ' 480w, ' + large.src + ' 960w';
+                    img.sizes = slot.dataset.sizes || '320px';
+                }
+
+                img.addEventListener('load', function () {
+                    img.classList.add('is-loaded');
+                }, { once: true });
+
+                slot.appendChild(img);
+            });
+        })
+        .catch(function () {
+            /* 图片失败时保持黑夜与文字，不影响原页面体验。 */
+        });
+}());
 </script>
-<a class="spark-link" href="lsxh.html">
-✦ 路上星火
-</a>
 </body>
 </html>
