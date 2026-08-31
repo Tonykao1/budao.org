@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "images": [
+    {
+      "id": "a04e3576044f",
+      "orientation": "landscape",
+      "width": 2048,
+      "height": 1536,
+      "480": {
+        "src": "/images/yhzd/firefly-a04e3576044f-480.webp",
+        "width": 480,
+        "height": 360
+      }
+    },
+    {
+      "id": "86a240702846",
+      "orientation": "portrait",
+      "width": 1536,
+      "height": 2048,
+      "480": {
+        "src": "/images/yhzd/firefly-86a240702846-480.webp",
+        "width": 480,
+        "height": 640
+      }
+    },
+    {
+      "id": "0ce619622402",
+      "orientation": "portrait",
+      "width": 1536,
+      "height": 2048,
+      "480": {
+        "src": "/images/yhzd/firefly-0ce619622402-480.webp",
+        "width": 480,
+        "height": 640
+      }
+    },
+    {
+      "id": "6239ea0aa249",
+      "orientation": "landscape",
+      "width": 2048,
+      "height": 1536,
+      "480": {
+        "src": "/images/yhzd/firefly-6239ea0aa249-480.webp",
+        "width": 480,
+        "height": 360
+      }
+    },
+    {
+      "id": "7656335005f0",
+      "orientation": "landscape",
+      "width": 2048,
+      "height": 1536,
+      "480": {
+        "src": "/images/yhzd/firefly-7656335005f0-480.webp",
+        "width": 480,
+        "height": 360
+      }
+    },
+    {
+      "id": "df0057bdf3e3",
+      "orientation": "landscape",
+      "width": 2048,
+      "height": 1536,
+      "480": {
+        "src": "/images/yhzd/firefly-df0057bdf3e3-480.webp",
+        "width": 480,
+        "height": 360
+      }
+    },
+    {
+      "id": "6a054e90e16b",
+      "orientation": "landscape",
+      "width": 2048,
+      "height": 1536,
+      "480": {
+        "src": "/images/yhzd/firefly-6a054e90e16b-480.webp",
+        "width": 480,
+        "height": 360
+      }
+    },
+    {
+      "id": "843342e547a5",
+      "orientation": "landscape",
+      "width": 2048,
+      "height": 1536,
+      "480": {
+        "src": "/images/yhzd/firefly-843342e547a5-480.webp",
+        "width": 480,
+        "height": 360
+      }
+    },
+    {
+      "id": "34024d079981",
+      "orientation": "landscape",
+      "width": 1706,
+      "height": 1279,
+      "480": {
+        "src": "/images/yhzd/firefly-34024d079981-480.webp",
+        "width": 480,
+        "height": 360
+      }
+    }
+  ]
+}
