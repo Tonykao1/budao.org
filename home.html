@@ -84,6 +84,8 @@ const playlist = [
 
 ];
 
+const silentNightStartTracks = [0, 10];
+
 let currentTrack = 0;
 
 const audio = new Audio(playlist[currentTrack]);
@@ -112,6 +114,8 @@ const prevBtn = document.getElementById("prevBtn");
 
 let isPlaying = false;
 
+let hasStartedPlayback = false;
+
 /* 播放当前曲目 */
 
 function playCurrentTrack(){
@@ -133,7 +137,24 @@ playBtn.addEventListener("click", () => {
 
     if(!isPlaying){
 
-        playCurrentTrack();
+        if(!hasStartedPlayback){
+
+            currentTrack = silentNightStartTracks[
+                Math.floor(Math.random() * silentNightStartTracks.length)
+            ];
+
+            hasStartedPlayback = true;
+
+            playCurrentTrack();
+
+        }else{
+
+            audio.play();
+
+            playBtn.classList.add("playing");
+
+            isPlaying = true;
+        }
 
     }else{
 
@@ -177,18 +198,7 @@ prevBtn.addEventListener("click", () => {
 
 audio.addEventListener("ended", () => {
 
-    currentTrack++;
-
-    if(currentTrack >= playlist.length){
-
-        currentTrack = 0;
-
-        playBtn.classList.remove("playing");
-
-        isPlaying = false;
-
-        return;
-    }
+    currentTrack = (currentTrack + 1) % playlist.length;
 
     playCurrentTrack();
 });
