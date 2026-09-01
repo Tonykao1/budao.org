@@ -120,6 +120,8 @@ let hasStartedPlayback = false;
 
 function playCurrentTrack(){
 
+    hasStartedPlayback = true;
+
     audio.src = playlist[currentTrack];
 
     audio.load();
@@ -142,8 +144,6 @@ playBtn.addEventListener("click", () => {
             currentTrack = silentNightStartTracks[
                 Math.floor(Math.random() * silentNightStartTracks.length)
             ];
-
-            hasStartedPlayback = true;
 
             playCurrentTrack();
 

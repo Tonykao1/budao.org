@@ -98,6 +98,23 @@ test("home playback resumes without resetting the current track", () => {
   assert.equal(player.audio.loadCount, 2);
 });
 
+for (const skipControl of ["nextBtn", "prevBtn"]) {
+  test(`home playback resumes after the first start from ${skipControl}`, () => {
+    const player = createPlaybackHarness(0);
+    player.click(skipControl);
+    const trackAfterSkip = player.currentTrack;
+    const loadCountAfterSkip = player.audio.loadCount;
+    player.audio.currentTime = 23;
+
+    player.click("playBtn");
+    player.click("playBtn");
+
+    assert.equal(player.currentTrack, trackAfterSkip);
+    assert.equal(player.audio.currentTime, 23);
+    assert.equal(player.audio.loadCount, loadCountAfterSkip);
+  });
+}
+
 test("home playback wraps right, left, and ended across the full playlist", () => {
   const player = createPlaybackHarness(0);
   player.click("playBtn");
