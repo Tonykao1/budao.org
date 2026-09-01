@@ -165,6 +165,36 @@ body{
     display:block;
 }
 
+.route-date-overlay{
+    position:absolute;
+    z-index:1;
+    left:18px;
+    top:18px;
+    pointer-events:none;
+    padding:11px 14px 10px;
+    border-radius:12px;
+    color:rgba(255,255,255,0.96);
+    background:rgba(18,18,18,0.28);
+    backdrop-filter:blur(14px) saturate(120%);
+    -webkit-backdrop-filter:blur(14px) saturate(120%);
+}
+
+.route-date-label{
+    font-size:21px;
+    font-weight:500;
+    line-height:1.15;
+    letter-spacing:0.2px;
+}
+
+.route-weekday-label{
+    margin-top:3px;
+    color:rgba(255,255,255,0.72);
+    font-size:12px;
+    font-weight:400;
+    line-height:1.25;
+    letter-spacing:0.8px;
+}
+
 .route-image-placeholder{
     display:flex;
     align-items:flex-end;
@@ -511,6 +541,20 @@ body.modal-open .super-container{
         min-height:780px;
     }
 
+    .route-date-overlay{
+        left:15px;
+        top:15px;
+        padding:10px 12px 9px;
+    }
+
+    .route-date-label{
+        font-size:18px;
+    }
+
+    .route-weekday-label{
+        font-size:11px;
+    }
+
     .route-content{
         padding:28px;
     }
@@ -746,6 +790,36 @@ function fixedRoutesOnly(routes){
     .filter(Boolean);
 }
 
+function formatRouteDate(dateValue){
+    const match =
+    String(dateValue || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+    if(!match){
+        return null;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const calendarDate = new Date(Date.UTC(year,month - 1,day));
+
+    if(
+        calendarDate.getUTCFullYear() !== year ||
+        calendarDate.getUTCMonth() !== month - 1 ||
+        calendarDate.getUTCDate() !== day
+    ){
+        return null;
+    }
+
+    const weekdayLabels =
+    ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+
+    return{
+        dateLabel:`${month}月${day}日`,
+        weekdayLabel:weekdayLabels[calendarDate.getUTCDay()]
+    };
+}
+
 function renderRoutes(routes){
     const grid =
     document.getElementById("routeGrid");
@@ -764,6 +838,9 @@ function renderRoutes(routes){
         const image =
         resolveImage(route.image || route.imageUrl);
 
+        const routeDate =
+        formatRouteDate(route.date);
+
         const imageHtml =
         `
             <div class="route-image">
@@ -771,6 +848,11 @@ function renderRoutes(routes){
                     image ?
                     `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" loading="lazy" decoding="async" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
                     `<span class="route-image-placeholder" data-place="${escapeAttribute(locationLabel)}"></span>`
+                }
+                ${
+                    routeDate ?
+                    `<div class="route-date-overlay"><div class="route-date-label">${escapeHtml(routeDate.dateLabel)}</div><div class="route-weekday-label">${escapeHtml(routeDate.weekdayLabel)}</div></div>` :
+                    ""
                 }
             </div>
         `;
