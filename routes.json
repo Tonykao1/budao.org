@@ -22,11 +22,11 @@
     "date": "2026-09-04",
     "meetingPlace": "北京温榆河公园6号门",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/82a65a3ecc0f26e54705f71b8f8b47d9.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/3438685fb40fbbfdf34d9855a8af2402.png",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/27d9418b1e405b59768d99c2f7f0285b.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/030f111f909bbd2a61c6c43ba620c59c.png",
     "imageAlt": "IMG_6399.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-01T10:47:06.237Z"
+    "updatedAt": "2026-09-01T11:02:05.634Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,6 +55,6 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/d83ce6e9e9f0b5f7985dfb0f887e10e6.png",
     "imageAlt": "ab.jpeg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-01T10:47:06.238Z"
+    "updatedAt": "2026-09-01T11:02:05.635Z"
   }
 ]
