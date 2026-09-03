@@ -1,0 +1,38 @@
+{
+  "id": "4CVSwQ3Y",
+  "sourceRoute": {
+    "routeId": "budao-bacbc"
+  },
+  "facts": {
+    "title": "灵山古道探线",
+    "location": "中国· 北京 · 门头沟",
+    "date": "2026-09-05",
+    "time": "7:45",
+    "timezone": "Asia/Shanghai",
+    "duration": "9小时",
+    "distance": "16公里",
+    "elevation": "1346米",
+    "surface": "台阶，土石路，栈道",
+    "difficulty": "高",
+    "suitableFor": "仅限有长距离徒步经验者",
+    "equipmentMinimum": "徒步鞋 / 饮水 /登山杖/防晒",
+    "participantRequirements": "",
+    "meetingPlace": "灵山古道聚灵峡景区大门口",
+    "description": "成为一个，造就一个。上山的路是难的，但一起走，总能到头，只要有祂恩手牵拉陪伴......"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/2a7a2b3159455afc5e55b8915dc51cf9.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/34ca06c4ae01ec9dc0f65b3872379e32.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-09-03T14:04:28.928Z",
+  "createdBy": "budao-bacbc"
+}
