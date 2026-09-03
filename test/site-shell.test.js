@@ -14,7 +14,7 @@ test("campfire page reuses the standard site navigation", () => {
   const nav = campfire.match(/<nav\b[^>]*>([\s\S]*?)<\/nav>/i)?.[1] || "";
   const expectedLinks = [
     ["/home.html", "首页"],
-    ["/test.html", "超级星期六"],
+    ["/test.html", "步道"],
     ["/tongxing.html", "童行"],
     ["/tongdao.html", "同道"],
     ["/what.html", "同工"],

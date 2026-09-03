@@ -39,7 +39,7 @@
       preview = document.createElement("div");
       preview.className = "meeting-preview";
       preview.setAttribute("aria-live", "polite");
-      preview.innerHTML = "<span>将显示在超级星期六卡片中</span><strong></strong>";
+      preview.innerHTML = "<span>将显示在步道卡片中</span><strong></strong>";
       label.appendChild(preview);
     }
 
