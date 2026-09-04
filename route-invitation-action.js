@@ -10,16 +10,18 @@
       @media (min-width:1101px){
         .super-container{
           box-sizing:border-box !important;
-          width:100% !important;
+          width:calc(100% - 128px) !important;
           max-width:none !important;
-          padding-left:64px !important;
-          padding-right:64px !important;
+          margin-left:auto !important;
+          margin-right:auto !important;
+          padding-left:0 !important;
+          padding-right:0 !important;
         }
 
         .route-grid{
           width:100% !important;
           grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-          column-gap:28px !important;
+          column-gap:18px !important;
           row-gap:42px !important;
           justify-content:stretch !important;
         }
