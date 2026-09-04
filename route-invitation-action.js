@@ -8,16 +8,6 @@
     style.id = 'budao-three-slot-layout';
     style.textContent = `
       @media (min-width:1101px){
-        .super-container{
-          box-sizing:border-box !important;
-          width:calc(100% - 128px) !important;
-          max-width:none !important;
-          margin-left:auto !important;
-          margin-right:auto !important;
-          padding-left:0 !important;
-          padding-right:0 !important;
-        }
-
         .route-grid{
           width:100% !important;
           grid-template-columns:repeat(3,minmax(0,1fr)) !important;
@@ -27,9 +17,12 @@
         }
 
         .route-grid > .route-card{
+          box-sizing:border-box !important;
           width:100% !important;
           min-width:0 !important;
           max-width:none !important;
+          margin-left:0 !important;
+          margin-right:0 !important;
           justify-self:stretch !important;
         }
       }
