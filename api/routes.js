@@ -3,7 +3,7 @@ const repo = process.env.GITHUB_REPO || "budao.org";
 const branch = "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
-const fixedSlots = ["IMS", "BACBC"];
+const fixedSlots = ["IMS", "BACBC", "HD"];
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
