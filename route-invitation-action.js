@@ -8,9 +8,18 @@
     style.id = 'budao-three-slot-layout';
     style.textContent = `
       @media (min-width:1101px){
+        .super-container{
+          box-sizing:border-box !important;
+          width:100% !important;
+          max-width:none !important;
+          padding-left:64px !important;
+          padding-right:64px !important;
+        }
+
         .route-grid{
+          width:100% !important;
           grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-          column-gap:42px !important;
+          column-gap:28px !important;
           row-gap:42px !important;
           justify-content:stretch !important;
         }
