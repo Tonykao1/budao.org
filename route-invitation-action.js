@@ -7,9 +7,19 @@
     const style = document.createElement('style');
     style.id = 'budao-three-slot-layout';
     style.textContent = `
-      @media (min-width:1000px){
+      @media (min-width:1101px){
         .route-grid{
-          grid-template-columns:repeat(3,minmax(0,520px)) !important;
+          grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+          column-gap:42px !important;
+          row-gap:42px !important;
+          justify-content:stretch !important;
+        }
+
+        .route-grid > .route-card{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          justify-self:stretch !important;
         }
       }
     `;
