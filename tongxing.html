@@ -14,6 +14,8 @@
   --tx-paper:#ffffff;
   --tx-warm:#f4f1eb;
   --tx-red:#b5232f;
+  --tx-blue:#1f6fd1;
+  --tx-yellow:#d8a313;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -79,10 +81,23 @@ nav a[aria-current="page"]{opacity:.58}
 }
 .tx-hero-note{
   margin:48px 0 0;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:.72em;
   font-size:12px;
-  letter-spacing:.25em;
+  letter-spacing:.18em;
   color:#8a8781;
 }
+.tx-hero-note .tx-mark{
+  display:inline-block;
+  font-family:Arial,sans-serif;
+  font-weight:700;
+  letter-spacing:0;
+}
+.tx-hero-note .tx-mark-red{color:var(--tx-red)}
+.tx-hero-note .tx-mark-blue{color:var(--tx-blue)}
+.tx-hero-note .tx-mark-yellow{color:var(--tx-yellow)}
 .tx-section{
   padding:132px 0;
   border-bottom:1px solid var(--tx-line);
@@ -491,7 +506,7 @@ footer p{
   .tx-hero-inner{padding:76px 0 82px}
   .tx-hero h1{font-size:72px;margin-bottom:30px}
   .tx-hero-statement{font-size:29px;line-height:1.52}
-  .tx-hero-note{margin-top:38px;line-height:1.9}
+  .tx-hero-note{margin-top:38px;line-height:1.9;gap:.58em}
   .tx-section{padding:92px 0}
   .tx-section-head{display:block}
   .tx-index{margin:0 0 22px}
@@ -547,7 +562,7 @@ footer p{
       <p class="tx-kicker">BUDAO / TONG XING</p>
       <h1>童行</h1>
       <p class="tx-hero-statement">不是带孩子去看世界。<br>是和孩子一起，重新看见世界。</p>
-      <p class="tx-hero-note">行走 · 故事 · 自然 · 相遇</p>
+      <p class="tx-hero-note" aria-label="行走、故乘世、相遇"><span>行走</span><span class="tx-mark tx-mark-red">·</span><span>故</span><span class="tx-mark tx-mark-blue">✖</span><span>世</span><span class="tx-mark tx-mark-yellow">·</span><span>相遇</span></p>
     </div>
   </section>
 
@@ -556,9 +571,9 @@ footer p{
       <div class="tx-section-head">
         <p class="tx-index">01 / WHY</p>
         <div class="tx-copy">
-          <p class="tx-kicker">为什么要有童行</p>
-          <h2>大人的世界，<br>总在告诉孩子答案。</h2>
-          <p>童行想做一点相反的事——陪他们走出去，先看，先问，先发现。不是把世界解释给孩子，而是给彼此一点时间，让真实的世界自己说话。</p>
+          <p class="tx-kicker">为什么要童行？</p>
+          <h2>很多人，还未长大，<br>就已衰老。</h2>
+          <p>童行，希望创造一种可能，让孩子与成人一同经历成长，给彼此一些时间，在行走中经历世界，在故事里遇见彼此。</p>
           <div class="tx-manifesto">
             <div>不急着教。</div>
             <div>不急着解释。</div>
