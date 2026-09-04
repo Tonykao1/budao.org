@@ -221,6 +221,30 @@ nav a[aria-current="page"]{opacity:.58}
   line-height:1.35;
   letter-spacing:-.035em;
 }
+.tx-question-field{
+  position:relative;
+  min-height:720px;
+  margin-top:78px;
+  border-top:1px solid var(--tx-line);
+  border-bottom:1px solid var(--tx-line);
+}
+.tx-question{
+  position:absolute;
+  margin:0;
+  white-space:nowrap;
+  color:#181818;
+  font-weight:410;
+  line-height:1.25;
+  letter-spacing:-.035em;
+}
+.tx-q1{top:10%;left:2%;font-size:clamp(28px,3vw,40px)}
+.tx-q2{top:17%;right:3%;font-size:clamp(20px,2.2vw,29px);font-weight:370;color:#34322f}
+.tx-q3{top:35%;left:20%;font-size:clamp(18px,1.9vw,25px);font-weight:380}
+.tx-q4{top:40%;right:13%;font-size:clamp(24px,2.6vw,34px)}
+.tx-q5{top:55%;left:50%;transform:translateX(-50%);font-size:clamp(34px,4.2vw,54px);font-weight:520;letter-spacing:-.055em}
+.tx-q6{top:69%;left:7%;font-size:clamp(19px,2vw,27px);font-weight:390;color:#34322f}
+.tx-q7{top:71%;right:5%;font-size:clamp(22px,2.3vw,31px)}
+.tx-q8{bottom:6%;left:50%;width:92%;transform:translateX(-50%);text-align:center;font-size:clamp(30px,3.8vw,49px);font-weight:440;letter-spacing:-.05em}
 .tx-method{
   background:#111;
   color:#fff;
@@ -495,6 +519,7 @@ footer p{
 @media(max-width:980px){
   .tx-section-head{grid-template-columns:150px minmax(0,1fr);gap:42px}
   .tx-actions{grid-template-columns:repeat(5,1fr)}
+  .tx-question-field{min-height:650px}
   .tx-five{grid-template-columns:repeat(5,1fr)}
   .tx-library{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
@@ -514,10 +539,30 @@ footer p{
   .tx-actions{grid-template-columns:1fr}
   .tx-action{min-height:220px;padding:24px 4px 30px}
   .tx-action+.tx-action{border-left:0;border-top:1px solid var(--tx-line)}
-  .tx-pair{grid-template-columns:1fr}
-  .tx-pair-col{min-height:auto;padding:34px 28px 40px}
-  .tx-pair-col+.tx-pair-col{border-left:0;border-top:1px solid var(--tx-line)}
-  .tx-pair-label{margin-bottom:36px}
+  .tx-question-field{
+    min-height:auto;
+    padding:48px 0 54px;
+    display:flex;
+    flex-direction:column;
+    gap:38px;
+  }
+  .tx-question{
+    position:static;
+    transform:none;
+    white-space:normal;
+    width:auto;
+    max-width:92%;
+    font-size:24px;
+    line-height:1.42;
+  }
+  .tx-q1{align-self:flex-start;font-size:30px}
+  .tx-q2{align-self:flex-end;text-align:right;font-size:22px}
+  .tx-q3{align-self:flex-start;margin-left:12%;font-size:20px}
+  .tx-q4{align-self:flex-end;text-align:right;font-size:26px}
+  .tx-q5{align-self:center;font-size:36px}
+  .tx-q6{align-self:flex-start;margin-left:5%;font-size:21px}
+  .tx-q7{align-self:flex-end;text-align:right;font-size:24px}
+  .tx-q8{align-self:center;width:100%;max-width:100%;text-align:center;font-size:31px;margin-top:8px}
   .tx-five{grid-template-columns:1fr;border-bottom:0}
   .tx-five-item{min-height:118px;padding:20px 2px;border-bottom:1px solid #393939}
   .tx-five-item+.tx-five-item{border-left:0}
@@ -622,33 +667,20 @@ footer p{
       <div class="tx-section-head">
         <p class="tx-index">03 / TOGETHER</p>
         <div class="tx-copy">
-          <p class="tx-kicker">两个人走的是同一条路吗</p>
-          <h2>孩子走他的路。<br>大人，也走自己的路。</h2>
+          <p class="tx-kicker">同一条路？</p>
+          <h2>孩子走孩子的路，大人走大人的路。<br>只是，一起走。</h2>
         </div>
       </div>
-      <div class="tx-pair">
-        <div class="tx-pair-col">
-          <p class="tx-pair-label">CHILD / 孩子</p>
-          <h3>向外看</h3>
-          <ul>
-            <li>我看见什么？</li>
-            <li>我好奇什么？</li>
-            <li>我想试试什么？</li>
-            <li>我觉得它像什么？</li>
-          </ul>
-        </div>
-        <div class="tx-pair-col">
-          <p class="tx-pair-label">ADULT / 大人</p>
-          <h3>向自己看</h3>
-          <ul>
-            <li>我能不能少解释一点？</li>
-            <li>慢一点？</li>
-            <li>蹲下来？</li>
-            <li>跟着孩子重新看一次？</li>
-          </ul>
-        </div>
+      <div class="tx-question-field" aria-label="一条路上的问题">
+        <p class="tx-question tx-q1">你差点错过了什么？</p>
+        <p class="tx-question tx-q2">哪里让你想慢下来？</p>
+        <p class="tx-question tx-q3">是谁发现的？</p>
+        <p class="tx-question tx-q4">你为什么停下来？</p>
+        <p class="tx-question tx-q5">A还是B？</p>
+        <p class="tx-question tx-q6">怎么解决它？</p>
+        <p class="tx-question tx-q7">你是否改变主意了？</p>
+        <p class="tx-question tx-q8">再走一次，你会怎样走得不同？</p>
       </div>
-      <p class="tx-pair-end">童行，不只是孩子的成长。</p>
     </div>
   </section>
 
