@@ -3,10 +3,11 @@ const repo = process.env.GITHUB_REPO || "budao.org";
 const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
-const fixedSlots = ["IMS", "BACBC"];
+const fixedSlots = ["IMS", "BACBC", "HD"];
 const slotOwners = {
   IMS: "IMS@budao.org",
-  BACBC: "BACBC@budao.org"
+  BACBC: "BACBC@budao.org",
+  HD: "HD@budao.org"
 };
 const { getAuthenticatedPublisher } = require("./_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/http");
@@ -327,6 +328,10 @@ function slotForOwner(owner) {
     return "BACBC";
   }
 
+  if (normalizedOwner === "hd@budao.org") {
+    return "HD";
+  }
+
   return "";
 }
 
@@ -339,6 +344,10 @@ function slotForRouteId(routeId) {
 
   if (normalized === "budao-bacbc" || normalized === "bacbc") {
     return "BACBC";
+  }
+
+  if (normalized === "budao-hd" || normalized === "hd") {
+    return "HD";
   }
 
   return "";
