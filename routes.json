@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/030f111f909bbd2a61c6c43ba620c59c.png",
     "imageAlt": "IMG_6399.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-03T14:04:10.025Z"
+    "updatedAt": "2026-09-04T02:04:50.525Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,6 +55,35 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/34ca06c4ae01ec9dc0f65b3872379e32.png",
     "imageAlt": "gudao.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-03T14:04:10.024Z"
+    "updatedAt": "2026-09-04T02:04:50.525Z"
+  },
+  {
+    "id": "budao-hd",
+    "routeId": "budao-hd",
+    "owner": "HD@budao.org",
+    "slot": "HD",
+    "country": "中国",
+    "city": "北京",
+    "region": "海淀",
+    "location": "中国·北京·海淀",
+    "title": "百望山",
+    "description": "百望山的路并不陡，却总在转弯后多出一段。脚下有石阶，也有土路。累了就慢一点，看清下一步。山不会迁就人的心意，我们却可以一步一步，把自己交给这条路。",
+    "time": "08:30",
+    "duration": "3小时",
+    "distance": "5千米",
+    "surface": "百望山以石阶、硬化步道和山间土路为主，整体路况清晰，局部有连续上坡和碎石路段，雨后可能湿滑。",
+    "elevation": "300米",
+    "difficulty": "中等",
+    "suitableFor": "亲子、有体能基础长者友好",
+    "equipmentMinimum": "运动鞋，饮用水，个人药品，防晒",
+    "timezone": "Asia/Shanghai",
+    "date": "2026-09-05",
+    "meetingPlace": "百望山森林公园东门",
+    "participantRequirements": "",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/8210d30c84a57ceece7e36b6a1257a97.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/31b3c0bd1951bed439d4d76c9415531e.png",
+    "imageAlt": "bbww.jpg",
+    "createdAt": "2026-09-04T02:04:50.525Z",
+    "updatedAt": "2026-09-04T02:04:50.525Z"
   }
 ]
