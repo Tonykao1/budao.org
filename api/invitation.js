@@ -9,8 +9,8 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require('./_security/ht
 const { clientIp, consume } = require('./_security/rate-limit');
 const { validateCreateInvitation } = require('./_security/invitation-schema');
 
-const slotOwners = { IMS: 'IMS@budao.org', BACBC: 'BACBC@budao.org' };
-const fixedSlots = ['IMS', 'BACBC'];
+const slotOwners = { IMS: 'IMS@budao.org', BACBC: 'BACBC@budao.org', HD: 'HD@budao.org' };
+const fixedSlots = ['IMS', 'BACBC', 'HD'];
 
 module.exports = async function handler(request, response) {
   if (request.method === 'GET') {

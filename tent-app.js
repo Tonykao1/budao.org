@@ -26,6 +26,11 @@
   const draftImages = window.BudaoTentDraftImages;
   const publishEndpoint = window.BUDAO_PUBLISH_ENDPOINT ||
     (window.location.protocol === "file:" ? "https://budao.org/api/publish-route" : "/api/publish-route");
+  const slotOwnerEmails = {
+    IMS: "IMS@budao.org",
+    BACBC: "BACBC@budao.org",
+    HD: "HD@budao.org"
+  };
   const slotRouteDefaults = {
     IMS: {
       id: "budao-ims",
@@ -74,6 +79,30 @@
       equipmentMinimum: "徒步鞋 / 饮水 / 午餐",
       meetingPlace: "Canyon Meadow Staging",
       participantRequirements: ""
+    },
+    HD: {
+      id: "budao-hd",
+      routeId: "budao-hd",
+      owner: "HD@budao.org",
+      slot: "HD",
+      country: "",
+      city: "",
+      region: "",
+      location: "",
+      title: "",
+      description: "",
+      date: "",
+      time: "",
+      duration: "",
+      distance: "",
+      elevation: "",
+      surface: "",
+      timezone: "Asia/Shanghai",
+      difficulty: "",
+      suitableFor: "",
+      equipmentMinimum: "",
+      meetingPlace: "",
+      participantRequirements: ""
     }
   };
   let activeTrail = null;
@@ -82,16 +111,15 @@
 
   function slotForEmail(email) {
     const normalized = normalizeEmail(email);
+    const slot = Object.keys(slotOwnerEmails).find(function (candidate) {
+      return normalizeEmail(slotOwnerEmails[candidate]) === normalized;
+    });
 
-    if (normalized === "ims@budao.org") {
-      return "IMS";
-    }
+    return slot || "";
+  }
 
-    if (normalized === "bacbc@budao.org") {
-      return "BACBC";
-    }
-
-    return "";
+  function emailForSlot(slot) {
+    return slotOwnerEmails[String(slot || "").trim().toUpperCase()] || "";
   }
 
   function mulberry32(seed) {
@@ -276,7 +304,8 @@
         return body;
       });
     }).then(function (result) {
-      currentUserEmail = result.slot === "IMS" ? "IMS@budao.org" : "BACBC@budao.org";
+      currentUserEmail = emailForSlot(result.slot);
+      if (!currentUserEmail) throw loginError("invalid_slot", 401);
       entryForm.reset();
       loginMessage.textContent = "";
       presence.classList.add("entrance-open");

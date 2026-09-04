@@ -2,6 +2,14 @@ const crypto = require("node:crypto");
 
 const COOKIE_NAME = "budao_admin_session";
 const SESSION_TTL_SECONDS = 60 * 60;
+const PUBLISHER_SLOTS = ["IMS", "BACBC", "HD"];
+const LOGIN_ALIASES = {
+  "hd@budao.org": {
+    sourceEmail: "ims@budao.org",
+    id: "publisher-hd",
+    slot: "HD"
+  }
+};
 
 function getAuthenticatedPublisher(request) {
   const secret = process.env.BUDAO_SESSION_SECRET;
@@ -24,7 +32,7 @@ function getAuthenticatedPublisher(request) {
   }
 
   if (!claims || claims.iss !== "budao.org" || claims.aud !== "budao-admin" ||
-      claims.role !== "publisher" || !["IMS", "BACBC"].includes(claims.slot) ||
+      claims.role !== "publisher" || !PUBLISHER_SLOTS.includes(claims.slot) ||
       typeof claims.sub !== "string" || claims.sub.length > 160 ||
       !Number.isInteger(claims.exp) || claims.exp <= Math.floor(Date.now() / 1000)) {
     return null;
@@ -36,7 +44,9 @@ function getAuthenticatedPublisher(request) {
 function authenticateCredentials(email, password) {
   const users = configuredUsers();
   const normalizedEmail = String(email || "").trim().toLowerCase();
-  const user = users.find((candidate) => candidate.email.toLowerCase() === normalizedEmail);
+  const directUser = users.find((candidate) => candidate.email.toLowerCase() === normalizedEmail);
+  const alias = directUser ? null : LOGIN_ALIASES[normalizedEmail];
+  const user = directUser || (alias ? users.find((candidate) => candidate.email.toLowerCase() === alias.sourceEmail) : null);
   if (!user || typeof password !== "string" || password.length > 256) return null;
 
   const pieces = user.passwordHash.split("$");
@@ -52,7 +62,11 @@ function authenticateCredentials(email, password) {
   }
 
   if (expected.length !== actual.length || !crypto.timingSafeEqual(actual, expected)) return null;
-  return { id: user.id, role: "publisher", slot: user.slot };
+  return {
+    id: alias ? alias.id : user.id,
+    role: "publisher",
+    slot: alias ? alias.slot : user.slot
+  };
 }
 
 function authConfigurationStatus() {
@@ -87,7 +101,7 @@ function configuredUsers() {
   return parsed.filter((user) => user && typeof user.id === "string" && user.id.length <= 160 &&
     typeof user.email === "string" && user.email.length <= 254 &&
     validPasswordHash(user.passwordHash) &&
-    ["IMS", "BACBC"].includes(user.slot));
+    PUBLISHER_SLOTS.includes(user.slot));
 }
 
 function validPasswordHash(value) {
