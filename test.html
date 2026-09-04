@@ -195,6 +195,32 @@ body{
     letter-spacing:0.8px;
 }
 
+.route-slot-mark{
+    position:absolute;
+    z-index:2;
+    right:18px;
+    top:18px;
+    pointer-events:none;
+    font-family:Arial,"Helvetica Neue","Microsoft YaHei",sans-serif;
+    font-size:38px;
+    font-weight:800;
+    line-height:1;
+    opacity:0.62;
+    text-shadow:0 2px 14px rgba(0,0,0,0.18);
+}
+
+.route-slot-mark[data-slot="BACBC"]{
+    color:#4f7fd8;
+}
+
+.route-slot-mark[data-slot="IMS"]{
+    color:#d3a33a;
+}
+
+.route-slot-mark[data-slot="HD"]{
+    color:#b95b79;
+}
+
 .route-image-placeholder{
     display:flex;
     align-items:flex-end;
@@ -402,6 +428,11 @@ body{
     outline:0;
 }
 
+.route-button:disabled{
+    opacity:0.42;
+    cursor:default;
+}
+
 .route-actions{
     display:flex;
     align-items:center;
@@ -547,6 +578,12 @@ body.modal-open .super-container{
         padding:10px 12px 9px;
     }
 
+    .route-slot-mark{
+        right:15px;
+        top:15px;
+        font-size:32px;
+    }
+
     .route-date-label{
         font-size:18px;
     }
@@ -683,7 +720,7 @@ function resolveImage(value){
 let events = [];
 let activeRoutes = [];
 let countdownTimer = null;
-const fixedRouteSlots = ["IMS","BACBC"];
+const fixedRouteSlots = ["IMS","BACBC","HD"];
 
 const defaultRoutes = [
 {
@@ -729,6 +766,29 @@ const defaultRoutes = [
     date:"2026-07-04",
     image:"",
     qrCode:""
+},
+{
+    owner:"HD@budao.org",
+    slot:"HD",
+    country:"",
+    city:"",
+    region:"",
+    location:"",
+    title:"下一段同行",
+    description:"这段路正在被安放。",
+    time:"",
+    duration:"",
+    distance:"",
+    surface:"",
+    elevation:"",
+    difficulty:"",
+    suitableFor:"",
+    equipmentMinimum:"",
+    timezone:"Asia/Shanghai",
+    date:"",
+    image:"",
+    qrCode:"",
+    pending:true
 }
 ];
 
@@ -760,7 +820,7 @@ fetch("/api/routes?budao=" + Date.now(),routesController ? { signal:routesContro
     });
 
 function activateRoutes(routes){
-    activeRoutes = routes;
+    activeRoutes = sortRoutesByStart(routes);
     window.BudaoActiveRoutes = activeRoutes;
     renderRoutes(activeRoutes);
     prepareEvents(activeRoutes);
@@ -780,14 +840,57 @@ function prepareEvents(routes){
         date:route.date,
         time:route.time,
         duration:parseDuration(route.duration),
-        timezone:route.timezone
+        timezone:route.timezone,
+        pending:Boolean(route.pending || !route.date || !parseClock(route.time))
     }));
 }
 
 function fixedRoutesOnly(routes){
+    const source = Array.isArray(routes) ? routes : [];
+
     return fixedRouteSlots
-    .map(slot=>routes.find(route=>route.slot === slot))
+    .map(slot=>{
+        const route = source.find(item=>item.slot === slot);
+
+        if(route){
+            return route;
+        }
+
+        if(slot === "HD"){
+            return defaultRoutes.find(item=>item.slot === "HD");
+        }
+
+        return null;
+    })
     .filter(Boolean);
+}
+
+function routeStartTimestamp(route){
+    if(!route || route.pending || !route.date || !parseClock(route.time)){
+        return Number.POSITIVE_INFINITY;
+    }
+
+    return getZonedTimestamp(
+        route.date,
+        route.time,
+        route.timezone || "Asia/Shanghai"
+    );
+}
+
+function sortRoutesByStart(routes){
+    return routes
+    .map((route,index)=>({ route,index }))
+    .sort((left,right)=>{
+        const leftStart = routeStartTimestamp(left.route);
+        const rightStart = routeStartTimestamp(right.route);
+
+        if(leftStart !== rightStart){
+            return leftStart - rightStart;
+        }
+
+        return left.index - right.index;
+    })
+    .map(item=>item.route);
 }
 
 function formatRouteDate(dateValue){
@@ -818,6 +921,21 @@ function formatRouteDate(dateValue){
         dateLabel:`${month}月${day}日`,
         weekdayLabel:weekdayLabels[calendarDate.getUTCDay()]
     };
+}
+
+function routeSlotMark(route){
+    const slot = String(route && route.slot || "").trim().toUpperCase();
+    const mark = {
+        BACBC:"B",
+        IMS:"I",
+        HD:"H"
+    }[slot];
+
+    if(!mark){
+        return "";
+    }
+
+    return `<div class="route-slot-mark" data-slot="${escapeAttribute(slot)}" aria-label="${escapeAttribute(slot + " Slot")}">${escapeHtml(mark)}</div>`;
 }
 
 function renderRoutes(routes){
@@ -854,8 +972,25 @@ function renderRoutes(routes){
                     `<div class="route-date-overlay"><div class="route-date-label">${escapeHtml(routeDate.dateLabel)}</div><div class="route-weekday-label">${escapeHtml(routeDate.weekdayLabel)}</div></div>` :
                     ""
                 }
+                ${routeSlotMark(route)}
             </div>
         `;
+
+        const infoHtml = route.pending ? "" : `
+                    ${parameterButton("time", route.time, route.time + " 集合")}
+                    ${parameterButton("duration", route.duration, route.duration)}
+                    ${parameterButton("distance", route.distance, route.distance)}
+                    ${parameterButton("surface", route.surface, route.surface)}
+                    ${parameterButton("elevation", route.elevation, route.elevation)}
+                    ${route.difficulty ? parameterButton("difficulty", route.difficulty, "难度 " + route.difficulty) : ""}
+                    ${route.suitableFor ? parameterButton("suitableFor", route.suitableFor, route.suitableFor) : ""}
+                    ${route.equipmentMinimum ? parameterButton("equipmentMinimum", route.equipmentMinimum, "装备 " + route.equipmentMinimum) : ""}`;
+
+        const actionHtml = route.pending ?
+            `<button class="route-button" type="button" disabled>等待安放</button>` :
+            `<button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
+                    <button class="invitation-trigger" type="button" data-route-index="${index}">分享邀请</button>
+                    <button class="invitation-create" type="button" data-route-index="${index}">封存步道</button>`;
 
         card.innerHTML =
         `
@@ -871,22 +1006,9 @@ function renderRoutes(routes){
                 <h2>${escapeHtml(route.title)}</h2>
                 <div class="route-description">${escapeHtml(route.description).replace(/\n/g,"<br>")}</div>
                 ${meetingPlaceHtml(route)}
-                <div class="route-info">
-                    ${parameterButton("time", route.time, route.time + " 集合")}
-                    ${parameterButton("duration", route.duration, route.duration)}
-                    ${parameterButton("distance", route.distance, route.distance)}
-                    ${parameterButton("surface", route.surface, route.surface)}
-                    ${parameterButton("elevation", route.elevation, route.elevation)}
-                    ${route.difficulty ? parameterButton("difficulty", route.difficulty, "难度 " + route.difficulty) : ""}
-                    ${route.suitableFor ? parameterButton("suitableFor", route.suitableFor, route.suitableFor) : ""}
-                    ${route.equipmentMinimum ? parameterButton("equipmentMinimum", route.equipmentMinimum, "装备 " + route.equipmentMinimum) : ""}
-                </div>
-                <div class="route-timezone">${escapeHtml(route.timezone)} · ${escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}</div>
-                <div class="route-actions">
-                    <button class="route-button" type="button" data-route-index="${index}">与祂同行</button>
-                    <button class="invitation-trigger" type="button" data-route-index="${index}">分享邀请</button>
-                    <button class="invitation-create" type="button" data-route-index="${index}">封存步道</button>
-                </div>
+                <div class="route-info">${infoHtml}</div>
+                <div class="route-timezone">${route.pending ? "" : escapeHtml(route.timezone) + " · " + escapeHtml(getUtcLabel(route.timezone,route.date,route.time))}</div>
+                <div class="route-actions">${actionHtml}</div>
             </div>
         `;
 
@@ -897,7 +1019,7 @@ function renderRoutes(routes){
         button.addEventListener("click",()=>cycleParameter(button));
     });
 
-    grid.querySelectorAll(".route-button").forEach(button=>{
+    grid.querySelectorAll(".route-button[data-route-index]").forEach(button=>{
         button.addEventListener("click",()=>{
             openQrModal(activeRoutes[Number(button.dataset.routeIndex)]);
         });
@@ -1267,6 +1389,10 @@ function parseDuration(duration){
 }
 
 function getTimerCity(route){
+    if(route && route.pending){
+        return "HD";
+    }
+
     return getLocationLabel(route) || getUtcLabel(route.timezone,route.date,route.time);
 }
 
@@ -1472,6 +1598,11 @@ function renderEnded(id){
 
 function updateAll(){
     events.forEach(event=>{
+        if(event.pending){
+            setCountdownText(event.id,"等待安放");
+            return;
+        }
+
         const result =
         getEventState(event);
 
