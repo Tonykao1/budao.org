@@ -1,547 +1,844 @@
 <!DOCTYPE html>
-<html lang="zh">
-
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="description" content="童行——不是带孩子去看世界，是和孩子一起，重新看见世界。">
 <title>童行 - 步道</title>
-
 <link rel="stylesheet" href="style.css">
-
 <style>
+:root{
+  --tx-ink:#111111;
+  --tx-muted:#77736d;
+  --tx-line:#e8e5df;
+  --tx-paper:#ffffff;
+  --tx-warm:#f4f1eb;
+  --tx-red:#b5232f;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
-    overflow-x:hidden;
+  margin:0;
+  overflow-x:hidden;
+  background:var(--tx-paper);
+  color:var(--tx-ink);
 }
-.container{
-    max-width:860px;
-    margin:auto;
-    padding:60px 20px 120px 20px;
-    text-align:center;
+nav a[aria-current="page"]{opacity:.58}
+.tx-page{
+  width:100%;
+  background:var(--tx-paper);
 }
-
-.container h1{
-    font-size:42px;
-    font-weight:300;
-    margin-bottom:20px;
+.tx-shell{
+  width:min(1180px,calc(100% - 48px));
+  margin:0 auto;
 }
-
-.container p{
-    color:#666;
-    line-height:1.8;
+.tx-kicker{
+  margin:0 0 22px;
+  font-size:11px;
+  line-height:1;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+  color:#8c8882;
 }
-
-.card{
-
-    border:1px solid #e5e5e5;
-
-    border-radius:16px;
-
-    padding:40px 30px;
-
-    margin-top:50px;
-
-    min-height:520px;
-
-    transition:0.4s;
-
-    background:white;
-
-    display:flex;
-
-    flex-direction:column;
-
-    justify-content:center;
-
-    align-items:center;
-
-    text-align:center;
+.tx-kicker::before{
+  content:"";
+  display:inline-block;
+  width:7px;
+  height:7px;
+  margin-right:10px;
+  border-radius:50%;
+  background:var(--tx-red);
+  vertical-align:1px;
 }
-
-.card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+.tx-hero{
+  min-height:72svh;
+  display:flex;
+  align-items:center;
+  border-bottom:1px solid var(--tx-line);
 }
-
-.card img{
-    width:220px;
-    border-radius:12px;
-    margin-bottom:20px;
+.tx-hero-inner{
+  width:min(1040px,100%);
+  padding:96px 0 104px;
 }
-
-.card h3{
-    margin-bottom:12px;
-    font-weight:500;
+.tx-hero h1{
+  max-width:none;
+  margin:0 0 34px;
+  font-size:clamp(68px,10vw,132px);
+  line-height:.9;
+  font-weight:520;
+  letter-spacing:-.065em;
 }
-
-.card p{
-    margin-bottom:20px;
-    color:#777;
+.tx-hero-statement{
+  margin:0;
+  max-width:850px;
+  font-size:clamp(26px,3.5vw,48px);
+  line-height:1.42;
+  font-weight:340;
+  letter-spacing:-.025em;
+  color:#202020;
 }
-
-.buttons{
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:12px;
+.tx-hero-note{
+  margin:48px 0 0;
+  font-size:12px;
+  letter-spacing:.25em;
+  color:#8a8781;
 }
-
-.buttons button{
-
-    padding:10px 18px;
-
-    background:black;
-    color:white;
-
-    border:none;
-    border-radius:999px;
-
-    cursor:pointer;
-
-    transition:0.3s;
+.tx-section{
+  padding:132px 0;
+  border-bottom:1px solid var(--tx-line);
 }
-
-.buttons button:hover{
-    opacity:0.85;
+.tx-section-head{
+  display:grid;
+  grid-template-columns:220px minmax(0,1fr);
+  gap:72px;
+  align-items:start;
 }
-
-/* 弹窗 */
-
+.tx-index{
+  margin:7px 0 0;
+  font-size:11px;
+  letter-spacing:.24em;
+  color:#9b9790;
+}
+.tx-copy{
+  max-width:760px;
+}
+.tx-copy h2,
+.tx-section-title{
+  margin:0 0 32px;
+  font-size:clamp(34px,4.5vw,58px);
+  line-height:1.15;
+  font-weight:430;
+  letter-spacing:-.045em;
+}
+.tx-copy p{
+  margin:0;
+  font-size:clamp(18px,2vw,23px);
+  line-height:1.95;
+  color:#4c4944;
+}
+.tx-manifesto{
+  margin-top:64px;
+  padding-top:34px;
+  border-top:1px solid var(--tx-line);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+}
+.tx-manifesto div{
+  padding:10px 26px 10px 0;
+  min-height:92px;
+  font-size:20px;
+  line-height:1.6;
+  letter-spacing:-.015em;
+}
+.tx-manifesto div+div{
+  padding-left:26px;
+  border-left:1px solid var(--tx-line);
+}
+.tx-actions{
+  margin-top:72px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--tx-ink);
+  border-bottom:1px solid var(--tx-line);
+}
+.tx-action{
+  min-height:270px;
+  padding:28px 26px 34px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.tx-action+.tx-action{border-left:1px solid var(--tx-line)}
+.tx-action-no{
+  font-size:11px;
+  letter-spacing:.18em;
+  color:#97938d;
+}
+.tx-action h3{
+  margin:0 0 14px;
+  font-size:27px;
+  font-weight:470;
+  letter-spacing:-.035em;
+}
+.tx-action p{
+  margin:0;
+  font-size:15px;
+  line-height:1.8;
+  color:#77736d;
+}
+.tx-pair{
+  margin-top:76px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border:1px solid var(--tx-line);
+}
+.tx-pair-col{
+  min-height:410px;
+  padding:46px;
+}
+.tx-pair-col+.tx-pair-col{border-left:1px solid var(--tx-line)}
+.tx-pair-label{
+  margin:0 0 64px;
+  font-size:11px;
+  letter-spacing:.22em;
+  color:#96928b;
+}
+.tx-pair h3{
+  margin:0 0 22px;
+  font-size:34px;
+  font-weight:430;
+  letter-spacing:-.04em;
+}
+.tx-pair ul{
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+.tx-pair li{
+  padding:10px 0;
+  font-size:18px;
+  line-height:1.5;
+  color:#55514c;
+}
+.tx-pair-end{
+  margin:58px 0 0;
+  font-size:clamp(26px,3.2vw,42px);
+  line-height:1.35;
+  letter-spacing:-.035em;
+}
+.tx-method{
+  background:#111;
+  color:#fff;
+}
+.tx-method .tx-kicker,
+.tx-method .tx-index{color:#918d86}
+.tx-method .tx-kicker::before{background:#fff}
+.tx-method .tx-section-title{color:#fff}
+.tx-five{
+  margin-top:76px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  border-top:1px solid #393939;
+  border-bottom:1px solid #393939;
+}
+.tx-five-item{
+  min-height:248px;
+  padding:30px 22px 34px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.tx-five-item+.tx-five-item{border-left:1px solid #393939}
+.tx-five-no{
+  font-size:10px;
+  letter-spacing:.18em;
+  color:#757575;
+}
+.tx-five-word{
+  font-size:clamp(22px,2.4vw,32px);
+  line-height:1.2;
+  font-weight:420;
+  letter-spacing:-.03em;
+}
+.tx-next{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);
+  border:1px solid var(--tx-line);
+  min-height:440px;
+}
+.tx-next-main{
+  padding:54px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.tx-next-status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:11px;
+  letter-spacing:.18em;
+  color:#89857f;
+}
+.tx-next-status::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--tx-red);
+}
+.tx-next h3{
+  margin:0 0 16px;
+  font-size:clamp(34px,4vw,52px);
+  line-height:1.15;
+  font-weight:430;
+  letter-spacing:-.045em;
+}
+.tx-next p{
+  margin:0;
+  max-width:540px;
+  font-size:17px;
+  line-height:1.85;
+  color:#69655f;
+}
+.tx-next-side{
+  padding:54px;
+  background:var(--tx-warm);
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+.tx-next-side span{
+  display:block;
+  margin-bottom:18px;
+  font-size:11px;
+  letter-spacing:.22em;
+  color:#8c8882;
+}
+.tx-next-side strong{
+  font-size:29px;
+  line-height:1.5;
+  font-weight:420;
+  letter-spacing:-.025em;
+}
+.tx-archive-intro{
+  display:flex;
+  justify-content:space-between;
+  gap:40px;
+  align-items:end;
+  margin-bottom:58px;
+}
+.tx-archive-intro p{
+  max-width:480px;
+  margin:0;
+  font-size:15px;
+  line-height:1.8;
+  color:#78746e;
+}
+.tx-library{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:1px;
+  background:var(--tx-line);
+  border:1px solid var(--tx-line);
+}
+.tx-book{
+  min-width:0;
+  padding:22px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+.tx-book-media{
+  aspect-ratio:4/5;
+  background:#ece9e3;
+  overflow:hidden;
+  margin-bottom:26px;
+}
+.tx-book-media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:transform .5s ease;
+}
+.tx-book:hover .tx-book-media img{transform:scale(1.018)}
+.tx-book-no{
+  margin:0 0 12px;
+  font-size:10px;
+  letter-spacing:.18em;
+  color:#99958f;
+}
+.tx-book h3{
+  margin:0;
+  min-height:58px;
+  font-size:17px;
+  line-height:1.55;
+  font-weight:500;
+  letter-spacing:-.015em;
+}
+.tx-book-quote{
+  margin:18px 0 24px;
+  min-height:88px;
+  font-size:13px;
+  line-height:1.75;
+  color:#77736d;
+}
+.tx-book-actions{
+  margin-top:auto;
+  padding-top:18px;
+  border-top:1px solid var(--tx-line);
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px 16px;
+}
+.tx-book-actions button{
+  margin:0;
+  padding:0;
+  border:0;
+  border-bottom:1px solid #b8b3ac;
+  border-radius:0;
+  background:none;
+  color:#232323;
+  font:inherit;
+  font-size:12px;
+  line-height:1.6;
+  cursor:pointer;
+}
+.tx-book-actions button:hover{border-color:#111}
+.tx-close{
+  padding:132px 0 104px;
+  text-align:center;
+}
+.tx-close h2{
+  margin:0 0 42px;
+  font-size:clamp(40px,6vw,76px);
+  line-height:1.05;
+  font-weight:430;
+  letter-spacing:-.055em;
+}
+.tx-close-links{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.tx-close-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:168px;
+  min-height:48px;
+  padding:0 22px;
+  border:1px solid #111;
+  color:#111;
+  text-decoration:none;
+  font-size:13px;
+  letter-spacing:.08em;
+  transition:.25s ease;
+}
+.tx-close-link:hover{
+  background:#111;
+  color:#fff;
+}
+.tx-close-link.is-muted{
+  border-color:#d7d3cc;
+  color:#77736d;
+}
+.tx-close-link.is-muted:hover{
+  border-color:#111;
+  color:#fff;
+}
 .modal{
-    display:none;
-
-    position:fixed;
-    z-index:999;
-
-    left:0;
-    top:0;
-
-    width:100%;
-    height:100%;
-
-    background:rgba(0,0,0,0.82);
+  display:none;
+  position:fixed;
+  z-index:9999;
+  inset:0;
+  padding:4vh 4vw;
+  background:rgba(0,0,0,.86);
 }
-
 .modal-content{
-
-    position:relative;
-
-    margin:4% auto;
-
-    width:90%;
-    max-width:1100px;
-
-    height:85%;
-
-    background:white;
-    border-radius:12px;
-
-    overflow:hidden;
+  position:relative;
+  width:min(1120px,100%);
+  height:92vh;
+  margin:0 auto;
+  background:#fff;
+  overflow:hidden;
 }
-
 .modal iframe{
-    width:100%;
-    height:100%;
-    border:none;
+  width:100%;
+  height:100%;
+  border:0;
 }
-
 .close{
-
-    position:absolute;
-
-    right:18px;
-    top:10px;
-
-    font-size:30px;
-    color:#333;
-
-    cursor:pointer;
-    z-index:2;
+  position:absolute;
+  right:15px;
+  top:11px;
+  z-index:2;
+  width:38px;
+  height:38px;
+  border:1px solid rgba(0,0,0,.12);
+  background:rgba(255,255,255,.92);
+  color:#111;
+  font-size:24px;
+  line-height:34px;
+  text-align:center;
+  cursor:pointer;
 }
-
-/* 底部营火入口 */
-
+footer{
+  padding:10px 24px 42px;
+  background:#fff;
+}
+footer p{
+  margin:0;
+  font-size:12px;
+  color:#aaa59e;
+}
 .campfire-link{
-    display:block;
-
-    text-align:center;
-
-    margin:120px auto 30px auto;
-
-    color:#888;
-
-    text-decoration:none;
-
-    letter-spacing:4px;
-    font-size:12px;
-
-    transition:0.4s;
+  margin:20px auto 34px;
 }
-
-.campfire-link:hover{
-    color:#111;
-    letter-spacing:6px;
+@media(max-width:980px){
+  .tx-section-head{grid-template-columns:150px minmax(0,1fr);gap:42px}
+  .tx-actions{grid-template-columns:repeat(2,1fr)}
+  .tx-action:nth-child(3){border-left:0;border-top:1px solid var(--tx-line)}
+  .tx-action:nth-child(4){border-top:1px solid var(--tx-line)}
+  .tx-five{grid-template-columns:repeat(5,1fr)}
+  .tx-library{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-
-/* 手机 */
-
-@media(max-width:768px){
-
-    .container h1{
-        font-size:34px;
-    }
-
-    .card{
-        padding:24px;
-    }
-
-    .card img{
-        width:180px;
-    }
-
+@media(max-width:720px){
+  .tx-shell{width:min(100% - 32px,1180px)}
+  .tx-hero{min-height:auto}
+  .tx-hero-inner{padding:76px 0 82px}
+  .tx-hero h1{font-size:72px;margin-bottom:30px}
+  .tx-hero-statement{font-size:29px;line-height:1.52}
+  .tx-hero-note{margin-top:38px;line-height:1.9}
+  .tx-section{padding:92px 0}
+  .tx-section-head{display:block}
+  .tx-index{margin:0 0 22px}
+  .tx-manifesto{grid-template-columns:1fr}
+  .tx-manifesto div{min-height:auto;padding:20px 0}
+  .tx-manifesto div+div{padding-left:0;border-left:0;border-top:1px solid var(--tx-line)}
+  .tx-actions{grid-template-columns:1fr}
+  .tx-action{min-height:220px;padding:24px 4px 30px}
+  .tx-action+.tx-action{border-left:0;border-top:1px solid var(--tx-line)}
+  .tx-pair{grid-template-columns:1fr}
+  .tx-pair-col{min-height:auto;padding:34px 28px 40px}
+  .tx-pair-col+.tx-pair-col{border-left:0;border-top:1px solid var(--tx-line)}
+  .tx-pair-label{margin-bottom:36px}
+  .tx-five{grid-template-columns:1fr;border-bottom:0}
+  .tx-five-item{min-height:118px;padding:20px 2px;border-bottom:1px solid #393939}
+  .tx-five-item+.tx-five-item{border-left:0}
+  .tx-five-word{font-size:29px}
+  .tx-next{grid-template-columns:1fr}
+  .tx-next-main,.tx-next-side{padding:36px 28px}
+  .tx-next-main{min-height:330px}
+  .tx-next-side{min-height:220px}
+  .tx-archive-intro{display:block;margin-bottom:38px}
+  .tx-archive-intro p{margin-top:22px}
+  .tx-library{grid-template-columns:1fr 1fr}
+  .tx-book{padding:14px}
+  .tx-book h3{font-size:15px;min-height:52px}
+  .tx-book-quote{font-size:12px;min-height:104px}
+  .tx-close{padding:92px 0 78px}
+  .modal{padding:0}
+  .modal-content{height:100svh;width:100%}
 }
-
+@media(max-width:430px){
+  .tx-library{grid-template-columns:1fr}
+  .tx-book{padding:20px}
+  .tx-book h3{font-size:17px;min-height:auto}
+  .tx-book-quote{min-height:auto}
+}
 </style>
 </head>
-
 <body>
-
-<nav>
-<a href="/home.html">首页</a>
-<a href="/test.html">步道</a>
-<a href="/tongxing.html">童行</a>
-<a href="/tongdao.html">同道</a>
-<a href="/what.html">同工</a>
-<a href="/contact.html">易彼益</a>
+<nav aria-label="主导航">
+  <a href="/home.html">首页</a>
+  <a href="/test.html">步道</a>
+  <a href="/tongxing.html" aria-current="page">童行</a>
+  <a href="/tongdao.html">同道</a>
+  <a href="/what.html">同工</a>
+  <a href="/contact.html">易彼益</a>
 </nav>
 
-<div class="container">
-
-<h1>童行</h1>
-
-<p>
-与孩子同行，<br>
-在阅读中遇见光。
-</p>
-
-<!-- 第1本 -->
-
-<div class="card">
-
-<img src="images/dkd.jpg">
-
-<h3>第1周 · 《大蝌蚪》</h3>
-
-<p>
-“...,若不像小孩子，断不能进去。”
-</p>
-
-<div class="buttons">
-
-<button onclick="openModal('https://online.fliphtml5.com/qkttd/ksju/')">
-阅读
-</button>
-
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=577359839&bvid=BV1jB4y1o7Qr&cid=1302435791&p=1')">
-视频
-</button>
-
-<button class="audio-btn"
-onclick="toggleAudio('audioPlayer1', this)">
-▶ 播放音频
-</button>
-
-</div>
-
-<audio id="audioPlayer1">
-<source src="audio/dkd.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-
-<!-- 第2本 -->
-
-<div class="card">
-
-<img src="images/Hat.jpg">
-
-<h3>第2周 · 《我要把我的帽子找回来》</h3>
-
-<p>
-“...并且人要奉他的名传悔改、赦罪的道...”
-</p>
-
-<div class="buttons">
-
-<button onclick="openModal('https://online.fliphtml5.com/rgbxu/zttc/')">
-阅读
-</button>
-
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=763276890&bvid=BV1164y1876i&cid=417036765&p=1')">
-视频
-</button>
-
-<button class="audio-btn"
-onclick="toggleAudio('audioPlayer2', this)">
-▶ 播放音频
-</button>
-
-</div>
-
-<audio id="audioPlayer2">
-<source src="audio/hat.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-<!-- 第3本 -->
-<div class="card">
-
-<img src="images/hpp.jpeg">
-
-<h3>第3周 · 《花婆婆》</h3>
-
-<p>
-“你们为何静坐不动呢？要急速前往得那地为业，不可迟延。”
-</p>
-
-<div class="buttons">
-
-<button onclick="openModal('https://online.anyflip.com/xaqpj/khuj/mobile/index.html')">
-阅读
-</button>
-
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=758449190&bvid=BV1s64y1R73T&cid=350301300&p=1')">
-视频
-</button>
-
-<button class="audio-btn"
-onclick="toggleAudio('audioPlayer3', this)">
-▶ 播放音频
-</button>
-
-</div>
-
-<audio id="audioPlayer3">
-<source src="audio/hpp.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-<!-- 第4本 -->
-<div class="card">
-
-<img src="images/pt.jpeg">
-
-<h3>第4周 · 《葡萄》</h3>
-
-<p>
-“我爱你们，正如父爱我一样；你们要常在我的爱里。”
-</p>
-
-<div class="buttons">
-
-<button onclick="openModal('https://online.fliphtml5.com/qkttd/vkqe/')">
-阅读
-</button>
-
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=115834462732985&bvid=BV1JVikB3E5v&cid=35175141353&p=1')">
-视频
-</button>
-
-<button class="audio-btn"
-onclick="toggleAudio('audioPlayer4', this)">
-▶ 播放音频
-</button>
-
-</div>
-
-<audio id="audioPlayer4">
-<source src="audio/pt.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-<!-- 第5本 -->
-<div class="card">
-
-<img src="images/SCJDZHYZ.jpg">
-
-<h3>第5周 · 《市场街最后一站》</h3>
-
-<p>
-“你们就必得着能力，并要在耶路撒
-冷、犹太全地，和撒马利亚，直到地极，作我的见证。”
-</p>
-
-<div class="buttons">
-
-<button onclick="openModal('https://online.fliphtml5.com/xmrzv/kcqi/')">
-阅读
-</button>
-
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=206335447&bvid=BV1Uh41187FM&cid=358473953&p=1')">
-视频
-</button>
-
-<button class="audio-btn"
-onclick="toggleAudio('audioPlayer5', this)">
-▶ 播放音频
-</button>
-
-</div>
-
-<audio id="audioPlayer5">
-<source src="audio/scjzhyz.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-<!-- 第6本 -->
-<div class="card">
-
-<img src="images/WZYXXDL.jpg">
-
-<h3>第6周 · 《我怎样学习地理》</h3>
-
-<p>
-“这约凡事坚稳，
-关乎我的一切救恩和我一切所想望的， 他岂不为我成就吗？”
-</p>
-
-<div class="buttons">
-
-<button onclick="openModal('https://online.fliphtml5.com/qkttd/vihz/')">
-阅读
-</button>
-
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=483067087&bvid=BV1WT411e7tv&cid=1041953970&p=1')">
-视频
-</button>
-
-<button class="audio-btn"
-onclick="toggleAudio('audioPlayer6', this)">
-▶ 播放音频
-</button>
-
-</div>
-
-<audio id="audioPlayer6">
-<source src="audio/wzyxxdl.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-<!-- 第7本 -->
-<div class="card">
-
-<img src="images/qldyt.jpg">
-
-<h3>第7周 · 《晴朗的一天》</h3>
-
-<p>
-“因你将我定要灭绝的人放去，
-你的命就必代替他的命，你的民也必代替他的民。”
-</p>
-
-<div class="buttons">
-
-<button onclick="openModal('https://online.fliphtml5.com/qkttd/hgwb/')">
-阅读
-</button>
-
-<button onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=524469730&bvid=BV1SM411n7xU&cid=1009074693&p=1')">
-视频
-</button>
-
-<button class="audio-btn"
-onclick="toggleAudio('audioPlayer7', this)">
-▶ 播放音频
-</button>
-
-</div>
-
-<audio id="audioPlayer7">
-<source src="audio/qldyt.mp3" type="audio/mpeg">
-</audio>
-
-</div>
-</div>
-
-<!-- 营火之地 -->
-
- <footer>
-
-  <a class="campfire-link" href="yhzd.html">
-    ✦ 营火之地
-  </a>
-
+<main class="tx-page">
+  <section class="tx-hero">
+    <div class="tx-shell tx-hero-inner">
+      <p class="tx-kicker">BUDAO / TONG XING</p>
+      <h1>童行</h1>
+      <p class="tx-hero-statement">不是带孩子去看世界。<br>是和孩子一起，重新看见世界。</p>
+      <p class="tx-hero-note">行走 · 故事 · 自然 · 相遇</p>
+    </div>
+  </section>
+
+  <section class="tx-section">
+    <div class="tx-shell">
+      <div class="tx-section-head">
+        <p class="tx-index">01 / WHY</p>
+        <div class="tx-copy">
+          <p class="tx-kicker">为什么要有童行</p>
+          <h2>大人的世界，<br>总在告诉孩子答案。</h2>
+          <p>童行想做一点相反的事——陪他们走出去，先看，先问，先发现。不是把世界解释给孩子，而是给彼此一点时间，让真实的世界自己说话。</p>
+          <div class="tx-manifesto">
+            <div>不急着教。</div>
+            <div>不急着解释。</div>
+            <div>不急着得到正确答案。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tx-section">
+    <div class="tx-shell">
+      <div class="tx-section-head">
+        <p class="tx-index">02 / WALK</p>
+        <div class="tx-copy">
+          <p class="tx-kicker">一次童行，会发生什么</p>
+          <h2>四个动作。<br>没有一堂课。</h2>
+          <p>童行不是把教室搬到户外。我们只设计足够清楚的结构，把注意力重新交还给脚下的路、眼前的事物、一个故事，以及同行的人。</p>
+        </div>
+      </div>
+      <div class="tx-actions">
+        <article class="tx-action">
+          <span class="tx-action-no">01</span>
+          <div><h3>走一段路</h3><p>真正用脚进入一个地方。</p></div>
+        </article>
+        <article class="tx-action">
+          <span class="tx-action-no">02</span>
+          <div><h3>看见一些东西</h3><p>树、石头、虫子、建筑、天气、人。</p></div>
+        </article>
+        <article class="tx-action">
+          <span class="tx-action-no">03</span>
+          <div><h3>听一个故事</h3><p>图画书、当地故事，或一个真实的人。</p></div>
+        </article>
+        <article class="tx-action">
+          <span class="tx-action-no">04</span>
+          <div><h3>说出自己的发现</h3><p>我们认真听，但不急着给标准答案。</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="tx-section">
+    <div class="tx-shell">
+      <div class="tx-section-head">
+        <p class="tx-index">03 / TOGETHER</p>
+        <div class="tx-copy">
+          <p class="tx-kicker">两个人走的是同一条路吗</p>
+          <h2>孩子走他的路。<br>大人，也走自己的路。</h2>
+        </div>
+      </div>
+      <div class="tx-pair">
+        <div class="tx-pair-col">
+          <p class="tx-pair-label">CHILD / 孩子</p>
+          <h3>向外看</h3>
+          <ul>
+            <li>我看见什么？</li>
+            <li>我好奇什么？</li>
+            <li>我想试试什么？</li>
+            <li>我觉得它像什么？</li>
+          </ul>
+        </div>
+        <div class="tx-pair-col">
+          <p class="tx-pair-label">ADULT / 大人</p>
+          <h3>向自己看</h3>
+          <ul>
+            <li>我能不能少解释一点？</li>
+            <li>慢一点？</li>
+            <li>蹲下来？</li>
+            <li>跟着孩子重新看一次？</li>
+          </ul>
+        </div>
+      </div>
+      <p class="tx-pair-end">童行，不只是孩子的成长。</p>
+    </div>
+  </section>
+
+  <section class="tx-section tx-method">
+    <div class="tx-shell">
+      <div class="tx-section-head">
+        <p class="tx-index">04 / METHOD</p>
+        <div>
+          <p class="tx-kicker">童行的方法</p>
+          <h2 class="tx-section-title">把复杂留给准备。<br>把简单留给同行。</h2>
+        </div>
+      </div>
+      <div class="tx-five" aria-label="童行五个一">
+        <div class="tx-five-item"><span class="tx-five-no">01</span><span class="tx-five-word">一路</span></div>
+        <div class="tx-five-item"><span class="tx-five-no">02</span><span class="tx-five-word">一看</span></div>
+        <div class="tx-five-item"><span class="tx-five-no">03</span><span class="tx-five-word">一问</span></div>
+        <div class="tx-five-item"><span class="tx-five-no">04</span><span class="tx-five-word">一故事</span></div>
+        <div class="tx-five-item"><span class="tx-five-no">05</span><span class="tx-five-word">一同行</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tx-section">
+    <div class="tx-shell">
+      <div class="tx-archive-intro">
+        <div>
+          <p class="tx-kicker">NEXT</p>
+          <h2 class="tx-section-title">下一次，<br>我们去哪里？</h2>
+        </div>
+      </div>
+      <div class="tx-next">
+        <div class="tx-next-main">
+          <div class="tx-next-status">下一次童行 · 准备中</div>
+          <div>
+            <h3>先不公布答案。</h3>
+            <p>地点、路线和故事会在准备完成后出现在这里。我们宁愿少做一次，也不把一次童行做成普通的亲子打卡。</p>
+          </div>
+        </div>
+        <div class="tx-next-side">
+          <span>WHAT TO BRING</span>
+          <strong>一双能走路的鞋。<br>一点时间。<br>还有好奇。</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tx-section">
+    <div class="tx-shell">
+      <div class="tx-archive-intro">
+        <div>
+          <p class="tx-kicker">ARCHIVE / 01—07</p>
+          <h2 class="tx-section-title">童行曾经，<br>从阅读开始。</h2>
+        </div>
+        <p>第一阶段留下的七本图画书仍然保留在这里。它们不是旧页面的遗迹，而是童行最初学会“借一个故事重新看世界”的起点。</p>
+      </div>
+
+      <div class="tx-library">
+        <article class="tx-book">
+          <div class="tx-book-media"><img src="images/dkd.jpg" alt="《大蝌蚪》封面" loading="lazy"></div>
+          <p class="tx-book-no">01 / 大蝌蚪</p>
+          <h3>《大蝌蚪》</h3>
+          <p class="tx-book-quote">“……若不像小孩子，断不能进去。”</p>
+          <div class="tx-book-actions">
+            <button type="button" onclick="openModal('https://online.fliphtml5.com/qkttd/ksju/')">阅读</button>
+            <button type="button" onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=577359839&bvid=BV1jB4y1o7Qr&cid=1302435791&p=1')">视频</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio('audioPlayer1',this)">播放音频</button>
+          </div>
+          <audio id="audioPlayer1" preload="none"><source src="audio/dkd.mp3" type="audio/mpeg"></audio>
+        </article>
+
+        <article class="tx-book">
+          <div class="tx-book-media"><img src="images/Hat.jpg" alt="《我要把我的帽子找回来》封面" loading="lazy"></div>
+          <p class="tx-book-no">02 / 帽子</p>
+          <h3>《我要把我的帽子找回来》</h3>
+          <p class="tx-book-quote">“……并且人要奉他的名传悔改、赦罪的道……”</p>
+          <div class="tx-book-actions">
+            <button type="button" onclick="openModal('https://online.fliphtml5.com/rgbxu/zttc/')">阅读</button>
+            <button type="button" onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=763276890&bvid=BV1164y1876i&cid=417036765&p=1')">视频</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio('audioPlayer2',this)">播放音频</button>
+          </div>
+          <audio id="audioPlayer2" preload="none"><source src="audio/hat.mp3" type="audio/mpeg"></audio>
+        </article>
+
+        <article class="tx-book">
+          <div class="tx-book-media"><img src="images/hpp.jpeg" alt="《花婆婆》封面" loading="lazy"></div>
+          <p class="tx-book-no">03 / 花婆婆</p>
+          <h3>《花婆婆》</h3>
+          <p class="tx-book-quote">“你们为何静坐不动呢？要急速前往得那地为业，不可迟延。”</p>
+          <div class="tx-book-actions">
+            <button type="button" onclick="openModal('https://online.anyflip.com/xaqpj/khuj/mobile/index.html')">阅读</button>
+            <button type="button" onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=758449190&bvid=BV1s64y1R73T&cid=350301300&p=1')">视频</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio('audioPlayer3',this)">播放音频</button>
+          </div>
+          <audio id="audioPlayer3" preload="none"><source src="audio/hpp.mp3" type="audio/mpeg"></audio>
+        </article>
+
+        <article class="tx-book">
+          <div class="tx-book-media"><img src="images/pt.jpeg" alt="《葡萄》封面" loading="lazy"></div>
+          <p class="tx-book-no">04 / 葡萄</p>
+          <h3>《葡萄》</h3>
+          <p class="tx-book-quote">“我爱你们，正如父爱我一样；你们要常在我的爱里。”</p>
+          <div class="tx-book-actions">
+            <button type="button" onclick="openModal('https://online.fliphtml5.com/qkttd/vkqe/')">阅读</button>
+            <button type="button" onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=115834462732985&bvid=BV1JVikB3E5v&cid=35175141353&p=1')">视频</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio('audioPlayer4',this)">播放音频</button>
+          </div>
+          <audio id="audioPlayer4" preload="none"><source src="audio/pt.mp3" type="audio/mpeg"></audio>
+        </article>
+
+        <article class="tx-book">
+          <div class="tx-book-media"><img src="images/SCJDZHYZ.jpg" alt="《市场街最后一站》封面" loading="lazy"></div>
+          <p class="tx-book-no">05 / 市场街</p>
+          <h3>《市场街最后一站》</h3>
+          <p class="tx-book-quote">“你们就必得着能力……直到地极，作我的见证。”</p>
+          <div class="tx-book-actions">
+            <button type="button" onclick="openModal('https://online.fliphtml5.com/xmrzv/kcqi/')">阅读</button>
+            <button type="button" onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=206335447&bvid=BV1Uh41187FM&cid=358473953&p=1')">视频</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio('audioPlayer5',this)">播放音频</button>
+          </div>
+          <audio id="audioPlayer5" preload="none"><source src="audio/scjzhyz.mp3" type="audio/mpeg"></audio>
+        </article>
+
+        <article class="tx-book">
+          <div class="tx-book-media"><img src="images/WZYXXDL.jpg" alt="《我怎样学习地理》封面" loading="lazy"></div>
+          <p class="tx-book-no">06 / 地理</p>
+          <h3>《我怎样学习地理》</h3>
+          <p class="tx-book-quote">“这约凡事坚稳，关乎我的一切救恩和我一切所想望的……”</p>
+          <div class="tx-book-actions">
+            <button type="button" onclick="openModal('https://online.fliphtml5.com/qkttd/vihz/')">阅读</button>
+            <button type="button" onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=483067087&bvid=BV1WT411e7tv&cid=1041953970&p=1')">视频</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio('audioPlayer6',this)">播放音频</button>
+          </div>
+          <audio id="audioPlayer6" preload="none"><source src="audio/wzyxxdl.mp3" type="audio/mpeg"></audio>
+        </article>
+
+        <article class="tx-book">
+          <div class="tx-book-media"><img src="images/qldyt.jpg" alt="《晴朗的一天》封面" loading="lazy"></div>
+          <p class="tx-book-no">07 / 晴朗</p>
+          <h3>《晴朗的一天》</h3>
+          <p class="tx-book-quote">“因你将我定要灭绝的人放去，你的命就必代替他的命……”</p>
+          <div class="tx-book-actions">
+            <button type="button" onclick="openModal('https://online.fliphtml5.com/qkttd/hgwb/')">阅读</button>
+            <button type="button" onclick="openModal('https://player.bilibili.com/player.html?isOutside=true&aid=524469730&bvid=BV1SM411n7xU&cid=1009074693&p=1')">视频</button>
+            <button type="button" class="audio-btn" onclick="toggleAudio('audioPlayer7',this)">播放音频</button>
+          </div>
+          <audio id="audioPlayer7" preload="none"><source src="audio/qldyt.mp3" type="audio/mpeg"></audio>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="tx-close">
+    <div class="tx-shell">
+      <p class="tx-kicker">KEEP WALKING</p>
+      <h2>下一次，<br>和孩子一起走。</h2>
+      <div class="tx-close-links">
+        <a class="tx-close-link" href="#">参加一次童行</a>
+        <a class="tx-close-link is-muted" href="/contact.html">发起一次童行</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a class="campfire-link" href="/yhzd.html">✦ 营火之地</a>
   <p>© 2026 步道 budao.org</p>
-
 </footer>
-</a>
 
-<!-- 弹窗 -->
-
-<div id="modal" class="modal">
-
-<div class="modal-content">
-
-<span class="close" onclick="closeModal()">
-&times;
-</span>
-
-<iframe id="modalFrame"></iframe>
-
-</div>
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="童行内容">
+  <div class="modal-content">
+    <button class="close" type="button" aria-label="关闭" onclick="closeModal()">×</button>
+    <iframe id="modalFrame" title="童行内容"></iframe>
+  </div>
 </div>
 
 <script>
-
-/* 打开弹窗 */
-
 function openModal(url){
-
-    document.getElementById("modal").style.display = "block";
-
-    document.getElementById("modalFrame").src = url;
+  var modal=document.getElementById('modal');
+  document.getElementById('modalFrame').src=url;
+  modal.style.display='block';
+  document.body.style.overflow='hidden';
 }
-
-/* 关闭弹窗 */
-
 function closeModal(){
-
-    document.getElementById("modal").style.display = "none";
-
-    document.getElementById("modalFrame").src = "";
+  document.getElementById('modal').style.display='none';
+  document.getElementById('modalFrame').src='';
+  document.body.style.overflow='';
 }
-
-/* 音频 */
-
-function toggleAudio(audioId, button){
-
-    var audio = document.getElementById(audioId);
-
-    if(audio.paused){
-
-        // 暂停其他音频
-        document.querySelectorAll("audio").forEach(a => {
-            a.pause();
-        });
-
-        // 重置所有按钮
-        document.querySelectorAll(".audio-btn").forEach(btn => {
-            btn.innerText = "▶ 播放音频";
-        });
-
-        audio.play();
-
-        button.innerText = "⏸ 暂停音频";
-
-    }else{
-
-        audio.pause();
-
-        button.innerText = "▶ 播放音频";
-    }
+function toggleAudio(audioId,button){
+  var audio=document.getElementById(audioId);
+  document.querySelectorAll('audio').forEach(function(a){
+    if(a!==audio){a.pause();a.currentTime=0;}
+  });
+  document.querySelectorAll('.audio-btn').forEach(function(btn){btn.textContent='播放音频';});
+  if(audio.paused){
+    audio.play();
+    button.textContent='暂停音频';
+  }else{
+    audio.pause();
+    button.textContent='播放音频';
+  }
 }
-
+document.addEventListener('keydown',function(event){
+  if(event.key==='Escape') closeModal();
+});
+document.getElementById('modal').addEventListener('click',function(event){
+  if(event.target===this) closeModal();
+});
 </script>
-
 </body>
 </html>
