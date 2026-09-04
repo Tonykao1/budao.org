@@ -2,6 +2,20 @@
   // Minimal, safe module to create server-side Invitations for a route
   const IN_FLIGHT = new WeakMap();
 
+  function ensureThreeSlotDesktopLayout(){
+    if(document.getElementById('budao-three-slot-layout')) return;
+    const style = document.createElement('style');
+    style.id = 'budao-three-slot-layout';
+    style.textContent = `
+      @media (min-width:1000px){
+        .route-grid{
+          grid-template-columns:repeat(3,minmax(0,520px)) !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function findActionContainer(button){
     return button.closest('.route-actions') || button.parentElement || null;
   }
@@ -152,6 +166,7 @@
 
   // bind once
   if (typeof document !== 'undefined'){
+    ensureThreeSlotDesktopLayout();
     document.addEventListener('click', onClick, false);
   }
 
