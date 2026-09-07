@@ -8,7 +8,8 @@ process.env.GITHUB_TOKEN = "test-token-never-logged";
 process.env.GITHUB_DAO_BRANCH = "main";
 
 const { QUESTION_ROLES, daoCodeFor, validateDaoSubmission } = require("../api/_security/dao-schema");
-const publishDao = require("../api/publish-dao");
+const publish = require("../api/publish-route-v2");
+const read = require("../api/routes");
 const { resetForTests } = require("../api/_security/rate-limit");
 
 function signedPublisherCookie(sub = "publisher-ims", slot = "IMS") {
@@ -24,10 +25,11 @@ function signedPublisherCookie(sub = "publisher-ims", slot = "IMS") {
   return "budao_admin_session=" + payload + "." + signature;
 }
 
-function request(body, cookie = signedPublisherCookie()) {
+function postRequest(body, cookie = signedPublisherCookie()) {
   return {
     method: "POST",
     body,
+    query: { kind: "dao" },
     headers: {
       "content-type": "application/json",
       origin: "https://budao.test",
@@ -38,6 +40,14 @@ function request(body, cookie = signedPublisherCookie()) {
   };
 }
 
+function getRequest(query = {}, cookie = "") {
+  return {
+    method: "GET",
+    query: { kind: "dao", ...query },
+    headers: cookie ? { cookie } : {}
+  };
+}
+
 function response() {
   return {
     headers: {},
@@ -45,7 +55,8 @@ function response() {
     body: null,
     setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
     status(code) { this.statusCode = code; return this; },
-    json(body) { this.body = body; return this; }
+    json(body) { this.body = body; return this; },
+    end() { return this; }
   };
 }
 
@@ -102,9 +113,9 @@ test("all seven questions and a known scripture reference are required", () => {
   assert.equal(result.error, "invalid_scripture_reference");
 });
 
-test("anonymous Dao submissions are rejected", async () => {
+test("anonymous Dao submissions are rejected through the shared publish endpoint", async () => {
   const res = response();
-  await publishDao(request(validBody(), ""), res);
+  await publish(postRequest(validBody(), ""), res);
   assert.equal(res.statusCode, 401);
 });
 
@@ -128,7 +139,7 @@ test("valid Dao submission enters the pool as PENDING_REVIEW and is idempotent",
   };
 
   const first = response();
-  await publishDao(request(validBody()), first);
+  await publish(postRequest(validBody()), first);
   assert.equal(first.statusCode, 200);
   assert.equal(first.body.dao.status, "PENDING_REVIEW");
   assert.equal(stored.items.length, 1);
@@ -137,7 +148,7 @@ test("valid Dao submission enters the pool as PENDING_REVIEW and is idempotent",
   assert.equal(stored.items[0].questions[6].role, "GOSPEL_RESPONSE");
 
   const second = response();
-  await publishDao(request(validBody()), second);
+  await publish(postRequest(validBody()), second);
   assert.equal(second.statusCode, 200);
   assert.equal(second.body.idempotent, true);
   assert.equal(putCount, 1);
@@ -161,12 +172,51 @@ test("same Dao code cannot silently overwrite different content", async () => {
   };
 
   const first = response();
-  await publishDao(request(validBody()), first);
+  await publish(postRequest(validBody()), first);
   assert.equal(first.statusCode, 200);
 
   const changed = response();
-  await publishDao(request(validBody({ theme: "另一个主题" })), changed);
+  await publish(postRequest(validBody({ theme: "另一个主题" })), changed);
   assert.equal(changed.statusCode, 409);
   assert.equal(changed.body.reason, "duplicate_dao_code");
   assert.equal(stored.items.length, 1);
+});
+
+test("public Dao reads hide pending items, while the owner can inspect their own pending pool", async () => {
+  const pending = {
+    id: "dao-test",
+    daoCode: "BD20260907MAT007013014",
+    status: "PENDING_REVIEW",
+    frozen: false,
+    publisher: { id: "publisher-ims", slot: "IMS", name: "Tony" },
+    scripture: { bookCode: "MAT", bookName: "马太福音", chapterStart: 7, chapterEnd: 7, referenceDisplay: "马太福音 7:13-14", text: "text" },
+    theme: "窄门",
+    cardIntro: "intro",
+    questions: [],
+    story: "",
+    highlights: "",
+    response: "",
+    prayer: "",
+    tags: { themes: [], seasons: [], terrains: [] },
+    tongdao: { available: false },
+    card: { status: "PENDING", url: "" },
+    media: []
+  };
+
+  global.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ sha: "abc", content: Buffer.from(JSON.stringify({ schemaVersion: 1, items: [pending] })).toString("base64") })
+  });
+
+  let res = response();
+  await read(getRequest(), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.count, 0);
+
+  res = response();
+  await read(getRequest({ mine: "1" }, signedPublisherCookie()), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.count, 1);
+  assert.equal(res.body.items[0].daoCode, pending.daoCode);
 });
