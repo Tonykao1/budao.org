@@ -262,8 +262,8 @@ nav a[aria-current="page"]{opacity:.58}
   border-bottom:1px solid #393939;
 }
 .tx-five-item{
-  min-height:248px;
-  padding:30px 22px 34px;
+  min-height:276px;
+  padding:30px 24px 34px;
   display:flex;
   flex-direction:column;
   justify-content:space-between;
@@ -272,13 +272,23 @@ nav a[aria-current="page"]{opacity:.58}
 .tx-five-no{
   font-size:10px;
   letter-spacing:.18em;
-  color:#757575;
+  color:#676767;
 }
+.tx-five-copy{display:block}
 .tx-five-word{
-  font-size:clamp(22px,2.4vw,32px);
-  line-height:1.2;
+  display:block;
+  margin:0 0 20px;
+  font-size:clamp(38px,4vw,54px);
+  line-height:1;
   font-weight:420;
-  letter-spacing:-.03em;
+  letter-spacing:-.045em;
+}
+.tx-five-desc{
+  margin:0;
+  max-width:150px;
+  font-size:14px;
+  line-height:1.8;
+  color:#9c9c9c;
 }
 .tx-next{
   display:grid;
@@ -522,6 +532,8 @@ footer p{
   .tx-actions{grid-template-columns:repeat(5,1fr)}
   .tx-question-field{min-height:410px}
   .tx-five{grid-template-columns:repeat(5,1fr)}
+  .tx-five-item{padding-left:18px;padding-right:18px}
+  .tx-five-desc{font-size:13px}
   .tx-library{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:720px){
@@ -566,9 +578,10 @@ footer p{
   .tx-q7{align-self:flex-end;text-align:right;font-size:15px}
   .tx-q8{align-self:center;width:100%;max-width:100%;text-align:center;font-size:17px;margin-top:4px}
   .tx-five{grid-template-columns:1fr;border-bottom:0}
-  .tx-five-item{min-height:118px;padding:20px 2px;border-bottom:1px solid #393939}
+  .tx-five-item{min-height:154px;padding:22px 2px 24px;border-bottom:1px solid #393939}
   .tx-five-item+.tx-five-item{border-left:0}
-  .tx-five-word{font-size:29px}
+  .tx-five-word{font-size:38px;margin-bottom:12px}
+  .tx-five-desc{max-width:none;font-size:14px}
   .tx-next{grid-template-columns:1fr}
   .tx-next-main,.tx-next-side{padding:36px 28px}
   .tx-next-main{min-height:330px}
@@ -689,18 +702,33 @@ footer p{
   <section class="tx-section tx-method">
     <div class="tx-shell">
       <div class="tx-section-head">
-        <p class="tx-index">04 / METHOD</p>
+        <p class="tx-index">04 / FIVE</p>
         <div>
-          <p class="tx-kicker">童行的方法</p>
-          <h2 class="tx-section-title">把复杂留给准备。<br>把简单留给同行。</h2>
+          <p class="tx-kicker">童行的五个字</p>
+          <h2 class="tx-section-title">不是与孩子走出去，<br>就叫做童行。</h2>
         </div>
       </div>
-      <div class="tx-five" aria-label="童行五个一">
-        <div class="tx-five-item"><span class="tx-five-no">01</span><span class="tx-five-word">一路</span></div>
-        <div class="tx-five-item"><span class="tx-five-no">02</span><span class="tx-five-word">一看</span></div>
-        <div class="tx-five-item"><span class="tx-five-no">03</span><span class="tx-five-word">一问</span></div>
-        <div class="tx-five-item"><span class="tx-five-no">04</span><span class="tx-five-word">一故事</span></div>
-        <div class="tx-five-item"><span class="tx-five-no">05</span><span class="tx-five-word">一同行</span></div>
+      <div class="tx-five" aria-label="童行的五个字：伴、行、闻、问、见">
+        <div class="tx-five-item">
+          <span class="tx-five-no">01</span>
+          <div class="tx-five-copy"><span class="tx-five-word">伴</span><p class="tx-five-desc">走自己的路，也一起走。</p></div>
+        </div>
+        <div class="tx-five-item">
+          <span class="tx-five-no">02</span>
+          <div class="tx-five-copy"><span class="tx-five-word">行</span><p class="tx-five-desc">用脚步进入世界。</p></div>
+        </div>
+        <div class="tx-five-item">
+          <span class="tx-five-no">03</span>
+          <div class="tx-five-copy"><span class="tx-five-word">闻</span><p class="tx-five-desc">听故事，也听世界。</p></div>
+        </div>
+        <div class="tx-five-item">
+          <span class="tx-five-no">04</span>
+          <div class="tx-five-copy"><span class="tx-five-word">问</span><p class="tx-five-desc">让问题发生。</p></div>
+        </div>
+        <div class="tx-five-item">
+          <span class="tx-five-no">05</span>
+          <div class="tx-five-copy"><span class="tx-five-word">见</span><p class="tx-five-desc">重新看见。</p></div>
+        </div>
       </div>
     </div>
   </section>
