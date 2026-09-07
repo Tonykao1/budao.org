@@ -4,10 +4,9 @@ const test = require("node:test");
 
 process.env.NODE_ENV = "test";
 process.env.BUDAO_SESSION_SECRET = "test-only-session-secret-at-least-32-bytes";
-process.env.GITHUB_TOKEN = "test-token-never-logged";
-process.env.GITHUB_DAO_BRANCH = "main";
 
 const { QUESTION_ROLES, daoCodeFor, validateDaoSubmission } = require("../api/_security/dao-schema");
+const { setDaoAdapterForTests } = require("../api/_security/dao-store");
 const publish = require("../api/publish-route-v2");
 const read = require("../api/routes");
 const { resetForTests } = require("../api/_security/rate-limit");
@@ -87,7 +86,28 @@ function validBody(overrides = {}) {
   };
 }
 
-test.beforeEach(() => resetForTests());
+function memoryAdapter(initialItems = []) {
+  const items = initialItems.slice();
+  return {
+    items,
+    async findByCode(code) {
+      return items.find((item) => item.daoCode === code) || null;
+    },
+    async insert(item) {
+      items.push(item);
+    },
+    async list() {
+      return items.slice();
+    }
+  };
+}
+
+test.beforeEach(() => {
+  resetForTests();
+  setDaoAdapterForTests(undefined);
+});
+
+test.afterEach(() => setDaoAdapterForTests(undefined));
 
 test("Dao validator attaches the seven constitutional question roles", () => {
   const result = validateDaoSubmission(validBody());
@@ -106,11 +126,23 @@ test("Dao code contains BD, devotional date and scripture identity without dots"
   assert.equal(code.includes("."), false);
 });
 
-test("all seven questions and a known scripture reference are required", () => {
-  let result = validateDaoSubmission(validBody({ questions: ["only one"] }));
-  assert.equal(result.error, "seven_questions_required");
-  result = validateDaoSubmission(validBody({ scripture: "未知书卷 1:1" }));
-  assert.equal(result.error, "invalid_scripture_reference");
+test("cross-chapter Dao codes include the ending verse and cannot collide", () => {
+  const left = validateDaoSubmission(validBody({ scripture: "马太福音 7:13-8:1" })).value;
+  const right = validateDaoSubmission(validBody({ scripture: "马太福音 7:13-8:2" })).value;
+  assert.equal(daoCodeFor(left.devotionalDate, left.scripture), "BD20260907MAT007013008001");
+  assert.equal(daoCodeFor(right.devotionalDate, right.scripture), "BD20260907MAT007013008002");
+  assert.notEqual(daoCodeFor(left.devotionalDate, left.scripture), daoCodeFor(right.devotionalDate, right.scripture));
+});
+
+test("unknown books, impossible chapters, and bad one-chapter verses are rejected", () => {
+  assert.equal(validateDaoSubmission(validBody({ scripture: "未知书卷 1:1" })).error, "invalid_scripture_reference");
+  assert.equal(validateDaoSubmission(validBody({ scripture: "马太福音 29:1" })).error, "invalid_scripture_reference");
+  assert.equal(validateDaoSubmission(validBody({ scripture: "犹大书 1:26" })).error, "invalid_scripture_reference");
+});
+
+test("all seven questions are required and oversized text is rejected rather than truncated", () => {
+  assert.equal(validateDaoSubmission(validBody({ questions: ["only one"] })).error, "seven_questions_required");
+  assert.equal(validateDaoSubmission(validBody({ cardIntro: "x".repeat(801) })).error, "field_too_long");
 });
 
 test("anonymous Dao submissions are rejected through the shared publish endpoint", async () => {
@@ -119,57 +151,29 @@ test("anonymous Dao submissions are rejected through the shared publish endpoint
   assert.equal(res.statusCode, 401);
 });
 
-test("valid Dao submission enters the pool as PENDING_REVIEW and is idempotent", async () => {
-  let stored = { schemaVersion: 1, items: [] };
-  let putCount = 0;
-
-  global.fetch = async (_url, options) => {
-    if (!options || options.method === "GET") {
-      return {
-        ok: true,
-        status: 200,
-        json: async () => ({ sha: "abc", content: Buffer.from(JSON.stringify(stored)).toString("base64") })
-      };
-    }
-
-    putCount += 1;
-    const body = JSON.parse(options.body);
-    stored = JSON.parse(Buffer.from(body.content, "base64").toString("utf8"));
-    return { ok: true, status: 200, json: async () => ({ commit: { sha: "def" } }) };
-  };
+test("valid Dao submission enters the private pool as PENDING_REVIEW and is idempotent", async () => {
+  const store = memoryAdapter();
+  setDaoAdapterForTests(store);
 
   const first = response();
   await publish(postRequest(validBody()), first);
   assert.equal(first.statusCode, 200);
   assert.equal(first.body.dao.status, "PENDING_REVIEW");
-  assert.equal(stored.items.length, 1);
-  assert.equal(stored.items[0].frozen, false);
-  assert.equal(stored.items[0].tongdao.available, false);
-  assert.equal(stored.items[0].questions[6].role, "GOSPEL_RESPONSE");
+  assert.equal(store.items.length, 1);
+  assert.equal(store.items[0].frozen, false);
+  assert.equal(store.items[0].tongdao.available, false);
+  assert.equal(store.items[0].questions[6].role, "GOSPEL_RESPONSE");
 
   const second = response();
   await publish(postRequest(validBody()), second);
   assert.equal(second.statusCode, 200);
   assert.equal(second.body.idempotent, true);
-  assert.equal(putCount, 1);
+  assert.equal(store.items.length, 1);
 });
 
 test("same Dao code cannot silently overwrite different content", async () => {
-  let stored = { schemaVersion: 1, items: [] };
-
-  global.fetch = async (_url, options) => {
-    if (!options || options.method === "GET") {
-      return {
-        ok: true,
-        status: 200,
-        json: async () => ({ sha: "abc", content: Buffer.from(JSON.stringify(stored)).toString("base64") })
-      };
-    }
-
-    const body = JSON.parse(options.body);
-    stored = JSON.parse(Buffer.from(body.content, "base64").toString("utf8"));
-    return { ok: true, status: 200, json: async () => ({ commit: { sha: "def" } }) };
-  };
+  const store = memoryAdapter();
+  setDaoAdapterForTests(store);
 
   const first = response();
   await publish(postRequest(validBody()), first);
@@ -179,7 +183,7 @@ test("same Dao code cannot silently overwrite different content", async () => {
   await publish(postRequest(validBody({ theme: "另一个主题" })), changed);
   assert.equal(changed.statusCode, 409);
   assert.equal(changed.body.reason, "duplicate_dao_code");
-  assert.equal(stored.items.length, 1);
+  assert.equal(store.items.length, 1);
 });
 
 test("public Dao reads hide pending items, while the owner can inspect their own pending pool", async () => {
@@ -202,12 +206,7 @@ test("public Dao reads hide pending items, while the owner can inspect their own
     card: { status: "PENDING", url: "" },
     media: []
   };
-
-  global.fetch = async () => ({
-    ok: true,
-    status: 200,
-    json: async () => ({ sha: "abc", content: Buffer.from(JSON.stringify({ schemaVersion: 1, items: [pending] })).toString("base64") })
-  });
+  setDaoAdapterForTests(memoryAdapter([pending]));
 
   let res = response();
   await read(getRequest(), res);
