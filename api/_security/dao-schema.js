@@ -77,6 +77,26 @@ const BOOKS = [
   ["REV", "启示录", ["启", "Revelation", "Rev"]]
 ];
 
+const BOOK_CHAPTER_COUNTS = {
+  GEN: 50, EXO: 40, LEV: 27, NUM: 36, DEU: 34, JOS: 24, JDG: 21, RUT: 4,
+  "1SA": 31, "2SA": 24, "1KI": 22, "2KI": 25, "1CH": 29, "2CH": 36,
+  EZR: 10, NEH: 13, EST: 10, JOB: 42, PSA: 150, PRO: 31, ECC: 12, SNG: 8,
+  ISA: 66, JER: 52, LAM: 5, EZK: 48, DAN: 12, HOS: 14, JOL: 3, AMO: 9,
+  OBA: 1, JON: 4, MIC: 7, NAM: 3, HAB: 3, ZEP: 3, HAG: 2, ZEC: 14, MAL: 4,
+  MAT: 28, MRK: 16, LUK: 24, JHN: 21, ACT: 28, ROM: 16, "1CO": 16, "2CO": 13,
+  GAL: 6, EPH: 6, PHP: 4, COL: 4, "1TH": 5, "2TH": 3, "1TI": 6, "2TI": 4,
+  TIT: 3, PHM: 1, HEB: 13, JAS: 5, "1PE": 5, "2PE": 3, "1JN": 5,
+  "2JN": 1, "3JN": 1, JUD: 1, REV: 22
+};
+
+const SINGLE_CHAPTER_VERSE_COUNTS = {
+  OBA: 21,
+  PHM: 25,
+  "2JN": 13,
+  "3JN": 14,
+  JUD: 25
+};
+
 const BOOK_ALIASES = buildBookAliases();
 
 function validateDaoSubmission(input) {
@@ -90,17 +110,26 @@ function validateDaoSubmission(input) {
   const unknown = Object.keys(input).find((key) => !allowed.includes(key));
   if (unknown) return fail("unknown_field");
 
-  const scriptureRaw = clean(input.scripture, 160);
+  if (tooLong(input.scripture, 160) || tooLong(input.scriptureText, 12000) ||
+      tooLong(input.translation || "和合本", 80) || tooLong(input.theme, 120) ||
+      tooLong(input.cardIntro, 800) || tooLong(input.story, 12000) ||
+      tooLong(input.highlights, 12000) || tooLong(input.response, 12000) ||
+      tooLong(input.prayer, 12000) || tooLong(input.publicationTimezone || "Asia/Shanghai", 80) ||
+      tooLong(input.publicationLocale || "zh-CN", 40)) {
+    return fail("field_too_long");
+  }
+
+  const scriptureRaw = clean(input.scripture);
   const scripture = parseScriptureReference(scriptureRaw);
   if (!scripture) return fail("invalid_scripture_reference");
 
-  const scriptureText = cleanMultiline(input.scriptureText, 12000);
-  const theme = clean(input.theme, 120);
-  const cardIntro = cleanMultiline(input.cardIntro, 800);
-  const translation = clean(input.translation || "和合本", 80);
+  const scriptureText = cleanMultiline(input.scriptureText);
+  const theme = clean(input.theme);
+  const cardIntro = cleanMultiline(input.cardIntro);
+  const translation = clean(input.translation || "和合本");
   const devotionalDate = normalizeDate(input.devotionalDate);
-  const publicationTimezone = clean(input.publicationTimezone || "Asia/Shanghai", 80);
-  const publicationLocale = clean(input.publicationLocale || "zh-CN", 40);
+  const publicationTimezone = clean(input.publicationTimezone || "Asia/Shanghai");
+  const publicationLocale = clean(input.publicationLocale || "zh-CN");
 
   if (!scriptureText) return fail("scripture_text_required");
   if (!theme) return fail("theme_required");
@@ -109,7 +138,8 @@ function validateDaoSubmission(input) {
   if (!validTimezone(publicationTimezone)) return fail("invalid_timezone");
 
   if (!Array.isArray(input.questions) || input.questions.length !== 7) return fail("seven_questions_required");
-  const questionTexts = input.questions.map((item) => clean(item, 1000));
+  if (input.questions.some((item) => tooLong(item, 1000))) return fail("field_too_long");
+  const questionTexts = input.questions.map((item) => clean(item));
   if (questionTexts.some((item) => !item)) return fail("seven_questions_required");
 
   const questions = questionTexts.map((text, index) => ({
@@ -129,10 +159,10 @@ function validateDaoSubmission(input) {
       theme,
       cardIntro,
       questions,
-      story: cleanMultiline(input.story, 12000),
-      highlights: cleanMultiline(input.highlights, 12000),
-      response: cleanMultiline(input.response, 12000),
-      prayer: cleanMultiline(input.prayer, 12000),
+      story: cleanMultiline(input.story),
+      highlights: cleanMultiline(input.highlights),
+      response: cleanMultiline(input.response),
+      prayer: cleanMultiline(input.prayer),
       devotionalDate,
       publicationTimezone,
       publicationLocale
@@ -154,13 +184,19 @@ function parseScriptureReference(value) {
   const match = tail.match(/^(\d{1,3})(?:\s*:\s*(\d{1,3})(?:\s*-\s*(?:(\d{1,3})\s*:\s*)?(\d{1,3}))?)?$/);
   if (!match) return null;
 
-  const chapterStart = numberInRange(match[1], 1, 150);
-  const verseStart = match[2] ? numberInRange(match[2], 1, 200) : null;
-  const chapterEnd = match[3] ? numberInRange(match[3], 1, 150) : chapterStart;
-  const verseEnd = match[4] ? numberInRange(match[4], 1, 200) : verseStart;
+  const maxChapter = BOOK_CHAPTER_COUNTS[book.code];
+  const chapterStart = numberInRange(match[1], 1, maxChapter);
+  const verseStart = match[2] ? numberInRange(match[2], 1, 176) : null;
+  const chapterEnd = match[3] ? numberInRange(match[3], 1, maxChapter) : chapterStart;
+  const verseEnd = match[4] ? numberInRange(match[4], 1, 176) : verseStart;
   if (!chapterStart || (match[2] && !verseStart) || !chapterEnd || (match[4] && !verseEnd)) return null;
   if (chapterEnd < chapterStart) return null;
   if (chapterEnd === chapterStart && verseStart && verseEnd && verseEnd < verseStart) return null;
+
+  const singleChapterMax = SINGLE_CHAPTER_VERSE_COUNTS[book.code];
+  if (singleChapterMax && ((verseStart && verseStart > singleChapterMax) || (verseEnd && verseEnd > singleChapterMax))) {
+    return null;
+  }
 
   return {
     bookCode: book.code,
@@ -181,8 +217,8 @@ function daoCodeFor(devotionalDate, scripture) {
     versePart += pad(scripture.verseStart, 3);
     if (scripture.chapterEnd !== scripture.chapterStart) {
       versePart += pad(scripture.chapterEnd, 3);
-    }
-    if (scripture.verseEnd && scripture.verseEnd !== scripture.verseStart) {
+      if (scripture.verseEnd) versePart += pad(scripture.verseEnd, 3);
+    } else if (scripture.verseEnd && scripture.verseEnd !== scripture.verseStart) {
       versePart += pad(scripture.verseEnd, 3);
     }
   }
@@ -200,14 +236,16 @@ function buildBookAliases() {
   return result;
 }
 
-function clean(value, max) {
-  const text = String(value || "").trim().replace(/\s+/g, " ");
-  return text.length <= max ? text : text.slice(0, max);
+function tooLong(value, max) {
+  return String(value || "").length > max;
 }
 
-function cleanMultiline(value, max) {
-  const text = String(value || "").trim().replace(/\r\n/g, "\n");
-  return text.length <= max ? text : text.slice(0, max);
+function clean(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function cleanMultiline(value) {
+  return String(value || "").trim().replace(/\r\n/g, "\n");
 }
 
 function normalizeDate(value) {
@@ -242,6 +280,7 @@ function fail(error) {
 }
 
 module.exports = {
+  BOOK_CHAPTER_COUNTS,
   QUESTION_ROLES,
   daoCodeFor,
   parseScriptureReference,
