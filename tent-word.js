@@ -95,31 +95,55 @@
     setPublishing(true);
     if (message) message.textContent = "正在查验，并送入道池……";
 
-    return fetch(publishEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(record)
-    }).then(function (response) {
-      return response.json().catch(function () { return {}; }).then(function (body) {
-        if (!response.ok || body.ok === false) {
-          const error = new Error(body.reason || "publish_failed");
-          error.reason = body.reason || "publish_failed";
-          error.status = response.status;
-          throw error;
-        }
-        return body;
-      });
-    }).then(function (result) {
+    return sendDaoRequest(record).then(function (result) {
       const dao = result.dao || {};
       if (message) {
         message.textContent = "已进入道池，等待查验。" + (dao.daoCode ? " 道号：" + dao.daoCode : "");
       }
+      return result;
     }).catch(function (error) {
       if (message) message.textContent = publishFailureText(error);
     }).finally(function () {
       setPublishing(false);
+    });
+  }
+
+  function sendDaoRequest(record) {
+    return new Promise(function (resolve, reject) {
+      const request = new XMLHttpRequest();
+      request.open("POST", publishEndpoint, true);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.setRequestHeader("Accept", "application/json");
+
+      request.onreadystatechange = function () {
+        if (request.readyState !== XMLHttpRequest.DONE) return;
+
+        let body = {};
+        try {
+          body = JSON.parse(request.responseText || "{}");
+        } catch (error) {
+          body = {};
+        }
+
+        if (request.status >= 200 && request.status < 300 && body.ok !== false) {
+          resolve(body);
+          return;
+        }
+
+        const failure = new Error(body.reason || "publish_failed");
+        failure.reason = body.reason || "publish_failed";
+        failure.status = request.status;
+        reject(failure);
+      };
+
+      request.onerror = function () {
+        const failure = new Error("network_failed");
+        failure.reason = "network_failed";
+        failure.status = 0;
+        reject(failure);
+      };
+
+      request.send(JSON.stringify(record));
     });
   }
 
@@ -130,7 +154,7 @@
       forbidden: "这次提交没有通过安全校验，请重新进入帐篷。",
       rate_limited: "提交得太快了，请稍后再试。",
       publishing_unavailable: "道池暂时无法接收新的内容。",
-      dao_storage_unavailable: "道池的私有存储暂时不可用，请稍后再试。",
+      dao_storage_unavailable: "道池暂时无法写入，请稍后再试。",
       invalid_scripture_reference: "经文出处暂时无法识别，请使用例如“马太福音 7:13-14”的格式。",
       scripture_text_required: "请补全经文内容。",
       theme_required: "请补全本篇主题。",
@@ -141,12 +165,12 @@
       field_too_long: "有一项内容超过当前长度限制，请检查较长的经文、问题、故事、回应或祷告。",
       invalid_request: "这次提交的数据结构异常，请刷新页面后再试。",
       bad_json: "这次提交的数据没有被完整读取，请刷新页面后再试。",
-      unknown_field: "这次提交包含系统尚未识别的字段，请刷新预览页后再试。",
+      unknown_field: "这次提交仍被旧模块加入了不属于“道”的字段，请刷新到最新预览版后再试。",
       invalid_dao: "这次提交的数据结构不完整，请刷新预览页后再试。",
       duplicate_dao_code: "这个日期与经文已经存在一道；正式发布后的内容不可覆盖，请核对后建立新的道。",
       dao_frozen: "这篇道已经查验通过并冻结，不能再以同一道号修改。",
-      commit_conflict: "刚刚有其他内容同时进入道池，请再提交一次。",
-      payload_too_large: "这一道的内容过长，暂时无法送入道池。"
+      payload_too_large: "这一道的内容过长，暂时无法送入道池。",
+      network_failed: "网络没有完成这次提交，请稍后再试。"
     };
 
     if (messages[reason]) return messages[reason];
