@@ -1,14 +1,148 @@
 /*
- * Tongdao real-time clock fix.
- * Mobile browsers may pause setInterval while the screen is locked or the
- * page is backgrounded. Timers below are derived from wall-clock timestamps
- * so they catch up immediately when the page becomes active again.
+ * Tongdao real-time clock + mobile audio recovery fix.
+ * Mobile browsers may pause timers and interrupt Web Audio while the screen is
+ * locked or the page is backgrounded. Time is derived from wall-clock values,
+ * and the warmup audio engine is resumed/rebuilt when the page becomes active.
  */
 
 (function installTongdaoRealTimeClocks() {
   const WARMUP_BEAT_MS = 500;
   const WARMUP_ROUNDS_PER_PART = 4;
   const WARMUP_BEATS_PER_ROUND = 8;
+
+  function getAudioContextConstructor() {
+    return window.AudioContext || window.webkitAudioContext || null;
+  }
+
+  function createAudioContext() {
+    const AudioContext = getAudioContextConstructor();
+    if (!AudioContext) return null;
+
+    try {
+      const context = new AudioContext({ latencyHint: "interactive" });
+      state.audioContext = context;
+      return context;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async function resumeAudioContext(context) {
+    if (!context || context.state === "closed") return null;
+
+    if (context.state !== "running") {
+      try {
+        await context.resume();
+      } catch (error) {
+        return null;
+      }
+    }
+
+    return context.state === "running" ? context : null;
+  }
+
+  async function rebuildAudioContext() {
+    const previous = state.audioContext;
+    state.audioContext = null;
+
+    if (previous && previous.state !== "closed") {
+      try {
+        await previous.close();
+      } catch (error) {
+        // Some mobile browsers refuse to close an interrupted context.
+      }
+    }
+
+    const replacement = createAudioContext();
+    return resumeAudioContext(replacement);
+  }
+
+  async function recoverAudioContext({ rebuildIfNeeded = true } = {}) {
+    if (document.hidden) return null;
+
+    if (state.audioRecoveryPromise) {
+      return state.audioRecoveryPromise;
+    }
+
+    state.audioRecoveryPromise = (async () => {
+      let context = state.audioContext;
+      if (!context || context.state === "closed") {
+        context = createAudioContext();
+      }
+
+      let ready = await resumeAudioContext(context);
+      if (!ready && rebuildIfNeeded) {
+        ready = await rebuildAudioContext();
+      }
+
+      return ready;
+    })();
+
+    try {
+      return await state.audioRecoveryPromise;
+    } finally {
+      state.audioRecoveryPromise = null;
+    }
+  }
+
+  function emitTone(context, { frequency, volume, duration = 0.09, endFrequency = null }) {
+    if (!context || context.state !== "running") return false;
+
+    try {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const now = context.currentTime;
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, now);
+      if (endFrequency) {
+        oscillator.frequency.exponentialRampToValueAtTime(endFrequency, now + Math.min(0.05, duration));
+      }
+
+      gain.gain.setValueAtTime(Math.max(0.001, volume), now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(now);
+      oscillator.stop(now + duration + 0.01);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function scheduleTone(options) {
+    if (document.hidden) return;
+
+    const context = state.audioContext;
+    if (context && context.state === "running" && emitTone(context, options)) {
+      return;
+    }
+
+    recoverAudioContext().then((readyContext) => {
+      if (!document.hidden && readyContext) {
+        emitTone(readyContext, options);
+      }
+    });
+  }
+
+  playBeat = function playBeatWithRecovery(strong) {
+    scheduleTone({
+      frequency: strong ? 760 : 560,
+      volume: strong ? 0.12 : 0.06,
+      duration: 0.08
+    });
+  };
+
+  playChime = function playChimeWithRecovery() {
+    scheduleTone({
+      frequency: 980,
+      endFrequency: 1320,
+      volume: 0.16,
+      duration: 0.22
+    });
+  };
 
   function syncActiveClocks() {
     if (typeof state.timerSync === "function") {
@@ -17,6 +151,27 @@
     if (typeof state.warmupSync === "function") {
       state.warmupSync();
     }
+  }
+
+  function recoverWarmupAudio() {
+    if (document.hidden || !state.warmupStarted || !state.warmupStartedAt) return;
+
+    recoverAudioContext().then((context) => {
+      if (!context || document.hidden || !state.warmupStarted || !state.warmupStartedAt) return;
+
+      // A nearly silent probe forces the restored output path to become active
+      // without adding an extra audible beep at an arbitrary point in the beat.
+      emitTone(context, {
+        frequency: 440,
+        volume: 0.001,
+        duration: 0.025
+      });
+    });
+  }
+
+  function restoreFromForeground() {
+    syncActiveClocks();
+    recoverWarmupAudio();
   }
 
   startTimer = function startTimerRealTime(seconds, onDone) {
@@ -65,6 +220,10 @@
     state.warmupPartIndex = 0;
     state.warmupRound = 1;
     state.warmupBeat = 1;
+
+    // startWarmup is called from a user tap, so prime Web Audio here while the
+    // browser still has a user activation. This greatly improves iOS recovery.
+    recoverAudioContext({ rebuildIfNeeded: true });
 
     const button = screen.querySelector('[data-action="primary"]');
     if (button) button.disabled = true;
@@ -121,7 +280,20 @@
     state.warmupSync = null;
   };
 
-  document.addEventListener("visibilitychange", syncActiveClocks);
-  window.addEventListener("pageshow", syncActiveClocks);
-  window.addEventListener("focus", syncActiveClocks);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) restoreFromForeground();
+  });
+  window.addEventListener("pageshow", restoreFromForeground);
+  window.addEventListener("focus", restoreFromForeground);
+
+  // If a particular mobile browser still insists on a fresh gesture after an
+  // interruption, the user's first normal touch restores audio silently. No
+  // extra recovery button or restart is required.
+  ["pointerdown", "touchend", "keydown"].forEach((eventName) => {
+    window.addEventListener(eventName, () => {
+      if (!document.hidden && state.warmupStarted && state.warmupStartedAt) {
+        recoverAudioContext({ rebuildIfNeeded: true });
+      }
+    }, { passive: true });
+  });
 })();
