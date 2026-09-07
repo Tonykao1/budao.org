@@ -14,12 +14,12 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/ht
 const { clientIp, consume } = require("./_security/rate-limit");
 const { validateRoute } = require("./_security/route-schema");
 const { isManagedRouteImageUrl } = require("./_security/route-image");
-const { handleDaoSubmission } = require("./_security/dao-store");
+const { handleDaoReview, handleDaoSubmission } = require("./_security/dao-store");
 
 module.exports = async function handler(request, response) {
-  if (request.query && String(request.query.kind || "").toLowerCase() === "dao") {
-    return handleDaoSubmission(request, response);
-  }
+  const kind = request.query && String(request.query.kind || "").toLowerCase();
+  if (kind === "dao") return handleDaoSubmission(request, response);
+  if (kind === "dao-review") return handleDaoReview(request, response);
 
   const parsed = requireJsonPost(request);
   if (parsed.error) return sendJson(response, parsed.status, { ok: false, reason: parsed.error });
@@ -83,7 +83,6 @@ module.exports = async function handler(request, response) {
 
     current.routes.forEach(function (item) {
       const itemSlot = normalizeSlot(item.slot || slotForOwner(item.owner));
-
       if (fixedSlots.indexOf(itemSlot) >= 0 && !routesBySlot[itemSlot]) {
         routesBySlot[itemSlot] = normalizeRoute({
           ...item,
