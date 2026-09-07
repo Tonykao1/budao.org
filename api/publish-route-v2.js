@@ -14,8 +14,13 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/ht
 const { clientIp, consume } = require("./_security/rate-limit");
 const { validateRoute } = require("./_security/route-schema");
 const { isManagedRouteImageUrl } = require("./_security/route-image");
+const { handleDaoSubmission } = require("./_security/dao-store");
 
 module.exports = async function handler(request, response) {
+  if (request.query && String(request.query.kind || "").toLowerCase() === "dao") {
+    return handleDaoSubmission(request, response);
+  }
+
   const parsed = requireJsonPost(request);
   if (parsed.error) return sendJson(response, parsed.status, { ok: false, reason: parsed.error });
   if (!requireSameOrigin(request)) return sendJson(response, 403, { ok: false, reason: "forbidden" });
