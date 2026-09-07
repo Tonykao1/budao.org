@@ -130,6 +130,7 @@
       forbidden: "这次提交没有通过安全校验，请重新进入帐篷。",
       rate_limited: "提交得太快了，请稍后再试。",
       publishing_unavailable: "道池暂时无法接收新的内容。",
+      dao_storage_unavailable: "道池的私有存储暂时不可用，请稍后再试。",
       invalid_scripture_reference: "经文出处暂时无法识别，请使用例如“马太福音 7:13-14”的格式。",
       scripture_text_required: "请补全经文内容。",
       theme_required: "请补全本篇主题。",
@@ -137,12 +138,21 @@
       seven_questions_required: "七问必须全部完成后才能进入道池。",
       invalid_devotional_date: "请确认灵修日期。",
       invalid_timezone: "当前时区无法识别，请刷新页面后再试。",
+      field_too_long: "有一项内容超过当前长度限制，请检查较长的经文、问题、故事、回应或祷告。",
+      invalid_request: "这次提交的数据结构异常，请刷新页面后再试。",
+      bad_json: "这次提交的数据没有被完整读取，请刷新页面后再试。",
+      unknown_field: "这次提交包含系统尚未识别的字段，请刷新预览页后再试。",
+      invalid_dao: "这次提交的数据结构不完整，请刷新预览页后再试。",
       duplicate_dao_code: "这个日期与经文已经存在一道；正式发布后的内容不可覆盖，请核对后建立新的道。",
+      dao_frozen: "这篇道已经查验通过并冻结，不能再以同一道号修改。",
       commit_conflict: "刚刚有其他内容同时进入道池，请再提交一次。",
       payload_too_large: "这一道的内容过长，暂时无法送入道池。"
     };
 
-    return messages[reason] || "这一道暂时没有进入道池，请稍后再试。";
+    if (messages[reason]) return messages[reason];
+    return reason
+      ? "这一道暂时没有进入道池。错误码：" + reason + "。"
+      : "这一道暂时没有进入道池，请稍后再试。";
   }
 
   function setPublishing(publishing) {
