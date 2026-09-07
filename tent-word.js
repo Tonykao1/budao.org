@@ -4,8 +4,8 @@
   const publishButton = document.querySelector(".word-send");
   const storageKey = "budao.tent.word";
   const publishEndpoint = window.location.protocol === "file:" ?
-    "https://budao.org/api/publish-dao" :
-    "/api/publish-dao";
+    "https://budao.org/api/publish-route-v2?kind=dao" :
+    "/api/publish-route-v2?kind=dao";
 
   if (!form) {
     return;
