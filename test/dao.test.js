@@ -235,7 +235,7 @@ test("public Dao reads hide pending items, while the owner can inspect their own
   assert.equal(res.body.items[0].status, "PENDING_REVIEW");
 });
 
-test("review queue is reviewer-only", async () => {
+test("review queue requires authentication and allows IMS by default", async () => {
   const store = memoryAdapter();
   setDaoAdapterForTests(store);
   await publish(postRequest(validBody()), response());
@@ -245,15 +245,19 @@ test("review queue is reviewer-only", async () => {
   assert.equal(res.statusCode, 401);
 
   res = response();
-  await read(getReviewRequest({}, signedPublisherCookie("publisher-ims", "IMS")), res);
+  await read(getReviewRequest({}, signedPublisherCookie("publisher-bacbc", "BACBC")), res);
   assert.equal(res.statusCode, 403);
   assert.equal(res.body.reason, "reviewer_required");
 
   res = response();
-  await read(getReviewRequest(), res);
+  await read(getReviewRequest({}, signedPublisherCookie("publisher-ims", "IMS")), res);
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.count, 1);
   assert.equal(res.body.items[0].questions[0].role, "OPEN");
+
+  res = response();
+  await read(getReviewRequest(), res);
+  assert.equal(res.statusCode, 200);
 });
 
 test("reviewer approval publishes, freezes, and makes Dao available to Tongdao", async () => {
