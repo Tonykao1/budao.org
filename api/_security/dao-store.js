@@ -1,15 +1,15 @@
 const crypto = require("node:crypto");
+const { eq } = require("drizzle-orm");
 
-const owner = process.env.GITHUB_OWNER || "Tonykao1";
-const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = process.env.GITHUB_DAO_BRANCH || process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH || "main";
-const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-const daoPath = "data/dao.json";
-
+const { getDb } = require("../../db/client");
+const { daoRecords } = require("../../db/schema");
 const { getAuthenticatedPublisher } = require("./auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./http");
 const { clientIp, consume } = require("./rate-limit");
 const { daoCodeFor, validateDaoSubmission } = require("./dao-schema");
+
+let daoTableReady;
+let testAdapter;
 
 async function handleDaoSubmission(request, response) {
   const parsed = requireJsonPost(request, 64 * 1024);
@@ -21,18 +21,17 @@ async function handleDaoSubmission(request, response) {
   if (!consume("dao-publish:" + publisher.id + ":" + clientIp(request), 8, 60_000)) {
     return sendJson(response, 429, { ok: false, reason: "rate_limited" });
   }
-  if (!token) return sendJson(response, 503, { ok: false, reason: "publishing_unavailable" });
 
   const validated = validateDaoSubmission(parsed.body);
   if (validated.error) return sendJson(response, 400, { ok: false, reason: validated.error });
 
   try {
-    const current = await readDaoFile();
     const now = new Date().toISOString();
     const value = validated.value;
     const daoCode = daoCodeFor(value.devotionalDate, value.scripture);
     const publisherProfile = resolvePublisherProfile(publisher);
-    const existing = current.data.items.find((item) => item && item.daoCode === daoCode);
+    const adapter = getDaoAdapter();
+    const existing = await adapter.findByCode(daoCode);
 
     const candidate = {
       id: crypto.randomUUID(),
@@ -65,6 +64,7 @@ async function handleDaoSubmission(request, response) {
           "authenticated_publisher",
           "same_origin",
           "known_bible_reference",
+          "scripture_bounds_valid",
           "scripture_text_present",
           "theme_present",
           "card_intro_present",
@@ -97,44 +97,35 @@ async function handleDaoSubmission(request, response) {
         return sendJson(response, 200, {
           ok: true,
           idempotent: true,
-          dao: publicSubmissionReceipt(existing),
-          commit: null
+          dao: publicSubmissionReceipt(existing)
         });
       }
 
       return sendJson(response, 409, { ok: false, reason: "duplicate_dao_code" });
     }
 
-    const next = {
-      schemaVersion: 1,
-      items: [candidate].concat(current.data.items)
-    };
-    const commit = await writeDaoFile({
-      content: JSON.stringify(next, null, 2) + "\n",
-      message: "Submit Dao: " + daoCode,
-      sha: current.sha
-    });
+    await adapter.insert(candidate);
 
     return sendJson(response, 200, {
       ok: true,
       idempotent: false,
-      dao: publicSubmissionReceipt(candidate),
-      commit: commit.commit && commit.commit.sha ? commit.commit.sha : null
+      dao: publicSubmissionReceipt(candidate)
     });
   } catch (error) {
-    if (error.reason) return sendJson(response, error.status || 500, { ok: false, reason: error.reason });
-    return sendJson(response, 500, { ok: false, reason: "network_failed" });
+    if (isUniqueViolation(error)) return sendJson(response, 409, { ok: false, reason: "duplicate_dao_code" });
+    if (error && error.reason) return sendJson(response, error.status || 500, { ok: false, reason: error.reason });
+    return sendJson(response, 503, { ok: false, reason: "dao_storage_unavailable" });
   }
 }
 
 async function handleDaoRead(request, response) {
   try {
-    const current = await readDaoFile();
     const publisher = getAuthenticatedPublisher(request);
     const query = request.query || {};
     const includeMine = String(query.mine || "") === "1" && publisher;
+    let items = await getDaoAdapter().list();
 
-    let items = current.data.items.filter((item) => item && (
+    items = items.filter((item) => item && (
       item.status === "PUBLISHED" ||
       (includeMine && item.publisher && item.publisher.id === publisher.id)
     ));
@@ -175,48 +166,105 @@ async function handleDaoRead(request, response) {
       items: items.map(publicDao)
     });
   } catch (error) {
-    return sendJson(response, error.status || 500, { ok: false, reason: error.reason || "network_failed" });
+    return sendJson(response, 503, { ok: false, reason: "dao_storage_unavailable" });
   }
 }
 
-async function readDaoFile() {
-  const result = await githubFetch(contentsUrl(), { method: "GET" });
+function getDaoAdapter() {
+  if (testAdapter) return testAdapter;
 
-  if (result.status === 404) {
-    return { data: { schemaVersion: 1, items: [] }, sha: null };
-  }
-  if (result.status === 401 || result.status === 403) throw knownError("token_invalid", 401);
-  if (!result.ok) throw knownError("network_failed", result.status);
+  return {
+    async findByCode(daoCode) {
+      const db = await readyDatabase();
+      const rows = await db.select().from(daoRecords).where(eq(daoRecords.daoCode, daoCode)).limit(1);
+      return rows.length ? hydrateDaoRow(rows[0]) : null;
+    },
 
-  const file = await result.json();
-  const text = Buffer.from(file.content || "", "base64").toString("utf8");
+    async insert(item) {
+      const db = await readyDatabase();
+      await db.insert(daoRecords).values({
+        id: item.id,
+        daoCode: item.daoCode,
+        status: item.status,
+        frozen: item.frozen,
+        publisherId: item.publisher.id,
+        publisherSlot: item.publisher.slot,
+        publisherName: item.publisher.name || "",
+        devotionalDate: item.devotionalDate,
+        bookCode: item.scripture.bookCode,
+        chapterStart: item.scripture.chapterStart,
+        chapterEnd: item.scripture.chapterEnd,
+        payload: item,
+        submittedAt: new Date(item.submittedAt),
+        publishedAt: null,
+        updatedAt: new Date(item.submittedAt)
+      });
+    },
 
-  try {
-    const data = JSON.parse(text || "{}");
-    if (!data || !Array.isArray(data.items)) throw new Error("dao_items_not_array");
-    return { data, sha: file.sha };
-  } catch (error) {
-    throw knownError("json_conflict", 409);
-  }
-}
-
-async function writeDaoFile({ content, message, sha }) {
-  const body = {
-    message,
-    content: Buffer.from(content, "utf8").toString("base64"),
-    branch
+    async list() {
+      const db = await readyDatabase();
+      const rows = await db.select().from(daoRecords);
+      return rows.map(hydrateDaoRow);
+    }
   };
-  if (sha) body.sha = sha;
+}
 
-  const result = await githubFetch(contentsUrl(), {
-    method: "PUT",
-    body: JSON.stringify(body)
-  });
+async function readyDatabase() {
+  const db = getDb();
+  if (!daoTableReady) {
+    daoTableReady = ensureDaoTable(db).catch((error) => {
+      daoTableReady = undefined;
+      throw error;
+    });
+  }
+  await daoTableReady;
+  return db;
+}
 
-  if (result.status === 401 || result.status === 403) throw knownError("token_invalid", 401);
-  if (result.status === 409 || result.status === 422) throw knownError("commit_conflict", 409);
-  if (!result.ok) throw knownError("network_failed", result.status);
-  return result.json();
+async function ensureDaoTable(db) {
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS dao_records (
+      id uuid PRIMARY KEY NOT NULL,
+      dao_code text NOT NULL UNIQUE,
+      status text DEFAULT 'PENDING_REVIEW' NOT NULL,
+      frozen boolean DEFAULT false NOT NULL,
+      publisher_id text NOT NULL,
+      publisher_slot text NOT NULL,
+      publisher_name text DEFAULT '' NOT NULL,
+      devotional_date text NOT NULL,
+      book_code text NOT NULL,
+      chapter_start integer NOT NULL,
+      chapter_end integer NOT NULL,
+      payload jsonb NOT NULL,
+      submitted_at timestamp with time zone DEFAULT now() NOT NULL,
+      published_at timestamp with time zone,
+      updated_at timestamp with time zone DEFAULT now() NOT NULL
+    )
+  `);
+  await db.execute("CREATE UNIQUE INDEX IF NOT EXISTS dao_records_dao_code_uq ON dao_records (dao_code)");
+  await db.execute("CREATE INDEX IF NOT EXISTS dao_records_status_idx ON dao_records (status)");
+  await db.execute("CREATE INDEX IF NOT EXISTS dao_records_publisher_id_idx ON dao_records (publisher_id)");
+  await db.execute("CREATE INDEX IF NOT EXISTS dao_records_scripture_idx ON dao_records (book_code, chapter_start, chapter_end)");
+}
+
+function hydrateDaoRow(row) {
+  const payload = row && row.payload && typeof row.payload === "object" ? row.payload : {};
+  return {
+    ...payload,
+    id: row.id || payload.id,
+    daoCode: row.daoCode || payload.daoCode,
+    status: row.status || payload.status,
+    frozen: Boolean(row.frozen),
+    devotionalDate: row.devotionalDate || payload.devotionalDate,
+    submittedAt: dateString(row.submittedAt) || payload.submittedAt,
+    publishedAt: dateString(row.publishedAt) || payload.publishedAt || null,
+    publisher: {
+      ...(payload.publisher || {}),
+      id: row.publisherId || payload.publisher && payload.publisher.id || "",
+      slot: row.publisherSlot || payload.publisher && payload.publisher.slot || "",
+      name: row.publisherName || payload.publisher && payload.publisher.name || ""
+    }
+  };
 }
 
 function resolvePublisherProfile(publisher) {
@@ -308,37 +356,27 @@ function searchableText(item) {
   ].join(" "));
 }
 
+function dateString(value) {
+  if (!value) return "";
+  if (value instanceof Date) return value.toISOString();
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toISOString();
+}
+
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function githubFetch(url, options) {
-  const headers = {
-    Accept: "application/vnd.github+json",
-    "Content-Type": "application/json",
-    "User-Agent": "budao-dao-store",
-    "X-GitHub-Api-Version": "2022-11-28"
-  };
-  if (token) headers.Authorization = "Bearer " + token;
-
-  return fetch(url, {
-    ...options,
-    headers
-  });
+function isUniqueViolation(error) {
+  return Boolean(error && (error.code === "23505" || String(error.message || "").includes("dao_records_dao_code")));
 }
 
-function contentsUrl() {
-  return "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" + daoPath + "?ref=" + branch;
-}
-
-function knownError(reason, status) {
-  const error = new Error(reason);
-  error.reason = reason;
-  error.status = status;
-  return error;
+function setDaoAdapterForTests(adapter) {
+  testAdapter = adapter || undefined;
 }
 
 module.exports = {
   handleDaoRead,
-  handleDaoSubmission
+  handleDaoSubmission,
+  setDaoAdapterForTests
 };
