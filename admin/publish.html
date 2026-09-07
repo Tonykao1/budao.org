@@ -14,7 +14,11 @@
         <p class="eyebrow">BUDAO · DAO STEWARDSHIP</p>
         <h1>道 · 查验</h1>
       </div>
-      <button class="quiet-button" type="button" id="refreshButton">刷新</button>
+      <div class="review-header-actions">
+        <button class="quiet-button" type="button" id="backTentButton">返回帐篷</button>
+        <button class="quiet-button" type="button" id="switchAccountButton">登录 / 切换账号</button>
+        <button class="quiet-button" type="button" id="refreshButton">刷新</button>
+      </div>
     </header>
 
     <section class="boundary-note" aria-label="查验边界">
@@ -37,6 +41,8 @@
   const list = document.getElementById('reviewList');
   const statusLine = document.getElementById('reviewStatus');
   const refreshButton = document.getElementById('refreshButton');
+  const backTentButton = document.getElementById('backTentButton');
+  const switchAccountButton = document.getElementById('switchAccountButton');
   const tabs = Array.from(document.querySelectorAll('.review-tab'));
   let currentStatus = 'PENDING_REVIEW';
 
@@ -170,8 +176,8 @@
       await loadQueue();
     } catch (error) {
       const messages = {
-        unauthorized: '登录已经失效，请重新进入帐篷。',
-        reviewer_required: '当前账号没有查验权限。',
+        unauthorized: '未登录，或登录已经失效。请使用“登录 / 切换账号”重新进入帐篷。',
+        reviewer_required: '已登录，但当前账号没有查验权限。',
         dao_not_found: '这篇“道”已经不存在，请刷新。',
         dao_not_pending: '状态已经改变，请刷新后重新确认。',
         return_notes_required: '退回修改必须留下具体说明。',
@@ -206,12 +212,26 @@
       });
     } catch (error) {
       const messages = {
-        unauthorized: '请先使用帐篷账号登录。',
-        reviewer_required: '当前账号没有查验权限。',
+        unauthorized: '未登录，或登录已经失效。请使用“登录 / 切换账号”进入帐篷。',
+        reviewer_required: '已登录，但当前账号没有查验权限。',
         dao_storage_unavailable: '私有道池暂时无法连接。'
       };
       statusLine.textContent = messages[error.message] || '暂时无法读取查验队列。';
     }
+  }
+
+  async function switchAccount() {
+    switchAccountButton.disabled = true;
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+    } catch (error) {
+      // Even if logout cannot complete, Tent remains the single login entry point.
+    }
+    window.location.href = '/tent.html';
   }
 
   tabs.forEach(function (tab) {
@@ -223,6 +243,8 @@
   });
 
   refreshButton.addEventListener('click', loadQueue);
+  backTentButton.addEventListener('click', function () { window.location.href = '/tent.html'; });
+  switchAccountButton.addEventListener('click', switchAccount);
   loadQueue();
 }());
 </script>
