@@ -1,3 +1,5 @@
+const { verseCountFor } = require("./bible-verse-counts");
+
 const QUESTION_ROLES = [
   "OPEN",
   "EXPERIENCE",
@@ -87,14 +89,6 @@ const BOOK_CHAPTER_COUNTS = {
   GAL: 6, EPH: 6, PHP: 4, COL: 4, "1TH": 5, "2TH": 3, "1TI": 6, "2TI": 4,
   TIT: 3, PHM: 1, HEB: 13, JAS: 5, "1PE": 5, "2PE": 3, "1JN": 5,
   "2JN": 1, "3JN": 1, JUD: 1, REV: 22
-};
-
-const SINGLE_CHAPTER_VERSE_COUNTS = {
-  OBA: 21,
-  PHM: 25,
-  "2JN": 13,
-  "3JN": 14,
-  JUD: 25
 };
 
 const BOOK_ALIASES = buildBookAliases();
@@ -193,10 +187,11 @@ function parseScriptureReference(value) {
   if (chapterEnd < chapterStart) return null;
   if (chapterEnd === chapterStart && verseStart && verseEnd && verseEnd < verseStart) return null;
 
-  const singleChapterMax = SINGLE_CHAPTER_VERSE_COUNTS[book.code];
-  if (singleChapterMax && ((verseStart && verseStart > singleChapterMax) || (verseEnd && verseEnd > singleChapterMax))) {
-    return null;
-  }
+  const startChapterVerseCount = verseCountFor(book.code, chapterStart);
+  const endChapterVerseCount = verseCountFor(book.code, chapterEnd);
+  if (!startChapterVerseCount || !endChapterVerseCount) return null;
+  if (verseStart && verseStart > startChapterVerseCount) return null;
+  if (verseEnd && verseEnd > endChapterVerseCount) return null;
 
   return {
     bookCode: book.code,
