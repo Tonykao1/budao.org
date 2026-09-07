@@ -4,6 +4,7 @@ const test = require("node:test");
 
 process.env.NODE_ENV = "test";
 process.env.BUDAO_SESSION_SECRET = "test-only-session-secret-at-least-32-bytes";
+process.env.STEWARDSHIP_OPERATOR_USER_ID = "publisher-reviewer";
 
 const { QUESTION_ROLES, daoCodeFor, validateDaoSubmission } = require("../api/_security/dao-schema");
 const { setDaoAdapterForTests } = require("../api/_security/dao-store");
@@ -39,10 +40,33 @@ function postRequest(body, cookie = signedPublisherCookie()) {
   };
 }
 
+function reviewRequest(body, cookie = signedPublisherCookie("publisher-reviewer", "IMS")) {
+  return {
+    method: "POST",
+    body,
+    query: { kind: "dao-review" },
+    headers: {
+      "content-type": "application/json",
+      origin: "https://budao.test",
+      host: "budao.test",
+      cookie,
+      "x-forwarded-for": "192.0.2.43"
+    }
+  };
+}
+
 function getRequest(query = {}, cookie = "") {
   return {
     method: "GET",
     query: { kind: "dao", ...query },
+    headers: cookie ? { cookie } : {}
+  };
+}
+
+function getReviewRequest(query = {}, cookie = signedPublisherCookie("publisher-reviewer", "IMS")) {
+  return {
+    method: "GET",
+    query: { kind: "dao-review", ...query },
     headers: cookie ? { cookie } : {}
   };
 }
@@ -95,6 +119,14 @@ function memoryAdapter(initialItems = []) {
     },
     async insert(item) {
       items.push(item);
+    },
+    async replaceReturned(item) {
+      const index = items.findIndex((candidate) => candidate.daoCode === item.daoCode);
+      if (index >= 0) items[index] = item;
+    },
+    async updateReview(item) {
+      const index = items.findIndex((candidate) => candidate.daoCode === item.daoCode);
+      if (index >= 0) items[index] = item;
     },
     async list() {
       return items.slice();
@@ -171,7 +203,7 @@ test("valid Dao submission enters the private pool as PENDING_REVIEW and is idem
   assert.equal(store.items.length, 1);
 });
 
-test("same Dao code cannot silently overwrite different content", async () => {
+test("same pending Dao code cannot silently overwrite different content", async () => {
   const store = memoryAdapter();
   setDaoAdapterForTests(store);
 
@@ -187,26 +219,9 @@ test("same Dao code cannot silently overwrite different content", async () => {
 });
 
 test("public Dao reads hide pending items, while the owner can inspect their own pending pool", async () => {
-  const pending = {
-    id: "dao-test",
-    daoCode: "BD20260907MAT007013014",
-    status: "PENDING_REVIEW",
-    frozen: false,
-    publisher: { id: "publisher-ims", slot: "IMS", name: "Tony" },
-    scripture: { bookCode: "MAT", bookName: "马太福音", chapterStart: 7, chapterEnd: 7, referenceDisplay: "马太福音 7:13-14", text: "text" },
-    theme: "窄门",
-    cardIntro: "intro",
-    questions: [],
-    story: "",
-    highlights: "",
-    response: "",
-    prayer: "",
-    tags: { themes: [], seasons: [], terrains: [] },
-    tongdao: { available: false },
-    card: { status: "PENDING", url: "" },
-    media: []
-  };
-  setDaoAdapterForTests(memoryAdapter([pending]));
+  const store = memoryAdapter();
+  setDaoAdapterForTests(store);
+  await publish(postRequest(validBody()), response());
 
   let res = response();
   await read(getRequest(), res);
@@ -217,5 +232,89 @@ test("public Dao reads hide pending items, while the owner can inspect their own
   await read(getRequest({ mine: "1" }, signedPublisherCookie()), res);
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.count, 1);
-  assert.equal(res.body.items[0].daoCode, pending.daoCode);
+  assert.equal(res.body.items[0].status, "PENDING_REVIEW");
+});
+
+test("review queue is reviewer-only", async () => {
+  const store = memoryAdapter();
+  setDaoAdapterForTests(store);
+  await publish(postRequest(validBody()), response());
+
+  let res = response();
+  await read(getReviewRequest({}, ""), res);
+  assert.equal(res.statusCode, 401);
+
+  res = response();
+  await read(getReviewRequest({}, signedPublisherCookie("publisher-ims", "IMS")), res);
+  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.reason, "reviewer_required");
+
+  res = response();
+  await read(getReviewRequest(), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.count, 1);
+  assert.equal(res.body.items[0].questions[0].role, "OPEN");
+});
+
+test("reviewer approval publishes, freezes, and makes Dao available to Tongdao", async () => {
+  const store = memoryAdapter();
+  setDaoAdapterForTests(store);
+  await publish(postRequest(validBody()), response());
+  const daoCode = store.items[0].daoCode;
+
+  const approved = response();
+  await publish(reviewRequest({ daoCode, action: "APPROVE", notes: "结构与经文边界已查验。" }), approved);
+  assert.equal(approved.statusCode, 200);
+  assert.equal(approved.body.dao.status, "PUBLISHED");
+  assert.equal(approved.body.dao.frozen, true);
+  assert.equal(store.items[0].review.decision, "APPROVED");
+  assert.equal(store.items[0].tongdao.available, true);
+
+  const publicRead = response();
+  await read(getRequest({ code: daoCode }), publicRead);
+  assert.equal(publicRead.statusCode, 200);
+  assert.equal(publicRead.body.count, 1);
+  assert.equal(publicRead.body.items[0].frozen, true);
+});
+
+test("a frozen published Dao cannot be overwritten", async () => {
+  const store = memoryAdapter();
+  setDaoAdapterForTests(store);
+  await publish(postRequest(validBody()), response());
+  const daoCode = store.items[0].daoCode;
+  await publish(reviewRequest({ daoCode, action: "APPROVE", notes: "" }), response());
+
+  const changed = response();
+  await publish(postRequest(validBody({ theme: "冻结之后的新主题" })), changed);
+  assert.equal(changed.statusCode, 409);
+  assert.equal(changed.body.reason, "dao_frozen");
+  assert.equal(store.items[0].theme, "窄门");
+});
+
+test("return requires notes, and returned Dao can be revised under the same code", async () => {
+  const store = memoryAdapter();
+  setDaoAdapterForTests(store);
+  await publish(postRequest(validBody()), response());
+  const daoCode = store.items[0].daoCode;
+
+  let returned = response();
+  await publish(reviewRequest({ daoCode, action: "RETURN", notes: "" }), returned);
+  assert.equal(returned.statusCode, 400);
+  assert.equal(returned.body.reason, "return_notes_required");
+
+  returned = response();
+  await publish(reviewRequest({ daoCode, action: "RETURN", notes: "Q5 与经文门槛之间需要重新查验。" }), returned);
+  assert.equal(returned.statusCode, 200);
+  assert.equal(store.items[0].status, "RETURNED");
+  assert.equal(store.items[0].frozen, false);
+  assert.equal(store.items[0].review.decision, "RETURNED");
+  assert.equal(store.items[0].tongdao.available, false);
+
+  const revised = response();
+  await publish(postRequest(validBody({ theme: "窄门 · 修订" })), revised);
+  assert.equal(revised.statusCode, 200);
+  assert.equal(revised.body.resubmitted, true);
+  assert.equal(store.items[0].status, "PENDING_REVIEW");
+  assert.equal(store.items[0].theme, "窄门 · 修订");
+  assert.equal(store.items[0].review.decision, "PENDING");
 });
