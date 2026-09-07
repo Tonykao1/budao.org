@@ -33,67 +33,31 @@ async function handleDaoSubmission(request, response) {
     const adapter = getDaoAdapter();
     const existing = await adapter.findByCode(daoCode);
 
-    const candidate = {
-      id: crypto.randomUUID(),
+    const candidate = buildPendingCandidate({
+      id: existing && existing.id ? existing.id : crypto.randomUUID(),
       daoCode,
-      status: "PENDING_REVIEW",
-      frozen: false,
-      devotionalDate: value.devotionalDate,
-      submittedAt: now,
-      publishedAt: null,
-      publicationTimezone: value.publicationTimezone,
-      publicationLocale: value.publicationLocale,
-      publisher: publisherProfile,
-      scripture: value.scripture,
-      theme: value.theme,
-      cardIntro: value.cardIntro,
-      questions: value.questions,
-      story: value.story,
-      highlights: value.highlights,
-      response: value.response,
-      prayer: value.prayer,
-      tags: {
-        themes: [],
-        seasons: [],
-        terrains: []
-      },
-      preflight: {
-        passed: true,
-        checkedAt: now,
-        checks: [
-          "authenticated_publisher",
-          "same_origin",
-          "known_bible_reference",
-          "scripture_bounds_valid",
-          "scripture_text_present",
-          "theme_present",
-          "card_intro_present",
-          "seven_questions_present",
-          "question_roles_attached",
-          "devotional_date_valid",
-          "publication_timezone_valid",
-          "unique_dao_code"
-        ]
-      },
-      review: {
-        reviewerId: "",
-        reviewerName: "",
-        reviewedAt: null,
-        decision: "PENDING",
-        notes: ""
-      },
-      tongdao: {
-        available: false
-      },
-      card: {
-        status: "PENDING",
-        url: ""
-      },
-      media: []
-    };
+      now,
+      value,
+      publisherProfile
+    });
 
     if (existing) {
-      if (sameSubmission(existing, candidate) && existing.publisher && existing.publisher.id === publisher.id) {
+      if (!existing.publisher || existing.publisher.id !== publisher.id) {
+        return sendJson(response, 409, { ok: false, reason: "duplicate_dao_code" });
+      }
+
+      if (existing.status === "PUBLISHED" || existing.frozen) {
+        if (sameSubmission(existing, candidate)) {
+          return sendJson(response, 200, {
+            ok: true,
+            idempotent: true,
+            dao: publicSubmissionReceipt(existing)
+          });
+        }
+        return sendJson(response, 409, { ok: false, reason: "dao_frozen" });
+      }
+
+      if (existing.status === "PENDING_REVIEW" && sameSubmission(existing, candidate)) {
         return sendJson(response, 200, {
           ok: true,
           idempotent: true,
@@ -101,7 +65,17 @@ async function handleDaoSubmission(request, response) {
         });
       }
 
-      return sendJson(response, 409, { ok: false, reason: "duplicate_dao_code" });
+      if (existing.status !== "RETURNED") {
+        return sendJson(response, 409, { ok: false, reason: "duplicate_dao_code" });
+      }
+
+      await adapter.replaceReturned(candidate);
+      return sendJson(response, 200, {
+        ok: true,
+        idempotent: false,
+        resubmitted: true,
+        dao: publicSubmissionReceipt(candidate)
+      });
     }
 
     await adapter.insert(candidate);
@@ -118,6 +92,83 @@ async function handleDaoSubmission(request, response) {
   }
 }
 
+async function handleDaoReview(request, response) {
+  const parsed = requireJsonPost(request, 8 * 1024);
+  if (parsed.error) return sendJson(response, parsed.status, { ok: false, reason: parsed.error });
+  if (!requireSameOrigin(request)) return sendJson(response, 403, { ok: false, reason: "forbidden" });
+
+  const reviewer = getAuthenticatedPublisher(request);
+  if (!reviewer) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  if (!isDaoReviewer(reviewer)) return sendJson(response, 403, { ok: false, reason: "reviewer_required" });
+  if (!consume("dao-review:" + reviewer.id + ":" + clientIp(request), 20, 60_000)) {
+    return sendJson(response, 429, { ok: false, reason: "rate_limited" });
+  }
+
+  const review = validateReviewRequest(parsed.body);
+  if (review.error) return sendJson(response, 400, { ok: false, reason: review.error });
+
+  try {
+    const adapter = getDaoAdapter();
+    const existing = await adapter.findByCode(review.value.daoCode);
+    if (!existing) return sendJson(response, 404, { ok: false, reason: "dao_not_found" });
+
+    const reviewerProfile = resolvePublisherProfile(reviewer);
+    const now = new Date().toISOString();
+
+    if (review.value.action === "APPROVE") {
+      if (existing.status === "PUBLISHED" && existing.frozen) {
+        return sendJson(response, 200, {
+          ok: true,
+          idempotent: true,
+          dao: publicSubmissionReceipt(existing)
+        });
+      }
+      if (existing.status !== "PENDING_REVIEW") {
+        return sendJson(response, 409, { ok: false, reason: "dao_not_pending" });
+      }
+
+      const published = applyReview(existing, {
+        action: "APPROVE",
+        notes: review.value.notes,
+        reviewer: reviewerProfile,
+        now
+      });
+      await adapter.updateReview(published);
+      return sendJson(response, 200, {
+        ok: true,
+        idempotent: false,
+        dao: publicSubmissionReceipt(published)
+      });
+    }
+
+    if (existing.status === "RETURNED" && !existing.frozen) {
+      return sendJson(response, 200, {
+        ok: true,
+        idempotent: true,
+        dao: publicSubmissionReceipt(existing)
+      });
+    }
+    if (existing.status !== "PENDING_REVIEW") {
+      return sendJson(response, 409, { ok: false, reason: "dao_not_pending" });
+    }
+
+    const returned = applyReview(existing, {
+      action: "RETURN",
+      notes: review.value.notes,
+      reviewer: reviewerProfile,
+      now
+    });
+    await adapter.updateReview(returned);
+    return sendJson(response, 200, {
+      ok: true,
+      idempotent: false,
+      dao: publicSubmissionReceipt(returned)
+    });
+  } catch (error) {
+    return sendJson(response, 503, { ok: false, reason: "dao_storage_unavailable" });
+  }
+}
+
 async function handleDaoRead(request, response) {
   try {
     const publisher = getAuthenticatedPublisher(request);
@@ -130,35 +181,7 @@ async function handleDaoRead(request, response) {
       (includeMine && item.publisher && item.publisher.id === publisher.id)
     ));
 
-    if (query.code) {
-      const code = normalize(query.code);
-      items = items.filter((item) => normalize(item.daoCode) === code);
-    }
-
-    if (query.book) {
-      const book = normalize(query.book);
-      items = items.filter((item) => {
-        const scripture = item.scripture || {};
-        return normalize(scripture.bookCode) === book || normalize(scripture.bookName) === book;
-      });
-    }
-
-    if (query.chapter) {
-      const chapter = Number(query.chapter);
-      if (Number.isInteger(chapter) && chapter > 0) {
-        items = items.filter((item) => {
-          const scripture = item.scripture || {};
-          const start = Number(scripture.chapterStart || 0);
-          const end = Number(scripture.chapterEnd || start);
-          return start <= chapter && end >= chapter;
-        });
-      }
-    }
-
-    if (query.q) {
-      const needle = normalize(query.q);
-      items = items.filter((item) => searchableText(item).includes(needle));
-    }
+    items = applyDaoFilters(items, query);
 
     return sendJson(response, 200, {
       ok: true,
@@ -168,6 +191,187 @@ async function handleDaoRead(request, response) {
   } catch (error) {
     return sendJson(response, 503, { ok: false, reason: "dao_storage_unavailable" });
   }
+}
+
+async function handleDaoReviewRead(request, response) {
+  const reviewer = getAuthenticatedPublisher(request);
+  if (!reviewer) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  if (!isDaoReviewer(reviewer)) return sendJson(response, 403, { ok: false, reason: "reviewer_required" });
+
+  try {
+    const query = request.query || {};
+    let items = await getDaoAdapter().list();
+    const status = String(query.status || "PENDING_REVIEW").trim().toUpperCase();
+
+    if (status === "ALL") {
+      items = items.filter((item) => item && ["PENDING_REVIEW", "RETURNED", "PUBLISHED"].includes(item.status));
+    } else if (["PENDING_REVIEW", "RETURNED", "PUBLISHED"].includes(status)) {
+      items = items.filter((item) => item && item.status === status);
+    } else {
+      return sendJson(response, 400, { ok: false, reason: "invalid_review_status" });
+    }
+
+    items = applyDaoFilters(items, query);
+    items.sort((left, right) => String(right.submittedAt || "").localeCompare(String(left.submittedAt || "")));
+
+    return sendJson(response, 200, {
+      ok: true,
+      count: items.length,
+      items: items.map(reviewDao)
+    });
+  } catch (error) {
+    return sendJson(response, 503, { ok: false, reason: "dao_storage_unavailable" });
+  }
+}
+
+function buildPendingCandidate({ id, daoCode, now, value, publisherProfile }) {
+  return {
+    id,
+    daoCode,
+    status: "PENDING_REVIEW",
+    frozen: false,
+    devotionalDate: value.devotionalDate,
+    submittedAt: now,
+    publishedAt: null,
+    publicationTimezone: value.publicationTimezone,
+    publicationLocale: value.publicationLocale,
+    publisher: publisherProfile,
+    scripture: value.scripture,
+    theme: value.theme,
+    cardIntro: value.cardIntro,
+    questions: value.questions,
+    story: value.story,
+    highlights: value.highlights,
+    response: value.response,
+    prayer: value.prayer,
+    tags: {
+      themes: [],
+      seasons: [],
+      terrains: []
+    },
+    preflight: {
+      passed: true,
+      checkedAt: now,
+      checks: [
+        "authenticated_publisher",
+        "same_origin",
+        "known_bible_reference",
+        "scripture_bounds_valid",
+        "scripture_text_present",
+        "theme_present",
+        "card_intro_present",
+        "seven_questions_present",
+        "question_roles_attached",
+        "devotional_date_valid",
+        "publication_timezone_valid",
+        "unique_dao_code"
+      ]
+    },
+    review: {
+      reviewerId: "",
+      reviewerName: "",
+      reviewedAt: null,
+      decision: "PENDING",
+      notes: ""
+    },
+    tongdao: {
+      available: false
+    },
+    card: {
+      status: "PENDING",
+      url: ""
+    },
+    media: []
+  };
+}
+
+function applyReview(existing, { action, notes, reviewer, now }) {
+  const approved = action === "APPROVE";
+  return {
+    ...existing,
+    status: approved ? "PUBLISHED" : "RETURNED",
+    frozen: approved,
+    publishedAt: approved ? now : null,
+    review: {
+      reviewerId: reviewer.id,
+      reviewerName: reviewer.name || "",
+      reviewedAt: now,
+      decision: approved ? "APPROVED" : "RETURNED",
+      notes
+    },
+    tongdao: {
+      ...(existing.tongdao || {}),
+      available: approved
+    }
+  };
+}
+
+function validateReviewRequest(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return { error: "invalid_review" };
+  const allowed = ["daoCode", "action", "notes"];
+  if (Object.keys(input).some((key) => !allowed.includes(key))) return { error: "unknown_field" };
+
+  const daoCode = String(input.daoCode || "").trim().toUpperCase();
+  const action = String(input.action || "").trim().toUpperCase();
+  const notes = String(input.notes || "").trim().replace(/\r\n/g, "\n");
+
+  if (!/^BD\d{8}[A-Z0-9]{3}\d{3}(?:\d{3}){0,3}$/.test(daoCode)) return { error: "invalid_dao_code" };
+  if (!["APPROVE", "RETURN"].includes(action)) return { error: "invalid_review_action" };
+  if (notes.length > 2000) return { error: "field_too_long" };
+  if (action === "RETURN" && !notes) return { error: "return_notes_required" };
+
+  return { value: { daoCode, action, notes } };
+}
+
+function isDaoReviewer(publisher) {
+  if (!publisher || !publisher.id) return false;
+  const allowed = new Set();
+  const operator = String(process.env.STEWARDSHIP_OPERATOR_USER_ID || "").trim();
+  if (operator) allowed.add(operator);
+
+  String(process.env.BUDAO_DAO_REVIEWER_IDS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .forEach((value) => allowed.add(value));
+
+  return allowed.has(publisher.id);
+}
+
+function applyDaoFilters(items, query) {
+  let filtered = items;
+
+  if (query.code) {
+    const code = normalize(query.code);
+    filtered = filtered.filter((item) => normalize(item.daoCode) === code);
+  }
+
+  if (query.book) {
+    const book = normalize(query.book);
+    filtered = filtered.filter((item) => {
+      const scripture = item.scripture || {};
+      return normalize(scripture.bookCode) === book || normalize(scripture.bookName) === book;
+    });
+  }
+
+  if (query.chapter) {
+    const chapter = Number(query.chapter);
+    if (Number.isInteger(chapter) && chapter > 0) {
+      filtered = filtered.filter((item) => {
+        const scripture = item.scripture || {};
+        const start = Number(scripture.chapterStart || 0);
+        const end = Number(scripture.chapterEnd || start);
+        return start <= chapter && end >= chapter;
+      });
+    }
+  }
+
+  if (query.q) {
+    const needle = normalize(query.q);
+    filtered = filtered.filter((item) => searchableText(item).includes(needle));
+  }
+
+  return filtered;
 }
 
 function getDaoAdapter() {
@@ -182,23 +386,27 @@ function getDaoAdapter() {
 
     async insert(item) {
       const db = await readyDatabase();
-      await db.insert(daoRecords).values({
-        id: item.id,
-        daoCode: item.daoCode,
-        status: item.status,
-        frozen: item.frozen,
-        publisherId: item.publisher.id,
-        publisherSlot: item.publisher.slot,
-        publisherName: item.publisher.name || "",
-        devotionalDate: item.devotionalDate,
-        bookCode: item.scripture.bookCode,
-        chapterStart: item.scripture.chapterStart,
-        chapterEnd: item.scripture.chapterEnd,
-        payload: item,
-        submittedAt: new Date(item.submittedAt),
-        publishedAt: null,
-        updatedAt: new Date(item.submittedAt)
-      });
+      await db.insert(daoRecords).values(rowValues(item));
+    },
+
+    async replaceReturned(item) {
+      const db = await readyDatabase();
+      await db.update(daoRecords)
+        .set(rowValues(item, { includeId: false }))
+        .where(eq(daoRecords.daoCode, item.daoCode));
+    },
+
+    async updateReview(item) {
+      const db = await readyDatabase();
+      await db.update(daoRecords)
+        .set({
+          status: item.status,
+          frozen: item.frozen,
+          payload: item,
+          publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
+          updatedAt: new Date()
+        })
+        .where(eq(daoRecords.daoCode, item.daoCode));
     },
 
     async list() {
@@ -207,6 +415,27 @@ function getDaoAdapter() {
       return rows.map(hydrateDaoRow);
     }
   };
+}
+
+function rowValues(item, options = {}) {
+  const values = {
+    daoCode: item.daoCode,
+    status: item.status,
+    frozen: item.frozen,
+    publisherId: item.publisher.id,
+    publisherSlot: item.publisher.slot,
+    publisherName: item.publisher.name || "",
+    devotionalDate: item.devotionalDate,
+    bookCode: item.scripture.bookCode,
+    chapterStart: item.scripture.chapterStart,
+    chapterEnd: item.scripture.chapterEnd,
+    payload: item,
+    submittedAt: new Date(item.submittedAt),
+    publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
+    updatedAt: new Date()
+  };
+  if (options.includeId !== false) values.id = item.id;
+  return values;
 }
 
 async function readyDatabase() {
@@ -308,10 +537,13 @@ function publicSubmissionReceipt(item) {
     id: item.id,
     daoCode: item.daoCode,
     status: item.status,
+    frozen: Boolean(item.frozen),
     devotionalDate: item.devotionalDate,
     submittedAt: item.submittedAt,
+    publishedAt: item.publishedAt || null,
     theme: item.theme,
-    scripture: item.scripture && item.scripture.referenceDisplay || ""
+    scripture: item.scripture && item.scripture.referenceDisplay || "",
+    reviewDecision: item.review && item.review.decision || "PENDING"
   };
 }
 
@@ -339,6 +571,15 @@ function publicDao(item) {
     tongdao: item.tongdao,
     card: item.card,
     media: item.media
+  };
+}
+
+function reviewDao(item) {
+  return {
+    ...publicDao(item),
+    publisher: item.publisher,
+    preflight: item.preflight,
+    review: item.review
   };
 }
 
@@ -377,6 +618,9 @@ function setDaoAdapterForTests(adapter) {
 
 module.exports = {
   handleDaoRead,
+  handleDaoReview,
+  handleDaoReviewRead,
   handleDaoSubmission,
+  isDaoReviewer,
   setDaoAdapterForTests
 };
