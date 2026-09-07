@@ -297,3 +297,18 @@
     }, { passive: true });
   });
 })();
+
+/* Load the reviewed-Dao adapter after the existing Tongdao runtime is ready. */
+(function loadReviewedDaoBridge() {
+  function loadScript(src, onDone) {
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = false;
+    script.onload = onDone;
+    document.head.appendChild(script);
+  }
+
+  loadScript("/tongdao-dao-adapter.js?v=20260907-1", function () {
+    loadScript("/tongdao-dao-bridge.js?v=20260907-1", function () {});
+  });
+}());
