@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>道 · 查验</title>
+  <link rel="stylesheet" href="/admin/style.css">
+</head>
+<body>
+  <main class="review-shell">
+    <header class="review-header">
+      <div>
+        <p class="eyebrow">BUDAO · DAO STEWARDSHIP</p>
+        <h1>道 · 查验</h1>
+      </div>
+      <button class="quiet-button" type="button" id="refreshButton">刷新</button>
+    </header>
+
+    <section class="boundary-note" aria-label="查验边界">
+      <strong>查验只决定这篇“道”是否进入步道公共体系。</strong>
+      <span>它是人的守望与共同辨识，不是对属灵领受作终极判决。</span>
+    </section>
+
+    <nav class="review-tabs" aria-label="查验状态">
+      <button type="button" class="review-tab is-active" data-status="PENDING_REVIEW">待查验</button>
+      <button type="button" class="review-tab" data-status="RETURNED">已退回</button>
+      <button type="button" class="review-tab" data-status="PUBLISHED">已发布</button>
+    </nav>
+
+    <p class="review-status" id="reviewStatus" role="status">正在读取待查验的道……</p>
+    <section class="review-list" id="reviewList" aria-live="polite"></section>
+  </main>
+
+<script>
+(function () {
+  const list = document.getElementById('reviewList');
+  const statusLine = document.getElementById('reviewStatus');
+  const refreshButton = document.getElementById('refreshButton');
+  const tabs = Array.from(document.querySelectorAll('.review-tab'));
+  let currentStatus = 'PENDING_REVIEW';
+
+  const roleNames = {
+    OPEN: 'Q1 · OPEN',
+    EXPERIENCE: 'Q2 · EXPERIENCE',
+    ENCOUNTER: 'Q3 · ENCOUNTER',
+    HEART: 'Q4 · HEART',
+    SCRIPTURE_THRESHOLD: 'Q5 · SCRIPTURE THRESHOLD',
+    CONFRONTATION: 'Q6 · CONFRONTATION',
+    GOSPEL_RESPONSE: 'Q7 · GOSPEL RESPONSE'
+  };
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatDate(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return new Intl.DateTimeFormat('zh-CN', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    }).format(date);
+  }
+
+  function multiline(value) {
+    return escapeHtml(value).replace(/\n/g, '<br>');
+  }
+
+  function field(label, value, className) {
+    if (!value) return '';
+    return '<section class="dao-field ' + (className || '') + '">' +
+      '<h3>' + escapeHtml(label) + '</h3>' +
+      '<div class="dao-field-body">' + multiline(value) + '</div>' +
+    '</section>';
+  }
+
+  function questionsHtml(questions) {
+    if (!Array.isArray(questions) || !questions.length) return '';
+    return '<section class="dao-field"><h3>七问</h3><ol class="dao-questions">' +
+      questions.map(function (question) {
+        return '<li><span>' + escapeHtml(roleNames[question.role] || question.role || '') + '</span>' +
+          '<p>' + multiline(question.text || '') + '</p></li>';
+      }).join('') +
+    '</ol></section>';
+  }
+
+  function actionsHtml(item) {
+    if (item.status !== 'PENDING_REVIEW') {
+      const review = item.review || {};
+      return '<section class="review-result">' +
+        '<strong>' + (item.status === 'PUBLISHED' ? '已通过并冻结' : '已退回修改') + '</strong>' +
+        (review.reviewedAt ? '<span>' + escapeHtml(formatDate(review.reviewedAt)) + '</span>' : '') +
+        (review.notes ? '<p>' + multiline(review.notes) + '</p>' : '') +
+      '</section>';
+    }
+
+    return '<section class="review-action" data-actions-for="' + escapeHtml(item.daoCode) + '">' +
+      '<label><span>查验备注</span><textarea rows="4" maxlength="2000" placeholder="退回时必须说明需要重新查验之处；通过时可留空。"></textarea></label>' +
+      '<div class="review-buttons">' +
+        '<button type="button" class="return-button" data-action="RETURN">退回修改</button>' +
+        '<button type="button" class="approve-button" data-action="APPROVE">通过并冻结</button>' +
+      '</div>' +
+      '<p class="action-message" role="status"></p>' +
+    '</section>';
+  }
+
+  function cardHtml(item) {
+    const scripture = item.scripture || {};
+    const publisher = item.publisher || {};
+    return '<article class="dao-review-card" data-dao-code="' + escapeHtml(item.daoCode) + '">' +
+      '<header class="dao-card-header">' +
+        '<div><p class="dao-code">' + escapeHtml(item.daoCode) + '</p><h2>' + escapeHtml(item.theme || '未命名') + '</h2></div>' +
+        '<div class="dao-meta"><span>' + escapeHtml(item.devotionalDate || '') + '</span><span>' + escapeHtml(publisher.name || publisher.slot || '') + '</span></div>' +
+      '</header>' +
+      '<section class="scripture-block">' +
+        '<div><strong>' + escapeHtml(scripture.referenceDisplay || '') + '</strong><span>' + escapeHtml(scripture.translation || '') + '</span></div>' +
+        '<p>' + multiline(scripture.text || '') + '</p>' +
+      '</section>' +
+      field('道卡短引言', item.cardIntro, 'intro-field') +
+      questionsHtml(item.questions) +
+      field('故事', item.story) +
+      field('重点', item.highlights) +
+      field('回应', item.response) +
+      field('祷告', item.prayer) +
+      actionsHtml(item) +
+    '</article>';
+  }
+
+  function setBusy(card, busy) {
+    card.querySelectorAll('button, textarea').forEach(function (element) {
+      element.disabled = busy;
+    });
+  }
+
+  async function submitReview(card, action) {
+    const daoCode = card.getAttribute('data-dao-code');
+    const textarea = card.querySelector('.review-action textarea');
+    const message = card.querySelector('.action-message');
+    const notes = textarea ? textarea.value.trim() : '';
+
+    if (action === 'RETURN' && !notes) {
+      message.textContent = '退回修改必须留下具体说明。';
+      textarea.focus();
+      return;
+    }
+
+    if (action === 'APPROVE') {
+      const confirmed = window.confirm('通过后，这篇“道”将进入公共道池并永久冻结内容。确认继续？');
+      if (!confirmed) return;
+    }
+
+    setBusy(card, true);
+    message.textContent = action === 'APPROVE' ? '正在通过并冻结……' : '正在退回……';
+
+    try {
+      const response = await fetch('/api/publish-route-v2?kind=dao-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ daoCode: daoCode, action: action, notes: notes })
+      });
+      const body = await response.json().catch(function () { return {}; });
+      if (!response.ok || body.ok === false) throw new Error(body.reason || 'review_failed');
+      await loadQueue();
+    } catch (error) {
+      const messages = {
+        unauthorized: '登录已经失效，请重新进入帐篷。',
+        reviewer_required: '当前账号没有查验权限。',
+        dao_not_found: '这篇“道”已经不存在，请刷新。',
+        dao_not_pending: '状态已经改变，请刷新后重新确认。',
+        return_notes_required: '退回修改必须留下具体说明。',
+        rate_limited: '操作过快，请稍后再试。',
+        dao_storage_unavailable: '道池暂时无法连接。'
+      };
+      message.textContent = messages[error.message] || '本次查验没有完成，请刷新后再试。';
+      setBusy(card, false);
+    }
+  }
+
+  async function loadQueue() {
+    list.innerHTML = '';
+    statusLine.textContent = '正在读取……';
+
+    try {
+      const response = await fetch('/api/routes?kind=dao-review&status=' + encodeURIComponent(currentStatus), {
+        headers: { 'Accept': 'application/json' }
+      });
+      const body = await response.json().catch(function () { return {}; });
+      if (!response.ok || body.ok === false) throw new Error(body.reason || 'load_failed');
+
+      const items = Array.isArray(body.items) ? body.items : [];
+      statusLine.textContent = items.length ? '共 ' + items.length + ' 篇。' : '这里目前没有内容。';
+      list.innerHTML = items.map(cardHtml).join('');
+
+      list.querySelectorAll('[data-action]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const card = button.closest('.dao-review-card');
+          submitReview(card, button.getAttribute('data-action'));
+        });
+      });
+    } catch (error) {
+      const messages = {
+        unauthorized: '请先使用帐篷账号登录。',
+        reviewer_required: '当前账号没有查验权限。',
+        dao_storage_unavailable: '私有道池暂时无法连接。'
+      };
+      statusLine.textContent = messages[error.message] || '暂时无法读取查验队列。';
+    }
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      currentStatus = tab.getAttribute('data-status');
+      tabs.forEach(function (other) { other.classList.toggle('is-active', other === tab); });
+      loadQueue();
+    });
+  });
+
+  refreshButton.addEventListener('click', loadQueue);
+  loadQueue();
+}());
+</script>
+</body>
+</html>
