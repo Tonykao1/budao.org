@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/030f111f909bbd2a61c6c43ba620c59c.png",
     "imageAlt": "IMG_6399.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-04T02:58:31.164Z"
+    "updatedAt": "2026-09-08T13:24:48.014Z"
   },
   {
     "id": "budao-bacbc",
@@ -37,25 +37,25 @@
     "city": "北京",
     "region": "门头沟",
     "location": "中国· 北京 · 门头沟",
-    "title": "灵山古道探线",
+    "title": "灵山古道",
     "description": "成为一个，造就一个。上山的路是难的，但一起走，总能到头，只要有祂恩手牵拉陪伴......",
-    "time": "7:45",
-    "duration": "9小时",
-    "distance": "16公里",
-    "surface": "台阶，土石路，栈道",
-    "elevation": "1346米",
-    "difficulty": "高",
+    "time": "8:00",
+    "duration": "7小时",
+    "distance": "12.92公里",
+    "surface": "需购买景区门票30元，通过聚灵峡景区土石路，穿过聚灵峡、原始森林进入河谷。在一段被洪水曾经冲毁的栈道与土石交汇区，跨越溪流。最终通过木栈道抵达骆驼庵远眺灵山主峰秀美景色。",
+    "elevation": "932米",
+    "difficulty": "中高",
     "suitableFor": "仅限有长距离徒步经验者",
     "equipmentMinimum": "徒步鞋 / 饮水 /登山杖/防晒",
     "timezone": "Asia/Shanghai",
-    "date": "2026-09-05",
+    "date": "2026-09-13",
     "meetingPlace": "灵山古道聚灵峡景区大门口",
     "participantRequirements": "",
     "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/2a7a2b3159455afc5e55b8915dc51cf9.jpg",
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/34ca06c4ae01ec9dc0f65b3872379e32.png",
     "imageAlt": "gudao.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-04T02:58:31.164Z"
+    "updatedAt": "2026-09-08T13:24:48.013Z"
   },
   {
     "id": "budao-hd",
@@ -84,6 +84,6 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/1a1875146c361eb8689f76bfec70a72f.png",
     "imageAlt": "bbww.jpg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-09-04T02:58:31.163Z"
+    "updatedAt": "2026-09-08T13:24:48.014Z"
   }
 ]
