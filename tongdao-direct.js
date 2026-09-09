@@ -211,7 +211,10 @@
     if (primaryButton && isLast) {
       const finishButton = primaryButton.cloneNode(true);
       finishButton.textContent = "完成同行";
-      finishButton.addEventListener("click", () => setRoute("grow"));
+      finishButton.addEventListener("click", () => {
+        window.tongdaoHaptic?.complete();
+        setRoute("grow");
+      });
       primaryButton.replaceWith(finishButton);
     }
 
@@ -223,11 +226,21 @@
     if (!nodes.length) return;
 
     if (directNodeIndex < nodes.length - 1) {
+      const currentNode = nodes[directNodeIndex];
+      const nextNode = nodes[directNodeIndex + 1];
+
+      if (nextNode.kind === "word" && currentNode.kind === "story") {
+        window.tongdaoHaptic?.threshold();
+      } else {
+        window.tongdaoHaptic?.short();
+      }
+
       directNodeIndex += 1;
       renderDirectJourney();
       return;
     }
 
+    window.tongdaoHaptic?.complete();
     setRoute("grow");
   }
 
