@@ -5,6 +5,19 @@
   <title>步道 budao</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="/favicon.ico">
+  <style>
+    /* 首页隐藏式音频播放器：左右仅在按下时变灰，松开后恢复 */
+    #prevBtn:hover,
+    #nextBtn:hover {
+      opacity: 1;
+    }
+
+    #prevBtn:active,
+    #nextBtn:active {
+      opacity: 0.45;
+      transition-duration: 0.08s;
+    }
+  </style>
 </head>
 <body>
 
