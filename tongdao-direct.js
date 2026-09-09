@@ -211,10 +211,7 @@
     if (primaryButton && isLast) {
       const finishButton = primaryButton.cloneNode(true);
       finishButton.textContent = "完成同行";
-      finishButton.addEventListener("click", () => {
-        window.tongdaoHaptic?.complete();
-        setRoute("grow");
-      });
+      finishButton.addEventListener("click", () => setRoute("grow"));
       primaryButton.replaceWith(finishButton);
     }
 
@@ -240,7 +237,6 @@
       return;
     }
 
-    window.tongdaoHaptic?.complete();
     setRoute("grow");
   }
 
