@@ -94,7 +94,24 @@ const playlist = [
 const silentNightStartTracks = [0, 10];
 let currentTrack = 0;
 
+/*
+ * 重要：音乐播放必须声明为 playback。
+ * iOS/Safari 在锁屏或进入后台时会区别对待 ambient Web Audio 与真正的媒体播放。
+ * 不支持 Audio Session API 的浏览器会安全忽略这一段。
+ */
+function configureAudioSessionForPlayback() {
+  if (!("audioSession" in navigator)) return;
+  try {
+    navigator.audioSession.type = "playback";
+  } catch (error) {
+    console.debug("AudioSession playback mode unavailable", error);
+  }
+}
+
+configureAudioSessionForPlayback();
+
 const audio = new Audio(playlist[currentTrack]);
+audio.preload = "metadata";
 
 if ("mediaSession" in navigator && "MediaMetadata" in window) {
   navigator.mediaSession.metadata = new MediaMetadata({
@@ -128,12 +145,17 @@ let dspGain = null;
  * 浏览器原生 Web Audio 无法精确提供 4× oversampled true-peak limiter，
  * 因此末级仅用一个极轻、只处理接近满刻度峰值的安全限制器近似；
  * 不把它标称为真正的 -1 dBTP / 4× True Peak。
+ *
+ * 注意：DSP 引擎只在用户主动点击“余”后创建。
+ * 默认播放保持原生 HTMLMediaElement 通道，以保留移动端锁屏/后台播放能力。
  */
 function initAudioEngine() {
   if (audioContext) return;
 
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
+
+  configureAudioSessionForPlayback();
 
   audioContext = new AudioContextClass();
   sourceNode = audioContext.createMediaElementSource(audio);
@@ -199,8 +221,12 @@ function initAudioEngine() {
 
 async function ensureAudioEngineReady() {
   initAudioEngine();
-  if (audioContext && audioContext.state === "suspended") {
-    await audioContext.resume();
+  if (audioContext && (audioContext.state === "suspended" || audioContext.state === "interrupted")) {
+    try {
+      await audioContext.resume();
+    } catch (error) {
+      console.debug("AudioContext resume deferred", error);
+    }
   }
 }
 
@@ -235,17 +261,41 @@ dspBtn.addEventListener("keydown", (event) => {
   }
 });
 
-/* 播放当前曲目 */
+function syncPlaybackUi() {
+  isPlaying = !audio.paused && !audio.ended;
+  playBtn.classList.toggle("playing", isPlaying);
+
+  if ("mediaSession" in navigator) {
+    try {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    } catch (error) {
+      console.debug("MediaSession playback state unavailable", error);
+    }
+  }
+}
+
+audio.addEventListener("play", syncPlaybackUi);
+audio.addEventListener("pause", syncPlaybackUi);
+
+/* 播放当前曲目。
+ * 默认不创建 AudioContext：未启用 DSP 时始终走原生媒体通道。 */
 async function playCurrentTrack() {
   hasStartedPlayback = true;
-  await ensureAudioEngineReady();
+
+  if (audioContext) {
+    await ensureAudioEngineReady();
+  }
 
   audio.src = playlist[currentTrack];
   audio.load();
   await audio.play();
+}
 
-  playBtn.classList.add("playing");
-  isPlaying = true;
+async function resumeCurrentTrack() {
+  if (audioContext) {
+    await ensureAudioEngineReady();
+  }
+  await audio.play();
 }
 
 /* 点击“走” */
@@ -257,15 +307,10 @@ playBtn.addEventListener("click", async () => {
       ];
       await playCurrentTrack();
     } else {
-      await ensureAudioEngineReady();
-      await audio.play();
-      playBtn.classList.add("playing");
-      isPlaying = true;
+      await resumeCurrentTrack();
     }
   } else {
     audio.pause();
-    playBtn.classList.remove("playing");
-    isPlaying = false;
   }
 });
 
@@ -288,6 +333,42 @@ audio.addEventListener("ended", async () => {
   currentTrack = (currentTrack + 1) % playlist.length;
   await playCurrentTrack();
 });
+
+/* 锁屏/后台返回后，若系统曾中断 Web Audio，前台恢复时重新激活。 */
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && audioContext && !audio.paused && audioContext.state !== "running") {
+    ensureAudioEngineReady();
+  }
+});
+
+/* 让系统锁屏媒体控件和网页播放器共用同一套状态。 */
+if ("mediaSession" in navigator) {
+  const setMediaAction = (action, handler) => {
+    try {
+      navigator.mediaSession.setActionHandler(action, handler);
+    } catch (error) {
+      console.debug(`MediaSession action ${action} unavailable`, error);
+    }
+  };
+
+  setMediaAction("play", async () => {
+    await resumeCurrentTrack();
+  });
+
+  setMediaAction("pause", () => {
+    audio.pause();
+  });
+
+  setMediaAction("nexttrack", async () => {
+    currentTrack = (currentTrack + 1) % playlist.length;
+    await playCurrentTrack();
+  });
+
+  setMediaAction("previoustrack", async () => {
+    currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+    await playCurrentTrack();
+  });
+}
 </script>
 </body>
 </html>
