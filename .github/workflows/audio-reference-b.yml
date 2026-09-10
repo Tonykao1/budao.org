@@ -15,11 +15,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install ffmpeg
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+
       - name: Measure playlist loudness
         shell: bash
         run: |
           python3 - <<'PY'
-          import json, math, pathlib, re, subprocess
+          import json, pathlib, re, subprocess
 
           playlist = [
               "music/14 Silent Night.mp3",
