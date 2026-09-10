@@ -26,6 +26,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, pathlib, re, subprocess
+          from concurrent.futures import ThreadPoolExecutor
 
           playlist = [
               "music/14 Silent Night.mp3",
@@ -48,11 +49,10 @@ jobs:
           TARGET_LUFS = -16.0
           PRE_EQ_TP_CEILING = -2.0
 
-          tracks = {}
-          for path in playlist:
+          def measure(path):
               proc = subprocess.run(
                   [
-                      "ffmpeg", "-hide_banner", "-nostats", "-i", path,
+                      "ffmpeg", "-threads", "1", "-hide_banner", "-nostats", "-i", path,
                       "-af", "loudnorm=I=-16:TP=-1:LRA=11:print_format=json",
                       "-f", "null", "-"
                   ],
@@ -75,7 +75,7 @@ jobs:
               peak_safe_gain = PRE_EQ_TP_CEILING - input_tp
               gain_db = min(loudness_gain, peak_safe_gain)
 
-              tracks[path] = {
+              return path, {
                   "integrated_lufs": round(input_i, 2),
                   "true_peak_dbtp": round(input_tp, 2),
                   "lra_lu": round(input_lra, 2),
@@ -86,6 +86,10 @@ jobs:
                   "peak_limited": peak_safe_gain < loudness_gain,
               }
 
+          with ThreadPoolExecutor(max_workers=8) as pool:
+              measured = dict(pool.map(measure, playlist))
+
+          tracks = {path: measured[path] for path in playlist}
           out = {
               "system": "余 DSP Reference B",
               "standard": "ITU-R BS.1770 / EBU R128 via ffmpeg loudnorm",
