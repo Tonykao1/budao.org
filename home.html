@@ -132,12 +132,25 @@ function loadReferenceBMap() {
 loadReferenceBMap();
 
 /*
- * 重要：音乐播放声明为 playback。
- * iOS/Safari 在锁屏或进入后台时会区别对待 ambient Web Audio 与真正的媒体播放。
- * 不支持 Audio Session API 的浏览器会安全忽略这一段。
+ * Safari/WebKit 的 MediaElementSource 在硬件输出采样率切换时曾出现
+ * 44.1/48 kHz 时钟错配，从而让音乐整体变速、变调。
+ * iOS/iPadOS 仍需要 playback AudioSession 来支持锁屏；macOS Safari 不主动改
+ * AudioSession，避免在 Web Audio 已运行时触发不必要的音频会话重配置。
  */
+function isIOSFamily() {
+  const ua = navigator.userAgent || "";
+  return /iPad|iPhone|iPod/.test(ua) ||
+    (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
+function isSafariWebKit() {
+  const ua = navigator.userAgent || "";
+  return /AppleWebKit/.test(ua) && /Safari/.test(ua) &&
+    !/CriOS|Chrome|Chromium|Edg|EdgiOS|FxiOS|OPiOS/.test(ua);
+}
+
 function configureAudioSessionForPlayback() {
-  if (!("audioSession" in navigator)) return;
+  if (!isIOSFamily() || !("audioSession" in navigator)) return;
   try {
     navigator.audioSession.type = "playback";
   } catch (error) {
@@ -147,8 +160,17 @@ function configureAudioSessionForPlayback() {
 
 configureAudioSessionForPlayback();
 
-const audio = new Audio(playlist[currentTrack]);
-audio.preload = "metadata";
+function createAudioElement(src) {
+  const element = new Audio(src);
+  element.preload = "metadata";
+  element.defaultPlaybackRate = 1;
+  element.playbackRate = 1;
+  if ("preservesPitch" in element) element.preservesPitch = true;
+  if ("webkitPreservesPitch" in element) element.webkitPreservesPitch = true;
+  return element;
+}
+
+let audio = createAudioElement(playlist[currentTrack]);
 
 if ("mediaSession" in navigator && "MediaMetadata" in window) {
   navigator.mediaSession.metadata = new MediaMetadata({
@@ -176,6 +198,10 @@ let sourceNode = null;
 let bypassGain = null;
 let trackGain = null;
 let dspGain = null;
+let audioPipelineRecoveryPromise = null;
+let audioRecoveryTimer = null;
+let clockProbeContextTime = null;
+let clockProbeWallTime = null;
 
 function dbToLinear(db) {
   return Math.pow(10, db / 20);
@@ -203,6 +229,27 @@ function applyCurrentTrackGain(immediate = false) {
   trackGain.gain.linearRampToValueAtTime(target, now + 0.035);
 }
 
+function createPlaybackAudioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+
+  try {
+    return new AudioContextClass({ latencyHint: "playback" });
+  } catch (error) {
+    try {
+      return new AudioContextClass();
+    } catch (fallbackError) {
+      console.debug("AudioContext unavailable", fallbackError);
+      return null;
+    }
+  }
+}
+
+function resetClockProbe() {
+  clockProbeContextTime = audioContext ? audioContext.currentTime : null;
+  clockProbeWallTime = performance.now();
+}
+
 /*
  * “余” DSP Reference B — Playback Mastering System
  *
@@ -217,13 +264,20 @@ function applyCurrentTrackGain(immediate = false) {
 function initAudioEngine() {
   if (audioContext) return;
 
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
-
   configureAudioSessionForPlayback();
 
-  audioContext = new AudioContextClass();
-  sourceNode = audioContext.createMediaElementSource(audio);
+  audioContext = createPlaybackAudioContext();
+  if (!audioContext) return;
+
+  try {
+    sourceNode = audioContext.createMediaElementSource(audio);
+  } catch (error) {
+    console.warn("Unable to attach music to Web Audio", error);
+    audioContext.close().catch(() => {});
+    audioContext = null;
+    sourceNode = null;
+    return;
+  }
 
   bypassGain = audioContext.createGain();
   trackGain = audioContext.createGain();
@@ -267,6 +321,7 @@ function initAudioEngine() {
   applyCurrentTrackGain(true);
   bypassGain.gain.value = dspEnabled ? 0 : 1;
   dspGain.gain.value = dspEnabled ? 1 : 0;
+  resetClockProbe();
 }
 
 async function ensureAudioEngineReady() {
@@ -274,6 +329,7 @@ async function ensureAudioEngineReady() {
   if (audioContext && (audioContext.state === "suspended" || audioContext.state === "interrupted")) {
     try {
       await audioContext.resume();
+      resetClockProbe();
     } catch (error) {
       console.debug("AudioContext resume deferred", error);
     }
@@ -299,21 +355,6 @@ function applyDspState() {
   dspGain.gain.linearRampToValueAtTime(dspEnabled ? 1 : 0, now + fade);
 }
 
-async function toggleDsp() {
-  await loadReferenceBMap();
-  await ensureAudioEngineReady();
-  dspEnabled = !dspEnabled;
-  applyDspState();
-}
-
-dspBtn.addEventListener("click", toggleDsp);
-dspBtn.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    toggleDsp();
-  }
-});
-
 function syncPlaybackUi() {
   isPlaying = !audio.paused && !audio.ended;
   playBtn.classList.toggle("playing", isPlaying);
@@ -327,13 +368,201 @@ function syncPlaybackUi() {
   }
 }
 
-audio.addEventListener("play", syncPlaybackUi);
-audio.addEventListener("pause", syncPlaybackUi);
+function forceUnityPlaybackRate() {
+  if (audio.defaultPlaybackRate !== 1) audio.defaultPlaybackRate = 1;
+  if (audio.playbackRate !== 1) audio.playbackRate = 1;
+}
+
+async function handleTrackEnded() {
+  currentTrack = (currentTrack + 1) % playlist.length;
+  await playCurrentTrack();
+}
+
+function bindAudioEvents(element) {
+  element.addEventListener("play", syncPlaybackUi);
+  element.addEventListener("pause", syncPlaybackUi);
+  element.addEventListener("ended", handleTrackEnded);
+  element.addEventListener("ratechange", forceUnityPlaybackRate);
+}
+
+function unbindAudioEvents(element) {
+  element.removeEventListener("play", syncPlaybackUi);
+  element.removeEventListener("pause", syncPlaybackUi);
+  element.removeEventListener("ended", handleTrackEnded);
+  element.removeEventListener("ratechange", forceUnityPlaybackRate);
+}
+
+bindAudioEvents(audio);
+
+async function closeAudioContext() {
+  const previous = audioContext;
+  audioContext = null;
+  sourceNode = null;
+  bypassGain = null;
+  trackGain = null;
+  dspGain = null;
+  resetClockProbe();
+
+  if (previous && previous.state !== "closed") {
+    try {
+      await previous.close();
+    } catch (error) {
+      console.debug("AudioContext close deferred", error);
+    }
+  }
+}
+
+function waitForMetadata(element) {
+  if (element.readyState >= 1) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const done = () => {
+      element.removeEventListener("loadedmetadata", done);
+      element.removeEventListener("error", done);
+      resolve();
+    };
+    element.addEventListener("loadedmetadata", done, { once: true });
+    element.addEventListener("error", done, { once: true });
+  });
+}
+
+/*
+ * Safari/WebKit 音频路由变化后的安全重建。
+ * MediaElementAudioSourceNode 不能可靠地在旧 AudioContext 上继续承担硬件采样率切换，
+ * 因此同时换掉 Audio 元素和 AudioContext，确保新图按当前输出硬件重新协商。
+ */
+async function rebuildSafariAudioPipeline(reason = "route/sample-rate change") {
+  if (!isSafariWebKit()) return;
+  if (audioPipelineRecoveryPromise) return audioPipelineRecoveryPromise;
+
+  audioPipelineRecoveryPromise = (async () => {
+    const oldAudio = audio;
+    const resumeAfterRecovery = !oldAudio.paused && !oldAudio.ended;
+    const position = Number.isFinite(oldAudio.currentTime) ? oldAudio.currentTime : 0;
+
+    try {
+      oldAudio.pause();
+    } catch (error) {
+      // Ignore a stale media element during route recovery.
+    }
+    unbindAudioEvents(oldAudio);
+    await closeAudioContext();
+
+    audio = createAudioElement(playlist[currentTrack]);
+    bindAudioEvents(audio);
+    await waitForMetadata(audio);
+
+    if (position > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
+      audio.currentTime = Math.min(position, Math.max(0, audio.duration - 0.05));
+    }
+
+    if (dspEnabled) {
+      await ensureAudioEngineReady();
+      applyCurrentTrackGain(true);
+      applyDspState();
+    } else {
+      /* DSP 关闭时 Safari 回到真正的原生媒体通道。 */
+      dspBtn.classList.remove("dsp-on");
+      dspBtn.setAttribute("aria-pressed", "false");
+    }
+
+    if (resumeAfterRecovery) {
+      try {
+        await audio.play();
+      } catch (error) {
+        console.debug("Playback resume deferred after Safari audio recovery", reason, error);
+      }
+    } else {
+      syncPlaybackUi();
+    }
+
+    resetClockProbe();
+  })();
+
+  try {
+    return await audioPipelineRecoveryPromise;
+  } finally {
+    audioPipelineRecoveryPromise = null;
+  }
+}
+
+function scheduleSafariAudioRecovery(reason) {
+  if (!isSafariWebKit() || !audioContext || document.hidden) return;
+  if (audioRecoveryTimer) window.clearTimeout(audioRecoveryTimer);
+  audioRecoveryTimer = window.setTimeout(() => {
+    audioRecoveryTimer = null;
+    rebuildSafariAudioPipeline(reason);
+  }, 180);
+}
+
+/*
+ * WebKit 的典型 44.1 ↔ 48 kHz 错配会让 AudioContext 时钟相对真实时间
+ * 偏离约 8–9%。这里以 4% 为保护阈值；正常调度抖动不会触发，真正变调会自动重建。
+ */
+window.setInterval(() => {
+  if (!isSafariWebKit() || !audioContext || audioContext.state !== "running" ||
+      audio.paused || document.hidden || audioPipelineRecoveryPromise) {
+    resetClockProbe();
+    return;
+  }
+
+  const nowWall = performance.now();
+  const nowContext = audioContext.currentTime;
+  if (clockProbeWallTime == null || clockProbeContextTime == null) {
+    clockProbeWallTime = nowWall;
+    clockProbeContextTime = nowContext;
+    return;
+  }
+
+  const wallDelta = (nowWall - clockProbeWallTime) / 1000;
+  const contextDelta = nowContext - clockProbeContextTime;
+  clockProbeWallTime = nowWall;
+  clockProbeContextTime = nowContext;
+
+  if (wallDelta < 0.5 || wallDelta > 2.5) return;
+  const clockRatio = contextDelta / wallDelta;
+  if (clockRatio < 0.96 || clockRatio > 1.04) {
+    console.warn("Safari Web Audio clock drift detected; rebuilding audio pipeline", {
+      clockRatio,
+      sampleRate: audioContext.sampleRate
+    });
+    rebuildSafariAudioPipeline("Web Audio clock drift");
+  }
+}, 1000);
+
+async function toggleDsp() {
+  await loadReferenceBMap();
+
+  if (!dspEnabled) {
+    await ensureAudioEngineReady();
+    if (!audioContext) return;
+    dspEnabled = true;
+    applyDspState();
+    return;
+  }
+
+  dspEnabled = false;
+  applyDspState();
+
+  /* Safari 的 bypass 必须是真正原生，而不是 0 dB Web Audio 旁路。 */
+  if (isSafariWebKit() && audioContext) {
+    await rebuildSafariAudioPipeline("DSP bypass");
+  }
+}
+
+dspBtn.addEventListener("click", toggleDsp);
+dspBtn.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    toggleDsp();
+  }
+});
 
 /* 播放当前曲目。
  * 默认不创建 AudioContext：未启用 DSP 时始终走原生媒体通道。 */
 async function playCurrentTrack() {
   hasStartedPlayback = true;
+  forceUnityPlaybackRate();
 
   if (audioContext) {
     await ensureAudioEngineReady();
@@ -342,15 +571,19 @@ async function playCurrentTrack() {
 
   audio.src = playlist[currentTrack];
   audio.load();
+  forceUnityPlaybackRate();
   await audio.play();
+  resetClockProbe();
 }
 
 async function resumeCurrentTrack() {
+  forceUnityPlaybackRate();
   if (audioContext) {
     await ensureAudioEngineReady();
     applyCurrentTrackGain(true);
   }
   await audio.play();
+  resetClockProbe();
 }
 
 /* 点击“走” */
@@ -383,18 +616,37 @@ prevBtn.addEventListener("click", async () => {
   await playCurrentTrack();
 });
 
-/* 一首结束后自动下一首 */
-audio.addEventListener("ended", async () => {
-  currentTrack = (currentTrack + 1) % playlist.length;
-  await playCurrentTrack();
-});
-
-/* 锁屏/后台返回后，若系统曾中断 Web Audio，前台恢复时重新激活。 */
+/*
+ * 锁屏/后台返回：Safari 如果正在走 Web Audio，就重建整条图；
+ * 其他浏览器保持轻量 resume。这样避免在已变更硬件采样率上继续使用旧 context。
+ */
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden && audioContext && !audio.paused && audioContext.state !== "running") {
+  if (document.hidden || !audioContext || audio.paused) {
+    resetClockProbe();
+    return;
+  }
+
+  if (isSafariWebKit()) {
+    scheduleSafariAudioRecovery("foreground resume");
+  } else if (audioContext.state !== "running") {
     ensureAudioEngineReady();
   }
 });
+
+window.addEventListener("pageshow", () => {
+  if (isSafariWebKit() && audioContext && !audio.paused) {
+    scheduleSafariAudioRecovery("pageshow");
+  }
+});
+
+/* 蓝牙/耳机/系统输出设备变化时，Safari 主动按新硬件重建 DSP 图。 */
+if (navigator.mediaDevices && "addEventListener" in navigator.mediaDevices) {
+  navigator.mediaDevices.addEventListener("devicechange", () => {
+    if (isSafariWebKit() && audioContext) {
+      scheduleSafariAudioRecovery("audio device change");
+    }
+  });
+}
 
 /* 让系统锁屏媒体控件和网页播放器共用同一套状态。 */
 if ("mediaSession" in navigator) {
