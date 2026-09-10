@@ -6,27 +6,27 @@
     "slot": "IMS",
     "country": "中国",
     "city": "北京",
-    "region": "朝阳",
-    "location": "中国·北京·朝阳",
-    "title": "北京温榆河公园-西园",
-    "description": "五点半，我们在一天将尽的时候相见，\n从西园出发，沿着温榆河慢慢向前。\n不赶路，也不必证明自己还能走多远，\n这一程，只把脚步交给水岸和晚风。\n\n林荫渐深，白日的喧闹一点点退去，\n路平缓，适合我们这个年纪从容地走。\n有人走快一些，也有人愿意慢下来，\n但同行的意思，是没有一个人被落下。\n\n夕阳落向河面，我们边走，边听，边说，\n那些平日来不及讲的话，也许会在路上出现。\n走过半生之后，仍有人与你并肩，是恩典。\n\n天色渐暗，我们循着来路缓缓归返，\n路没有因为走完而结束——\n愿我们余下的年月，仍彼此同道，继续同行。",
-    "time": "17:30",
+    "region": "海淀",
+    "location": "中国·北京·海淀",
+    "title": "太舟坞·探线",
+    "description": "步道线路勘查",
+    "time": "7:00",
     "duration": "2小时",
-    "distance": "4千米",
-    "surface": "铺装路、台阶",
-    "elevation": "<50米",
-    "difficulty": "低",
-    "suitableFor": "亲子、长者友好",
-    "equipmentMinimum": "运动鞋",
+    "distance": "8千米",
+    "surface": "防火道、土石路、未探明路况",
+    "elevation": "425米",
+    "difficulty": "中等",
+    "suitableFor": "熟悉线路的户外伙伴及步道同工",
+    "equipmentMinimum": "徒步鞋、饮用水、防晒",
     "timezone": "Asia/Shanghai",
-    "date": "2026-09-04",
-    "meetingPlace": "北京温榆河公园6号门",
+    "date": "2026-09-11",
+    "meetingPlace": "北京市海淀区和平小学（东北门）",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/27d9418b1e405b59768d99c2f7f0285b.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/030f111f909bbd2a61c6c43ba620c59c.png",
-    "imageAlt": "IMG_6399.jpg",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/1375e13c089c0ddfec9b791c56ef7ff4.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/7b8d42667366f260436c3d89280207f1.png",
+    "imageAlt": "tzw.webp",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-10T05:10:22.253Z"
+    "updatedAt": "2026-09-10T07:58:16.889Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,7 +55,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/34ca06c4ae01ec9dc0f65b3872379e32.png",
     "imageAlt": "gudao.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-10T05:10:22.253Z"
+    "updatedAt": "2026-09-10T07:58:16.890Z"
   },
   {
     "id": "budao-hd",
@@ -84,6 +84,6 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/0761d8463f13717ccd3bca130dd2f254.png",
     "imageAlt": "wqs.jpg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-09-10T05:10:22.252Z"
+    "updatedAt": "2026-09-10T07:58:16.890Z"
   }
 ]
