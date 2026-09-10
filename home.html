@@ -17,6 +17,16 @@
       opacity: 0.45;
       transition-duration: 0.08s;
     }
+
+    /* “余”是同行之声 DSP 的唯一开关：关闭原色，开启浅灰。 */
+    #dspBtn {
+      cursor: pointer;
+      transition: color 0.16s ease;
+    }
+
+    #dspBtn.dsp-on {
+      color: #b8b8b8;
+    }
   </style>
 </head>
 <body>
@@ -33,13 +43,9 @@
 <header>
   <h1>步道</h1>
   <p class="hero-line">
-
- <p class="hero-line">
-  余生行<span id="playBtn">走</span>，
-  不偏<span id="prevBtn">左</span><span id="nextBtn">右</span>
-</p>
-
-</p>
+    <span id="dspBtn" role="button" tabindex="0" aria-pressed="false" aria-label="同行之声母带处理">余</span>生行<span id="playBtn">走</span>，
+    不偏<span id="prevBtn">左</span><span id="nextBtn">右</span>
+  </p>
 </header>
 
 <main>
@@ -62,164 +68,226 @@
 <footer>
   <a class="campfire-link" href="yhzd.html">
     ✦ 营火之地
-</a>
+  </a>
   <p>© 2026 步道 budao.org</p>
 </footer>
+
 <script>
-
 const playlist = [
-
-    "music/14 Silent Night.mp3",
-
-    "music/06 The Good, The Bad, And The Ugly.mp3",
-
-    "music/19 Shalom Chaverim.mp3",
-  
-    "music/Dreaming.mp3",
-
-    "music/07 Barrios Mangoré_ Un Sueño En La Floresta.mp3",
-
-    "music/08 Imagine.mp3",
-
-    "music/08 xindeshijie.mp3",
-
-    "music/02 Amarantine.mp3",
-
-    "music/10 Si Quieres Que Te Cortexe.mp3",
-
-    "music/07 Victory Is Won.mp3",
-
-    "music/12 Silent Night_Klusa Nakts.mp3",
-
-    "music/01 Suerte (Whenever, Wherever).mp3",
-
-    "music/02 La Vie En Rose.mp3",
-  
-    "music/2-08 Blaze Of Glory.mp3",
-  
-    "music/04 Stofnar Falla.mp3"
-
+  "music/14 Silent Night.mp3",
+  "music/06 The Good, The Bad, And The Ugly.mp3",
+  "music/19 Shalom Chaverim.mp3",
+  "music/Dreaming.mp3",
+  "music/07 Barrios Mangoré_ Un Sueño En La Floresta.mp3",
+  "music/08 Imagine.mp3",
+  "music/08 xindeshijie.mp3",
+  "music/02 Amarantine.mp3",
+  "music/10 Si Quieres Que Te Cortexe.mp3",
+  "music/07 Victory Is Won.mp3",
+  "music/12 Silent Night_Klusa Nakts.mp3",
+  "music/01 Suerte (Whenever, Wherever).mp3",
+  "music/02 La Vie En Rose.mp3",
+  "music/2-08 Blaze Of Glory.mp3",
+  "music/04 Stofnar Falla.mp3"
 ];
 
 const silentNightStartTracks = [0, 10];
-
 let currentTrack = 0;
 
 const audio = new Audio(playlist[currentTrack]);
-navigator.mediaSession.metadata =
-new MediaMetadata({
 
+if ("mediaSession" in navigator && "MediaMetadata" in window) {
+  navigator.mediaSession.metadata = new MediaMetadata({
     title: "同行之声",
-
     artist: "余生行走，不偏左右",
-
     album: "步道 budao.org",
+    artwork: [{
+      src: "https://budao.org/images/MEDIA.jpeg",
+      sizes: "1024x1024",
+      type: "image/jpeg"
+    }]
+  });
+}
 
-   artwork: [
-    {
-        src: "https://budao.org/images/MEDIA.jpeg",
-        sizes: "1024x1024",
-        type: "image/jpeg"
-    }
-]
-});
+const dspBtn = document.getElementById("dspBtn");
 const playBtn = document.getElementById("playBtn");
-
 const nextBtn = document.getElementById("nextBtn");
-
 const prevBtn = document.getElementById("prevBtn");
 
 let isPlaying = false;
-
 let hasStartedPlayback = false;
+let dspEnabled = false;
+let audioContext = null;
+let sourceNode = null;
+let bypassGain = null;
+let dspGain = null;
+
+/*
+ * “余” DSP Reference A
+ * 精确实现：Input Trim、HPF、三段 EQ、主压缩器。
+ * 浏览器原生 Web Audio 无法精确提供 4× oversampled true-peak limiter，
+ * 因此末级仅用一个极轻、只处理接近满刻度峰值的安全限制器近似；
+ * 不把它标称为真正的 -1 dBTP / 4× True Peak。
+ */
+function initAudioEngine() {
+  if (audioContext) return;
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  audioContext = new AudioContextClass();
+  sourceNode = audioContext.createMediaElementSource(audio);
+
+  bypassGain = audioContext.createGain();
+  dspGain = audioContext.createGain();
+
+  const inputTrim = audioContext.createGain();
+  inputTrim.gain.value = Math.pow(10, -0.7 / 20);
+
+  const hpf = audioContext.createBiquadFilter();
+  hpf.type = "highpass";
+  hpf.frequency.value = 20;
+  hpf.Q.value = 0.707;
+
+  const lowShelf = audioContext.createBiquadFilter();
+  lowShelf.type = "lowshelf";
+  lowShelf.frequency.value = 95;
+  lowShelf.gain.value = 0.25;
+
+  const presence = audioContext.createBiquadFilter();
+  presence.type = "peaking";
+  presence.frequency.value = 2800;
+  presence.Q.value = 0.70;
+  presence.gain.value = -0.25;
+
+  const air = audioContext.createBiquadFilter();
+  air.type = "highshelf";
+  air.frequency.value = 11000;
+  air.gain.value = 0.20;
+
+  const compressor = audioContext.createDynamicsCompressor();
+  compressor.threshold.value = -16;
+  compressor.knee.value = 6;
+  compressor.ratio.value = 1.18;
+  compressor.attack.value = 0.045;
+  compressor.release.value = 0.220;
+
+  const safetyLimiter = audioContext.createDynamicsCompressor();
+  safetyLimiter.threshold.value = -1;
+  safetyLimiter.knee.value = 0;
+  safetyLimiter.ratio.value = 20;
+  safetyLimiter.attack.value = 0.005;
+  safetyLimiter.release.value = 0.100;
+
+  sourceNode.connect(bypassGain);
+  bypassGain.connect(audioContext.destination);
+
+  sourceNode
+    .connect(inputTrim)
+    .connect(hpf)
+    .connect(lowShelf)
+    .connect(presence)
+    .connect(air)
+    .connect(compressor)
+    .connect(safetyLimiter)
+    .connect(dspGain)
+    .connect(audioContext.destination);
+
+  bypassGain.gain.value = dspEnabled ? 0 : 1;
+  dspGain.gain.value = dspEnabled ? 1 : 0;
+}
+
+async function ensureAudioEngineReady() {
+  initAudioEngine();
+  if (audioContext && audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
+}
+
+function applyDspState() {
+  dspBtn.classList.toggle("dsp-on", dspEnabled);
+  dspBtn.setAttribute("aria-pressed", String(dspEnabled));
+
+  if (!audioContext || !bypassGain || !dspGain) return;
+
+  const now = audioContext.currentTime;
+  const fade = 0.025;
+
+  bypassGain.gain.cancelScheduledValues(now);
+  dspGain.gain.cancelScheduledValues(now);
+  bypassGain.gain.setValueAtTime(bypassGain.gain.value, now);
+  dspGain.gain.setValueAtTime(dspGain.gain.value, now);
+  bypassGain.gain.linearRampToValueAtTime(dspEnabled ? 0 : 1, now + fade);
+  dspGain.gain.linearRampToValueAtTime(dspEnabled ? 1 : 0, now + fade);
+}
+
+async function toggleDsp() {
+  await ensureAudioEngineReady();
+  dspEnabled = !dspEnabled;
+  applyDspState();
+}
+
+dspBtn.addEventListener("click", toggleDsp);
+dspBtn.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    toggleDsp();
+  }
+});
 
 /* 播放当前曲目 */
+async function playCurrentTrack() {
+  hasStartedPlayback = true;
+  await ensureAudioEngineReady();
 
-function playCurrentTrack(){
+  audio.src = playlist[currentTrack];
+  audio.load();
+  await audio.play();
 
-    hasStartedPlayback = true;
-
-    audio.src = playlist[currentTrack];
-
-    audio.load();
-
-    audio.play();
-
-    playBtn.classList.add("playing");
-
-    isPlaying = true;
+  playBtn.classList.add("playing");
+  isPlaying = true;
 }
 
 /* 点击“走” */
-
-playBtn.addEventListener("click", () => {
-
-    if(!isPlaying){
-
-        if(!hasStartedPlayback){
-
-            currentTrack = silentNightStartTracks[
-                Math.floor(Math.random() * silentNightStartTracks.length)
-            ];
-
-            playCurrentTrack();
-
-        }else{
-
-            audio.play();
-
-            playBtn.classList.add("playing");
-
-            isPlaying = true;
-        }
-
-    }else{
-
-        audio.pause();
-
-        playBtn.classList.remove("playing");
-
-        isPlaying = false;
+playBtn.addEventListener("click", async () => {
+  if (!isPlaying) {
+    if (!hasStartedPlayback) {
+      currentTrack = silentNightStartTracks[
+        Math.floor(Math.random() * silentNightStartTracks.length)
+      ];
+      await playCurrentTrack();
+    } else {
+      await ensureAudioEngineReady();
+      await audio.play();
+      playBtn.classList.add("playing");
+      isPlaying = true;
     }
+  } else {
+    audio.pause();
+    playBtn.classList.remove("playing");
+    isPlaying = false;
+  }
 });
 
 /* 点击“右” */
-
-nextBtn.addEventListener("click", () => {
-
-    currentTrack++;
-
-    if(currentTrack >= playlist.length){
-
-        currentTrack = 0;
-    }
-
-    playCurrentTrack();
+nextBtn.addEventListener("click", async () => {
+  currentTrack++;
+  if (currentTrack >= playlist.length) currentTrack = 0;
+  await playCurrentTrack();
 });
-  
+
 /* 点击“左” */
-  
-prevBtn.addEventListener("click", () => {
-
-    currentTrack--;
-
-    if(currentTrack < 0){
-
-        currentTrack = playlist.length - 1;
-    }
-
-    playCurrentTrack();
+prevBtn.addEventListener("click", async () => {
+  currentTrack--;
+  if (currentTrack < 0) currentTrack = playlist.length - 1;
+  await playCurrentTrack();
 });
-  
+
 /* 一首结束后自动下一首 */
-
-audio.addEventListener("ended", () => {
-
-    currentTrack = (currentTrack + 1) % playlist.length;
-
-    playCurrentTrack();
+audio.addEventListener("ended", async () => {
+  currentTrack = (currentTrack + 1) % playlist.length;
+  await playCurrentTrack();
 });
-
 </script>
 </body>
 </html>
