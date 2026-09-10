@@ -1,0 +1,9 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+const html = fs.readFileSync(path.join(__dirname,'..','yhzd.html'),'utf8');
+test('yhzd keeps image and text histories independent',()=>{assert.match(html,/budao:yhzd:imageHistory:v1/);assert.match(html,/budao:yhzd:messageHistory:v1/);assert.doesNotMatch(html,/caption|第\s*\d+\s*期/)});
+test('yhzd uses a wider-than-viewport restrained wandering field',()=>{assert.match(html,/168vw/);assert.match(html,/overflow-x:auto/);assert.match(html,/cursor:grab/)});
+test('yhzd images preserve their own aspect ratio',()=>{assert.match(html,/height:auto/);assert.doesNotMatch(html,/object-fit\s*:\s*cover/)});
+test('yhzd uses six image slots and recent-view exclusion',()=>{assert.equal((html.match(/image-slot image-slot-/g)||[]).length,6);assert.match(html,/recent\.has\(item\.id\)/)});
