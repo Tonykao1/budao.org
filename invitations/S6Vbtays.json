@@ -1,0 +1,38 @@
+{
+  "id": "S6Vbtays",
+  "sourceRoute": {
+    "routeId": "budao-ims"
+  },
+  "facts": {
+    "title": "太舟坞·探线",
+    "location": "中国·北京·海淀",
+    "date": "2026-09-11",
+    "time": "7:00",
+    "timezone": "Asia/Shanghai",
+    "duration": "2小时",
+    "distance": "8千米",
+    "elevation": "425米",
+    "surface": "防火道、土石路、未探明路况",
+    "difficulty": "中等",
+    "suitableFor": "熟悉线路的户外伙伴及步道同工",
+    "equipmentMinimum": "徒步鞋、饮用水、防晒",
+    "participantRequirements": "",
+    "meetingPlace": "北京市海淀区和平小学（东北门）",
+    "description": "步道线路勘查"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/1375e13c089c0ddfec9b791c56ef7ff4.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/7b8d42667366f260436c3d89280207f1.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-09-10T07:58:42.005Z",
+  "createdBy": "budao-ims"
+}
