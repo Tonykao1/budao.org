@@ -1,0 +1,38 @@
+{
+  "id": "mJSx7v8a",
+  "sourceRoute": {
+    "routeId": "budao-hd"
+  },
+  "facts": {
+    "title": "百望山",
+    "location": "中国·北京·海淀",
+    "date": "2026-09-12",
+    "time": "08:30",
+    "timezone": "Asia/Shanghai",
+    "duration": "2.5小时",
+    "distance": "6千米",
+    "elevation": "300米",
+    "surface": "累积一周的疲惫，累积一段时间的情绪，也许你需要一场微汗的行走。",
+    "difficulty": "中等",
+    "suitableFor": "亲子、有体能基础长者友好",
+    "equipmentMinimum": "运动鞋，饮用水，个人药品，防晒",
+    "participantRequirements": "",
+    "meetingPlace": "百望山森林公园东门",
+    "description": "秋天的山路已经有了清亮的意思。风从林间穿过去，天也显得更高。一路不必赶，遇见上坡就慢一点，遇见开阔处就停一停。让脚步跟着秋天舒展开来，也让心在这一程里，重新变得轻快。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/b87198ef1130090bea91d31512edc83f.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/0761d8463f13717ccd3bca130dd2f254.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-09-10T05:12:29.203Z",
+  "createdBy": "publisher-hd"
+}
