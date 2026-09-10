@@ -92,10 +92,47 @@ const playlist = [
 ];
 
 const silentNightStartTracks = [0, 10];
+const REFERENCE_B_URL = "music/music.json";
 let currentTrack = 0;
 
 /*
- * 重要：音乐播放必须声明为 playback。
+ * 余 DSP Reference B 的响度数据来自对仓库原始 MP3 的离线实测：
+ * ITU-R BS.1770 / EBU R128，目标 -20 LUFS，前 EQ True Peak 上限 -1.5 dBTP。
+ * 页面启动时只预取 JSON，不创建 AudioContext，因此不会破坏默认锁屏播放。
+ */
+let referenceBTracks = {};
+let referenceBPromise = null;
+
+function loadReferenceBMap() {
+  if (referenceBPromise) return referenceBPromise;
+
+  referenceBPromise = fetch(REFERENCE_B_URL, { cache: "no-store" })
+    .then((response) => {
+      if (!response.ok) throw new Error(`Reference B map HTTP ${response.status}`);
+      return response.json();
+    })
+    .then((data) => {
+      if (!data || data.system !== "余 DSP Reference B" || !data.tracks) {
+        throw new Error("Invalid Reference B loudness map");
+      }
+      referenceBTracks = data.tracks;
+      applyCurrentTrackGain(true);
+      return data;
+    })
+    .catch((error) => {
+      console.warn("Reference B loudness map unavailable; using 0 dB track gain", error);
+      referenceBTracks = {};
+      return null;
+    });
+
+  return referenceBPromise;
+}
+
+/* 预取测量数据，但绝不因预取而启动 Web Audio。 */
+loadReferenceBMap();
+
+/*
+ * 重要：音乐播放声明为 playback。
  * iOS/Safari 在锁屏或进入后台时会区别对待 ambient Web Audio 与真正的媒体播放。
  * 不支持 Audio Session API 的浏览器会安全忽略这一段。
  */
@@ -137,16 +174,44 @@ let dspEnabled = false;
 let audioContext = null;
 let sourceNode = null;
 let bypassGain = null;
+let trackGain = null;
 let dspGain = null;
 
+function dbToLinear(db) {
+  return Math.pow(10, db / 20);
+}
+
+function getCurrentTrackGainDb() {
+  const measurement = referenceBTracks[playlist[currentTrack]];
+  const gainDb = measurement ? Number(measurement.gain_db) : 0;
+  return Number.isFinite(gainDb) ? gainDb : 0;
+}
+
+function applyCurrentTrackGain(immediate = false) {
+  if (!audioContext || !trackGain) return;
+
+  const target = dbToLinear(getCurrentTrackGainDb());
+  const now = audioContext.currentTime;
+
+  trackGain.gain.cancelScheduledValues(now);
+  if (immediate) {
+    trackGain.gain.setValueAtTime(target, now);
+    return;
+  }
+
+  trackGain.gain.setValueAtTime(trackGain.gain.value, now);
+  trackGain.gain.linearRampToValueAtTime(target, now + 0.035);
+}
+
 /*
- * “余” DSP Reference A
- * 精确实现：Input Trim、HPF、三段 EQ、主压缩器。
- * 浏览器原生 Web Audio 无法精确提供 4× oversampled true-peak limiter，
- * 因此末级仅用一个极轻、只处理接近满刻度峰值的安全限制器近似；
- * 不把它标称为真正的 -1 dBTP / 4× True Peak。
+ * “余” DSP Reference B — Playback Mastering System
  *
- * 注意：DSP 引擎只在用户主动点击“余”后创建。
+ * 1. 每首独立静态响度增益：目标 -20 LUFS；不压缩、不改变 LRA。
+ * 2. 高动态曲若达到 True Peak 安全边界，则宁可略低于目标，也不削峰。
+ * 3. 极轻的步道 Playback Curve：只建立播放系统气质，不重做原母带。
+ * 4. 无统一 compressor、无伪 true-peak limiter、无 stereo widening、无假环绕。
+ *
+ * DSP 引擎仍只在用户主动点击“余”后创建。
  * 默认播放保持原生 HTMLMediaElement 通道，以保留移动端锁屏/后台播放能力。
  */
 function initAudioEngine() {
@@ -161,10 +226,8 @@ function initAudioEngine() {
   sourceNode = audioContext.createMediaElementSource(audio);
 
   bypassGain = audioContext.createGain();
+  trackGain = audioContext.createGain();
   dspGain = audioContext.createGain();
-
-  const inputTrim = audioContext.createGain();
-  inputTrim.gain.value = Math.pow(10, -0.7 / 20);
 
   const hpf = audioContext.createBiquadFilter();
   hpf.type = "highpass";
@@ -174,47 +237,34 @@ function initAudioEngine() {
   const lowShelf = audioContext.createBiquadFilter();
   lowShelf.type = "lowshelf";
   lowShelf.frequency.value = 95;
-  lowShelf.gain.value = 0.25;
+  lowShelf.gain.value = 0.45;
 
   const presence = audioContext.createBiquadFilter();
   presence.type = "peaking";
   presence.frequency.value = 2800;
   presence.Q.value = 0.70;
-  presence.gain.value = -0.25;
+  presence.gain.value = -0.40;
 
   const air = audioContext.createBiquadFilter();
   air.type = "highshelf";
   air.frequency.value = 11000;
-  air.gain.value = 0.20;
+  air.gain.value = 0.25;
 
-  const compressor = audioContext.createDynamicsCompressor();
-  compressor.threshold.value = -16;
-  compressor.knee.value = 6;
-  compressor.ratio.value = 1.18;
-  compressor.attack.value = 0.045;
-  compressor.release.value = 0.220;
-
-  const safetyLimiter = audioContext.createDynamicsCompressor();
-  safetyLimiter.threshold.value = -1;
-  safetyLimiter.knee.value = 0;
-  safetyLimiter.ratio.value = 20;
-  safetyLimiter.attack.value = 0.005;
-  safetyLimiter.release.value = 0.100;
-
+  /* 原始母带旁路 */
   sourceNode.connect(bypassGain);
   bypassGain.connect(audioContext.destination);
 
+  /* Reference B：静态响度匹配 → Playback Curve → 输出 */
   sourceNode
-    .connect(inputTrim)
+    .connect(trackGain)
     .connect(hpf)
     .connect(lowShelf)
     .connect(presence)
     .connect(air)
-    .connect(compressor)
-    .connect(safetyLimiter)
     .connect(dspGain)
     .connect(audioContext.destination);
 
+  applyCurrentTrackGain(true);
   bypassGain.gain.value = dspEnabled ? 0 : 1;
   dspGain.gain.value = dspEnabled ? 1 : 0;
 }
@@ -236,6 +286,8 @@ function applyDspState() {
 
   if (!audioContext || !bypassGain || !dspGain) return;
 
+  if (dspEnabled) applyCurrentTrackGain(true);
+
   const now = audioContext.currentTime;
   const fade = 0.025;
 
@@ -248,6 +300,7 @@ function applyDspState() {
 }
 
 async function toggleDsp() {
+  await loadReferenceBMap();
   await ensureAudioEngineReady();
   dspEnabled = !dspEnabled;
   applyDspState();
@@ -284,6 +337,7 @@ async function playCurrentTrack() {
 
   if (audioContext) {
     await ensureAudioEngineReady();
+    applyCurrentTrackGain(true);
   }
 
   audio.src = playlist[currentTrack];
@@ -294,6 +348,7 @@ async function playCurrentTrack() {
 async function resumeCurrentTrack() {
   if (audioContext) {
     await ensureAudioEngineReady();
+    applyCurrentTrackGain(true);
   }
   await audio.play();
 }
