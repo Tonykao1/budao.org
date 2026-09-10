@@ -1,0 +1,110 @@
+name: Audio Reference B Analysis
+
+on:
+  push:
+    paths:
+      - ".github/workflows/audio-reference-b.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Measure playlist loudness
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, math, pathlib, re, subprocess
+
+          playlist = [
+              "music/14 Silent Night.mp3",
+              "music/06 The Good, The Bad, And The Ugly.mp3",
+              "music/19 Shalom Chaverim.mp3",
+              "music/Dreaming.mp3",
+              "music/07 Barrios Mangoré_ Un Sueño En La Floresta.mp3",
+              "music/08 Imagine.mp3",
+              "music/08 xindeshijie.mp3",
+              "music/02 Amarantine.mp3",
+              "music/10 Si Quieres Que Te Cortexe.mp3",
+              "music/07 Victory Is Won.mp3",
+              "music/12 Silent Night_Klusa Nakts.mp3",
+              "music/01 Suerte (Whenever, Wherever).mp3",
+              "music/02 La Vie En Rose.mp3",
+              "music/2-08 Blaze Of Glory.mp3",
+              "music/04 Stofnar Falla.mp3",
+          ]
+
+          TARGET_LUFS = -16.0
+          PRE_EQ_TP_CEILING = -2.0
+
+          tracks = {}
+          for path in playlist:
+              proc = subprocess.run(
+                  [
+                      "ffmpeg", "-hide_banner", "-nostats", "-i", path,
+                      "-af", "loudnorm=I=-16:TP=-1:LRA=11:print_format=json",
+                      "-f", "null", "-"
+                  ],
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.PIPE,
+                  text=True,
+                  check=True,
+              )
+              match = re.search(r'\{\s*"input_i".*?\}', proc.stderr, re.S)
+              if not match:
+                  raise RuntimeError(f"Could not parse loudnorm result for {path}")
+              data = json.loads(match.group(0))
+
+              input_i = float(data["input_i"])
+              input_tp = float(data["input_tp"])
+              input_lra = float(data["input_lra"])
+              input_thresh = float(data["input_thresh"])
+
+              loudness_gain = TARGET_LUFS - input_i
+              peak_safe_gain = PRE_EQ_TP_CEILING - input_tp
+              gain_db = min(loudness_gain, peak_safe_gain)
+
+              tracks[path] = {
+                  "integrated_lufs": round(input_i, 2),
+                  "true_peak_dbtp": round(input_tp, 2),
+                  "lra_lu": round(input_lra, 2),
+                  "threshold_lufs": round(input_thresh, 2),
+                  "gain_db": round(gain_db, 2),
+                  "result_lufs_est": round(input_i + gain_db, 2),
+                  "result_tp_est": round(input_tp + gain_db, 2),
+                  "peak_limited": peak_safe_gain < loudness_gain,
+              }
+
+          out = {
+              "system": "余 DSP Reference B",
+              "standard": "ITU-R BS.1770 / EBU R128 via ffmpeg loudnorm",
+              "target_integrated_lufs": TARGET_LUFS,
+              "pre_eq_true_peak_ceiling_dbtp": PRE_EQ_TP_CEILING,
+              "note": "Static per-track gain only; musical internal dynamics are preserved. TP ceiling leaves headroom for the gentle Budao playback curve.",
+              "tracks": tracks,
+          }
+
+          pathlib.Path("music/music.json").write_text(
+              json.dumps(out, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(out, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit measured Reference B map
+        shell: bash
+        run: |
+          if git diff --quiet -- music/music.json; then
+            echo "No loudness-map changes"
+            exit 0
+          fi
+          git config user.name "budao-audio-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add music/music.json
+          git commit -m "audio: measure Reference B loudness map"
+          git push
