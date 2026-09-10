@@ -46,14 +46,17 @@ jobs:
               "music/04 Stofnar Falla.mp3",
           ]
 
-          TARGET_LUFS = -16.0
-          PRE_EQ_TP_CEILING = -2.0
+          # Reference B prioritizes fidelity over streaming-style loudness.
+          # -20 LUFS lets the high-LRA acoustic/classical masters keep their crest factor
+          # without forcing a limiter to shave several dB off musical peaks.
+          TARGET_LUFS = -20.0
+          PRE_EQ_TP_CEILING = -1.5
 
           def measure(path):
               proc = subprocess.run(
                   [
                       "ffmpeg", "-threads", "1", "-hide_banner", "-nostats", "-i", path,
-                      "-af", "loudnorm=I=-16:TP=-1:LRA=11:print_format=json",
+                      "-af", "loudnorm=I=-20:TP=-1.5:LRA=11:print_format=json",
                       "-f", "null", "-"
                   ],
                   stdout=subprocess.PIPE,
@@ -95,7 +98,7 @@ jobs:
               "standard": "ITU-R BS.1770 / EBU R128 via ffmpeg loudnorm",
               "target_integrated_lufs": TARGET_LUFS,
               "pre_eq_true_peak_ceiling_dbtp": PRE_EQ_TP_CEILING,
-              "note": "Static per-track gain only; musical internal dynamics are preserved. TP ceiling leaves headroom for the gentle Budao playback curve.",
+              "note": "Per-track static loudness gain only. No dynamic compression or loudness-range reduction. Peak-limited tracks are intentionally allowed to sit slightly below target rather than altering their internal dynamics.",
               "tracks": tracks,
           }
 
