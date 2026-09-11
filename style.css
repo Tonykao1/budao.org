@@ -1219,3 +1219,8 @@ opacity:.6;
 
     cursor:pointer;
 }
+
+/* test.html: prevent animated filter from forcing GPU layer re-rasterization every second. */
+.route-countdown{
+    filter:none !important;
+}
