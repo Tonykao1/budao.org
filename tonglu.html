@@ -2,235 +2,200 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>同路 · 步道</title>
-<meta name="theme-color" content="#bfe8ff">
+<meta name="theme-color" content="#a8dcff">
 <style>
 :root{
-  --ink:#26312c;
-  --paper:#fffdf1;
-  --sky1:#8fd6ff;
-  --sky2:#dff7ff;
-  --grass1:#9cdb67;
-  --grass2:#72c85c;
-  --grass3:#4fa84f;
-  --pixel:4px;
+  --ink:#26352f;
+  --paper:#fff9e9;
+  --paper2:#f6e7c3;
+  --wood:#6c4b2e;
+  --green:#4f9e49;
+  --green2:#79c958;
+  --accent:#67ae55;
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:#a7ddff;color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Cascadia Mono","Roboto Mono",monospace;overflow:hidden}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fd6fb;color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Cascadia Mono","Roboto Mono","Noto Sans Mono CJK SC",monospace}
 button,input,textarea,select{font:inherit}
+button{color:inherit}
 body{touch-action:none;user-select:none}
-#world{position:relative;width:100vw;height:100vh;overflow:hidden;background:linear-gradient(var(--sky1),var(--sky2) 52%,#d5efbb 53%,#84ce61 72%,#5eb24e 100%)}
-#world::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,0));mix-blend-mode:screen}
-.cloud{position:absolute;background:#fff;border-radius:999px;opacity:.82;filter:drop-shadow(0 4px 0 rgba(255,255,255,.25));animation:cloud 55s linear infinite}
-.cloud:before,.cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
-.cloud:before{width:42%;height:150%;left:18%;top:-58%}.cloud:after{width:34%;height:120%;right:12%;top:-38%}
-.c1{width:130px;height:30px;left:8%;top:12%;animation-duration:62s}.c2{width:92px;height:22px;left:58%;top:19%;animation-duration:79s;animation-delay:-24s}.c3{width:150px;height:32px;left:82%;top:9%;animation-duration:70s;animation-delay:-37s}@keyframes cloud{from{transform:translateX(-180px)}to{transform:translateX(calc(100vw + 220px))}}
-.depth{position:absolute;left:-15vw;width:130vw;pointer-events:none;transform-origin:center bottom;will-change:transform}
-.hills-back{bottom:35%;height:36%;opacity:.72;background:radial-gradient(ellipse at 12% 100%,#79ba76 0 24%,transparent 25%),radial-gradient(ellipse at 31% 100%,#6dac70 0 28%,transparent 29%),radial-gradient(ellipse at 52% 100%,#78b97a 0 25%,transparent 26%),radial-gradient(ellipse at 74% 100%,#629f68 0 29%,transparent 30%),radial-gradient(ellipse at 95% 100%,#78b979 0 26%,transparent 27%)}
-.hills-mid{bottom:25%;height:31%;opacity:.92;background:radial-gradient(ellipse at 6% 100%,#64b45b 0 27%,transparent 28%),radial-gradient(ellipse at 28% 100%,#68b95d 0 29%,transparent 30%),radial-gradient(ellipse at 51% 100%,#5baa55 0 32%,transparent 33%),radial-gradient(ellipse at 75% 100%,#64b95b 0 28%,transparent 29%),radial-gradient(ellipse at 96% 100%,#56aa50 0 30%,transparent 31%)}
-.meadow{position:absolute;left:-10vw;bottom:-9vh;width:120vw;height:56vh;background:linear-gradient(#83d15f,#6cc354 48%,#57ae4a);border-radius:50% 50% 0 0/12% 12% 0 0;transform:perspective(900px) rotateX(3deg);box-shadow:inset 0 16px 0 rgba(255,255,255,.08)}
-.flowers{position:absolute;left:0;right:0;bottom:0;height:48vh;pointer-events:none;opacity:.7;background-image:radial-gradient(circle,#fff8d6 0 2px,transparent 3px),radial-gradient(circle,#ffd45d 0 2px,transparent 3px),radial-gradient(circle,#f8a4b8 0 2px,transparent 3px);background-size:67px 71px,83px 79px,97px 89px;background-position:10px 8px,41px 34px,17px 51px}
-#title{position:absolute;z-index:50;left:24px;top:22px;display:flex;align-items:baseline;gap:14px;color:#203126;text-shadow:0 2px 0 rgba(255,255,255,.7)}
-#title strong{font-size:26px;letter-spacing:.12em}#title span{font-size:11px;opacity:.62;letter-spacing:.18em}
-#sound{position:absolute;z-index:51;right:20px;top:18px;width:44px;height:44px;border:2px solid rgba(37,70,48,.25);background:rgba(255,255,255,.52);backdrop-filter:blur(8px);border-radius:14px;color:#203126;cursor:pointer;box-shadow:0 5px 0 rgba(41,90,50,.12)}
-#sound:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(41,90,50,.12)}
-#stage-note{position:absolute;z-index:45;left:50%;top:72px;transform:translateX(-50%);padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.58);font-size:11px;letter-spacing:.12em;opacity:.78;transition:opacity .6s}
+#world{position:relative;width:100vw;height:100vh;overflow:hidden;isolation:isolate;background:#9fd6fb}
+#landscape{position:absolute;inset:-2%;width:104%;height:104%;z-index:1;display:block;transform:translateZ(0);will-change:transform}
+#landscape *{vector-effect:non-scaling-stroke}
+.parallax{transform-box:fill-box;transform-origin:center;will-change:transform}
+#atmosphere{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 34%,rgba(255,247,196,.08) 65%,rgba(36,87,55,.07));mix-blend-mode:screen}
+#grain{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:.08;background-image:radial-gradient(circle at 10% 20%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 75% 38%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 32% 78%,#173c22 0 1px,transparent 1.5px);background-size:17px 19px,23px 29px,31px 27px;image-rendering:pixelated}
+
+#brand{position:absolute;left:26px;top:22px;z-index:60;display:flex;align-items:center;gap:13px;text-shadow:0 2px 0 rgba(255,255,255,.72)}
+.brand-sheep{width:38px;height:31px;filter:drop-shadow(0 3px 0 rgba(50,78,48,.12))}
+#brand strong{font-size:30px;letter-spacing:.12em;line-height:1}
+#brand span{display:block;margin-top:4px;font-size:10px;letter-spacing:.20em;opacity:.56}
+#topnav{position:absolute;right:22px;top:18px;z-index:60;display:flex;align-items:center;gap:7px;padding:5px 7px;border:1px solid rgba(38,69,50,.09);border-radius:18px;background:rgba(255,255,255,.32);backdrop-filter:blur(12px)}
+.navchip{border:0;background:transparent;padding:8px 10px;border-radius:12px;font-size:11px;letter-spacing:.08em;cursor:pointer;opacity:.72}
+.navchip:hover{background:rgba(255,255,255,.46);opacity:1}
+#sound{width:37px;height:37px;border:0;border-radius:12px;background:rgba(255,255,255,.46);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(38,69,50,.09)}
+#sound:active,.navchip:active{transform:translateY(1px)}
+#slogan{position:absolute;left:29px;top:103px;z-index:54;font-family:"STKaiti","KaiTi",serif;color:#416b75;text-shadow:0 1px 0 rgba(255,255,255,.7)}
+#slogan .hand{font-size:28px;letter-spacing:.12em;transform:rotate(-4deg);display:inline-block}
+#slogan small{display:block;margin-top:7px;font-size:11px;letter-spacing:.17em;opacity:.72;line-height:1.8}
+#stage-note{position:absolute;z-index:55;left:50%;top:72px;transform:translateX(-50%);padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.54);backdrop-filter:blur(8px);font-size:10px;letter-spacing:.12em;color:#3e5c50;opacity:.85;transition:opacity .7s}
 #stage-note.hidden{opacity:0}
-#sheep-layer{position:absolute;inset:0;z-index:20}
-.sheep{position:absolute;width:58px;height:45px;cursor:grab;transform-origin:50% 82%;will-change:left,top,transform,filter;filter:drop-shadow(0 5px 0 rgba(40,83,41,.16));touch-action:none}
-.sheep.grabbed{cursor:grabbing;z-index:90!important;filter:drop-shadow(0 10px 0 rgba(40,83,41,.12))}
-.sheep-body{position:absolute;left:11px;top:11px;width:38px;height:27px;border-radius:46% 52% 48% 48%;background:var(--wool,#f7f0d9);box-shadow:inset 0 -4px 0 rgba(0,0,0,.07),-4px 1px 0 var(--wool),4px 0 0 var(--wool)}
-.sheep-body::before,.sheep-body::after{content:"";position:absolute;width:16px;height:15px;border-radius:50%;background:var(--patch,transparent);opacity:.88}.sheep-body::before{left:4px;top:3px}.sheep-body::after{right:2px;bottom:2px}
-.face{position:absolute;left:0;top:10px;width:22px;height:22px;border-radius:44% 48% 46% 46%;background:var(--face,#574536);box-shadow:inset 0 -3px 0 rgba(0,0,0,.13)}
-.face::before,.face::after{content:"";position:absolute;top:7px;width:3px;height:4px;background:#111;border-radius:2px}.face::before{left:5px}.face::after{right:5px}
-.ear{position:absolute;top:6px;width:9px;height:5px;background:var(--face,#574536);border-radius:70% 20%}.ear.l{left:-4px;transform:rotate(20deg)}.ear.r{right:-4px;transform:scaleX(-1) rotate(20deg)}
-.leg{position:absolute;top:34px;width:5px;height:10px;background:#3f382f;border-radius:0 0 2px 2px}.leg.a{left:16px}.leg.b{left:39px}
-.tail{position:absolute;right:3px;top:14px;width:9px;height:8px;background:var(--wool,#f7f0d9);border-radius:70% 45% 55% 70%;transform-origin:left center;animation:tail .9s ease-in-out infinite alternate}@keyframes tail{to{transform:rotate(18deg)}}
-.sheep.walking .leg.a{animation:step .35s infinite alternate}.sheep.walking .leg.b{animation:step .35s infinite alternate-reverse}@keyframes step{to{transform:translateY(-3px)}}
-.sheep.idle .face{animation:nod 2.8s ease-in-out infinite}@keyframes nod{0%,72%,100%{transform:translateY(0) rotate(0)}84%{transform:translateY(3px) rotate(7deg)}}
-.sheep-tag{position:absolute;left:50%;top:-18px;transform:translateX(-50%);font-size:9px;white-space:nowrap;padding:2px 5px;border-radius:6px;background:rgba(255,255,255,.72);opacity:0;transition:opacity .18s;pointer-events:none}.sheep:hover .sheep-tag{opacity:1}
-#board{position:absolute;z-index:120;min-width:250px;max-width:min(360px,calc(100vw - 28px));padding:15px;border:3px solid #473a2a;border-radius:8px;background:#fff4cf;box-shadow:7px 7px 0 rgba(61,73,46,.19);display:none;transform:translate(-50%,-100%);user-select:text}
-#board.open{display:block}.board-head{display:flex;gap:10px;align-items:center;border-bottom:2px dashed rgba(71,58,42,.24);padding-bottom:9px;margin-bottom:9px}.board-head strong{font-size:14px}.status{font-size:10px;padding:3px 7px;border-radius:999px;background:#c9efaf;color:#285126}.meta{font-size:10px;opacity:.62;margin-left:auto}.verse{font-size:11px;margin:7px 0 9px;color:#5b5142}.messages{display:grid;gap:7px;max-height:160px;overflow:auto}.msg{font-size:11px;line-height:1.55;padding:7px 8px;background:rgba(255,255,255,.55);border-left:3px solid #95c875}.msg.item{border-left-color:#e3a04b}.board-actions{display:flex;gap:7px;margin-top:10px}.board-actions button{border:2px solid rgba(71,58,42,.3);background:#fff9e6;border-radius:7px;padding:7px 10px;font-size:10px;cursor:pointer}.board-actions button.primary{background:#6dba58;color:white;border-color:#4d9840}
-#hint{position:absolute;z-index:60;left:50%;bottom:18px;transform:translateX(-50%);font-size:10px;letter-spacing:.08em;padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.62);backdrop-filter:blur(6px);white-space:nowrap;box-shadow:0 4px 0 rgba(50,95,51,.1)}
-#parade-curtain{position:absolute;inset:0;z-index:35;pointer-events:none;background:radial-gradient(circle at 50% 72%,rgba(255,255,255,.06),rgba(80,158,83,.03) 60%,rgba(30,102,61,.08));opacity:1;transition:opacity 1.1s}#parade-curtain.done{opacity:0}
-@media(max-width:640px){#title{left:14px;top:14px}#title strong{font-size:20px}#title span{display:none}#sound{right:12px;top:10px}.sheep{width:54px;height:42px}#hint{bottom:10px;font-size:9px}#stage-note{top:62px}}
-@media(prefers-reduced-motion:reduce){.cloud,.tail,.sheep.walking .leg,.sheep.idle .face{animation:none!important}}
+
+#sheep-layer{position:absolute;inset:0;z-index:22}
+.sheep{position:absolute;width:78px;height:64px;cursor:grab;transform-origin:50% 84%;will-change:left,top,transform,filter;filter:drop-shadow(0 6px 0 rgba(38,84,43,.13));touch-action:none}
+.sheep.grabbed{cursor:grabbing;z-index:999!important;filter:drop-shadow(0 13px 0 rgba(38,84,43,.10))}
+.sheep svg{display:block;width:100%;height:100%;overflow:visible;image-rendering:pixelated}
+.sheep .wool{fill:var(--wool,#fff0d4);stroke:rgba(81,68,48,.16);stroke-width:1.2}
+.sheep .patch{fill:var(--patch,#d9b06b);opacity:.76}
+.sheep .face,.sheep .ear{fill:var(--face,#5d4738)}
+.sheep .leg{fill:#45392e}
+.sheep .eye{fill:#151612}
+.sheep .cheek{fill:#eeb3a1;opacity:.78}
+.sheep .scarf{fill:var(--scarf,#8bbbdc)}
+.sheep .flower{fill:#fff8dc}.sheep .flowerCore{fill:#f2b44b}
+.sheep .tail{transform-origin:58px 31px;animation:tail .85s ease-in-out infinite alternate}
+@keyframes tail{to{transform:rotate(14deg)}}
+.sheep.walking .leg1{animation:walkleg .32s steps(2,end) infinite alternate}.sheep.walking .leg2{animation:walkleg .32s steps(2,end) infinite alternate-reverse}
+@keyframes walkleg{to{transform:translateY(-3px)}}
+.sheep.idle .head{transform-origin:23px 33px;animation:nod 3.1s ease-in-out infinite}
+@keyframes nod{0%,72%,100%{transform:rotate(0) translateY(0)}84%{transform:rotate(6deg) translateY(2px)}}
+.sheep.parading{animation:paradeBob .42s steps(2,end) infinite alternate}
+@keyframes paradeBob{to{margin-top:-4px}}
+.sheep-tag{position:absolute;left:50%;top:-14px;transform:translateX(-50%);font-size:9px;white-space:nowrap;padding:3px 6px;border-radius:7px;background:rgba(255,255,255,.78);box-shadow:0 2px 0 rgba(40,76,45,.08);opacity:0;transition:opacity .15s;pointer-events:none}
+.sheep:hover .sheep-tag{opacity:1}
+
+#board{position:absolute;z-index:1200;width:min(330px,calc(100vw - 26px));padding:15px 15px 14px;border:3px solid #65482f;border-radius:9px;background:linear-gradient(#fff8dd,#f7e8bd);box-shadow:8px 8px 0 rgba(46,69,43,.16),inset 0 0 0 2px rgba(255,255,255,.54);display:none;transform:translate(-50%,-100%);user-select:text}
+#board.open{display:block}
+#board:after{content:"";position:absolute;left:50%;bottom:-11px;width:17px;height:17px;background:#f7e8bd;border-right:3px solid #65482f;border-bottom:3px solid #65482f;transform:translateX(-50%) rotate(45deg)}
+.board-head{display:flex;align-items:center;gap:8px;padding-bottom:9px;margin-bottom:9px;border-bottom:2px dashed rgba(101,72,47,.23)}
+.board-head strong{font-size:14px}.state{font-size:10px;padding:3px 7px;border-radius:999px;background:#d9efbe;color:#315b2e}.city{margin-left:auto;font-size:10px;opacity:.6}
+.verse{font-size:11px;color:#665a47;margin:6px 0 10px}.messages{display:grid;gap:7px;max-height:175px;overflow:auto}.msg{font-size:11px;line-height:1.55;padding:7px 8px;background:rgba(255,255,255,.55);border-left:3px solid #8ac075}.msg.item{border-left-color:#d99447}.board-actions{display:flex;gap:7px;margin-top:10px}.board-actions button{border:2px solid rgba(101,72,47,.25);background:#fff8e6;border-radius:7px;padding:7px 10px;font-size:10px;cursor:pointer}.board-actions .primary{background:#6bb25a;color:white;border-color:#4f9344}
+
+#bottomhint{position:absolute;left:50%;bottom:18px;z-index:70;transform:translateX(-50%);display:flex;align-items:center;gap:9px;padding:8px 13px;border-radius:999px;background:rgba(255,255,255,.53);backdrop-filter:blur(9px);box-shadow:0 4px 0 rgba(54,91,50,.08);font-size:10px;letter-spacing:.07em;white-space:nowrap}
+#bottomhint b{font-size:12px}
+#world.fade-board #board{display:none!important}
+
+@media(max-width:700px){
+  #brand{left:13px;top:13px}#brand strong{font-size:23px}.brand-sheep{width:31px;height:26px}#brand span{display:none}
+  #slogan{left:15px;top:70px}#slogan .hand{font-size:19px}#slogan small{font-size:9px}
+  #topnav{right:9px;top:9px;gap:2px}.navchip{display:none}#sound{width:38px;height:38px}
+  #stage-note{top:56px;font-size:9px}.sheep{width:68px;height:56px}#bottomhint{font-size:9px;bottom:10px}
+}
+@media(prefers-reduced-motion:reduce){.sheep .tail,.sheep.walking .leg1,.sheep.walking .leg2,.sheep.idle .head,.sheep.parading{animation:none!important}}
 </style>
 </head>
 <body>
 <div id="world" aria-label="同路羊群广场">
-  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
-  <div class="depth hills-back" id="back"></div>
-  <div class="depth hills-mid" id="mid"></div>
-  <div class="meadow"></div><div class="flowers"></div>
-  <div id="title"><strong>同路</strong><span>没有边界，只有远近</span></div>
-  <button id="sound" type="button" aria-pressed="false" aria-label="播放同路音乐">♪</button>
-  <div id="stage-note">羊群演出中 · 每次进入都会重新开始</div>
-  <div id="parade-curtain"></div>
-  <div id="sheep-layer"></div>
-  <div id="board" role="dialog" aria-live="polite"></div>
-  <div id="hint">点羊看留言 · 按住拖动 · 快速甩出去</div>
+<svg id="landscape" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="无边界的像素草地、湖泊与远山">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bd4ff"/><stop offset=".55" stop-color="#d9f1ff"/><stop offset="1" stop-color="#f7e8b8"/></linearGradient>
+  <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#85c9e7"/><stop offset=".45" stop-color="#74b9d9"/><stop offset="1" stop-color="#4b9fc6"/></linearGradient>
+  <linearGradient id="farGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#769e6f"/><stop offset="1" stop-color="#4f7d58"/></linearGradient>
+  <linearGradient id="midGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8dcc67"/><stop offset="1" stop-color="#57aa50"/></linearGradient>
+  <linearGradient id="nearGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a6df68"/><stop offset="1" stop-color="#66bd4d"/></linearGradient>
+  <linearGradient id="path" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3d7b2"/><stop offset="1" stop-color="#bba87c"/></linearGradient>
+  <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <pattern id="flowerPattern" width="94" height="73" patternUnits="userSpaceOnUse">
+    <circle cx="15" cy="31" r="3" fill="#fffdf0"/><circle cx="15" cy="31" r="1.2" fill="#f2b447"/>
+    <circle cx="61" cy="19" r="2.5" fill="#f6b7c6"/><circle cx="61" cy="19" r="1" fill="#e69a3d"/>
+    <circle cx="79" cy="57" r="3" fill="#fff9e5"/><circle cx="79" cy="57" r="1.1" fill="#edbd45"/>
+    <circle cx="39" cy="63" r="2.2" fill="#b9d98f"/>
+  </pattern>
+</defs>
+<rect width="1600" height="900" fill="url(#sky)"/>
+<g id="skyLayer" class="parallax">
+  <circle cx="1345" cy="165" r="58" fill="#fff8cf" opacity=".92" filter="url(#glow)"/>
+  <g fill="#fff" opacity=".72" filter="url(#soft)"><ellipse cx="210" cy="133" rx="105" ry="33"/><ellipse cx="318" cy="112" rx="83" ry="27"/><ellipse cx="1020" cy="134" rx="128" ry="35"/><ellipse cx="1155" cy="114" rx="88" ry="26"/></g>
+  <path d="M0 338 L115 265 L200 306 L325 205 L431 297 L555 225 L680 310 L790 232 L910 311 L1032 208 L1154 300 L1290 222 L1450 311 L1600 255 L1600 390 L0 390Z" fill="#93aec2" opacity=".58"/>
+  <path d="M0 370 L130 310 L250 344 L380 286 L520 349 L650 303 L790 356 L930 293 L1090 348 L1230 306 L1390 354 L1600 305 L1600 410 L0 410Z" fill="#6f92a4" opacity=".45"/>
+</g>
+<g id="farLayer" class="parallax">
+  <path d="M0 388 C155 350 270 367 410 390 C570 416 690 374 824 371 C960 368 1080 408 1208 388 C1340 367 1468 340 1600 358 L1600 477 L0 477Z" fill="url(#farGreen)"/>
+  <g fill="#365f49" opacity=".7">
+    <path d="M88 386 l15-45 13 45zM116 390l18-58 17 58zM235 382l14-44 13 44zM1260 385l17-54 16 54zM1338 374l18-58 17 58zM1478 385l17-52 16 52z"/>
+  </g>
+  <g fill="#e9e4c7" opacity=".88"><rect x="430" y="350" width="10" height="24"/><rect x="444" y="344" width="16" height="30"/><rect x="464" y="356" width="12" height="18"/><rect x="1158" y="350" width="11" height="23"/><rect x="1173" y="343" width="17" height="30"/><rect x="1195" y="354" width="12" height="20"/></g>
+</g>
+<path d="M0 435 C230 418 380 443 540 454 C715 466 882 423 1055 432 C1248 442 1406 413 1600 423 L1600 603 C1440 579 1260 591 1090 600 C870 612 702 570 510 580 C325 590 175 565 0 580Z" fill="url(#lake)"/>
+<g opacity=".34" stroke="#eaffff" stroke-width="4"><path d="M90 481h270M520 500h315M960 479h238M1280 515h185M300 548h254M760 555h285"/></g>
+<g id="midLayer" class="parallax">
+  <path d="M0 530 C145 488 255 496 363 526 C490 563 590 540 696 512 C826 478 941 497 1063 526 C1190 556 1340 532 1600 484 L1600 733 L0 733Z" fill="url(#midGreen)"/>
+  <path d="M0 609 C170 574 310 588 444 625 C574 660 706 632 828 600 C961 565 1100 579 1215 617 C1358 664 1476 631 1600 592 L1600 760 L0 760Z" fill="#65b457" opacity=".92"/>
+  <g fill="#416f45" opacity=".9">
+    <circle cx="115" cy="544" r="31"/><circle cx="147" cy="531" r="24"/><rect x="128" y="545" width="8" height="34" fill="#6d5737"/>
+    <circle cx="1410" cy="540" r="37"/><circle cx="1452" cy="526" r="27"/><rect x="1432" y="547" width="9" height="38" fill="#6d5737"/>
+    <circle cx="715" cy="535" r="20"/><rect x="711" y="548" width="7" height="28" fill="#6d5737"/>
+  </g>
+  <path d="M570 586 C635 562 692 565 752 578 C820 593 870 588 930 565" fill="none" stroke="#d8c89d" stroke-width="18" stroke-linecap="round" opacity=".8"/>
+</g>
+<g id="nearLayer" class="parallax">
+  <path d="M0 650 C155 605 319 617 463 664 C622 715 779 681 938 642 C1104 601 1290 619 1600 680 L1600 900 L0 900Z" fill="url(#nearGreen)"/>
+  <path d="M0 698 C205 661 369 683 522 732 C680 782 833 754 1010 700 C1190 646 1368 679 1600 729 L1600 900 L0 900Z" fill="#73c653" opacity=".95"/>
+  <rect x="0" y="635" width="1600" height="265" fill="url(#flowerPattern)" opacity=".78"/>
+  <path d="M58 900 C140 828 215 806 315 794 C405 783 476 741 540 686" fill="none" stroke="url(#path)" stroke-width="52" stroke-linecap="round" opacity=".92"/>
+  <path d="M52 900 C135 828 215 806 315 794 C405 783 476 741 540 686" fill="none" stroke="#f6edd3" stroke-width="3" stroke-linecap="round" stroke-dasharray="19 25" opacity=".8"/>
+  <g fill="#a69573" opacity=".78"><rect x="86" y="824" width="57" height="18" rx="5" transform="rotate(-16 86 824)"/><rect x="190" y="790" width="68" height="17" rx="5" transform="rotate(-9 190 790)"/><rect x="306" y="765" width="62" height="18" rx="5" transform="rotate(-14 306 765)"/><rect x="425" y="718" width="55" height="17" rx="5" transform="rotate(-24 425 718)"/></g>
+  <g fill="#8a846f" opacity=".85"><ellipse cx="1175" cy="793" rx="37" ry="20"/><ellipse cx="1240" cy="755" rx="25" ry="15"/><ellipse cx="1035" cy="831" rx="42" ry="22"/><ellipse cx="1385" cy="826" rx="48" ry="25"/></g>
+</g>
+<g id="frameLayer" class="parallax">
+  <path d="M0 0H80 C103 78 97 139 80 208 C63 277 37 347 0 406Z" fill="#345a35" opacity=".97"/>
+  <path d="M0 72 C84 32 164 25 260 64 C205 82 154 99 112 137 C71 174 35 211 0 254Z" fill="#4f8242"/>
+  <g fill="#6e9b49"><circle cx="75" cy="52" r="42"/><circle cx="128" cy="45" r="38"/><circle cx="176" cy="63" r="34"/><circle cx="218" cy="48" r="29"/></g>
+  <path d="M1600 66 C1540 84 1503 128 1495 198 C1487 266 1520 322 1600 354Z" fill="#355d37"/>
+  <g fill="#5e9346"><circle cx="1534" cy="90" r="36"/><circle cx="1576" cy="65" r="38"/><circle cx="1505" cy="128" r="31"/></g>
+</g>
+</svg>
+<div id="atmosphere"></div><div id="grain"></div>
+
+<div id="brand">
+<svg class="brand-sheep" viewBox="0 0 72 58" aria-hidden="true"><g><circle cx="36" cy="28" r="17" fill="#fff2d8"/><circle cx="24" cy="26" r="12" fill="#fff2d8"/><circle cx="47" cy="24" r="12" fill="#fff2d8"/><ellipse cx="17" cy="32" rx="11" ry="10" fill="#5b4638"/><circle cx="13" cy="30" r="1.5"/><circle cx="20" cy="30" r="1.5"/><rect x="28" y="42" width="4" height="10" rx="2" fill="#44382f"/><rect x="45" y="42" width="4" height="10" rx="2" fill="#44382f"/></g></svg>
+<div><strong>同路</strong><span>一群羊，在更好的路上</span></div>
+</div>
+<div id="slogan"><span class="hand">同路</span><small>温柔的相遇<br>也会走成远方</small></div>
+<div id="topnav"><button class="navchip" type="button">留言</button><button class="navchip" type="button">同路</button><button class="navchip" type="button">物品</button><button id="sound" type="button" aria-label="播放音乐" aria-pressed="false">♪</button></div>
+<div id="stage-note">开场 · 一起出发</div>
+<div id="sheep-layer"></div>
+<div id="board" role="dialog" aria-live="polite"></div>
+<div id="bottomhint"><b>∞</b><span>没有边界，只有远近 · 点羊留言 · 抓住也可以扔出去</span></div>
 </div>
 <script>
-(() => {
-  const world = document.getElementById('world');
-  const layer = document.getElementById('sheep-layer');
-  const board = document.getElementById('board');
-  const soundBtn = document.getElementById('sound');
-  const note = document.getElementById('stage-note');
-  const curtain = document.getElementById('parade-curtain');
-  const back = document.getElementById('back');
-  const mid = document.getElementById('mid');
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const palette = [
-    ['#fff1cf','#6b4b38','#d9b37a'],['#f7f0e6','#423b36','#94c9df'],['#f5e6b8','#6b4939','#dd8f78'],
-    ['#e8e3ff','#4c4161','#9f91e8'],['#e5f2db','#4a5742','#86b66d'],['#f9e7ee','#6c4352','#df8ea6'],
-    ['#dcebf8','#3f4f62','#8bb8d8'],['#f5ecd0','#4b4438','#b8a77e'],['#e7efe3','#36483a','#93bd8f']
-  ];
-  const sheepData = Array.from({length:18}, (_,i) => ({
-    id:i+1,
-    name:`羊 ${String(i+1).padStart(2,'0')}`,
-    city:'北京',
-    status:['可跟','求带','随意'][i%3],
-    verse:['诗 23:1','太 7:14','诗 121:1','约 14:6','腓 4:6'][i%5],
-    colors:palette[i%palette.length],
-    messages:i%4===0?[{type:'item',text:'有一本书想送给需要的人。'}]:i%5===0?[{type:'road',text:'周末想走一小段，有人同路吗？'}]:[]
-  }));
-
-  const actors=[];
-  let parade=true;
-  let audioCtx=null, musicOn=false, musicTimer=null;
-  let pointer={x:innerWidth/2,y:innerHeight/2};
-
-  function sheepMarkup(d){
-    return `<div class="sheep-body"><span class="face"><i class="ear l"></i><i class="ear r"></i></span><i class="leg a"></i><i class="leg b"></i><i class="tail"></i></div><div class="sheep-tag">${d.name}</div>`;
-  }
-
-  function createActor(d,i){
-    const el=document.createElement('div');
-    el.className='sheep idle';
-    el.dataset.id=d.id;
-    el.innerHTML=sheepMarkup(d);
-    el.style.setProperty('--wool',d.colors[0]);
-    el.style.setProperty('--face',d.colors[1]);
-    el.style.setProperty('--patch',d.colors[2]);
-    layer.appendChild(el);
-    const actor={d,el,x:0,y:0,vx:0,vy:0,z:.8+(i%6)*.08,target:null,drag:null,lastMove:performance.now(),phase:Math.random()*6.28};
-    actors.push(actor);bindActor(actor);return actor;
-  }
-
-  function formation(){
-    const w=innerWidth,h=innerHeight;
-    const cols=Math.min(6,Math.max(3,Math.floor(w/120)));
-    const gap=Math.min(92,w/(cols+1));
-    actors.forEach((a,i)=>{
-      const row=Math.floor(i/cols), col=i%cols;
-      const rows=Math.ceil(actors.length/cols);
-      a.x=w/2-(cols-1)*gap/2+col*gap;
-      a.y=h*.48+(row-(rows-1)/2)*60;
-      a.z=.92+row*.04;
-      render(a);
-    });
-  }
-
-  function paradeStep(step){
-    const w=innerWidth,h=innerHeight;
-    actors.forEach((a,i)=>{
-      const ang=(i/actors.length)*Math.PI*2;
-      if(step===1){a.target={x:w/2+Math.cos(ang)*Math.min(w*.26,220),y:h*.55+Math.sin(ang)*70};}
-      else if(step===2){const side=i%2?-1:1;const row=Math.floor(i/6);a.target={x:w/2+side*(45+(i%6)*30),y:h*.47+row*55};}
-      else if(step===3){a.target={x:w*.18+Math.random()*w*.64,y:h*.46+Math.random()*h*.36};}
-    });
-  }
-
-  function finishParade(){
-    parade=false; note.classList.add('hidden'); curtain.classList.add('done');
-    actors.forEach(a=>{a.target=null;a.vx=(Math.random()-.5)*.35;a.vy=(Math.random()-.5)*.18;});
-  }
-
-  function startParade(){
-    formation();
-    if(reduced){setTimeout(finishParade,800);return;}
-    setTimeout(()=>paradeStep(1),1200);
-    setTimeout(()=>paradeStep(2),3000);
-    setTimeout(()=>paradeStep(3),4800);
-    setTimeout(finishParade,6500);
-  }
-
-  function bindActor(a){
-    let start=null,moved=false;
-    a.el.addEventListener('pointerdown',e=>{
-      e.preventDefault(); moved=false; start={x:e.clientX,y:e.clientY,t:performance.now()};
-      a.drag={ox:e.clientX-a.x,oy:e.clientY-a.y,lastX:e.clientX,lastY:e.clientY,lastT:performance.now(),vx:0,vy:0};
-      a.el.setPointerCapture(e.pointerId);a.el.classList.add('grabbed');board.classList.remove('open');
-    });
-    a.el.addEventListener('pointermove',e=>{
-      if(!a.drag)return;const now=performance.now(),dt=Math.max(8,now-a.drag.lastT);
-      const dx=e.clientX-a.drag.lastX,dy=e.clientY-a.drag.lastY;
-      a.drag.vx=dx/dt*16;a.drag.vy=dy/dt*16;a.drag.lastX=e.clientX;a.drag.lastY=e.clientY;a.drag.lastT=now;
-      a.x=e.clientX-a.drag.ox;a.y=e.clientY-a.drag.oy;if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>6)moved=true;render(a);
-    });
-    a.el.addEventListener('pointerup',e=>{
-      if(!a.drag)return;const speed=Math.hypot(a.drag.vx,a.drag.vy);a.vx=a.drag.vx*1.8;a.vy=a.drag.vy*1.8;a.drag=null;a.el.classList.remove('grabbed');
-      if(!moved&&performance.now()-start.t<300)openBoard(a); else if(speed<.5){a.vx=(Math.random()-.5)*.4;a.vy=(Math.random()-.5)*.2;}
-    });
-  }
-
-  function openBoard(a){
-    board.innerHTML=`<div class="board-head"><strong>${a.d.name}</strong><span class="status">${a.d.status}</span><span class="meta">${a.d.city}</span></div><div class="verse">经文编号 · ${a.d.verse}</div><div class="messages">${a.d.messages.length?a.d.messages.map(m=>`<div class="msg ${m.type==='item'?'item':''}">${m.type==='item'?'物品 · ':''}${m.text}</div>`).join(''):'<div class="msg">今天还没有留言。</div>'}</div><div class="board-actions"><button type="button">回应</button><button type="button" class="primary">同路</button></div>`;
-    board.style.left=Math.max(150,Math.min(innerWidth-150,a.x))+'px';board.style.top=Math.max(160,a.y-24)+'px';board.classList.add('open');
-  }
-  world.addEventListener('pointerdown',e=>{if(!e.target.closest('.sheep')&&!e.target.closest('#board')&&!e.target.closest('#sound'))board.classList.remove('open');});
-
-  function chooseTarget(a){
-    const margin=50;
-    a.target={x:margin+Math.random()*(innerWidth-margin*2),y:innerHeight*.43+Math.random()*innerHeight*.42};
-  }
-
-  function render(a){
-    const scale=Math.max(.62,Math.min(1.35,a.z));
-    a.el.style.left=(a.x-29)+'px';a.el.style.top=(a.y-23)+'px';a.el.style.transform=`scale(${scale}) ${a.vx<-.08?'scaleX(-1)':''}`;a.el.style.zIndex=String(Math.floor(a.y));
-  }
-
-  let last=performance.now();
-  function tick(now){
-    const dt=Math.min(2.2,(now-last)/16.67);last=now;
-    actors.forEach((a,i)=>{
-      if(a.drag){a.el.classList.remove('walking');return;}
-      if(parade&&a.target){
-        a.x+=(a.target.x-a.x)*.045*dt;a.y+=(a.target.y-a.y)*.045*dt;a.el.classList.add('walking');
-      }else if(!parade){
-        if(Math.abs(a.vx)+Math.abs(a.vy)>1.2){a.x+=a.vx*dt;a.y+=a.vy*dt;a.vx*=.965;a.vy*=.965;a.el.classList.add('walking');}
-        else{
-          if(!a.target||Math.hypot(a.target.x-a.x,a.target.y-a.y)<18||Math.random()<.0015)chooseTarget(a);
-          const dx=a.target.x-a.x,dy=a.target.y-a.y,dist=Math.hypot(dx,dy)||1;
-          const speed=.16+(i%4)*.025;a.vx=a.vx*.92+(dx/dist)*speed*.08;a.vy=a.vy*.92+(dy/dist)*speed*.08;
-          a.x+=a.vx*dt;a.y+=a.vy*dt;a.el.classList.toggle('walking',dist>25);
-        }
-        // 无可见边界：越过世界边缘会从远处重新进入，并改变景深。
-        if(a.x<-90){a.x=innerWidth+70;a.z=.68;} if(a.x>innerWidth+90){a.x=-70;a.z=1.18;}
-        if(a.y<innerHeight*.36){a.y=innerHeight*.82;a.z=1.22;} if(a.y>innerHeight*.93){a.y=innerHeight*.42;a.z=.7;}
-        a.z+=Math.sin(now/4200+a.phase)*.00045*dt;
-      }
-      render(a);
-    });
-    requestAnimationFrame(tick);
-  }
-
-  world.addEventListener('pointermove',e=>{pointer={x:e.clientX,y:e.clientY};const px=(e.clientX/innerWidth-.5),py=(e.clientY/innerHeight-.5);back.style.transform=`translate(${px*-16}px,${py*-5}px) scale(1.02)`;mid.style.transform=`translate(${px*-28}px,${py*-9}px) scale(1.03)`;});
-
-  function tone(freq,dur,when=.0,vol=.035){
-    if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='triangle';o.frequency.value=freq;g.gain.setValueAtTime(0,audioCtx.currentTime+when);g.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+when+.02);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+when+dur);o.connect(g).connect(audioCtx.destination);o.start(audioCtx.currentTime+when);o.stop(audioCtx.currentTime+when+dur+.05);
-  }
-  function musicLoop(){if(!musicOn)return;[392,494,587,494,440,523,659,523].forEach((f,i)=>tone(f,.22,i*.23,.025));musicTimer=setTimeout(musicLoop,1900);}
-  soundBtn.addEventListener('click',()=>{
-    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();musicOn=!musicOn;soundBtn.setAttribute('aria-pressed',String(musicOn));soundBtn.textContent=musicOn?'♫':'♪';if(musicOn){audioCtx.resume();musicLoop();}else{clearTimeout(musicTimer);}
-  });
-
-  sheepData.forEach(createActor);startParade();requestAnimationFrame(tick);
-  addEventListener('resize',()=>{if(parade)formation();});
+(()=>{
+const world=document.getElementById('world');
+const layer=document.getElementById('sheep-layer');
+const board=document.getElementById('board');
+const soundBtn=document.getElementById('sound');
+const note=document.getElementById('stage-note');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const groups={sky:document.getElementById('skyLayer'),far:document.getElementById('farLayer'),mid:document.getElementById('midLayer'),near:document.getElementById('nearLayer'),frame:document.getElementById('frameLayer')};
+const palettes=[
+ ['#fff1d8','#544238','#d7ad72','#7bb7d8'],['#f7f0e8','#3d3a37','#90c7e3','#87bb70'],['#f7e3bf','#704839','#d88e78','#d7a84d'],
+ ['#eee7ff','#4f4362','#9f8cdd','#9ebd6d'],['#e6f1da','#4d5a43','#80b56b','#8bbddf'],['#f8e5ea','#6f4654','#df8fa7','#7fb8d8'],
+ ['#deedf9','#415266','#8bb8d8','#d49751'],['#f5ecd1','#51493c','#b8a57e','#7cae6e'],['#e8efe3','#39483b','#91ba8d','#c79a5d']
+];
+const names=['小云','阿禾','小石','小满','小北','一川','若木','山雀','阿岚','小鹿','阿朔','青禾','阿林','小川','星河','小麦','南风','木木'];
+const sheepData=Array.from({length:18},(_,i)=>({id:i+1,name:names[i],city:'北京',status:['可跟','求带','随意'][i%3],verse:['诗 23:1','太 7:14','诗 121:1','约 14:6','腓 4:6'][i%5],colors:palettes[i%palettes.length],flower:i%5===1||i%7===0,messages:i%4===0?[{type:'item',text:'有一本书想送给需要的人。'}]:i%5===0?[{type:'road',text:'周末想走一小段，有人同路吗？'}]:[]}));
+const actors=[];let parade=true;let audioCtx=null,musicOn=false,musicTimer=null;
+function sprite(d){const flower=d.flower?'<g transform="translate(28 9)"><circle class="flower" cx="0" cy="0" r="4"/><circle class="flower" cx="7" cy="2" r="4"/><circle class="flowerCore" cx="3.5" cy="1" r="2"/></g>':'';return `<svg viewBox="0 0 78 64" aria-hidden="true"><g class="body"><circle class="wool" cx="40" cy="31" r="18"/><circle class="wool" cx="29" cy="29" r="15"/><circle class="wool" cx="51" cy="28" r="14"/><circle class="wool" cx="45" cy="39" r="14"/><circle class="patch" cx="44" cy="29" r="8"/><g class="head"><ellipse class="face" cx="18" cy="34" rx="12" ry="11"/><ellipse class="ear" cx="10" cy="27" rx="5" ry="3" transform="rotate(20 10 27)"/><ellipse class="ear" cx="25" cy="27" rx="5" ry="3" transform="rotate(-20 25 27)"/><circle class="eye" cx="14" cy="33" r="1.6"/><circle class="eye" cx="21" cy="33" r="1.6"/><circle class="cheek" cx="23" cy="38" r="2.2"/></g><path class="scarf" d="M23 41 Q30 45 36 42 L34 48 Q28 47 23 44Z"/><rect class="leg leg1" x="31" y="45" width="6" height="13" rx="2"/><rect class="leg leg2" x="50" y="44" width="6" height="14" rx="2"/><ellipse class="wool tail" cx="62" cy="31" rx="7" ry="5"/>${flower}</g></svg><div class="sheep-tag">${d.name}</div>`}
+function create(d,i){const el=document.createElement('div');el.className='sheep idle parading';el.innerHTML=sprite(d);el.style.setProperty('--wool',d.colors[0]);el.style.setProperty('--face',d.colors[1]);el.style.setProperty('--patch',d.colors[2]);el.style.setProperty('--scarf',d.colors[3]);layer.appendChild(el);const a={d,el,x:0,y:0,vx:0,vy:0,z:.86+(i%5)*.045,target:null,drag:null,phase:Math.random()*6.28};actors.push(a);bind(a);return a}
+function formation(){const w=innerWidth,h=innerHeight,cols=Math.min(6,Math.max(3,Math.floor(w/128))),gap=Math.min(100,w/(cols+1)),rows=Math.ceil(actors.length/cols);actors.forEach((a,i)=>{const row=Math.floor(i/cols),col=i%cols;a.x=w/2-(cols-1)*gap/2+col*gap;a.y=h*.48+(row-(rows-1)/2)*59;a.z=.88+row*.06;render(a)})}
+function paradeStep(n){const w=innerWidth,h=innerHeight;actors.forEach((a,i)=>{const ang=i/actors.length*Math.PI*2;if(n===1)a.target={x:w/2+Math.cos(ang)*Math.min(w*.26,230),y:h*.53+Math.sin(ang)*76};if(n===2){const row=Math.floor(i/6),col=i%6;a.target={x:w/2+(col-2.5)*70,y:h*.43+row*62}}if(n===3)a.target={x:w*.13+Math.random()*w*.74,y:h*.48+Math.random()*h*.36}})}
+function finishParade(){parade=false;note.classList.add('hidden');actors.forEach(a=>{a.target=null;a.el.classList.remove('parading');a.vx=(Math.random()-.5)*.35;a.vy=(Math.random()-.5)*.18})}
+function startParade(){formation();if(reduced){setTimeout(finishParade,700);return}setTimeout(()=>paradeStep(1),1100);setTimeout(()=>paradeStep(2),2800);setTimeout(()=>paradeStep(3),4600);setTimeout(finishParade,6500)}
+function bind(a){let start=null,moved=false;a.el.addEventListener('pointerdown',e=>{e.preventDefault();moved=false;start={x:e.clientX,y:e.clientY,t:performance.now()};a.drag={ox:e.clientX-a.x,oy:e.clientY-a.y,lastX:e.clientX,lastY:e.clientY,lastT:performance.now(),vx:0,vy:0};a.el.setPointerCapture(e.pointerId);a.el.classList.add('grabbed');board.classList.remove('open')});a.el.addEventListener('pointermove',e=>{if(!a.drag)return;const now=performance.now(),dt=Math.max(8,now-a.drag.lastT),dx=e.clientX-a.drag.lastX,dy=e.clientY-a.drag.lastY;a.drag.vx=dx/dt*16;a.drag.vy=dy/dt*16;a.drag.lastX=e.clientX;a.drag.lastY=e.clientY;a.drag.lastT=now;a.x=e.clientX-a.drag.ox;a.y=e.clientY-a.drag.oy;if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>6)moved=true;render(a)});a.el.addEventListener('pointerup',()=>{if(!a.drag)return;const speed=Math.hypot(a.drag.vx,a.drag.vy);a.vx=a.drag.vx*1.75;a.vy=a.drag.vy*1.75;a.drag=null;a.el.classList.remove('grabbed');if(!moved&&performance.now()-start.t<300)openBoard(a);else if(speed<.5){a.vx=(Math.random()-.5)*.35;a.vy=(Math.random()-.5)*.18}})}
+function openBoard(a){board.innerHTML=`<div class="board-head"><strong>${a.d.name}</strong><span class="state">${a.d.status}</span><span class="city">${a.d.city}</span></div><div class="verse">经文编号 · ${a.d.verse}</div><div class="messages">${a.d.messages.length?a.d.messages.map(m=>`<div class="msg ${m.type==='item'?'item':''}">${m.type==='item'?'物品 · ':''}${m.text}</div>`).join(''):'<div class="msg">今天还没有留言。</div>'}</div><div class="board-actions"><button type="button">回应</button><button type="button" class="primary">同路</button></div>`;board.style.left=Math.max(170,Math.min(innerWidth-170,a.x))+'px';board.style.top=Math.max(180,a.y-34)+'px';board.classList.add('open')}
+world.addEventListener('pointerdown',e=>{if(!e.target.closest('.sheep')&&!e.target.closest('#board')&&!e.target.closest('#topnav'))board.classList.remove('open')});
+function choose(a){a.target={x:50+Math.random()*(innerWidth-100),y:innerHeight*.45+Math.random()*innerHeight*.40}}
+function render(a){const depth=Math.max(.61,Math.min(1.31,a.z));a.el.style.left=(a.x-39)+'px';a.el.style.top=(a.y-32)+'px';const flip=a.vx<-.08?' scaleX(-1)':'';a.el.style.transform=`scale(${depth})${flip}`;a.el.style.zIndex=String(100+Math.floor(a.y))}
+let last=performance.now();function tick(now){const dt=Math.min(2.2,(now-last)/16.67);last=now;actors.forEach((a,i)=>{if(a.drag){a.el.classList.remove('walking');return}if(parade&&a.target){a.x+=(a.target.x-a.x)*.05*dt;a.y+=(a.target.y-a.y)*.05*dt;a.el.classList.add('walking')}else if(!parade){if(Math.abs(a.vx)+Math.abs(a.vy)>1.15){a.x+=a.vx*dt;a.y+=a.vy*dt;a.vx*=.963;a.vy*=.963;a.el.classList.add('walking')}else{if(!a.target||Math.hypot(a.target.x-a.x,a.target.y-a.y)<18||Math.random()<.0015)choose(a);const dx=a.target.x-a.x,dy=a.target.y-a.y,dist=Math.hypot(dx,dy)||1,s=.17+(i%4)*.02;a.vx=a.vx*.92+(dx/dist)*s*.08;a.vy=a.vy*.92+(dy/dist)*s*.08;a.x+=a.vx*dt;a.y+=a.vy*dt;a.el.classList.toggle('walking',dist>25)}
+// 无边界：离开一侧后从远处重新进入，并交换景深。
+if(a.x<-100){a.x=innerWidth+80;a.z=.67}if(a.x>innerWidth+100){a.x=-80;a.z=1.18}if(a.y<innerHeight*.37){a.y=innerHeight*.86;a.z=1.23}if(a.y>innerHeight*.94){a.y=innerHeight*.44;a.z=.66}a.z+=Math.sin(now/4300+a.phase)*.00042*dt}render(a)});requestAnimationFrame(tick)}
+world.addEventListener('pointermove',e=>{const px=e.clientX/innerWidth-.5,py=e.clientY/innerHeight-.5;groups.sky.style.transform=`translate(${px*-7}px,${py*-3}px)`;groups.far.style.transform=`translate(${px*-13}px,${py*-5}px)`;groups.mid.style.transform=`translate(${px*-22}px,${py*-8}px)`;groups.near.style.transform=`translate(${px*-34}px,${py*-11}px)`;groups.frame.style.transform=`translate(${px*-44}px,${py*-14}px)`});
+function tone(freq,dur,when=0,vol=.028){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='triangle';o.frequency.value=freq;g.gain.setValueAtTime(0,audioCtx.currentTime+when);g.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+when+.02);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+when+dur);o.connect(g).connect(audioCtx.destination);o.start(audioCtx.currentTime+when);o.stop(audioCtx.currentTime+when+dur+.05)}
+function musicLoop(){if(!musicOn)return;[392,494,587,494,440,523,659,523].forEach((f,i)=>tone(f,.22,i*.23,.022));musicTimer=setTimeout(musicLoop,1900)}
+soundBtn.addEventListener('click',()=>{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();musicOn=!musicOn;soundBtn.setAttribute('aria-pressed',String(musicOn));soundBtn.textContent=musicOn?'♫':'♪';if(musicOn){audioCtx.resume();musicLoop()}else clearTimeout(musicTimer)});
+sheepData.forEach(create);startParade();requestAnimationFrame(tick);addEventListener('resize',()=>{if(parade)formation()});
 })();
 </script>
 </body>
