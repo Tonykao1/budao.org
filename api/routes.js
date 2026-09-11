@@ -4,6 +4,8 @@ const branch = "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const fixedSlots = ["IMS", "BACBC", "HD"];
+const { handleDaoRead, handleDaoReviewRead } = require("./_security/dao-store");
+const { handleDaoOwnerRead } = require("./_security/dao-owner-read");
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -17,6 +19,11 @@ module.exports = async function handler(request, response) {
     sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
     return;
   }
+
+  const kind = request.query && String(request.query.kind || "").toLowerCase();
+  if (kind === "dao") return handleDaoRead(request, response);
+  if (kind === "dao-mine") return handleDaoOwnerRead(request, response);
+  if (kind === "dao-review") return handleDaoReviewRead(request, response);
 
   try {
     const routes = await readRoutes();

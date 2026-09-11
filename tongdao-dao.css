@@ -1,0 +1,69 @@
+.dao-choice-list {
+  display: grid;
+  gap: 10px;
+}
+
+.dao-choice {
+  width: 100%;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(40, 34, 24, 0.14);
+  border-radius: 0;
+  background: transparent;
+  color: #2b261e;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dao-choice:hover,
+.dao-choice:focus-visible {
+  opacity: 0.68;
+  outline: 0;
+}
+
+.dao-choice-theme {
+  font-family: Georgia, "Songti SC", "STSong", serif;
+  font-size: 21px;
+  line-height: 1.55;
+  letter-spacing: 0.04em;
+}
+
+.dao-choice-date {
+  color: #9d968b;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.dao-story-text,
+.dao-prayer-text {
+  color: #373129;
+  font-family: Georgia, "Songti SC", "STSong", serif;
+  font-size: 17px;
+  line-height: 2;
+  letter-spacing: 0.025em;
+}
+
+.dao-translation {
+  margin-top: 5px;
+  color: #93897c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .dao-choice {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .dao-choice-date {
+    justify-self: start;
+  }
+}
