@@ -212,8 +212,13 @@ setTimeout(() => {
   document.getElementById("universeLayer").style.transition = "opacity 3s ease";
   document.getElementById("universeLayer").style.opacity = 0;
 }, 23000);
-// ⭐ 最终切换到真正主页（关键）
+
+// ⭐ 无黑闪交接：在真正导航前，把顶层底色切成与主页一致。
+// home.html 已在 iframe 中完整预载，style.css 也已进入缓存；这样浏览器
+// 销毁 index.html、切换到真正主页时，不会露出 index 原本的黑色画布。
 setTimeout(() => {
+  document.documentElement.style.background = "#f5f5f5";
+  document.body.style.background = "#f5f5f5";
   window.location.replace("/home.html");
 }, 26000);
 </script>
