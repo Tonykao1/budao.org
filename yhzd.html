@@ -22,7 +22,7 @@ nav{position:relative;z-index:20}
 .spark-link{display:block;text-align:center;color:#666;text-decoration:none;letter-spacing:5px;font-size:14px;font-weight:300;transition:.4s;animation:sparkBreath 4s ease-in-out infinite}
 @keyframes sparkBreath{0%,100%{opacity:.44}50%{opacity:.86}}
 .bottom-spark{position:relative;z-index:3;margin:22px auto 80px}
-.messages-layer,.images-layer{position:absolute;inset:0;pointer-events:none}.images-layer{z-index:3}.messages-layer{z-index:5}
+.messages-layer,.images-layer{position:absolute;inset:0;pointer-events:none}.images-layer{z-index:3;perspective:1600px;transform-style:preserve-3d}.messages-layer{z-index:5}
 .message{position:absolute;max-width:430px;line-height:1.78;font-size:clamp(24px,1.5vw,30px);font-weight:200;color:rgba(245,241,232,.93);opacity:0;transform:translateY(18px);word-break:keep-all;padding:0 8px;transition:opacity .48s ease;animation:fadeUp 1.3s forwards}
 .message small{display:block;margin-top:20px;font-size:11px;letter-spacing:4px;color:#515151}.message.is-renewing{opacity:0!important}
 @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
@@ -34,20 +34,21 @@ nav{position:relative;z-index:20}
 .message-2{left:68.5%;top:215px;width:14%;max-width:320px;text-align:left}
 .message-3{left:24%;top:1080px;width:18%;max-width:410px}
 .message-4{left:66%;top:1015px;width:18%;max-width:410px;text-align:right}
-.message-5{left:17.8%;top:565px;width:16%;max-width:360px}
-.message-6{left:79.5%;top:610px;width:16%;max-width:360px}
-.message-7{left:29%;top:1500px;width:18%;max-width:420px}
-.message-8{left:67%;top:1515px;width:18%;max-width:420px;text-align:right}
-.image-slot{position:absolute;z-index:1}
-.image-slot img{display:block;width:100%;height:auto;border-radius:5px;opacity:0;transition:opacity .58s ease;box-shadow:0 0 24px rgba(180,100,20,.022)}
+.message-5{left:17.8%;top:565px;width:16%;max-width:360px;opacity:.92}
+.message-6{left:79.5%;top:610px;width:16%;max-width:360px;opacity:.86}
+.message-7{left:29%;top:1500px;width:18%;max-width:420px;opacity:.9}
+.message-8{left:67%;top:1515px;width:18%;max-width:420px;text-align:right;opacity:.86}
+
+.image-slot{position:absolute;z-index:1;--tz:0px;--rx:0deg;--ry:0deg;--scale:1;transform:translate3d(0,0,var(--tz)) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--scale));transform-style:preserve-3d;transform-origin:center center}
+.image-slot img{display:block;width:100%;height:auto;border-radius:6px;opacity:0;transition:opacity .58s ease;box-shadow:0 14px 36px rgba(0,0,0,.22),0 0 18px rgba(196,118,34,.04);filter:inherit}
 .image-slot img.is-loaded{opacity:1}.image-slot img.is-renewing{opacity:0}
-/* One near fire, two supporting embers, three distant fragments. No stack, no cluster. */
-.image-slot-1{left:25%;top:635px;width:clamp(500px,35vw,560px)}
-.image-slot-2{left:65.5%;top:705px;width:clamp(285px,21vw,330px)}
-.image-slot-3{left:74.8%;top:365px;width:clamp(150px,12vw,190px)}
-.image-slot-4{left:20.5%;top:905px;width:clamp(135px,10vw,160px)}
-.image-slot-5{left:68%;top:1215px;width:clamp(230px,18vw,285px)}
-.image-slot-6{left:30.5%;top:1310px;width:clamp(195px,15vw,235px)}
+/* V5: one near flame, two middle planes, three distant echoes. Depth first, then spread. */
+.image-slot-1{left:19.5%;top:610px;width:clamp(520px,36vw,585px);z-index:6;--tz:120px;--ry:-6deg;--rx:1deg;--scale:1.02}
+.image-slot-2{left:65.5%;top:790px;width:clamp(285px,21vw,330px);z-index:4;--tz:34px;--ry:4deg;--rx:.6deg;--scale:.985}
+.image-slot-3{left:79%;top:385px;width:clamp(145px,11.5vw,178px);z-index:2;--tz:-78px;--ry:9deg;--scale:.93;opacity:.9;filter:brightness(.92) saturate(.95)}
+.image-slot-4{left:14.2%;top:970px;width:clamp(138px,10vw,164px);z-index:2;--tz:-92px;--ry:-11deg;--scale:.9;opacity:.88;filter:brightness(.9) saturate(.94)}
+.image-slot-5{left:63.2%;top:1265px;width:clamp(228px,17.5vw,268px);z-index:3;--tz:-10px;--ry:6deg;--rx:.5deg;--scale:.965}
+.image-slot-6{left:31.8%;top:1380px;width:clamp(195px,14.5vw,225px);z-index:3;--tz:-58px;--ry:-4deg;--scale:.95;opacity:.94;filter:brightness(.94)}
 @media(max-width:980px){.memory-viewport{overflow-x:hidden;cursor:default}.memory-world{width:90%;height:auto;margin:auto;padding:90px 0 130px}.top{position:relative;left:auto;top:auto;width:100%;transform:none;margin-bottom:150px}.top h1{font-size:48px}.messages-layer{position:relative;inset:auto}.message{position:relative;left:auto!important;right:auto!important;top:auto!important;width:auto!important;max-width:640px;font-size:24px;margin:100px 0;text-align:left!important;animation:fadeUp 1.2s forwards!important}.message:nth-child(even){margin-left:auto;text-align:right!important}.images-layer{display:none}.bottom-spark{margin-top:0}}
 @media(prefers-reduced-motion:reduce){.star,.spark-link,.message{animation:none!important}.message,.image-slot img{opacity:1!important;transform:none;transition:none}}
 </style>
@@ -63,14 +64,26 @@ nav{position:relative;z-index:20}
 (function(){
 const IMAGE_KEY='budao:yhzd:imageHistory:v2',MESSAGE_KEY='budao:yhzd:messageHistory:v2',HISTORY_LIMIT=24;
 function history(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[]}catch(_){return[]}}
-function remember(key,id){if(!id)return;try{const prev=history(key).filter(x=>x!==id);prev.push(id);localStorage.setItem(key,JSON.stringify(prev.slice(-HISTORY_LIMIT)))}catch(_){} }
+function remember(key,id){if(!id)return;try{const prev=history(key).filter(x=>x!==id);prev.push(id);localStorage.setItem(key,JSON.stringify(prev.slice(-HISTORY_LIMIT)))}catch(_){}}
 function shuffle(items){const copy=items.slice();for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
 function pickFresh(items,count,seen,idOf,exclude=[]){const banned=new Set(exclude),recent=new Set(seen);const fresh=shuffle(items.filter(x=>!banned.has(idOf(x))&&!recent.has(idOf(x))));const old=shuffle(items.filter(x=>!banned.has(idOf(x))&&recent.has(idOf(x))));return fresh.concat(old).slice(0,count)}
 const stars=document.querySelector('.stars');for(let i=0;i<72;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDuration=(3+Math.random()*5)+'s';stars.appendChild(s)}
 const allMessages=["一路上都悬念不断......","如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！","还有整体节奏，何时走动何时休息都计划得很精准啊。","恩典多多，收获满满","今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！","7—88岁的徒步团太壮观了！","今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。","很巧妙的设计","一个老少咸宜，充满喜乐的身心灵快乐之旅！","有幸参加了这次活动，都是意外的惊喜。","感谢弟兄们搭建的信心之道。","经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。","可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！","认识和不认识人的都在认真听故事。","感恩遇见","用心带领，详尽的总结复盘，感恩。","感恩祂。","很棒的经历","今天的安排，很舒适又得着。","感恩弟兄姐妹们彼此敞开的分享和陪伴！","很棒的体验，很有趣的经历","当天去时候怕迟到，超速百分之十被罚。","强度一点都不大，感觉还没缓过来。","113层，2034个台阶，300米......","活动太有意义了，身心被滋养，还结识了更多同路人。","非常被安慰","大家建立了信任而且让这份关系延续。","我期待未来步道同赏京城。","顺利找到包了","我居然是第一个到的","我都期待好久了，哎！祷告我明天生龙活虎！","我相信人与人的每一次相遇都是奇迹。","感恩这段相遇与安排，拆掉心墙，看见光。","Grateful for this."];
 const messagesContainer=document.getElementById('messages-container');
 const MESSAGE_CAPS=[18,18,34,34,28,28,44,44];
-function pickForCaps(caps,seen,exclude=[]){const recent=new Set(seen),used=new Set(exclude),result=[];caps.forEach(cap=>{const available=allMessages.filter(m=>!used.has(m));const fresh=shuffle(available.filter(m=>!recent.has(m)));const old=shuffle(available.filter(m=>recent.has(m)));const ordered=fresh.concat(old);const fitting=ordered.filter(m=>m.length<=cap);const pool=fitting.length?fitting:ordered.slice().sort((a,b)=>a.length-b.length);const choice=pool[0];if(choice){result.push(choice);used.add(choice)}});return result}
+function pickForCaps(caps,seen,exclude=[]){
+  const recent=new Set(seen),used=new Set(exclude),result=[];
+  caps.forEach(cap=>{
+    const available=allMessages.filter(m=>!used.has(m));
+    const fresh=shuffle(available.filter(m=>!recent.has(m)));
+    const old=shuffle(available.filter(m=>recent.has(m)));
+    const ordered=fresh.concat(old);
+    const fitting=ordered.filter(m=>m.length<=cap);
+    const pool=fitting.length?fitting:ordered.slice().sort((a,b)=>a.length-b.length);
+    const choice=pool[0]; if(choice){result.push(choice);used.add(choice)}
+  });
+  return result;
+}
 let currentMessages=pickForCaps(MESSAGE_CAPS,history(MESSAGE_KEY));
 function setMessage(node,text){node.replaceChildren(document.createTextNode('“'+text+'”'));const small=document.createElement('small');small.textContent='一次同行之后';node.appendChild(small);node.dataset.message=text}
 currentMessages.forEach((m,i)=>{const n=document.createElement('div');n.className='message message-'+(i+1);n.dataset.cap=String(MESSAGE_CAPS[i]);setMessage(n,m);messagesContainer.appendChild(n)});
@@ -82,7 +95,12 @@ let imagePool=[],edgeArmed=true,edgeTimer=0;function choose(prefer,exclude){cons
 function render(slot,item,index){if(!slot||!item||!item['480'])return;const small=item['480'],large=item['960'],source=large||small;if(!source||!source.src)return;const img=document.createElement('img');img.alt='';img.decoding='async';img.loading=index<2?'eager':'lazy';if(index===0)img.fetchPriority='high';img.src=source.src;if(small&&large){img.srcset=small.src+' 480w, '+large.src+' 960w';img.sizes=slot.dataset.sizes||'320px'}img.addEventListener('load',()=>img.classList.add('is-loaded'),{once:true});slot.dataset.imageId=item.id;slot.replaceChildren(img);if(seenObserver)seenObserver.observe(slot)}
 function initial(){const slots=[...document.querySelectorAll('.image-slot')],used=[];slots.forEach((s,i)=>{const item=choose(s.dataset.prefer,used);if(item){used.push(item.id);render(s,item,i)}})}
 function renewImages(indices){const slots=[...document.querySelectorAll('.image-slot')],occupied=slots.map(s=>s.dataset.imageId).filter(Boolean),newIds=[];indices.forEach(i=>{const s=slots[i],item=choose(s.dataset.prefer,occupied.concat(newIds));if(!item)return;const old=s.querySelector('img');if(old)old.classList.add('is-renewing');setTimeout(()=>render(s,item,i),520);newIds.push(item.id)})}
-function renewMessages(indices){const occupied=[...messagesContainer.children].map(n=>n.dataset.message);const caps=indices.map(i=>Number(messagesContainer.children[i]?.dataset.cap)||44);const picks=pickForCaps(caps,history(MESSAGE_KEY),occupied);indices.forEach((idx,i)=>{const n=messagesContainer.children[idx],next=picks[i];if(!n||!next)return;n.classList.add('is-renewing');setTimeout(()=>{setMessage(n,next);n.classList.remove('is-renewing')},500)})}
+function renewMessages(indices){
+  const occupied=[...messagesContainer.children].map(n=>n.dataset.message);
+  const caps=indices.map(i=>Number(messagesContainer.children[i]?.dataset.cap)||44);
+  const picks=pickForCaps(caps,history(MESSAGE_KEY),occupied);
+  indices.forEach((idx,i)=>{const n=messagesContainer.children[idx],next=picks[i];if(!n||!next)return;n.classList.add('is-renewing');setTimeout(()=>{setMessage(n,next);n.classList.remove('is-renewing')},500)})
+}
 function renewEdge(side){if(side==='left'){renewImages([0,3,5]);renewMessages([0,4,6])}else{renewImages([1,2,4]);renewMessages([1,5,7])}}
 function watchEdge(){clearTimeout(edgeTimer);edgeTimer=setTimeout(()=>{const max=viewport.scrollWidth-viewport.clientWidth;if(max<=0)return;const r=viewport.scrollLeft/max;if(r>.28&&r<.72){edgeArmed=true;return}if(!edgeArmed)return;if(r<.07){edgeArmed=false;renewEdge('left')}else if(r>.93){edgeArmed=false;renewEdge('right')}},420)}viewport.addEventListener('scroll',watchEdge,{passive:true});
 fetch('images/yhzd/manifest.json',{cache:'no-cache'}).then(r=>r.json()).then(m=>{imagePool=Array.isArray(m.images)?m.images:[];if(imagePool.length)initial()}).catch(()=>{});
