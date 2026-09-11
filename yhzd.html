@@ -23,32 +23,35 @@ nav{position:relative;z-index:20}
 @keyframes sparkBreath{0%,100%{opacity:.44}50%{opacity:.86}}
 .bottom-spark{position:relative;z-index:3;margin:22px auto 80px}
 .messages-layer,.images-layer{position:absolute;inset:0;pointer-events:none}.images-layer{z-index:3;perspective:1600px;transform-style:preserve-3d}.messages-layer{z-index:5}
-.message{position:absolute;max-width:430px;line-height:1.78;font-size:clamp(24px,1.5vw,30px);font-weight:200;color:rgba(245,241,232,.93);opacity:0;transform:translateY(18px);word-break:keep-all;padding:0 8px;transition:opacity .48s ease;animation:fadeUp 1.3s forwards}
+.message{position:absolute;max-width:430px;line-height:1.78;font-size:clamp(24px,1.5vw,30px);font-weight:200;color:rgba(245,241,232,.96);opacity:0;transform:translateY(18px);word-break:keep-all;padding:0 8px;transition:opacity .48s ease;animation:fadeUp 1.3s forwards}
 .message small{display:block;margin-top:20px;font-size:11px;letter-spacing:4px;color:#515151}.message.is-renewing{opacity:0!important}
 @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
-/* V4: compose first, wander second.
-   The central title field (x 40–60%, y 120–640) is a hard quiet zone.
-   Complete content sits on left/right rails; outer fragments imply continuation. */
+/* V6: information first. One clear reading field before any sense of infinity.
+   First viewport: title + two readable quotes + one complete primary image + one complete secondary image.
+   Everything else lives beyond the first viewport or below the fold. */
 .message{z-index:2}
-.message-1{left:24.5%;top:170px;width:15%;max-width:330px}
-.message-2{left:68.5%;top:215px;width:14%;max-width:320px;text-align:left}
-.message-3{left:24%;top:1080px;width:18%;max-width:410px}
-.message-4{left:66%;top:1015px;width:18%;max-width:410px;text-align:right}
-.message-5{left:17.8%;top:565px;width:16%;max-width:360px;opacity:.92}
-.message-6{left:79.5%;top:610px;width:16%;max-width:360px;opacity:.86}
-.message-7{left:29%;top:1500px;width:18%;max-width:420px;opacity:.9}
-.message-8{left:67%;top:1515px;width:18%;max-width:420px;text-align:right;opacity:.86}
+.message-1{left:27.5%;top:168px;width:14%;max-width:330px}
+.message-2{left:66%;top:210px;width:14%;max-width:330px;text-align:left}
+.message-3{left:28%;top:1110px;width:17%;max-width:400px}
+.message-4{left:64.5%;top:1090px;width:17%;max-width:400px;text-align:right}
+.message-5{left:8.5%;top:545px;width:16%;max-width:360px}
+.message-6{left:84%;top:570px;width:16%;max-width:360px}
+.message-7{left:29%;top:1510px;width:18%;max-width:420px}
+.message-8{left:66%;top:1530px;width:18%;max-width:420px;text-align:right}
 
 .image-slot{position:absolute;z-index:1;--tz:0px;--rx:0deg;--ry:0deg;--scale:1;transform:translate3d(0,0,var(--tz)) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--scale));transform-style:preserve-3d;transform-origin:center center}
-.image-slot img{display:block;width:100%;height:auto;border-radius:6px;opacity:0;transition:opacity .58s ease;box-shadow:0 14px 36px rgba(0,0,0,.22),0 0 18px rgba(196,118,34,.04);filter:inherit}
+.image-slot img{display:block;width:100%;height:auto;border-radius:6px;opacity:0;transition:opacity .58s ease;filter:inherit}
 .image-slot img.is-loaded{opacity:1}.image-slot img.is-renewing{opacity:0}
-/* V5: one near flame, two middle planes, three distant echoes. Depth first, then spread. */
-.image-slot-1{left:19.5%;top:610px;width:clamp(520px,36vw,585px);z-index:6;--tz:120px;--ry:-6deg;--rx:1deg;--scale:1.02}
-.image-slot-2{left:65.5%;top:790px;width:clamp(285px,21vw,330px);z-index:4;--tz:34px;--ry:4deg;--rx:.6deg;--scale:.985}
-.image-slot-3{left:79%;top:385px;width:clamp(145px,11.5vw,178px);z-index:2;--tz:-78px;--ry:9deg;--scale:.93;opacity:.9;filter:brightness(.92) saturate(.95)}
-.image-slot-4{left:14.2%;top:970px;width:clamp(138px,10vw,164px);z-index:2;--tz:-92px;--ry:-11deg;--scale:.9;opacity:.88;filter:brightness(.9) saturate(.94)}
-.image-slot-5{left:63.2%;top:1265px;width:clamp(228px,17.5vw,268px);z-index:3;--tz:-10px;--ry:6deg;--rx:.5deg;--scale:.965}
-.image-slot-6{left:31.8%;top:1380px;width:clamp(195px,14.5vw,225px);z-index:3;--tz:-58px;--ry:-4deg;--scale:.95;opacity:.94;filter:brightness(.94)}
+/* The first viewport has only two complete images. Depth is subtle and never competes with readability. */
+.image-slot-1{left:26%;top:520px;width:clamp(535px,36vw,590px);z-index:5;--tz:58px;--ry:-1.6deg;--rx:.25deg;--scale:1}
+.image-slot-1 img{box-shadow:0 18px 46px rgba(0,0,0,.28),0 0 26px rgba(196,118,34,.025)}
+.image-slot-2{left:64.5%;top:605px;width:clamp(290px,21vw,325px);z-index:3;--tz:0px;--ry:1.2deg;--rx:.2deg;--scale:.985}
+.image-slot-2 img{box-shadow:0 12px 32px rgba(0,0,0,.22),0 0 20px rgba(196,118,34,.018)}
+/* Distant memories stay out of the first reading field. */
+.image-slot-3{left:86.5%;top:360px;width:clamp(145px,11vw,175px);z-index:1;--tz:-95px;--ry:4deg;--scale:.88;filter:brightness(.88) saturate(.9)}
+.image-slot-4{left:6%;top:900px;width:clamp(140px,10vw,165px);z-index:1;--tz:-110px;--ry:-5deg;--scale:.86;filter:brightness(.86) saturate(.9)}
+.image-slot-5{left:69%;top:1240px;width:clamp(230px,17vw,270px);z-index:2;--tz:-35px;--ry:1.8deg;--scale:.95;filter:brightness(.94)}
+.image-slot-6{left:28%;top:1370px;width:clamp(205px,15vw,235px);z-index:2;--tz:-55px;--ry:-1.8deg;--scale:.93;filter:brightness(.92)}
 @media(max-width:980px){.memory-viewport{overflow-x:hidden;cursor:default}.memory-world{width:90%;height:auto;margin:auto;padding:90px 0 130px}.top{position:relative;left:auto;top:auto;width:100%;transform:none;margin-bottom:150px}.top h1{font-size:48px}.messages-layer{position:relative;inset:auto}.message{position:relative;left:auto!important;right:auto!important;top:auto!important;width:auto!important;max-width:640px;font-size:24px;margin:100px 0;text-align:left!important;animation:fadeUp 1.2s forwards!important}.message:nth-child(even){margin-left:auto;text-align:right!important}.images-layer{display:none}.bottom-spark{margin-top:0}}
 @media(prefers-reduced-motion:reduce){.star,.spark-link,.message{animation:none!important}.message,.image-slot img{opacity:1!important;transform:none;transition:none}}
 </style>
@@ -70,7 +73,7 @@ function pickFresh(items,count,seen,idOf,exclude=[]){const banned=new Set(exclud
 const stars=document.querySelector('.stars');for(let i=0;i<72;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDuration=(3+Math.random()*5)+'s';stars.appendChild(s)}
 const allMessages=["一路上都悬念不断......","如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！","还有整体节奏，何时走动何时休息都计划得很精准啊。","恩典多多，收获满满","今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！","7—88岁的徒步团太壮观了！","今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。","很巧妙的设计","一个老少咸宜，充满喜乐的身心灵快乐之旅！","有幸参加了这次活动，都是意外的惊喜。","感谢弟兄们搭建的信心之道。","经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。","可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！","认识和不认识人的都在认真听故事。","感恩遇见","用心带领，详尽的总结复盘，感恩。","感恩祂。","很棒的经历","今天的安排，很舒适又得着。","感恩弟兄姐妹们彼此敞开的分享和陪伴！","很棒的体验，很有趣的经历","当天去时候怕迟到，超速百分之十被罚。","强度一点都不大，感觉还没缓过来。","113层，2034个台阶，300米......","活动太有意义了，身心被滋养，还结识了更多同路人。","非常被安慰","大家建立了信任而且让这份关系延续。","我期待未来步道同赏京城。","顺利找到包了","我居然是第一个到的","我都期待好久了，哎！祷告我明天生龙活虎！","我相信人与人的每一次相遇都是奇迹。","感恩这段相遇与安排，拆掉心墙，看见光。","Grateful for this."];
 const messagesContainer=document.getElementById('messages-container');
-const MESSAGE_CAPS=[18,18,34,34,28,28,44,44];
+const MESSAGE_CAPS=[14,14,34,34,28,28,44,44];
 function pickForCaps(caps,seen,exclude=[]){
   const recent=new Set(seen),used=new Set(exclude),result=[];
   caps.forEach(cap=>{
