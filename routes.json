@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/7b8d42667366f260436c3d89280207f1.png",
     "imageAlt": "tzw.webp",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-10T07:58:16.889Z"
+    "updatedAt": "2026-09-12T01:07:48.141Z"
   },
   {
     "id": "budao-bacbc",
@@ -51,11 +51,11 @@
     "date": "2026-09-13",
     "meetingPlace": "灵山古道聚灵峡景区大门口",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/2a7a2b3159455afc5e55b8915dc51cf9.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/34ca06c4ae01ec9dc0f65b3872379e32.png",
-    "imageAlt": "gudao.jpg",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/4eaa928d1f70bac31a6fd97afc160e4b.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/9a0cfe1d06b6b17bbb941062a976c32d.png",
+    "imageAlt": "jlx.jpeg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-10T07:58:16.890Z"
+    "updatedAt": "2026-09-12T01:07:48.140Z"
   },
   {
     "id": "budao-hd",
@@ -84,6 +84,6 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/0761d8463f13717ccd3bca130dd2f254.png",
     "imageAlt": "wqs.jpg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-09-10T07:58:16.890Z"
+    "updatedAt": "2026-09-12T01:07:48.141Z"
   }
 ]
