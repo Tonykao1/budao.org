@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>同路 · 数字牧场</title>
+<meta name="theme-color" content="#b9d9cf" />
+<style>
+  :root{
+    --sky:#b9d9cf;
+    --sky-light:#d8e7da;
+    --mountain-far:#9db9ad;
+    --mountain-near:#7f9f8f;
+    --grass-far:#a9c987;
+    --grass:#8fb86d;
+    --grass-dark:#729a5c;
+    --river:#9fc9c9;
+    --river-light:#c4dddd;
+    --ink:#554f48;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--sky)}
+  body{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;touch-action:manipulation}
+  button{font:inherit}
+
+  .pasture{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    background:var(--sky);
+    isolation:isolate;
+  }
+
+  .pasture svg{
+    display:block;
+    width:100%;
+    height:100%;
+    shape-rendering:crispEdges;
+    image-rendering:pixelated;
+  }
+
+  .sky-speck{opacity:.34;animation:drift 24s steps(12,end) infinite}
+  .sky-speck.s2{animation-duration:31s;animation-delay:-11s;opacity:.24}
+  .sky-speck.s3{animation-duration:37s;animation-delay:-19s;opacity:.18}
+
+  .river-glint{animation:glint 6s steps(4,end) infinite;opacity:.45}
+  .river-glint.g2{animation-delay:-2.4s}
+  .river-glint.g3{animation-delay:-4.1s}
+
+  .sheep{
+    cursor:pointer;
+    transform-box:fill-box;
+    transform-origin:center bottom;
+    animation:idle 6.8s steps(2,end) infinite;
+    outline:none;
+  }
+  .sheep.slow{animation-duration:8.7s;animation-delay:-2.8s}
+  .sheep.tiny{animation-duration:7.9s;animation-delay:-4.3s}
+  .sheep.grazer{animation:idle 7.2s steps(2,end) infinite}
+  .sheep .head{transform-box:fill-box;transform-origin:20% 80%}
+  .sheep.grazer .head{animation:graze 10.5s steps(4,end) infinite}
+  .sheep .eye{animation:blink 7.6s steps(1,end) infinite;animation-delay:var(--blink,0s)}
+  .sheep.noticed{animation:nod .72s steps(3,end) 1}
+  .sheep.noticed .head{animation:none;transform:translateY(-3px)}
+
+  .self-halo{opacity:.28;animation:selfPulse 4.8s steps(3,end) infinite}
+  .self-sprout{animation:sprout 5.4s steps(3,end) infinite}
+
+  .grass-pixel{opacity:.78}
+  .grass-pixel.dim{opacity:.42}
+
+  .hint{
+    position:fixed;
+    left:18px;
+    bottom:max(16px,env(safe-area-inset-bottom));
+    z-index:5;
+    color:rgba(55,67,56,.54);
+    font-size:11px;
+    letter-spacing:.08em;
+    user-select:none;
+    pointer-events:none;
+    opacity:0;
+    animation:hintIn 1.2s ease 1.2s forwards,hintOut 1.2s ease 5.8s forwards;
+  }
+
+  @keyframes idle{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-2px)}
+  }
+  @keyframes nod{
+    0%{transform:translateY(0)}
+    45%{transform:translateY(-4px) rotate(-1deg)}
+    100%{transform:translateY(0)}
+  }
+  @keyframes graze{
+    0%,16%,100%{transform:translate(0,0)}
+    28%,56%{transform:translate(5px,13px)}
+    66%{transform:translate(2px,4px)}
+  }
+  @keyframes blink{
+    0%,45%,48%,100%{opacity:1}
+    46%,47%{opacity:0}
+  }
+  @keyframes glint{
+    0%,100%{transform:translateX(0);opacity:.2}
+    50%{transform:translateX(18px);opacity:.62}
+  }
+  @keyframes drift{
+    from{transform:translateX(-30px)}
+    to{transform:translateX(90px)}
+  }
+  @keyframes selfPulse{
+    0%,100%{opacity:.18}
+    50%{opacity:.38}
+  }
+  @keyframes sprout{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-2px)}
+  }
+  @keyframes hintIn{to{opacity:1}}
+  @keyframes hintOut{to{opacity:0}}
+
+  @media(max-width:720px){
+    .hint{font-size:10px;left:12px}
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .hint{opacity:.48}
+  }
+</style>
+</head>
+<body>
+<main class="pasture" aria-label="同路：步道用户的数字牧场">
+<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="sceneTitle sceneDesc">
+  <title id="sceneTitle">开放的像素童话牧场</title>
+  <desc id="sceneDesc">绿草地、河流、远山与六只羊。其中前景的一只是属于当前用户的羊。</desc>
+
+  <!-- 天空 -->
+  <rect width="1440" height="900" fill="var(--sky)"/>
+  <rect y="0" width="1440" height="240" fill="var(--sky-light)" opacity=".34"/>
+  <g fill="#f7f2d9" class="sky-speck">
+    <rect x="135" y="105" width="34" height="10"/><rect x="169" y="95" width="28" height="20"/><rect x="197" y="105" width="48" height="10"/>
+  </g>
+  <g fill="#f7f2d9" class="sky-speck s2">
+    <rect x="830" y="145" width="42" height="9"/><rect x="872" y="136" width="26" height="18"/><rect x="898" y="145" width="54" height="9"/>
+  </g>
+  <g fill="#f7f2d9" class="sky-speck s3">
+    <rect x="1130" y="76" width="31" height="8"/><rect x="1161" y="69" width="22" height="15"/><rect x="1183" y="76" width="39" height="8"/>
+  </g>
+
+  <!-- 远山：阶梯形，不做写实尖峰 -->
+  <path fill="var(--mountain-far)" d="M0 362H90V346H155V330H225V312H298V328H354V346H430V330H495V305H555V286H620V303H675V326H742V341H822V324H890V303H955V316H1025V340H1090V322H1155V300H1218V318H1285V341H1360V328H1440V455H0Z"/>
+  <path fill="var(--mountain-near)" opacity=".82" d="M0 410H120V392H208V375H300V390H389V361H475V344H565V367H650V389H742V370H840V350H926V368H1005V394H1095V372H1182V355H1274V378H1360V396H1440V485H0Z"/>
+
+  <!-- 远草场 -->
+  <path fill="var(--grass-far)" d="M0 440H1440V900H0Z"/>
+  <path fill="#9fc27e" d="M0 482H205V470H410V484H665V466H862V479H1098V462H1285V478H1440V900H0Z"/>
+
+  <!-- 河流：从远景进入中景再离开画面 -->
+  <path fill="var(--river)" d="M835 430H965V446H1015V462H1050V480H1088V498H1127V522H1168V548H1210V576H1255V610H1305V648H1360V692H1440V900H1130V844H1088V790H1040V744H998V703H956V666H920V632H889V598H860V566H838V536H820V508H810V482H812V458H820Z"/>
+  <path fill="var(--river-light)" opacity=".58" d="M918 477H969V486H1017V496H1056V508H1102V523H1138V538H1179V555H1218V577H1252V597H1288V619H1324V642H1350V658H1310V650H1275V632H1234V610H1193V590H1152V570H1115V552H1078V536H1036V520H995V506H957V495H918Z"/>
+  <g fill="#eef4df" class="river-glint">
+    <rect x="1096" y="546" width="58" height="6"/><rect x="1122" y="554" width="22" height="4"/>
+  </g>
+  <g fill="#eef4df" class="river-glint g2"><rect x="1228" y="625" width="72" height="6"/></g>
+  <g fill="#eef4df" class="river-glint g3"><rect x="1315" y="701" width="49" height="5"/></g>
+
+  <!-- 前景草场，永远延伸出屏幕 -->
+  <path fill="var(--grass)" d="M0 548H175V535H338V547H512V531H674V545H824V560H919V618H958V665H1001V706H1040V748H1085V796H1131V849H1171V900H0Z"/>
+  <path fill="var(--grass-dark)" opacity=".42" d="M0 782H175V768H345V786H520V771H688V790H844V774H1000V805H1108V835H1180V900H0Z"/>
+
+  <!-- 草的像素纹理 -->
+  <g id="grassTexture" aria-hidden="true"></g>
+
+  <!-- 羊 1：远处 -->
+  <g transform="translate(250 505) scale(.63)">
+    <g class="sheep tiny" tabindex="0" role="button" aria-label="一只远处的羊" style="--blink:-2.1s">
+      <rect x="3" y="24" width="60" height="33" fill="#d9d5c6"/>
+      <rect x="12" y="15" width="42" height="48" fill="#d9d5c6"/>
+      <rect x="49" y="27" width="26" height="25" fill="#8e846f"/>
+      <rect x="70" y="31" width="7" height="10" fill="#8e846f"/>
+      <rect class="eye" x="64" y="32" width="4" height="4" fill="var(--ink)"/>
+      <rect x="15" y="58" width="7" height="20" fill="#625c52"/><rect x="45" y="58" width="7" height="20" fill="#625c52"/>
+    </g>
+  </g>
+
+  <!-- 羊 2：远处淡杏 -->
+  <g transform="translate(705 512) scale(.58)">
+    <g class="sheep slow" tabindex="0" role="button" aria-label="一只远处的淡杏色羊" style="--blink:-4.7s">
+      <rect x="3" y="24" width="60" height="33" fill="#dcc7ad"/>
+      <rect x="12" y="15" width="42" height="48" fill="#dcc7ad"/>
+      <rect class="head" x="49" y="27" width="26" height="25" fill="#9c7e68"/>
+      <rect x="70" y="31" width="7" height="10" fill="#9c7e68"/>
+      <rect class="eye" x="64" y="32" width="4" height="4" fill="var(--ink)"/>
+      <rect x="15" y="58" width="7" height="20" fill="#66584d"/><rect x="45" y="58" width="7" height="20" fill="#66584d"/>
+    </g>
+  </g>
+
+  <!-- 羊 3：中景雾蓝 -->
+  <g transform="translate(925 555) scale(.82)">
+    <g class="sheep" tabindex="0" role="button" aria-label="一只雾蓝色的羊" style="--blink:-1.3s">
+      <rect x="3" y="24" width="62" height="34" fill="#b9cbca"/>
+      <rect x="12" y="15" width="44" height="49" fill="#b9cbca"/>
+      <g class="head"><rect x="51" y="27" width="27" height="26" fill="#806f67"/><rect x="73" y="31" width="8" height="10" fill="#806f67"/><rect class="eye" x="66" y="32" width="4" height="4" fill="var(--ink)"/></g>
+      <rect x="16" y="59" width="7" height="21" fill="#5f5955"/><rect x="47" y="59" width="7" height="21" fill="#5f5955"/>
+    </g>
+  </g>
+
+  <!-- 羊 4：中景奶油，吃草 -->
+  <g transform="translate(1060 635) scale(.93)">
+    <g class="sheep grazer" tabindex="0" role="button" aria-label="一只正在吃草的奶油色羊" style="--blink:-5.1s">
+      <rect x="3" y="24" width="65" height="36" fill="#e2d7b7"/>
+      <rect x="12" y="14" width="46" height="52" fill="#e2d7b7"/>
+      <g class="head"><rect x="54" y="27" width="28" height="27" fill="#917d62"/><rect x="77" y="31" width="8" height="11" fill="#917d62"/><rect class="eye" x="69" y="32" width="4" height="4" fill="var(--ink)"/></g>
+      <rect x="17" y="61" width="7" height="22" fill="#625b4e"/><rect x="49" y="61" width="7" height="22" fill="#625b4e"/>
+    </g>
+  </g>
+
+  <!-- 羊 5：左前景雾灰 -->
+  <g transform="translate(300 670) scale(1.03)">
+    <g class="sheep slow" tabindex="0" role="button" aria-label="一只雾灰色的羊" style="--blink:-3.6s">
+      <rect x="2" y="23" width="67" height="37" fill="#c7c7be"/>
+      <rect x="11" y="13" width="48" height="53" fill="#c7c7be"/>
+      <g class="head"><rect x="55" y="26" width="29" height="28" fill="#756d66"/><rect x="79" y="30" width="8" height="11" fill="#756d66"/><rect class="eye" x="70" y="31" width="4" height="4" fill="var(--ink)"/></g>
+      <rect x="16" y="61" width="8" height="23" fill="#5c5752"/><rect x="50" y="61" width="8" height="23" fill="#5c5752"/>
+    </g>
+  </g>
+
+  <!-- 我的羊：前景、略大、鼠尾草绿，仍然没有等级光环 -->
+  <g transform="translate(640 690) scale(1.34)">
+    <g class="self-halo" aria-hidden="true" fill="#f6f0cf">
+      <rect x="8" y="84" width="8" height="4"/><rect x="37" y="89" width="7" height="4"/><rect x="72" y="82" width="8" height="4"/>
+    </g>
+    <g class="sheep grazer" data-self="true" tabindex="0" role="button" aria-label="我的羊" style="--blink:-2.8s">
+      <rect x="1" y="22" width="70" height="39" fill="#b9c9a5"/>
+      <rect x="10" y="11" width="50" height="56" fill="#b9c9a5"/>
+      <rect x="18" y="7" width="34" height="64" fill="#b9c9a5"/>
+      <g class="head">
+        <rect x="57" y="25" width="30" height="29" fill="#776d60"/>
+        <rect x="82" y="29" width="9" height="12" fill="#776d60"/>
+        <rect x="52" y="27" width="7" height="8" fill="#776d60"/>
+        <rect class="eye" x="72" y="31" width="4" height="4" fill="#514c45"/>
+      </g>
+      <rect x="16" y="62" width="8" height="24" fill="#59564e"/><rect x="51" y="62" width="8" height="24" fill="#59564e"/>
+    </g>
+    <g class="self-sprout" aria-hidden="true" fill="#d8e5a8"><rect x="91" y="69" width="4" height="14"/><rect x="95" y="70" width="7" height="4"/><rect x="84" y="74" width="7" height="4"/></g>
+  </g>
+
+  <!-- 最前景几块草，帮助形成空间层次 -->
+  <g fill="#638f51" opacity=".75">
+    <rect x="90" y="827" width="6" height="24"/><rect x="96" y="837" width="13" height="6"/>
+    <rect x="457" y="858" width="6" height="28"/><rect x="445" y="870" width="12" height="6"/>
+    <rect x="866" y="826" width="6" height="26"/><rect x="872" y="837" width="12" height="6"/>
+  </g>
+</svg>
+</main>
+<div class="hint" aria-hidden="true">点击一只羊</div>
+<script>
+(()=>{
+  const NS='http://www.w3.org/2000/svg';
+  const texture=document.getElementById('grassTexture');
+  const palette=['#789d5d','#7da663','#9ac178','#86ad68','#a8ca84'];
+
+  // 只生成极少量像素草点，保持空旷与安静；使用确定性公式，避免刷新时场景跳变。
+  for(let i=0;i<76;i++){
+    const x=(i*173+97)%1420+10;
+    const y=570+((i*113+41)%300);
+    const r=document.createElementNS(NS,'rect');
+    r.setAttribute('x',x);
+    r.setAttribute('y',y);
+    r.setAttribute('width',i%4===0?6:4);
+    r.setAttribute('height',i%3===0?9:5);
+    r.setAttribute('fill',palette[i%palette.length]);
+    r.setAttribute('class','grass-pixel'+(i%5===0?' dim':''));
+    texture.appendChild(r);
+  }
+
+  document.querySelectorAll('.sheep').forEach(sheep=>{
+    const react=()=>{
+      sheep.classList.remove('noticed');
+      void sheep.getBoundingClientRect();
+      sheep.classList.add('noticed');
+      setTimeout(()=>sheep.classList.remove('noticed'),760);
+    };
+    sheep.addEventListener('click',react);
+    sheep.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();react()}
+    });
+  });
+})();
+</script>
+</body>
+</html>
