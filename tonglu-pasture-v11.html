@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v11</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  const r=await fetch('./tonglu-pasture-v10.html',{cache:'no-store'});
+  let html=await r.text();
+
+  html=html.replaceAll('同路 · 数字牧场 v10','同路 · 数字牧场 v11');
+
+  // Fresh prototype state: do not inherit the toggles / consumed food from v10.
+  html=html.replace("NEED_KEY='tonglu.self.need.v1'","NEED_KEY='tonglu.self.need.v2'");
+  html=html.replace("OFFER_KEY='tonglu.self.offer.v1'","OFFER_KEY='tonglu.self.offer.v2'");
+  html=html.replace("FEED_ID='lingliang-demo-001'","FEED_ID='lingliang-demo-002'");
+
+  // Click areas now follow the actual world objects around the close-up sheep.
+  html=html.replace('#careHit{left:13%;top:47%;width:18%;height:28%}','#careHit{left:14%;top:45%;width:15%;height:24%}');
+  html=html.replace('#feedHit{left:32%;top:67%;width:18%;height:23%}','#feedHit{left:21%;top:68%;width:18%;height:24%}');
+  html=html.replace('#departHit{right:12%;top:45%;width:22%;height:30%}','#departHit{right:4%;top:44%;width:25%;height:29%}');
+  html=html.replace('#askHit{left:20%;bottom:5%;width:18%;height:20%}','#askHit{left:59%;top:53%;width:16%;height:23%}');
+  html=html.replace('#offerHit{right:20%;bottom:5%;width:18%;height:20%}','#offerHit{left:66%;top:72%;width:18%;height:22%}');
+
+  // Need is a soft bleat ripple. Inactive = clearly visible affordance; active = stronger social signal.
+  html=html.replace(/function needWave\(px,py,strong=false\)\{[\s\S]*?\}\nfunction cloth/,
+`function needWave(px,py,strong=false){
+  const ph=(tick%32)>>3;
+  ctx.save();
+  ctx.globalAlpha=strong?1:.55;
+  ctx.strokeStyle=C.need;
+  ctx.lineWidth=strong?2.2:1.6;
+  const count=strong?3:2;
+  for(let i=0;i<count;i++){
+    const r=(strong?7:8)+i*5+ph;
+    ctx.beginPath();ctx.arc(px,py,r,-.9,.9);ctx.stroke();
+  }
+  ctx.restore();
+}
+function cloth`);
+
+  // Giving is now an irregular handkerchief, never a rectangular signboard.
+  html=html.replace(/function cloth\(px,py,s=1\)\{[\s\S]*?\}\nfunction sheepBody/,
+`function cloth(px,py,s=1,active=false){
+  const base=active?'#ffd77d':'#ffe7a4';
+  const fold=active?'#e6ae58':'#efc879';
+  rect(px+5*s,py,10*s,2*s,base);
+  rect(px+2*s,py+2*s,16*s,2*s,base);
+  rect(px,py+4*s,20*s,5*s,base);
+  rect(px+2*s,py+9*s,16*s,2*s,base);
+  rect(px+5*s,py+11*s,10*s,1*s,base);
+  rect(px+15*s,py+7*s,5*s,4*s,fold);
+  rect(px+4*s,py+4*s,5*s,1*s,'#fff5d0');
+}
+function sheepBody`);
+
+  // World view: only other sheep's social signals by default. Self signals appear only after activation.
+  html=html.replace(
+    "if(o.give)cloth(px-6,py+20,1);if(o.self&&selfNeed)needWave(px+32*o.s,py+6*o.s,true);if(o.self&&selfOffer)cloth(px-6,py+20,1)",
+    "if(o.give)cloth(px-3,py+20,.72,false);if(o.self&&selfNeed)needWave(px+32*o.s,py+6*o.s,true);if(o.self&&selfOffer)cloth(px-3,py+20,.72,true)"
+  );
+
+  const detail=`function detailSheep(){
+    rect(0,0,W,106,C.sky2);
+    fill([[0,126],[55,126],[55,118],[122,118],[122,124],[196,124],[196,116],[270,116],[270,123],[345,123],[345,117],[410,117],[410,123],[480,123],[480,300],[0,300]],'#a6dc83');
+    fill([[0,169],[80,169],[80,163],[170,163],[170,171],[258,171],[258,164],[345,164],[345,172],[430,172],[430,166],[480,166],[480,300],[0,300]],'#83cc64');
+    rect(0,224,W,76,C.grass);
+
+    // CARE: close enough to belong to this sheep, but not touching its body.
+    tree(92,148,1.75,true);
+
+    // SPIRITUAL FOOD: special grass beside the front-left hoof.
+    if(!feedOpened){
+      feed(132,232,2.6);
+      if((tick%24)<12){rect(126,226,2,2,'#fff3a0');rect(161,229,2,2,'#fff8c4');rect(151,222,2,2,'#fff3a0')}
+    }
+
+    // DEPARTURE: a path, never a sign.
+    for(let i=0;i<8;i++){
+      rect(350+i*10,168+i*6,5,2,i%2?'#d9c796':'#c8b787');
+    }
+
+    const bob=(Math.sin(tick/14)>0?0:1),px=174,py=143-bob;
+    rect(px-10,py+92,120,10,'rgba(255,248,195,.42)');
+
+    // Detailed self sheep.
+    rect(px,py+18,96,48,C.self);rect(px+12,py,64,82,C.self);rect(px+30,py-14,34,100,C.self);
+    rect(px-6,py+30,18,26,'#c9dfb0');rect(px+78,py+24,20,32,'#abc892');
+    rect(px+19,py+9,18,12,'#d4e7c2');rect(px+54,py+4,17,13,'#aac690');
+    rect(px+5,py+52,18,14,'#aac690');rect(px+62,py+61,21,14,'#d2e5be');
+    rect(px+80,py+24,45,40,C.selfHead);rect(px+118,py+30,14,15,C.selfHead);
+    rect(px+72,py+27,13,12,C.selfHead);rect(px+87,py+20,12,7,'#8c7f6e');
+    rect(px+103,py+34,5,5,C.ink);rect(px+111,py+36,4,4,C.ink);rect(px+119,py+45,6,2,'#645c52');
+    rect(px+22,py+76,12,33,'#5d5851');rect(px+67,py+76,12,33,'#5d5851');
+    rect(px+20,py+105,16,6,'#4f4b46');rect(px+65,py+105,16,6,'#4f4b46');
+    if((tick%28)<14){rect(px+17,py+27,7,4,'#dceccc');rect(px+48,py+18,6,4,'#dceccc')}
+    else{rect(px+20,py+30,7,4,'#dceccc');rect(px+51,py+21,6,4,'#dceccc')}
+
+    // NEED: emitted from the sheep itself, immediately beyond its muzzle.
+    needWave(px+137,py+47,selfNeed);
+
+    // GIVING: a handkerchief on the ground beside the right/front side of the sheep.
+    cloth(px+164,py+94,1.55,selfOffer);
+  }`;
+  html=html.replace(/function detailSheep\(\)\{[\s\S]*?\}\nfunction render\(\)/,detail+'\nfunction render()');
+
+  document.open();
+  document.write(html);
+  document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v11 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
