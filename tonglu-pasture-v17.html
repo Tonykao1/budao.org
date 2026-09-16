@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v17</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  // v17 deliberately returns to the approved v15 interaction baseline.
+  // The only goal here is to make the pasture itself feel inhabited:
+  // 25 sheep, varied fleece, slow life motion, clear foreground/midground/background perspective.
+  const r=await fetch('./tonglu-pasture-v15.html',{cache:'no-store'});
+  let html=await r.text();
+  html=html.replaceAll('同路 · 数字牧场 v15','同路 · 数字牧场 v17');
+
+  // During the flock-world experiment, keep public social hotspots quiet.
+  // Self close-up and all five approved personal objects remain untouched.
+  html=html.replace('</style>',`
+  #worldNeed,#worldGive{display:none!important}
+  </style>`);
+
+  // Give grazing a different slow rhythm for each sheep instead of synchronized movement.
+  html=html.replace(
+    /function sheepBody\(px,py,s,f,h,graze=false\)\{[\s\S]*?\}\nconst sheep=/,
+`function sheepBody(px,py,s,f,h,graze=false,phase=0){
+  const g=(graze&&Math.sin((tick+phase)/58)>.56)?4:0;
+  rect(px,py,24*s,12*s,f);
+  rect(px+4*s,py-5*s,17*s,19*s,f);
+  rect(px+8*s,py-8*s,10*s,22*s,f);
+  rect(px+19*s,py+2*s+g,10*s,10*s,h);
+  rect(px+27*s,py+4*s+g,3*s,4*s,h);
+  rect(px+17*s,py+3*s+g,3*s,3*s,h);
+  rect(px+24*s,py+4*s+g,1.5*s,1.5*s,C.ink);
+  rect(px+5*s,py+12*s,3*s,8*s,'#5d5851');
+  rect(px+16*s,py+12*s,3*s,8*s,'#5d5851');
+}
+const sheep=`
+  );
+
+  // Ordered from far to near so ordinary canvas draw order also becomes depth order.
+  // River occupies the central-right channel; sheep are intentionally kept on pasture land only.
+  const flock=`const sheep=[
+    // BACKGROUND — tiny, quiet, sparse
+    {x:52,y:170,s:.36,f:'#f3ead7',h:'#8e846f',m:'wander',a:1.2,p:7,flip:true},
+    {x:103,y:175,s:.40,f:'#d8d7ce',h:'#756d66',m:'idle',a:.7,p:31},
+    {x:151,y:168,s:.35,f:'#f1d7bf',h:'#987b68',m:'wander',a:1.1,p:58},
+    {x:196,y:181,s:.44,f:'#bfd8da',h:'#806f67',m:'graze',a:.6,p:83,flip:true},
+    {x:245,y:173,s:.38,f:'#c7d5b5',h:'#78806d',m:'idle',a:.8,p:111},
+    {x:287,y:187,s:.48,f:'#dec9c8',h:'#866f70',m:'wander',a:1.3,p:139},
+    {x:430,y:178,s:.39,f:'#d5c7a8',h:'#81745d',m:'graze',a:.6,p:166,flip:true},
+    {x:456,y:190,s:.46,f:'#eee8dc',h:'#746d65',m:'wander',a:.8,p:194},
+
+    // MIDGROUND — readable individuality, still calm
+    {x:37,y:202,s:.58,f:'#f2e3b3',h:'#917d62',m:'graze',a:1.0,p:223},
+    {x:79,y:214,s:.66,f:'#bfd8da',h:'#776d66',m:'wander',a:1.8,p:251,flip:true},
+    {x:126,y:198,s:.56,f:'#f3ead7',h:'#887e6e',m:'idle',a:.8,p:279},
+    {x:168,y:221,s:.74,f:'#d8d7ce',h:'#756d66',m:'graze',a:1.0,p:307},
+    {x:211,y:207,s:.63,f:'#f1d7bf',h:'#947966',m:'wander',a:1.7,p:337},
+    {x:257,y:226,s:.78,f:'#c7d5b5',h:'#747c68',m:'idle',a:1.1,p:367,flip:true},
+    {x:298,y:211,s:.67,f:'#dec9c8',h:'#806a6c',m:'wander',a:1.4,p:397},
+    {x:433,y:218,s:.64,f:'#f3ead7',h:'#897f70',m:'graze',a:.8,p:427},
+    {x:459,y:231,s:.76,f:'#d5c7a8',h:'#80725c',m:'wander',a:1.2,p:457,flip:true},
+
+    // FOREGROUND — larger, slower, more present
+    {x:46,y:244,s:.90,f:'#bfd8da',h:'#756d68',m:'wander',a:2.2,p:489},
+    {x:91,y:267,s:1.10,f:'#f2e3b3',h:'#8b785f',m:'graze',a:1.1,p:523,flip:true},
+    {x:142,y:242,s:.88,f:'#dec9c8',h:'#816b6d',m:'idle',a:1.1,p:557},
+    {x:184,y:278,s:1.20,f:'#f3ead7',h:'#857b6c',m:'wander',a:2.3,p:593},
+    {x:232,y:243,s:1.10,f:C.self,h:C.selfHead,self:true,m:'idle',a:.8,p:631},
+    {x:276,y:263,s:1.05,f:'#c7d5b5',h:'#727a66',m:'graze',a:1.0,p:667,flip:true},
+    {x:426,y:253,s:.94,f:'#d8d7ce',h:'#716a64',m:'idle',a:.8,p:701},
+    {x:451,y:278,s:1.14,f:'#f1d7bf',h:'#907461',m:'wander',a:1.6,p:739,flip:true}
+  ];`;
+  html=html.replace(/const sheep=\[[\s\S]*?\];\nfunction drawWorldSheep/,flock+'\nfunction drawWorldSheep');
+
+  // Every sheep moves, but never like an NPC: only a few pixels over long periods.
+  // Scale already encodes perspective; drift amplitude is kept small enough to stay on pasture land.
+  const worldSheep=`function drawWorldSheep(o,i){
+    const phase=o.p||i*29;
+    const amp=o.a||1;
+    let dx=0,dy=0;
+    if(o.m==='wander'){
+      dx=Math.sin((tick+phase)/105)*amp;
+      dy=Math.sin((tick+phase)/163)*Math.min(.8,amp*.34);
+    }else if(o.m==='idle'){
+      dx=Math.sin((tick+phase)/155)*Math.min(.7,amp);
+    }else if(o.m==='graze'){
+      dx=Math.sin((tick+phase)/190)*Math.min(.55,amp);
+    }
+    const breath=Math.sin((tick+phase)/62)>.70?1:0;
+    const px=Math.round(o.x+dx),py=Math.round(o.y+dy-breath);
+
+    // Perspective shadow: subtler in the distance, stronger in the foreground.
+    ctx.save();
+    ctx.globalAlpha=.08+o.s*.055;
+    rect(px-2*o.s,py+18*o.s,28*o.s,2*o.s,'#385d36');
+    ctx.restore();
+
+    if(o.flip&&!o.self){
+      ctx.save();
+      ctx.translate(px+30*o.s,0);
+      ctx.scale(-1,1);
+      sheepBody(0,py,o.s,o.f,o.h,o.m==='graze',phase);
+      ctx.restore();
+    }else{
+      sheepBody(px,py,o.s,o.f,o.h,o.m==='graze',phase);
+    }
+
+    if(o.self){
+      rect(px-4*o.s,py+22*o.s,23*o.s,3*o.s,'rgba(255,248,195,.30)');
+      if(selfNeed)needWave(px+32*o.s,py+6*o.s,true);
+      if(selfOffer)cloth(px-3,py+20,.72,true);
+    }
+  }`;
+  html=html.replace(/function drawWorldSheep\(o,i\)\{[\s\S]*?\}\nfunction drawWorld\(\)/,worldSheep+'\nfunction drawWorld()');
+
+  document.open();document.write(html);document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v17 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
