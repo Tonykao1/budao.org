@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v16</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  const r=await fetch('./tonglu-pasture-v15.html',{cache:'no-store'});
+  let html=await r.text();
+  html=html.replaceAll('同路 · 数字牧场 v15','同路 · 数字牧场 v16');
+
+  // v16: first sheep-to-sheep behavior experiment.
+  // We deliberately test only one relationship loop:
+  // see a need -> approach -> stay beside it.
+  const extraCss=`
+  .world-companion-note{position:absolute;z-index:9;left:63.5%;top:54%;transform:translate(-50%,-50%);padding:5px 8px;background:#d9e9b6;color:#546144;font:800 11px/1 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;box-shadow:4px 4px 0 rgba(64,82,52,.15);clip-path:polygon(5px 0,100% 0,100% calc(100% - 4px),calc(100% - 7px) calc(100% - 4px),calc(100% - 7px) 100%,0 100%,0 5px,5px 5px);opacity:0;pointer-events:none;transition:opacity .12s steps(2,end)}
+  .stage.companion .world-companion-note{opacity:1}
+  .approach-hint{position:absolute;z-index:8;left:63%;top:47%;transform:translateX(-50%);padding:4px 7px;background:#edf4cf;color:#526344;font:800 11px/1 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;box-shadow:3px 3px 0 rgba(76,95,61,.13);clip-path:polygon(4px 0,100% 0,100% calc(100% - 3px),calc(100% - 5px) calc(100% - 3px),calc(100% - 5px) 100%,0 100%,0 4px,4px 4px);opacity:0;pointer-events:none}
+  .stage.approaching .approach-hint{opacity:1}
+  `;
+  html=html.replace('</style>',extraCss+'</style>');
+  html=html.replace('<div class="toast" id="toast"></div>','<div class="toast" id="toast"></div><div class="approach-hint" id="approachHint">正在走近</div><div class="world-companion-note" id="companionNote">陪它一会</div>');
+
+  // Add relationship state after base declarations.
+  html=html.replace("const W=480,H=300;let tick=0,mode='world',toastTimer=null;","const W=480,H=300;let tick=0,mode='world',toastTimer=null;let socialMode='idle',selfWorldX=232,selfWorldY=243,targetSheepIndex=2,companionSince=0;");
+
+  // Keep the user's world sheep position dynamic instead of fixed at x=232/y=243.
+  html=html.replace("{x:232,y:243,s:1.10,f:C.self,h:C.selfHead,self:true}","{x:232,y:243,s:1.10,f:C.self,h:C.selfHead,self:true}");
+
+  // Replace world sheep drawing so only the self sheep can move toward another sheep.
+  html=html.replace(/function drawWorldSheep\(o,i\)\{[\s\S]*?\}\nfunction drawWorld\(\)/,
+`function drawWorldSheep(o,i){
+  const bob=(Math.sin((tick+i*13)/12)>0?0:1);
+  let px=Math.round(o.self?selfWorldX:o.x),py=Math.round((o.self?selfWorldY:o.y)-bob);
+  if(o.self)rect(px-4*o.s,py+22*o.s,23*o.s,3*o.s,'rgba(255,248,195,.30)');
+  sheepBody(px,py,o.s,o.f,o.h,o.graze);
+  if(o.need)needWave(px+32*o.s,py+6*o.s,true);
+  if(o.self&&selfNeed)needWave(px+32*o.s,py+6*o.s,true);
+  if(o.self&&selfOffer)cloth(px-3,py+20,.72,true);
+}
+function drawWorld()`);
+
+  // World render now also advances the self sheep when it is approaching.
+  html=html.replace("function render(){ctx.clearRect(0,0,W,H);mode==='world'?drawWorld():detailSheep()}",
+`function render(){
+  if(mode==='world'&&socialMode==='approach'){
+    const target=sheep[targetSheepIndex],tx=target.x-44,ty=target.y+18;
+    const dx=tx-selfWorldX,dy=ty-selfWorldY,d=Math.hypot(dx,dy);
+    if(d>2.5){selfWorldX+=dx*.085;selfWorldY+=dy*.085}
+    else{selfWorldX=tx;selfWorldY=ty;socialMode='companion';companionSince=Date.now();stage.classList.remove('approaching');stage.classList.add('companion');showToast('你走到了它身边')}
+  }
+  ctx.clearRect(0,0,W,H);mode==='world'?drawWorld():detailSheep()
+}`);
+
+  // Replace default world click handler: self still opens close-up; the need sheep / its ripple triggers approach.
+  html=html.replace(/c\.addEventListener\('click',e=>\{if\(mode!=='world'\)return;const p=point\(e\);if\(Math\.hypot\(p\.x-247,p\.y-247\)<32\)\{mode='focus';stage\.classList\.add\('focus'\);document\.getElementById\('hint'\)\.style\.display='none'\}\}\);/,
+`c.addEventListener('click',e=>{
+  if(mode!=='world')return;
+  const p=point(e);
+  // own sheep
+  if(Math.hypot(p.x-selfWorldX-15,p.y-selfWorldY-8)<32){mode='focus';stage.classList.add('focus');document.getElementById('hint').style.display='none';return}
+  // other sheep with a visible need signal
+  const n=sheep[targetSheepIndex];
+  if(Math.hypot(p.x-(n.x+20),p.y-(n.y+6))<38){
+    if(socialMode==='companion'){showToast('你已经在它身边了');return}
+    socialMode='approach';stage.classList.add('approaching');stage.classList.remove('companion');showToast('你开始向它走去');
+  }
+});`);
+
+  // The high-res need hotspot in world view now starts the same approach behavior instead of only revealing text.
+  html=html.replace("document.getElementById('worldNeed').addEventListener('click',e=>{e.stopPropagation();pulseLabel(e.currentTarget)});",
+"document.getElementById('worldNeed').addEventListener('click',e=>{e.stopPropagation();if(mode!=='world')return;if(socialMode==='companion'){showToast('你已经在它身边了');return}socialMode='approach';stage.classList.add('approaching');stage.classList.remove('companion');showToast('你开始向它走去')});");
+
+  // Returning from close-up preserves the social relationship position.
+  html=html.replace("back.addEventListener('click',()=>{mode='world';stage.classList.remove('focus')});","back.addEventListener('click',()=>{mode='world';stage.classList.remove('focus')});");
+
+  document.open();document.write(html);document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v16 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
