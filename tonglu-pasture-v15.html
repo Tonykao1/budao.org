@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v15</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  const r=await fetch('./tonglu-pasture-v14.html',{cache:'no-store'});
+  let html=await r.text();
+  html=html.replaceAll('同路 · 数字牧场 v14','同路 · 数字牧场 v15');
+
+  // v15: keep every v14 interaction exactly as-is; only change the interaction carrier
+  // from a polished web card into a coarse object that belongs to the pixel pasture.
+  html=html.replace(
+`.life-slip{position:absolute;z-index:20;left:50%;bottom:5.5%;transform:translate(-50%,12px);width:min(390px,calc(100vw - 28px));padding:15px 16px 14px;background:rgba(255,252,224,.98);border:2px solid rgba(112,90,57,.30);box-shadow:4px 4px 0 rgba(90,72,48,.15);opacity:0;pointer-events:none;transition:opacity .14s ease,transform .14s ease;color:#514c42}`,
+`.life-slip{position:absolute;z-index:20;left:50%;bottom:4.2%;transform:translate(-50%,8px);width:min(360px,calc(100vw - 34px));padding:19px 20px 17px;background:#f4dfa0;border:0;box-shadow:8px 8px 0 rgba(82,69,45,.20);opacity:0;pointer-events:none;transition:opacity .10s steps(2,end),transform .10s steps(2,end);color:#514838;clip-path:polygon(10px 0,calc(100% - 18px) 0,calc(100% - 18px) 5px,100% 5px,100% calc(100% - 13px),calc(100% - 8px) calc(100% - 13px),calc(100% - 8px) 100%,14px 100%,14px calc(100% - 6px),0 calc(100% - 6px),0 12px,10px 12px)}`
+  );
+  html=html.replace(
+`.life-slip.open{opacity:1;transform:translate(-50%,0);pointer-events:auto}`,
+`.life-slip.open{opacity:1;transform:translate(-50%,0);pointer-events:auto}.life-slip::before{content:"";position:absolute;left:7px;top:7px;right:9px;bottom:8px;border:4px solid rgba(126,91,50,.30);pointer-events:none;clip-path:polygon(0 0,100% 0,100% 78%,96% 78%,96% 100%,5% 100%,5% 94%,0 94%)}.life-slip::after{content:"";position:absolute;width:8px;height:8px;right:17px;top:17px;background:#d0a85c;box-shadow:-10px 12px 0 #ead18b,-22px -5px 0 rgba(255,245,190,.85);pointer-events:none}`
+  );
+  html=html.replace(
+`.life-slip .slip-kicker{font-size:11px;letter-spacing:.12em;color:#7d755f;margin-bottom:6px}`,
+`.life-slip .slip-kicker{font-size:11px;letter-spacing:.03em;color:#806c48;margin:0 0 7px 2px;font-weight:800}`
+  );
+  html=html.replace(
+`.life-slip .slip-title{font-size:17px;font-weight:760;margin-bottom:7px}`,
+`.life-slip .slip-title{font-size:17px;font-weight:800;margin:0 0 9px 2px;line-height:1.15}`
+  );
+  html=html.replace(
+`.life-slip .slip-body{font-size:13px;line-height:1.65;color:#5e594e}`,
+`.life-slip .slip-body{font-size:13px;line-height:1.55;color:#5b503d;padding:2px 2px 0}`
+  );
+  html=html.replace(
+`.life-slip .slip-close{position:absolute;right:9px;top:8px;border:0;background:transparent;font-size:18px;color:#7b735f;cursor:pointer;padding:4px 7px}`,
+`.life-slip .slip-close{position:absolute;z-index:2;right:10px;top:8px;width:24px;height:24px;border:0;background:#d4b36c;color:#675239;cursor:pointer;padding:0;font:800 17px/24px monospace;box-shadow:3px 3px 0 rgba(93,69,42,.20)}`
+  );
+  html=html.replace(
+`.life-slip input,.life-slip textarea,.life-slip select{width:100%;border:1px solid rgba(94,79,54,.26);background:#fffdf0;color:#514c42;font:13px/1.45 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:8px;margin-top:8px;outline:none;border-radius:0}`,
+`.life-slip input,.life-slip textarea,.life-slip select{width:100%;border:0;background:#fff1bd;color:#514737;font:13px/1.4 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:9px 10px;margin-top:9px;outline:none;border-radius:0;box-shadow:inset 0 0 0 3px rgba(126,91,50,.24),4px 4px 0 rgba(110,82,47,.10)}`
+  );
+  html=html.replace(
+`.life-slip textarea{min-height:62px;resize:none}`,
+`.life-slip textarea{min-height:68px;resize:none}`
+  );
+  html=html.replace(
+`.life-slip .slip-action{border:1px solid rgba(88,75,52,.24);background:#f6e6aa;color:#5a5040;font-weight:700;padding:7px 11px;margin-top:10px;cursor:pointer;box-shadow:2px 2px 0 rgba(83,69,44,.10)}`,
+`.life-slip .slip-action{border:0;background:#cfa75e;color:#51432f;font-weight:800;padding:8px 12px;margin-top:11px;cursor:pointer;box-shadow:4px 4px 0 rgba(83,62,38,.22);clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 6px) calc(100% - 4px),calc(100% - 6px) 100%,0 100%,0 5px,4px 5px)}.life-slip .slip-action:hover{background:#dbb86f;transform:translate(-1px,-1px);box-shadow:5px 5px 0 rgba(83,62,38,.22)}`
+  );
+  html=html.replace(
+`.life-slip .slip-note{font-size:11px;color:#817866;margin-top:7px}`,
+`.life-slip .slip-note{font-size:11px;color:#796748;margin-top:9px;line-height:1.35}`
+  );
+
+  document.open();document.write(html);document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v15 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
