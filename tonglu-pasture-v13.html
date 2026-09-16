@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v13</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  const r=await fetch('./tonglu-pasture-v10.html',{cache:'no-store'});
+  let html=await r.text();
+  html=html.replaceAll('同路 · 数字牧场 v10','同路 · 数字牧场 v13');
+
+  html=html.replace("NEED_KEY='tonglu.self.need.v1'","NEED_KEY='tonglu.self.need.v4'");
+  html=html.replace("OFFER_KEY='tonglu.self.offer.v1'","OFFER_KEY='tonglu.self.offer.v4'");
+  html=html.replace("FEED_ID='lingliang-demo-001'","FEED_ID='lingliang-demo-004'");
+
+  html=html.replace('#careHit{left:13%;top:47%;width:18%;height:28%}','#careHit{left:9%;top:44%;width:15%;height:25%}');
+  html=html.replace('#feedHit{left:32%;top:67%;width:18%;height:23%}','#feedHit{left:21%;top:69%;width:14%;height:20%}');
+  html=html.replace('#departHit{right:12%;top:45%;width:22%;height:30%}','#departHit{right:8%;top:42%;width:18%;height:27%}');
+  html=html.replace('#askHit{left:20%;bottom:5%;width:18%;height:20%}','#askHit{left:61%;top:52%;width:14%;height:20%}');
+  html=html.replace('#offerHit{right:20%;bottom:5%;width:18%;height:20%}','#offerHit{left:70%;top:73%;width:15%;height:18%}');
+
+  const extraCss=`
+  .stage.focus .hotspot{border:2px solid transparent;transition:background .12s ease,border-color .12s ease,box-shadow .12s ease,transform .12s ease}
+  .stage.focus .hotspot:hover,.stage.focus .hotspot:focus-visible{border-color:rgba(255,250,200,.92);background:rgba(255,248,190,.13);box-shadow:0 0 0 3px rgba(126,184,92,.18),inset 0 0 0 1px rgba(255,255,255,.58);transform:translateY(-1px)}
+  .stage.focus .hotspot::after{opacity:.94;top:auto;bottom:-22px;padding:4px 7px;background:rgba(255,254,239,.96);border:1px solid rgba(80,72,58,.16);box-shadow:1px 1px 0 rgba(80,72,58,.12)}
+  .stage.focus #careHit::after{left:78%;bottom:8%;transform:translateX(0)}
+  .stage.focus #feedHit::after{left:52%;bottom:-19px}
+  .stage.focus #departHit::after{left:52%;bottom:8%}
+  .stage.focus #askHit::after{left:76%;bottom:30%;transform:translateX(0)}
+  .stage.focus #offerHit::after{left:50%;bottom:-20px}
+  .stage.focus .hotspot:hover::after,.stage.focus .hotspot:focus-visible::after{opacity:1;font-weight:750}
+  `;
+  html=html.replace('</style>',extraCss+'</style>');
+  html=html.replace('data-label="风铃 · 有人来关心你"','data-label="风铃"');
+  html=html.replace('data-label="发出需要"','data-label="需要"');
+
+  html=html.replace(/function needWave\(px,py,strong=false\)\{[\s\S]*?\}\nfunction cloth/,
+`function needWave(px,py,strong=false){
+  const ph=(tick%32)>>3;ctx.save();ctx.globalAlpha=strong?1:.72;ctx.strokeStyle=C.need;ctx.lineWidth=strong?2.2:1.8;
+  const count=strong?3:2;for(let i=0;i<count;i++){const r=(strong?7:8)+i*5+ph;ctx.beginPath();ctx.arc(px,py,r,-.9,.9);ctx.stroke()}ctx.restore()
+}
+function cloth`);
+
+  html=html.replace(/function cloth\(px,py,s=1\)\{[\s\S]*?\}\nfunction sheepBody/,
+`function cloth(px,py,s=1,active=false){
+  const base=active?'#ffd477':'#ffe7a4',fold=active?'#e7a84f':'#efc879';
+  rect(px+5*s,py,10*s,2*s,base);rect(px+2*s,py+2*s,16*s,2*s,base);rect(px,py+4*s,20*s,5*s,base);rect(px+2*s,py+9*s,16*s,2*s,base);rect(px+5*s,py+11*s,10*s,1*s,base);rect(px+15*s,py+7*s,5*s,4*s,fold);rect(px+4*s,py+4*s,5*s,1*s,'#fff5d0')
+}
+function sheepBody`);
+
+  // Remove the demo yellow giving object from the far-right sheep in world view.
+  html=html.replace("if(o.give)cloth(px-6,py+20,1);if(o.self&&selfNeed)needWave(px+32*o.s,py+6*o.s,true);if(o.self&&selfOffer)cloth(px-6,py+20,1)","if(o.self&&selfNeed)needWave(px+32*o.s,py+6*o.s,true);if(o.self&&selfOffer)cloth(px-3,py+20,.72,true)");
+
+  const detail=`function detailSheep(){
+    rect(0,0,W,106,C.sky2);
+    fill([[0,126],[55,126],[55,118],[122,118],[122,124],[196,124],[196,116],[270,116],[270,123],[345,123],[345,117],[410,117],[410,123],[480,123],[480,300],[0,300]],'#a6dc83');
+    fill([[0,169],[80,169],[80,163],[170,163],[170,171],[258,171],[258,164],[345,164],[345,172],[430,172],[430,166],[480,166],[480,300],[0,300]],'#83cc64');rect(0,224,W,76,C.grass);
+    tree(52,145,2.15,true);
+    if(!feedOpened){feed(118,230,2.9);if((tick%24)<12){rect(111,223,2,2,'#fff3a0');rect(151,228,2,2,'#fff8c4');rect(138,218,2,2,'#fff3a0')}}
+    rect(362,154,7,36,C.woodDark);rect(345,145,55,22,C.wood);rect(350,150,39,3,'#d8b27a');rect(350,157,28,3,C.woodDark);rect(396,150,8,12,C.wood);for(let i=0;i<6;i++)rect(370+i*13,188+i*8,5,2,i%2?'#d9c796':'#c8b787');
+    const bob=(Math.sin(tick/14)>0?0:1),px=168,py=143-bob;rect(px-10,py+92,120,10,'rgba(255,248,195,.42)');
+    rect(px,py+18,96,48,C.self);rect(px+12,py,64,82,C.self);rect(px+30,py-14,34,100,C.self);rect(px-6,py+30,18,26,'#c9dfb0');rect(px+78,py+24,20,32,'#abc892');rect(px+19,py+9,18,12,'#d4e7c2');rect(px+54,py+4,17,13,'#aac690');rect(px+5,py+52,18,14,'#aac690');rect(px+62,py+61,21,14,'#d2e5be');rect(px+80,py+24,45,40,C.selfHead);rect(px+118,py+30,14,15,C.selfHead);rect(px+72,py+27,13,12,C.selfHead);rect(px+87,py+20,12,7,'#8c7f6e');rect(px+103,py+34,5,5,C.ink);rect(px+111,py+36,4,4,C.ink);rect(px+119,py+45,6,2,'#645c52');rect(px+22,py+76,12,33,'#5d5851');rect(px+67,py+76,12,33,'#5d5851');rect(px+20,py+105,16,6,'#4f4b46');rect(px+65,py+105,16,6,'#4f4b46');if((tick%28)<14){rect(px+17,py+27,7,4,'#dceccc');rect(px+48,py+18,6,4,'#dceccc')}else{rect(px+20,py+30,7,4,'#dceccc');rect(px+51,py+21,6,4,'#dceccc')}
+    needWave(px+140,py+47,selfNeed);cloth(px+171,py+98,1.65,selfOffer);
+  }`;
+  html=html.replace(/function detailSheep\(\)\{[\s\S]*?\}\nfunction render\(\)/,detail+'\nfunction render()');
+
+  html=html.replace("const FEED_ID='lingliang-demo-004',FEED_KEY='tonglu.lingliang.opened.'+FEED_ID,MEDIA_URL='audio/dkd.mp3';let feedOpened=localStorage.getItem(FEED_KEY)==='1';","const FEED_ID='lingliang-demo-004',FEED_KEY='tonglu.lingliang.opened.'+FEED_ID,MEDIA_URL='audio/dkd.mp3';let feedOpened=localStorage.getItem(FEED_KEY)==='1';if(feedOpened)document.getElementById('feedHit').style.display='none';");
+  html=html.replace("localStorage.setItem(FEED_KEY,'1');feedOpened=true;showToast('灵粮已开启 · 本次之后不再出现');","localStorage.setItem(FEED_KEY,'1');feedOpened=true;document.getElementById('feedHit').style.display='none';showToast('灵粮已开启 · 本次之后不再出现');");
+  html=html.replace("document.getElementById('careHit').addEventListener('click',e=>pulseLabel(e.currentTarget));","document.getElementById('careHit').addEventListener('click',e=>{pulseLabel(e.currentTarget);showToast('有人来关心你')});");
+
+  document.open();document.write(html);document.close();
+})().catch(err=>{document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v13 加载失败，请刷新。<br>'+String(err)+'</div>'});
+</script>
+</body></html>
