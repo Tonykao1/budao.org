@@ -1,0 +1,55 @@
+name: One-shot Test Page Flicker Fix
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix-test-flicker-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch countdown repaint path
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("test.html")
+          text = path.read_text(encoding="utf-8")
+
+          old_animation = "    animation:countdown-prism 4.8s ease-in-out infinite;"
+          new_animation = "    /* Static prism: avoids continuous GPU re-rasterization of clipped text. */\n    animation:none;\n    background-position:50% 50%;"
+          if old_animation not in text:
+              raise SystemExit("Expected countdown animation rule not found")
+          text = text.replace(old_animation, new_animation, 1)
+
+          old_update = "    el.textContent = text;\n    el.classList.toggle(\"is-long\",text.length > 14);"
+          new_update = "    if(el.textContent !== text){\n        el.textContent = text;\n    }\n    el.classList.toggle(\"is-long\",text.length > 14);"
+          if old_update not in text:
+              raise SystemExit("Expected countdown text update block not found")
+          text = text.replace(old_update, new_update, 1)
+
+          if "animation:countdown-prism" in text:
+              raise SystemExit("Animated countdown prism still present after patch")
+          if "if(el.textContent !== text)" not in text:
+              raise SystemExit("Countdown write guard missing after patch")
+
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Commit fix and remove one-shot workflow
+        shell: bash
+        run: |
+          rm .github/workflows/fix-test-flicker-once.yml
+          git config user.name "budao-maintenance-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(test): eliminate countdown repaint flicker [skip ci]"
+          git push
