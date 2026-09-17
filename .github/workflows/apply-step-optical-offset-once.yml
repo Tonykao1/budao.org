@@ -1,0 +1,36 @@
+name: Apply Step Optical Offset Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/apply-step-optical-offset-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Shift footprint artwork right by seven pixels
+        shell: bash
+        run: |
+          perl -0pi -e 's/(\.budao-calendar-step-mark\{\n    position:absolute;\n    left:50%;)/$1\n    margin-left:7px;/' budao-calendar.css
+          grep -q 'margin-left:7px;' budao-calendar.css
+
+      - name: Run calendar regression tests
+        run: node --test test/calendar-strip.test.js
+
+      - name: Commit patch and remove one-shot workflow
+        shell: bash
+        run: |
+          git config user.name "budao-maintenance-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/apply-step-optical-offset-once.yml
+          git add budao-calendar.css
+          git commit -m "style(calendar): optically center step marks [skip ci]"
+          git push origin main
