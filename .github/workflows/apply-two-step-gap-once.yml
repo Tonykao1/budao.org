@@ -23,14 +23,8 @@ jobs:
           from pathlib import Path
           p = Path('budao-calendar.css')
           s = p.read_text()
-          old = '''.budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){
-    top:12px;
-    transform:translateX(-50%) rotate(7deg);
-}'''
-          new = '''.budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){
-    top:46px;
-    transform:translateX(-50%) rotate(7deg);
-}'''
+          old = '.budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){\n    top:12px;\n    transform:translateX(-50%) rotate(7deg);\n}'
+          new = '.budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){\n    top:46px;\n    transform:translateX(-50%) rotate(7deg);\n}'
           if old not in s:
               raise SystemExit('expected two-mark rule not found')
           p.write_text(s.replace(old, new, 1))
