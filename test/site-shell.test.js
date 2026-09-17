@@ -6,7 +6,28 @@ const vm = require("node:vm");
 
 const root = path.join(__dirname, "..");
 const home = fs.readFileSync(path.join(root, "home.html"), "utf8");
+const budaoPage = fs.readFileSync(path.join(root, "test.html"), "utf8");
+const referenceB = JSON.parse(fs.readFileSync(path.join(root, "music", "music.json"), "utf8"));
 const campfire = fs.readFileSync(path.join(root, "yhzd.html"), "utf8");
+
+function getHomePlaylistTracks() {
+  const playlistSource = home.match(/const playlist = \[([\s\S]*?)\];/)?.[1] || "";
+  return [...playlistSource.matchAll(/"([^"]+\.mp3)"/g)].map((match) => match[1]);
+}
+
+test("Budao route page declares a light canvas before render-blocking stylesheets", () => {
+  const firstStylesheet = budaoPage.search(/<link\s+rel="stylesheet"/i);
+  assert.ok(firstStylesheet > 0, "Budao page should load at least one stylesheet");
+
+  const criticalHead = budaoPage.slice(0, firstStylesheet);
+  assert.match(criticalHead, /<meta\s+name="color-scheme"\s+content="light"\s*>/i);
+  assert.match(criticalHead, /html\s*\{[^}]*background\s*:\s*#f5f5f5/i);
+});
+
+test("Reference B includes every track in the home playlist", () => {
+  const missingTracks = getHomePlaylistTracks().filter((track) => !referenceB.tracks?.[track]);
+  assert.deepEqual(missingTracks, []);
+});
 
 test("campfire page reuses the standard site navigation", () => {
   assert.match(campfire, /<link rel="stylesheet" href="style\.css" \/>/);
