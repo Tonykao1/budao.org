@@ -1140,6 +1140,10 @@
       return "部署尚未完成。请稍后查看。";
     }
 
+    if (error && error.reason === "unauthorized") {
+      return "登录已过期，请重新进入帐篷；草稿已保留。";
+    }
+
     return "这段路已经预备好，还需要被送出。";
   }
 

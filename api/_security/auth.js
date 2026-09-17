@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 
 const COOKIE_NAME = "budao_admin_session";
-const SESSION_TTL_SECONDS = 60 * 60;
+const SESSION_TTL_SECONDS = 8 * 60 * 60;
 const PUBLISHER_SLOTS = ["IMS", "BACBC", "HD"];
 const LOGIN_ALIASES = {
   "hd@budao.org": {
