@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v20</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  // v20 is based directly on the approved v19 preview.
+  // The ONLY change is the distant waterfall: exactly 2x width and 2x height.
+  // Sheep, river perspective, water sparkle motion and log bridge remain untouched.
+  const r=await fetch('./tonglu-pasture-v19.html',{cache:'no-store'});
+  let src=await r.text();
+  src=src.replaceAll('同路 · 数字牧场 v19','同路 · 数字牧场 v20');
+
+  const oldFalls="rect(357,145,5,2,'#eefcff');rect(358,147,4,3,C.riverLight);rect(357,150,5,4,'#dff8ff');rect(356,154,7,2,'#f4ffff');";
+  const newFalls="rect(355,134,10,4,'#eefcff');rect(357,138,8,6,C.riverLight);rect(355,144,10,8,'#dff8ff');rect(353,152,14,4,'#f4ffff');";
+  src=src.replace(oldFalls,newFalls);
+
+  document.open();document.write(src);document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v20 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
