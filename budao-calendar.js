@@ -26,6 +26,11 @@
     fellowship: "同道"
   };
   const stepSchedule = {
+    "2026-09-04": ["fellowship"],
+    "2026-09-05": ["budao", "pioneer"],
+    "2026-09-11": ["pioneer"],
+    "2026-09-12": ["budao"],
+    "2026-09-13": ["budao"],
     "2026-09-19": ["budao"]
   };
 
