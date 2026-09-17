@@ -1,0 +1,38 @@
+{
+  "id": "2mAyyVub",
+  "sourceRoute": {
+    "routeId": "budao-ims"
+  },
+  "facts": {
+    "title": "太舟坞·香八拉“预尝”",
+    "location": "中国·北京·海淀",
+    "date": "2026-09-19",
+    "time": "8:00",
+    "timezone": "Asia/Shanghai",
+    "duration": "3小时",
+    "distance": "7千米",
+    "elevation": "300米",
+    "surface": "防火道、土石路",
+    "difficulty": "中等",
+    "suitableFor": "儿童、长者友好",
+    "equipmentMinimum": "运动鞋、防晒",
+    "participantRequirements": "",
+    "meetingPlace": "北京市海淀区和平小学（东北门）",
+    "description": "从太舟坞启程，沿山径缓缓走向四棵树。初秋的风已有凉意，草木正悄悄换色。我们穿过树影，也穿过彼此的故事；路有高低，爱却始终同行。愿这一程，把秋天走深，也把彼此放进心里。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/e4398aebe55ed33fe6e47ff15f14215d.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/b69a47b9f6d6c310b6a5b96804452d38.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-09-17T05:34:17.751Z",
+  "createdBy": "budao-ims"
+}
