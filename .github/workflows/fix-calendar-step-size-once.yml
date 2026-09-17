@@ -1,0 +1,48 @@
+name: Fix Calendar Step Size Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix-calendar-step-size-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Double calendar step mark size
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('budao-calendar.css')
+          text = path.read_text()
+          replacements = [
+              ('    width:52px;\n    height:22px;', '    width:104px;\n    height:44px;'),
+              ('    width:18px;\n    height:20px;', '    width:36px;\n    height:40px;'),
+              ('    top:1px;\n    transform:translateX(calc(-50% - 7px)) rotate(-8deg);', '    top:2px;\n    transform:translateX(calc(-50% - 14px)) rotate(-8deg);'),
+              ('    top:1px;\n    transform:translateX(calc(-50% + 7px)) rotate(8deg);', '    top:2px;\n    transform:translateX(calc(-50% + 14px)) rotate(8deg);'),
+              ('    top:2px;\n    transform:translateX(calc(-50% - 11px)) rotate(-10deg);', '    top:4px;\n    transform:translateX(calc(-50% - 22px)) rotate(-10deg);'),
+              ('    top:2px;\n    transform:translateX(calc(-50% + 11px)) rotate(10deg);', '    top:4px;\n    transform:translateX(calc(-50% + 22px)) rotate(10deg);'),
+          ]
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, got {count}: {old!r}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - name: Run calendar regression tests
+        run: node --test test/calendar-strip.test.js test/calendar-step-size.test.js
+      - name: Commit repair and remove one-shot workflow
+        run: |
+          git config user.name "budao-maintenance-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/fix-calendar-step-size-once.yml
+          git add budao-calendar.css test/calendar-step-size.test.js .github/workflows/calendar-strip-regression.yml
+          git commit -m "style(calendar): double step mark size [skip ci]"
+          git push
