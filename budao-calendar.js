@@ -71,7 +71,7 @@
 
     return {
       previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "", todayKey),
-      current: monthRecord(year, monthIndex, currentDays, "本月", todayKey),
+      current: monthRecord(year, monthIndex, currentDays, "", todayKey),
       next: monthRecord(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextDays, "", todayKey)
     };
   }
@@ -93,7 +93,7 @@
 
       return "<div class=\"" + classes.join(" ") + "\">" +
         "<div class=\"budao-calendar-weekday\">" +
-          (day.isToday ? "<span class=\"budao-calendar-today-word\">今</span>" : "") +
+          (day.isToday ? "<span class=\"budao-calendar-today-marker\" aria-hidden=\"true\"></span>" : "") +
           "<span>" + escapeHtml(day.weekday) + "</span>" +
         "</div>" +
         "<div class=\"budao-calendar-number\"><span>" + day.day + "</span></div>" +
