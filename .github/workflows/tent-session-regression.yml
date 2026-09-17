@@ -1,0 +1,17 @@
+name: Tent Session Regression
+
+on:
+  push:
+    paths:
+      - "test/tent-session-regression.test.js"
+      - "api/_security/auth.js"
+      - "tent-app.js"
+      - ".github/workflows/tent-session-regression.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tent session regression test
+        run: node --test test/tent-session-regression.test.js
