@@ -183,7 +183,7 @@
 }
 
 .budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){
-    top:12px;
+    top:46px;
     transform:translateX(-50%) rotate(7deg);
 }
 
