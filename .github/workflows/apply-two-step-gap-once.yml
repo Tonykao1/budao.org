@@ -1,0 +1,50 @@
+name: Apply Two Step Gap Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/apply-two-step-gap-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Separate two step marks with a clear vertical gap
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('budao-calendar.css')
+          s = p.read_text()
+          old = '''.budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){
+    top:12px;
+    transform:translateX(-50%) rotate(7deg);
+}'''
+          new = '''.budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){
+    top:46px;
+    transform:translateX(-50%) rotate(7deg);
+}'''
+          if old not in s:
+              raise SystemExit('expected two-mark rule not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
+      - name: Run calendar regression tests
+        run: node --test test/calendar-strip.test.js
+
+      - name: Commit patch and remove one-shot workflow
+        shell: bash
+        run: |
+          git config user.name "budao-maintenance-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/apply-two-step-gap-once.yml
+          git add budao-calendar.css
+          git commit -m "style(calendar): separate two step marks with breathing room [skip ci]"
+          git push origin main
