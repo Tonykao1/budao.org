@@ -5,6 +5,7 @@
 }
 
 .budao-calendar-scroll{
+    display:flex;
     width:100%;
     overflow-x:auto;
     overflow-y:hidden;
@@ -16,8 +17,13 @@
     display:none;
 }
 
+.budao-calendar-spacer{
+    flex:0 0 50%;
+}
+
 .budao-calendar-strip{
     display:grid;
+    flex:0 0 auto;
     grid-template-columns:minmax(245px,7fr) minmax(860px,30fr) minmax(245px,7fr);
     gap:18px;
     min-width:1385px;
