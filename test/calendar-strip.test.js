@@ -62,3 +62,12 @@ test('today is centered for desktop and mobile viewport widths', () => {
   assert.match(js, /addEventListener\("resize"/, 'calendar must recenter when terminal width changes');
   assert.match(css, /\.budao-calendar-spacer[\s\S]*flex:\s*0\s+0\s+50%/, 'calendar needs side scroll space so today can center even on wide screens');
 });
+
+test('outer month captions are hidden while current month caption stays unchanged', () => {
+  const calendar = require('../budao-calendar.js');
+  const model = calendar.buildCalendarModel(new Date('2026-09-17T12:00:00+08:00'));
+
+  assert.equal(model.previous.label, '');
+  assert.equal(model.current.label, '本月');
+  assert.equal(model.next.label, '');
+});
