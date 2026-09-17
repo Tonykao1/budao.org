@@ -47,3 +47,18 @@ test('calendar mounts synchronously during parsing instead of after DOMContentLo
   assert.match(js, /getElementById\("budaoCalendar"\)/);
   assert.match(js, /api\.mount\(host, new Date\(\)\)/);
 });
+
+test('today is centered for desktop and mobile viewport widths', () => {
+  const calendar = require('../budao-calendar.js');
+
+  assert.equal(typeof calendar.centeredScrollPosition, 'function');
+  assert.equal(calendar.centeredScrollPosition(1200, 40, 1440), 500);
+  assert.equal(calendar.centeredScrollPosition(1200, 40, 390), 1025);
+
+  const js = fs.readFileSync(path.join(root, 'budao-calendar.js'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'budao-calendar.css'), 'utf8');
+
+  assert.match(js, /centerToday\(host\)/, 'calendar must center today immediately after mount');
+  assert.match(js, /addEventListener\("resize"/, 'calendar must recenter when terminal width changes');
+  assert.match(css, /\.budao-calendar-spacer[\s\S]*flex:\s*0\s+0\s+50%/, 'calendar needs side scroll space so today can center even on wide screens');
+});
