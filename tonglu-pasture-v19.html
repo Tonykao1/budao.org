@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v19</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  // v19 is deliberately based on the approved 25-sheep v18 preview.
+  // Do not touch flock data, positions, colors, scale or motion.
+  // Only refine the river system: perspective, aligned highlights, tiny waterfall,
+  // restrained sparkle motion, and one future-crossable log bridge.
+  const r=await fetch('./tonglu-pasture-v18.html',{cache:'no-store'});
+  let src=await r.text();
+  src=src.replaceAll('同路 · 数字牧场 v18','同路 · 数字牧场 v19');
+
+  const riverPatch=String.raw`
+  // v19 river-only patch. Sheep code remains exactly v18.
+  html=html.replace(/function river\(\)\{[\s\S]*?\}\nfunction tree/,
+  "function river(){"+
+  "fill([[355,147],[361,149],[367,152],[372,157],[375,163],[373,170],[369,177],[366,184],[368,192],[374,200],[382,208],[390,216],[396,225],[399,235],[398,247],[394,261],[390,279],[388,300],[354,300],[357,281],[360,264],[363,250],[363,238],[360,228],[354,219],[347,210],[343,202],[343,194],[346,185],[351,177],[354,169],[353,162],[350,156],[351,151]],C.riverDark);"+
+  "fill([[357,150],[361,151],[365,154],[369,158],[371,163],[369,169],[365,176],[361,184],[363,191],[368,198],[375,205],[384,214],[390,223],[393,234],[392,245],[387,260],[383,278],[381,300],[360,300],[362,281],[365,264],[368,249],[368,237],[365,227],[359,218],[352,209],[348,201],[348,194],[351,186],[356,178],[359,170],[358,162],[355,156],[355,152]],C.river);"+
+  // tiny distant waterfall and foam at the visual source
+  "rect(357,145,5,2,'#eefcff');rect(358,147,4,3,C.riverLight);rect(357,150,5,4,'#dff8ff');rect(356,154,7,2,'#f4ffff');"+
+  // subtle moving water glints, all aligned to the center flow rather than the bank
+  "const rw1=Math.round(Math.sin(tick/24)*2),rw2=Math.round(Math.sin((tick+37)/31)*2);ctx.save();ctx.globalAlpha=.50+.14*Math.sin(tick/21);rect(359+rw1,178,5,1,C.riverLight);rect(364+rw2,193,6,1,'#dff8ff');rect(369+rw1,210,7,1,C.riverLight);rect(376+rw2,239,8,1,'#dff8ff');rect(373+rw1,269,7,1,C.riverLight);ctx.globalAlpha=.78;if((tick%96)<60){rect(363+rw2,184,2,2,'#effdff');rect(382+rw1,230,2,2,'#f6ffff');rect(371+rw2,286,3,1,'#effdff')}ctx.restore();"+
+  // a single slightly diagonal log across the midstream; no railings, no bridge furniture
+  "rect(347,222,13,3,'#6f543d');rect(359,221,14,4,'#795a40');rect(372,220,14,4,'#816046');rect(385,219,15,4,'#76573f');rect(350,221,11,1,'#b88b61');rect(374,220,10,1,'#b88b61');rect(395,219,5,1,'#a67a55');"+
+  "}\nfunction tree");
+  `;
+
+  // v18 already injects its flock patch into v14's final-document stage.
+  // Add the river patch beside that flock patch, at the same final stage.
+  const riverDecl="  const riverPatch=String.raw`\n"+riverPatch+"\n  `;\n\n";
+  src=src.replace('  const flockPatch=String.raw`',riverDecl+'  const flockPatch=String.raw`');
+  src=src.replace("const nested=flockPatch+'\\n  document.open();document.write(html);document.close();';","const nested=flockPatch+'\\n'+riverPatch+'\\n  document.open();document.write(html);document.close();';");
+
+  document.open();document.write(src);document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v19 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
