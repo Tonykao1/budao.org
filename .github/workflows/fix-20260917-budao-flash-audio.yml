@@ -1,0 +1,173 @@
+name: One-time Budao flash and audio fix
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix-20260917-budao-flash-audio.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify regression tests fail before the fix
+        shell: bash
+        run: |
+          set +e
+          node --test --test-concurrency=1 --test-name-pattern='Budao route page declares|Reference B includes' test/site-shell.test.js
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Regression tests unexpectedly passed before the fix"
+            exit 1
+          fi
+          echo "Regression tests failed as expected"
+
+      - name: Install ffmpeg
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+
+      - name: Apply focused fixes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          page_path = Path("test.html")
+          page = page_path.read_text(encoding="utf-8")
+          marker = '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+          first_paint = (
+              '<meta name="color-scheme" content="light">\n'
+              '<style id="budao-first-paint">\n'
+              'html{background:#f5f5f5;color-scheme:light;}\n'
+              'body{background:#f5f5f5;}\n'
+              '</style>\n'
+          )
+          if 'id="budao-first-paint"' not in page:
+              if marker not in page:
+                  raise SystemExit("Could not find Budao viewport marker")
+              page = page.replace(marker, marker + first_paint, 1)
+              page_path.write_text(page, encoding="utf-8")
+
+          workflow_path = Path(".github/workflows/audio-reference-b.yml")
+          workflow = workflow_path.read_text(encoding="utf-8")
+          old_paths = '      - ".github/workflows/audio-reference-b.yml"\n'
+          new_paths = (
+              '      - ".github/workflows/audio-reference-b.yml"\n'
+              '      - "home.html"\n'
+              '      - "music/*.mp3"\n'
+          )
+          if '      - "home.html"\n' not in workflow:
+              workflow = workflow.replace(old_paths, new_paths, 1)
+
+          playlist_pattern = re.compile(
+              r'          playlist = \[\n.*?          \]\n\n          # Reference B',
+              re.S,
+          )
+          dynamic_playlist = '''          home_source = pathlib.Path("home.html").read_text(encoding="utf-8")
+          playlist_match = re.search(r"const playlist = \\[(.*?)\\];", home_source, re.S)
+          if not playlist_match:
+              raise RuntimeError("Could not find home playlist")
+          playlist = re.findall(r'"([^"\\n]+\\.mp3)"', playlist_match.group(1))
+          if not playlist:
+              raise RuntimeError("Home playlist is empty")
+
+          # Reference B'''
+          if 'home_source = pathlib.Path("home.html")' not in workflow:
+              workflow, count = playlist_pattern.subn(dynamic_playlist, workflow, count=1)
+              if count != 1:
+                  raise SystemExit("Could not replace hardcoded audio playlist")
+
+          workflow_path.write_text(workflow, encoding="utf-8")
+          PY
+
+      - name: Measure current home playlist
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, re, subprocess
+          from concurrent.futures import ThreadPoolExecutor
+
+          home_source = pathlib.Path("home.html").read_text(encoding="utf-8")
+          playlist_match = re.search(r"const playlist = \[(.*?)\];", home_source, re.S)
+          if not playlist_match:
+              raise RuntimeError("Could not find home playlist")
+          playlist = re.findall(r'"([^"\n]+\.mp3)"', playlist_match.group(1))
+          if not playlist:
+              raise RuntimeError("Home playlist is empty")
+
+          TARGET_LUFS = -20.0
+          PRE_EQ_TP_CEILING = -1.5
+
+          def measure(path):
+              proc = subprocess.run(
+                  [
+                      "ffmpeg", "-threads", "1", "-hide_banner", "-nostats", "-i", path,
+                      "-af", "loudnorm=I=-20:TP=-1.5:LRA=11:print_format=json",
+                      "-f", "null", "-"
+                  ],
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.PIPE,
+                  text=True,
+                  check=True,
+              )
+              match = re.search(r'\{\s*"input_i".*?\}', proc.stderr, re.S)
+              if not match:
+                  raise RuntimeError(f"Could not parse loudnorm result for {path}")
+              data = json.loads(match.group(0))
+              input_i = float(data["input_i"])
+              input_tp = float(data["input_tp"])
+              input_lra = float(data["input_lra"])
+              input_thresh = float(data["input_thresh"])
+              loudness_gain = TARGET_LUFS - input_i
+              peak_safe_gain = PRE_EQ_TP_CEILING - input_tp
+              gain_db = min(loudness_gain, peak_safe_gain)
+              return path, {
+                  "integrated_lufs": round(input_i, 2),
+                  "true_peak_dbtp": round(input_tp, 2),
+                  "lra_lu": round(input_lra, 2),
+                  "threshold_lufs": round(input_thresh, 2),
+                  "gain_db": round(gain_db, 2),
+                  "result_lufs_est": round(input_i + gain_db, 2),
+                  "result_tp_est": round(input_tp + gain_db, 2),
+                  "peak_limited": peak_safe_gain < loudness_gain,
+              }
+
+          with ThreadPoolExecutor(max_workers=8) as pool:
+              measured = dict(pool.map(measure, playlist))
+
+          out = {
+              "system": "余 DSP Reference B",
+              "standard": "ITU-R BS.1770 / EBU R128 via ffmpeg loudnorm",
+              "target_integrated_lufs": TARGET_LUFS,
+              "pre_eq_true_peak_ceiling_dbtp": PRE_EQ_TP_CEILING,
+              "note": "Per-track static loudness gain only. No dynamic compression or loudness-range reduction. Peak-limited tracks are intentionally allowed to sit slightly below target rather than altering their internal dynamics.",
+              "tracks": {path: measured[path] for path in playlist},
+          }
+          pathlib.Path("music/music.json").write_text(
+              json.dumps(out, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Verify regression tests pass after the fix
+        shell: bash
+        run: |
+          node --test --test-concurrency=1 --test-name-pattern='Budao route page declares|Reference B includes' test/site-shell.test.js
+
+      - name: Commit focused fixes and remove one-time workflow
+        shell: bash
+        run: |
+          rm -f .github/workflows/fix-20260917-budao-flash-audio.yml
+          git config user.name "budao-fix-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: remove Budao black flash and sync Reference B playlist"
+          git push
