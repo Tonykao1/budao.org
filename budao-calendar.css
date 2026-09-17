@@ -1,0 +1,159 @@
+.budao-calendar{
+    width:100%;
+    margin:-28px 0 88px;
+    color:#2f2c28;
+}
+
+.budao-calendar-scroll{
+    width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+}
+
+.budao-calendar-scroll::-webkit-scrollbar{
+    display:none;
+}
+
+.budao-calendar-strip{
+    display:grid;
+    grid-template-columns:minmax(245px,7fr) minmax(860px,30fr) minmax(245px,7fr);
+    gap:18px;
+    min-width:1385px;
+    padding:0 2px 34px;
+    border-bottom:1px solid rgba(75,70,63,0.16);
+}
+
+.budao-calendar-month{
+    min-width:0;
+}
+
+.budao-calendar-month-head{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    min-height:34px;
+}
+
+.budao-calendar-month-name{
+    display:flex;
+    align-items:baseline;
+    gap:7px;
+    white-space:nowrap;
+}
+
+.budao-calendar-month-name strong{
+    color:#3a3631;
+    font-size:22px;
+    font-weight:500;
+    line-height:1;
+    letter-spacing:0.02em;
+}
+
+.budao-calendar-month-name small{
+    color:#aaa39a;
+    font-size:10px;
+    font-weight:400;
+    letter-spacing:0.16em;
+}
+
+.budao-calendar-rule{
+    flex:1 1 auto;
+    height:1px;
+    margin-bottom:3px;
+    background:rgba(62,58,52,0.42);
+}
+
+.budao-calendar-period{
+    margin:16px 0 22px;
+    color:#8c857c;
+    font-size:12px;
+    line-height:1;
+    letter-spacing:0.18em;
+    text-align:center;
+}
+
+.budao-calendar-days{
+    display:grid;
+    grid-template-columns:repeat(var(--budao-calendar-days),minmax(0,1fr));
+    min-height:92px;
+}
+
+.budao-calendar-day{
+    position:relative;
+    min-width:0;
+    text-align:center;
+}
+
+.budao-calendar-day + .budao-calendar-day{
+    border-left:1px solid rgba(70,66,60,0.025);
+}
+
+.budao-calendar-weekday{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:26px;
+    color:#9a938a;
+    font-size:11px;
+    line-height:1;
+}
+
+.budao-calendar-day.is-weekend .budao-calendar-weekday{
+    color:#cf7566;
+}
+
+.budao-calendar-today-word{
+    position:absolute;
+    left:50%;
+    top:-17px;
+    color:#70695f;
+    font-size:10px;
+    transform:translateX(-50%);
+}
+
+.budao-calendar-number{
+    display:grid;
+    place-items:center;
+    height:48px;
+    color:#2e2b27;
+    font-size:18px;
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum" 1,"lnum" 1;
+}
+
+.budao-calendar-number span{
+    display:grid;
+    place-items:center;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+}
+
+.budao-calendar-day.is-today .budao-calendar-number span{
+    background:rgba(223,211,187,0.32);
+    box-shadow:0 0 0 10px rgba(223,211,187,0.13);
+}
+
+@media(max-width:760px){
+    .budao-calendar{
+        margin:-12px 0 62px;
+    }
+
+    .budao-calendar-strip{
+        grid-template-columns:245px 920px 245px;
+        min-width:1446px;
+        gap:18px;
+        padding-bottom:26px;
+    }
+
+    .budao-calendar-month-name strong{
+        font-size:20px;
+    }
+
+    .budao-calendar-number{
+        font-size:17px;
+    }
+}
