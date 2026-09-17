@@ -25,17 +25,8 @@ jobs:
 
           js_path = Path('budao-calendar.js')
           js = js_path.read_text()
-          old_schedule = '''  const stepSchedule = {
-            "2026-09-19": ["budao"]
-          };'''
-          new_schedule = '''  const stepSchedule = {
-            "2026-09-04": ["fellowship"],
-            "2026-09-05": ["budao", "pioneer"],
-            "2026-09-11": ["pioneer"],
-            "2026-09-12": ["budao"],
-            "2026-09-13": ["budao"],
-            "2026-09-19": ["budao"]
-          };'''
+          old_schedule = '  const stepSchedule = {\n    "2026-09-19": ["budao"]\n  };'
+          new_schedule = '  const stepSchedule = {\n    "2026-09-04": ["fellowship"],\n    "2026-09-05": ["budao", "pioneer"],\n    "2026-09-11": ["pioneer"],\n    "2026-09-12": ["budao"],\n    "2026-09-13": ["budao"],\n    "2026-09-19": ["budao"]\n  };'
           if old_schedule not in js:
               raise SystemExit('expected stepSchedule block not found')
           js_path.write_text(js.replace(old_schedule, new_schedule, 1))
@@ -52,29 +43,27 @@ jobs:
           css = pattern.sub(replacement, css, count=1)
           css = ':root{\n    --budao-step-shape:url("' + data + '");\n}\n\n' + css
 
-          variants = '''
-.budao-calendar-step-mark--pioneer,
-.budao-calendar-step-mark--fellowship{
-    background-image:none;
-    -webkit-mask-image:var(--budao-step-shape);
-    mask-image:var(--budao-step-shape);
-    -webkit-mask-position:center;
-    mask-position:center;
-    -webkit-mask-repeat:no-repeat;
-    mask-repeat:no-repeat;
-    -webkit-mask-size:contain;
-    mask-size:contain;
-}
-
-.budao-calendar-step-mark--pioneer{
-    background-color:#D89A08;
-}
-
-.budao-calendar-step-mark--fellowship{
-    background-color:#8B56C7;
-}
-'''
-          css_path.write_text(css.rstrip() + '\n\n' + variants)
+          variants = (
+              '\n.budao-calendar-step-mark--pioneer,\n'
+              '.budao-calendar-step-mark--fellowship{\n'
+              '    background-image:none;\n'
+              '    -webkit-mask-image:var(--budao-step-shape);\n'
+              '    mask-image:var(--budao-step-shape);\n'
+              '    -webkit-mask-position:center;\n'
+              '    mask-position:center;\n'
+              '    -webkit-mask-repeat:no-repeat;\n'
+              '    mask-repeat:no-repeat;\n'
+              '    -webkit-mask-size:contain;\n'
+              '    mask-size:contain;\n'
+              '}\n\n'
+              '.budao-calendar-step-mark--pioneer{\n'
+              '    background-color:#D89A08;\n'
+              '}\n\n'
+              '.budao-calendar-step-mark--fellowship{\n'
+              '    background-color:#8B56C7;\n'
+              '}\n'
+          )
+          css_path.write_text(css.rstrip() + '\n' + variants)
           PY
 
       - name: Run calendar regression tests
