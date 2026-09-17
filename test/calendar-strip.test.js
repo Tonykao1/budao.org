@@ -32,22 +32,37 @@ test('test page places an empty calendar between hero copy and route slots', () 
   assert.match(html, /budao-calendar\.js/);
 });
 
-test('Sep 19 has exactly one trail step mark while two and three mark layouts are reserved', () => {
+test('approved historical September step markers render while Aug 29 remains unmarked', () => {
   const calendar = require('../budao-calendar.js');
   const model = calendar.buildCalendarModel(new Date('2026-09-17T12:00:00+08:00'));
   const css = fs.readFileSync(path.join(root, 'budao-calendar.css'), 'utf8');
   const js = fs.readFileSync(path.join(root, 'budao-calendar.js'), 'utf8');
-  const september19 = model.current.days.find((day) => day.day === 19);
+  const september = Object.fromEntries(model.current.days.map((day) => [day.day, day.steps]));
+  const august29 = model.previous.days.find((day) => day.day === 29);
   const markedDays = model.current.days.filter((day) => day.steps && day.steps.length);
 
-  assert.deepEqual(september19.steps, ['budao']);
-  assert.equal(markedDays.length, 1, 'only Sep 19 should be marked for now');
+  assert.deepEqual(august29.steps, [], 'Aug 29 must remain unmarked for now');
+  assert.deepEqual(september[4], ['fellowship']);
+  assert.deepEqual(september[5], ['budao', 'pioneer']);
+  assert.deepEqual(september[11], ['pioneer']);
+  assert.deepEqual(september[12], ['budao']);
+  assert.deepEqual(september[13], ['budao']);
+  assert.deepEqual(september[19], ['budao']);
+  assert.equal(markedDays.length, 6, 'only the six approved September dates should be marked');
+  assert.match(js, /2026-09-04/);
+  assert.match(js, /2026-09-05/);
+  assert.match(js, /2026-09-11/);
+  assert.match(js, /2026-09-12/);
+  assert.match(js, /2026-09-13/);
   assert.match(js, /2026-09-19/);
   assert.match(js, /data-count=\\\"/);
-  assert.match(css, /\.budao-calendar-step-stack\[data-count="2"\]/, 'two-mark layout must be predesigned');
-  assert.match(css, /\.budao-calendar-step-stack\[data-count="3"\]/, 'three-mark layout must be predesigned');
+  assert.match(css, /\.budao-calendar-step-stack\[data-count="2"\]/, 'Sep 5 must use the reserved two-mark layout');
+  assert.match(css, /\.budao-calendar-step-stack\[data-count="3"\]/, 'three-mark layout must remain reserved');
   assert.match(css, /\.budao-calendar-step-stack[\s\S]*position:\s*absolute/, 'marks must use existing calendar whitespace without changing flow');
-  assert.match(css, /\.budao-calendar-step-mark--budao[\s\S]*data:image\/png;base64/, 'Sep 19 must use the approved green Budao step mark asset');
+  assert.match(css, /\.budao-calendar-step-mark--budao[\s\S]*var\(--budao-step-shape\)/, 'Budao must keep the approved step shape');
+  assert.match(css, /\.budao-calendar-step-mark--pioneer[\s\S]*#D89A08/i, '先锋 must use approved amber gold');
+  assert.match(css, /\.budao-calendar-step-mark--fellowship[\s\S]*#8B56C7/i, '同道 must use approved purple');
+  assert.match(css, /--budao-step-shape:\s*url\("data:image\/png;base64/i, 'all step types must derive from the exact approved footprint geometry');
 });
 
 test('calendar mounts synchronously during parsing instead of after DOMContentLoaded', () => {
