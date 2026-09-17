@@ -164,6 +164,7 @@
 .budao-calendar-step-mark{
     position:absolute;
     left:50%;
+    margin-left:7px;
     top:0;
     width:36px;
     height:40px;
