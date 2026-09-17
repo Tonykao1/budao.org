@@ -154,6 +154,16 @@
       "result_lufs_est": -20.0,
       "result_tp_est": -8.18,
       "peak_limited": false
+    },
+    "music/06 You Shouldn't Kiss Me Like This.mp3": {
+      "integrated_lufs": -14.92,
+      "true_peak_dbtp": 0.34,
+      "lra_lu": 7.4,
+      "threshold_lufs": -25.13,
+      "gain_db": -5.08,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -4.74,
+      "peak_limited": false
     }
   }
 }
