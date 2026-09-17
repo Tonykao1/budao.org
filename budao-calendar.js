@@ -8,7 +8,12 @@
   if (root && root.document) {
     root.BudaoCalendar = api;
     const host = root.document.getElementById("budaoCalendar");
-    if (host) api.mount(host, new Date());
+    if (host) {
+      api.mount(host, new Date());
+      root.addEventListener("resize", function () {
+        api.centerToday(host);
+      });
+    }
   }
 }(typeof window !== "undefined" ? window : null, function () {
   const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -105,18 +110,44 @@
     "</section>";
   }
 
+  function centeredScrollPosition(dayLeft, dayWidth, viewportWidth) {
+    return dayLeft + (dayWidth / 2) - (viewportWidth / 2);
+  }
+
+  function centerToday(host) {
+    const scroll = host && host.querySelector ? host.querySelector(".budao-calendar-scroll") : null;
+    const today = host && host.querySelector ? host.querySelector(".budao-calendar-day.is-today") : null;
+
+    if (!scroll || !today || !scroll.getBoundingClientRect || !today.getBoundingClientRect) {
+      return;
+    }
+
+    const scrollRect = scroll.getBoundingClientRect();
+    const todayRect = today.getBoundingClientRect();
+    const dayLeft = todayRect.left - scrollRect.left + scroll.scrollLeft;
+
+    scroll.scrollLeft = centeredScrollPosition(dayLeft, todayRect.width, scroll.clientWidth);
+  }
+
   function mount(host, now) {
     const model = buildCalendarModel(now || new Date());
-    host.innerHTML = "<div class=\"budao-calendar-scroll\"><div class=\"budao-calendar-strip\">" +
-      renderMonth(model.previous) +
-      renderMonth(model.current) +
-      renderMonth(model.next) +
-    "</div></div>";
+    host.innerHTML = "<div class=\"budao-calendar-scroll\">" +
+      "<span class=\"budao-calendar-spacer\" aria-hidden=\"true\"></span>" +
+      "<div class=\"budao-calendar-strip\">" +
+        renderMonth(model.previous) +
+        renderMonth(model.current) +
+        renderMonth(model.next) +
+      "</div>" +
+      "<span class=\"budao-calendar-spacer\" aria-hidden=\"true\"></span>" +
+    "</div>";
+    centerToday(host);
     return model;
   }
 
   return {
     buildCalendarModel,
+    centeredScrollPosition,
+    centerToday,
     mount
   };
 }));
