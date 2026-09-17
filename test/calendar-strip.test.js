@@ -63,11 +63,23 @@ test('today is centered for desktop and mobile viewport widths', () => {
   assert.match(css, /\.budao-calendar-spacer[\s\S]*flex:\s*0\s+0\s+50%/, 'calendar needs side scroll space so today can center even on wide screens');
 });
 
-test('outer month captions are hidden while current month caption stays unchanged', () => {
+test('all month captions are blank so previous current and next dates share one baseline', () => {
   const calendar = require('../budao-calendar.js');
   const model = calendar.buildCalendarModel(new Date('2026-09-17T12:00:00+08:00'));
+  const css = fs.readFileSync(path.join(root, 'budao-calendar.css'), 'utf8');
 
   assert.equal(model.previous.label, '');
-  assert.equal(model.current.label, '本月');
+  assert.equal(model.current.label, '');
   assert.equal(model.next.label, '');
+  assert.match(css, /\.budao-calendar-period[\s\S]*min-height:/, 'empty caption row must keep identical vertical space across all month sections');
+});
+
+test('today uses a small iridescent downward triangle instead of the word 今', () => {
+  const js = fs.readFileSync(path.join(root, 'budao-calendar.js'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'budao-calendar.css'), 'utf8');
+
+  assert.doesNotMatch(js, /budao-calendar-today-word|>今</, 'today must not render the old 今 word marker');
+  assert.match(js, /budao-calendar-today-marker/, 'today must render the prism triangle marker');
+  assert.match(css, /\.budao-calendar-today-marker[\s\S]*clip-path:\s*polygon\(50%\s+100%,\s*0\s+0,\s*100%\s+0\)/, 'triangle must point downward');
+  assert.match(css, /\.budao-calendar-today-marker[\s\S]*linear-gradient/, 'triangle must use an iridescent gradient');
 });
