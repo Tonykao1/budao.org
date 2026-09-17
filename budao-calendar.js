@@ -18,19 +18,39 @@
 }(typeof window !== "undefined" ? window : null, function () {
   const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const weekdayNames = ["日", "一", "二", "三", "四", "五", "六"];
+  const stepTypeLabels = {
+    pioneer: "先锋",
+    budao: "步道",
+    march: "行军",
+    camp: "营会",
+    fellowship: "同道"
+  };
+  const stepSchedule = {
+    "2026-09-19": ["budao"]
+  };
 
   function dateKey(date) {
     return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
   }
 
+  function stepsForDate(key) {
+    const scheduled = stepSchedule[key] || [];
+    return scheduled.filter(function (type, index) {
+      return scheduled.indexOf(type) === index;
+    });
+  }
+
   function dayRecord(date, todayKey) {
+    const key = dateKey(date);
     return {
       year: date.getFullYear(),
       monthIndex: date.getMonth(),
       day: date.getDate(),
       weekday: weekdayNames[date.getDay()],
       weekend: date.getDay() === 0 || date.getDay() === 6,
-      isToday: dateKey(date) === todayKey
+      isToday: key === todayKey,
+      dateKey: key,
+      steps: stepsForDate(key)
     };
   }
 
@@ -81,8 +101,25 @@
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
+      .replace(/\"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  function renderStepMarks(day) {
+    const steps = (day.steps || []).slice(0, 3);
+    if (!steps.length) {
+      return "";
+    }
+
+    const label = steps.map(function (type) {
+      return stepTypeLabels[type] || type;
+    }).join("、");
+
+    const marks = steps.map(function (type) {
+      return "<span class=\"budao-calendar-step-mark budao-calendar-step-mark--" + escapeHtml(type) + "\" aria-hidden=\"true\"></span>";
+    }).join("");
+
+    return "<div class=\"budao-calendar-step-stack\" data-count=\"" + steps.length + "\" aria-label=\"" + escapeHtml(label) + "\">" + marks + "</div>";
   }
 
   function renderMonth(month) {
@@ -97,6 +134,7 @@
           "<span>" + escapeHtml(day.weekday) + "</span>" +
         "</div>" +
         "<div class=\"budao-calendar-number\"><span>" + day.day + "</span></div>" +
+        renderStepMarks(day) +
       "</div>";
     }).join("");
 
