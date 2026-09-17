@@ -178,28 +178,28 @@
 }
 
 .budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(1){
-    top:2px;
-    transform:translateX(calc(-50% - 14px)) rotate(-8deg);
+    top:0;
+    transform:translateX(-50%) rotate(-7deg);
 }
 
 .budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){
-    top:2px;
-    transform:translateX(calc(-50% + 14px)) rotate(8deg);
+    top:12px;
+    transform:translateX(-50%) rotate(7deg);
 }
 
 .budao-calendar-step-stack[data-count="3"] .budao-calendar-step-mark:nth-child(1){
-    top:4px;
-    transform:translateX(calc(-50% - 22px)) rotate(-10deg);
+    top:0;
+    transform:translateX(-50%) rotate(-8deg);
 }
 
 .budao-calendar-step-stack[data-count="3"] .budao-calendar-step-mark:nth-child(2){
-    top:0;
-    transform:translateX(-50%) rotate(1deg);
+    top:8px;
+    transform:translateX(-50%) rotate(0deg);
 }
 
 .budao-calendar-step-stack[data-count="3"] .budao-calendar-step-mark:nth-child(3){
-    top:4px;
-    transform:translateX(calc(-50% + 22px)) rotate(10deg);
+    top:16px;
+    transform:translateX(-50%) rotate(8deg);
 }
 
 .budao-calendar-step-mark--budao{
