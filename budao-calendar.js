@@ -7,10 +7,8 @@
 
   if (root && root.document) {
     root.BudaoCalendar = api;
-    root.addEventListener("DOMContentLoaded", function () {
-      const host = root.document.getElementById("budaoCalendar");
-      if (host) api.mount(host, new Date());
-    });
+    const host = root.document.getElementById("budaoCalendar");
+    if (host) api.mount(host, new Date());
   }
 }(typeof window !== "undefined" ? window : null, function () {
   const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
