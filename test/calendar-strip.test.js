@@ -65,6 +65,17 @@ test('approved historical September step markers render while Aug 29 remains unm
   assert.match(css, /--budao-step-shape:\s*url\("data:image\/png;base64/i, 'all step types must derive from the exact approved footprint geometry');
 });
 
+test('all step marks share the date centerline and multi-step stacks run vertically', () => {
+  const css = fs.readFileSync(path.join(root, 'budao-calendar.css'), 'utf8');
+
+  assert.match(css, /\.budao-calendar-step-stack\{[\s\S]*left:\s*50%[\s\S]*transform:\s*translateX\(-50%\)/, 'stack center must lock to the date centerline');
+  assert.match(css, /\.budao-calendar-step-mark\{[\s\S]*left:\s*50%/, 'every mark must start from the same date centerline');
+  assert.match(css, /data-count="1"[\s\S]*translateX\(-50%\)/, 'single mark must remain centered');
+  assert.match(css, /data-count="2"[\s\S]*nth-child\(1\)[\s\S]*top:\s*0[\s\S]*translateX\(-50%\)[\s\S]*data-count="2"[\s\S]*nth-child\(2\)[\s\S]*top:\s*12px[\s\S]*translateX\(-50%\)/, 'two marks must stack vertically on one centerline');
+  assert.match(css, /data-count="3"[\s\S]*nth-child\(1\)[\s\S]*top:\s*0[\s\S]*translateX\(-50%\)[\s\S]*data-count="3"[\s\S]*nth-child\(2\)[\s\S]*top:\s*8px[\s\S]*translateX\(-50%\)[\s\S]*data-count="3"[\s\S]*nth-child\(3\)[\s\S]*top:\s*16px[\s\S]*translateX\(-50%\)/, 'three marks must use a shallow vertical stagger on one centerline');
+  assert.doesNotMatch(css, /data-count="2"[\s\S]*translateX\(calc\(-50%\s*[+-]/, 'two-mark layout must not fan sideways');
+});
+
 test('calendar mounts synchronously during parsing instead of after DOMContentLoaded', () => {
   const js = fs.readFileSync(path.join(root, 'budao-calendar.js'), 'utf8');
 
