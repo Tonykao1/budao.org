@@ -8,25 +8,25 @@
     "city": "北京",
     "region": "海淀",
     "location": "中国·北京·海淀",
-    "title": "太舟坞·探线",
-    "description": "步道线路勘查",
-    "time": "7:00",
-    "duration": "2小时",
-    "distance": "8千米",
-    "surface": "防火道、土石路、未探明路况",
-    "elevation": "425米",
+    "title": "太舟坞·香八拉“预尝”",
+    "description": "从太舟坞启程，沿山径缓缓走向四棵树。初秋的风已有凉意，草木正悄悄换色。我们穿过树影，也穿过彼此的故事；路有高低，爱却始终同行。愿这一程，把秋天走深，也把彼此放进心里。",
+    "time": "8:00",
+    "duration": "3小时",
+    "distance": "7千米",
+    "surface": "防火道、土石路",
+    "elevation": "300米",
     "difficulty": "中等",
-    "suitableFor": "熟悉线路的户外伙伴及步道同工",
-    "equipmentMinimum": "徒步鞋、饮用水、防晒",
+    "suitableFor": "儿童、长者友好",
+    "equipmentMinimum": "运动鞋、防晒",
     "timezone": "Asia/Shanghai",
-    "date": "2026-09-11",
+    "date": "2026-09-19",
     "meetingPlace": "北京市海淀区和平小学（东北门）",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/1375e13c089c0ddfec9b791c56ef7ff4.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/7b8d42667366f260436c3d89280207f1.png",
-    "imageAlt": "tzw.webp",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/e4398aebe55ed33fe6e47ff15f14215d.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/b69a47b9f6d6c310b6a5b96804452d38.png",
+    "imageAlt": "IMG_6537.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-12T01:07:48.141Z"
+    "updatedAt": "2026-09-17T05:33:46.197Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,7 +55,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/9a0cfe1d06b6b17bbb941062a976c32d.png",
     "imageAlt": "jlx.jpeg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-12T01:07:48.140Z"
+    "updatedAt": "2026-09-17T05:33:46.198Z"
   },
   {
     "id": "budao-hd",
@@ -84,6 +84,6 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/0761d8463f13717ccd3bca130dd2f254.png",
     "imageAlt": "wqs.jpg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-09-12T01:07:48.141Z"
+    "updatedAt": "2026-09-17T05:33:46.198Z"
   }
 ]
