@@ -39,3 +39,11 @@ test('calendar presentation contains no footprint marks or activity legend yet',
 
   assert.doesNotMatch(combined, /footprint|foot-mark|探路|正式步道|灵修行军|营会|同道/);
 });
+
+test('calendar mounts synchronously during parsing instead of after DOMContentLoaded', () => {
+  const js = fs.readFileSync(path.join(root, 'budao-calendar.js'), 'utf8');
+
+  assert.doesNotMatch(js, /DOMContentLoaded/, 'calendar must not wait until after first layout to mount');
+  assert.match(js, /getElementById\("budaoCalendar"\)/);
+  assert.match(js, /api\.mount\(host, new Date\(\)\)/);
+});
