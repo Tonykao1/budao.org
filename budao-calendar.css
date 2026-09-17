@@ -151,8 +151,8 @@
     position:absolute;
     left:50%;
     top:76px;
-    width:52px;
-    height:22px;
+    width:104px;
+    height:44px;
     transform:translateX(-50%);
     pointer-events:none;
 }
@@ -161,8 +161,8 @@
     position:absolute;
     left:50%;
     top:0;
-    width:18px;
-    height:20px;
+    width:36px;
+    height:40px;
     background-position:center;
     background-repeat:no-repeat;
     background-size:contain;
@@ -174,18 +174,18 @@
 }
 
 .budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(1){
-    top:1px;
-    transform:translateX(calc(-50% - 7px)) rotate(-8deg);
+    top:2px;
+    transform:translateX(calc(-50% - 14px)) rotate(-8deg);
 }
 
 .budao-calendar-step-stack[data-count="2"] .budao-calendar-step-mark:nth-child(2){
-    top:1px;
-    transform:translateX(calc(-50% + 7px)) rotate(8deg);
+    top:2px;
+    transform:translateX(calc(-50% + 14px)) rotate(8deg);
 }
 
 .budao-calendar-step-stack[data-count="3"] .budao-calendar-step-mark:nth-child(1){
-    top:2px;
-    transform:translateX(calc(-50% - 11px)) rotate(-10deg);
+    top:4px;
+    transform:translateX(calc(-50% - 22px)) rotate(-10deg);
 }
 
 .budao-calendar-step-stack[data-count="3"] .budao-calendar-step-mark:nth-child(2){
@@ -194,8 +194,8 @@
 }
 
 .budao-calendar-step-stack[data-count="3"] .budao-calendar-step-mark:nth-child(3){
-    top:2px;
-    transform:translateX(calc(-50% + 11px)) rotate(10deg);
+    top:4px;
+    transform:translateX(calc(-50% + 22px)) rotate(10deg);
 }
 
 .budao-calendar-step-mark--budao{
