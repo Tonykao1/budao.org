@@ -70,9 +70,9 @@
     }
 
     return {
-      previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "上月最后一周", todayKey),
+      previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "", todayKey),
       current: monthRecord(year, monthIndex, currentDays, "本月", todayKey),
-      next: monthRecord(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextDays, "下月第一周", todayKey)
+      next: monthRecord(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextDays, "", todayKey)
     };
   }
 
