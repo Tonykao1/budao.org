@@ -25,7 +25,8 @@
     camp: "营会",
     fellowship: "同道"
   };
-  const stepSchedule = {
+  const allowedStepTypes = ["pioneer", "budao", "march", "camp", "fellowship"];
+  const baseStepSchedule = {
     "2026-09-04": ["fellowship"],
     "2026-09-05": ["budao", "pioneer"],
     "2026-09-11": ["pioneer"],
@@ -39,14 +40,54 @@
     return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
   }
 
-  function stepsForDate(key) {
-    const scheduled = stepSchedule[key] || [];
+  function stepsForDate(key, schedule) {
+    const scheduled = (schedule || baseStepSchedule)[key] || [];
     return scheduled.filter(function (type, index) {
       return scheduled.indexOf(type) === index;
     });
   }
 
-  function dayRecord(date, todayKey) {
+  function isDateKey(value) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+  }
+
+  function addStep(schedule, date, type) {
+    if (!isDateKey(date) || allowedStepTypes.indexOf(type) < 0) {
+      return;
+    }
+
+    if (!schedule[date]) {
+      schedule[date] = [];
+    }
+
+    if (schedule[date].indexOf(type) < 0) {
+      schedule[date].push(type);
+    }
+  }
+
+  function mergeStepSchedule(base, events, routes) {
+    const merged = {};
+
+    Object.keys(base || {}).forEach(function (date) {
+      merged[date] = (base[date] || []).slice();
+    });
+
+    (Array.isArray(events) ? events : []).forEach(function (event) {
+      if (!event || event.type === "none") return;
+      addStep(merged, event.date, event.type);
+    });
+
+    (Array.isArray(routes) ? routes : []).forEach(function (route) {
+      if (!route) return;
+      const type = allowedStepTypes.indexOf(route.calendarType) >= 0 ? route.calendarType : "budao";
+      if (route.calendarType === "none") return;
+      addStep(merged, route.date, type);
+    });
+
+    return merged;
+  }
+
+  function dayRecord(date, todayKey, schedule) {
     const key = dateKey(date);
     return {
       year: date.getFullYear(),
@@ -56,22 +97,22 @@
       weekend: date.getDay() === 0 || date.getDay() === 6,
       isToday: key === todayKey,
       dateKey: key,
-      steps: stepsForDate(key)
+      steps: stepsForDate(key, schedule)
     };
   }
 
-  function monthRecord(year, monthIndex, days, label, todayKey) {
+  function monthRecord(year, monthIndex, days, label, todayKey, schedule) {
     return {
       year,
       monthIndex,
       label,
       monthText: String(monthIndex + 1) + "月",
       monthEnglish: monthNames[monthIndex],
-      days: days.map(function (date) { return dayRecord(date, todayKey); })
+      days: days.map(function (date) { return dayRecord(date, todayKey, schedule); })
     };
   }
 
-  function buildCalendarModel(now) {
+  function buildCalendarModel(now, schedule) {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayKey = dateKey(today);
     const year = today.getFullYear();
@@ -96,9 +137,9 @@
     }
 
     return {
-      previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "", todayKey),
-      current: monthRecord(year, monthIndex, currentDays, "", todayKey),
-      next: monthRecord(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextDays, "", todayKey)
+      previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "", todayKey, schedule || baseStepSchedule),
+      current: monthRecord(year, monthIndex, currentDays, "", todayKey, schedule || baseStepSchedule),
+      next: monthRecord(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextDays, "", todayKey, schedule || baseStepSchedule)
     };
   }
 
@@ -173,8 +214,8 @@
     scroll.scrollLeft = centeredScrollPosition(dayLeft, todayRect.width, scroll.clientWidth);
   }
 
-  function mount(host, now) {
-    const model = buildCalendarModel(now || new Date());
+  function renderCalendar(host, now, schedule) {
+    const model = buildCalendarModel(now || new Date(), schedule || baseStepSchedule);
     host.innerHTML = "<div class=\"budao-calendar-scroll\">" +
       "<span class=\"budao-calendar-spacer\" aria-hidden=\"true\"></span>" +
       "<div class=\"budao-calendar-strip\">" +
@@ -188,10 +229,61 @@
     return model;
   }
 
+  function loadJson(url) {
+    if (typeof fetch !== "function") {
+      return Promise.resolve([]);
+    }
+
+    return fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "same-origin"
+    }).then(function (response) {
+      if (!response.ok) return [];
+      return response.json().catch(function () { return []; });
+    }).then(function (value) {
+      return Array.isArray(value) ? value : [];
+    }).catch(function () {
+      return [];
+    });
+  }
+
+  function sameSchedule(left, right) {
+    return JSON.stringify(left || {}) === JSON.stringify(right || {});
+  }
+
+  function refreshPublishedSteps(host, now) {
+    if (!host || typeof fetch !== "function") {
+      return Promise.resolve(null);
+    }
+
+    return Promise.all([
+      loadJson("/calendar-events.json?ts=" + Date.now()),
+      loadJson("/api/routes?calendar=" + Date.now())
+    ]).then(function (sources) {
+      const schedule = mergeStepSchedule(baseStepSchedule, sources[0], sources[1]);
+      if (sameSchedule(schedule, baseStepSchedule)) {
+        return buildCalendarModel(now || new Date(), schedule);
+      }
+      return renderCalendar(host, now || new Date(), schedule);
+    }).catch(function () {
+      return null;
+    });
+  }
+
+  function mount(host, now) {
+    const mountedAt = now || new Date();
+    const model = renderCalendar(host, mountedAt, baseStepSchedule);
+    refreshPublishedSteps(host, mountedAt);
+    return model;
+  }
+
   return {
     buildCalendarModel,
+    mergeStepSchedule,
     centeredScrollPosition,
     centerToday,
+    refreshPublishedSteps,
     mount
   };
 }));

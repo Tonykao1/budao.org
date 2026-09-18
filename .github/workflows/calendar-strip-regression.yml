@@ -5,9 +5,13 @@ on:
     paths:
       - "test/calendar-strip.test.js"
       - "test/calendar-step-size.test.js"
+      - "test/calendar-data-sync.test.js"
       - "budao-calendar.js"
       - "budao-calendar.css"
       - "test.html"
+      - "calendar-events.json"
+      - "scripts/sync-calendar-events.js"
+      - ".github/workflows/calendar-events-sync.yml"
       - ".github/workflows/calendar-strip-regression.yml"
 
 jobs:
@@ -16,4 +20,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run calendar contract
-        run: node --test test/calendar-strip.test.js test/calendar-step-size.test.js
+        run: node --test test/calendar-strip.test.js test/calendar-step-size.test.js test/calendar-data-sync.test.js

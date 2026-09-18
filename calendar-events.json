@@ -1,0 +1,42 @@
+[
+  {
+    "date": "2026-09-04",
+    "type": "fellowship",
+    "source": "legacy"
+  },
+  {
+    "date": "2026-09-05",
+    "type": "budao",
+    "source": "legacy"
+  },
+  {
+    "date": "2026-09-05",
+    "type": "pioneer",
+    "source": "legacy"
+  },
+  {
+    "date": "2026-09-11",
+    "type": "pioneer",
+    "source": "legacy"
+  },
+  {
+    "date": "2026-09-12",
+    "type": "budao",
+    "source": "legacy"
+  },
+  {
+    "date": "2026-09-13",
+    "type": "budao",
+    "source": "legacy"
+  },
+  {
+    "date": "2026-09-19",
+    "type": "budao",
+    "source": "legacy"
+  },
+  {
+    "date": "2026-09-20",
+    "type": "budao",
+    "source": "legacy"
+  }
+]
