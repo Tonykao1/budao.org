@@ -19,7 +19,7 @@
   // Keep the user's foreground sheep clickable. Remove every legacy invisible
   // pasture/focus hotspot without changing any visual or motion code.
   const interactionLock=String.raw`
-  html=html.replace('</style>','#worldNeed,#worldGive,.focus-ui .hotspot,.life-slip{display:none!important;pointer-events:none!important}</style>');
+  html=html.replace('</style>','#worldNeed,#worldGive,.focus-ui .hotspot,.life-slip{display:none!important;pointer-events:none!important}.focus-ui .back{pointer-events:none}.stage.focus .focus-ui .back{pointer-events:auto}</style>');
   html=html.replace('<button id="worldNeed"','<button disabled tabindex="-1" id="worldNeed"');
   html=html.replace('<button id="worldGive"','<button disabled tabindex="-1" id="worldGive"');
   html=html.replace('<button id="careHit"','<button disabled tabindex="-1" id="careHit"');
