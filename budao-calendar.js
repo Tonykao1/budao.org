@@ -248,6 +248,10 @@
     });
   }
 
+  function sameSchedule(left, right) {
+    return JSON.stringify(left || {}) === JSON.stringify(right || {});
+  }
+
   function refreshPublishedSteps(host, now) {
     if (!host || typeof fetch !== "function") {
       return Promise.resolve(null);
@@ -258,6 +262,9 @@
       loadJson("/api/routes?calendar=" + Date.now())
     ]).then(function (sources) {
       const schedule = mergeStepSchedule(baseStepSchedule, sources[0], sources[1]);
+      if (sameSchedule(schedule, baseStepSchedule)) {
+        return buildCalendarModel(now || new Date(), schedule);
+      }
       return renderCalendar(host, now || new Date(), schedule);
     }).catch(function () {
       return null;
