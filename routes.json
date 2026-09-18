@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/b69a47b9f6d6c310b6a5b96804452d38.png",
     "imageAlt": "IMG_6537.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-17T05:33:46.197Z"
+    "updatedAt": "2026-09-18T08:45:53.349Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,7 +55,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/9a0cfe1d06b6b17bbb941062a976c32d.png",
     "imageAlt": "jlx.jpeg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-17T05:33:46.198Z"
+    "updatedAt": "2026-09-18T08:45:53.349Z"
   },
   {
     "id": "budao-hd",
@@ -66,24 +66,24 @@
     "city": "北京",
     "region": "海淀",
     "location": "中国·北京·海淀",
-    "title": "百望山",
-    "description": "秋天的山路已经有了清亮的意思。风从林间穿过去，天也显得更高。一路不必赶，遇见上坡就慢一点，遇见开阔处就停一停。让脚步跟着秋天舒展开来，也让心在这一程里，重新变得轻快。",
+    "title": "相约百望山",
+    "description": "本周日，我们把百望山走到7公里。沿山脊缓缓起伏，在秋意初生的林间行走，也在山中择一处停下，把食物铺开，把时间放慢。走过的是山路，共享的却不只是这一餐。",
     "time": "08:30",
-    "duration": "2.5小时",
-    "distance": "6千米",
-    "surface": "累积一周的疲惫，累积一段时间的情绪，也许你需要一场微汗的行走。",
+    "duration": "3小时",
+    "distance": "7千米",
+    "surface": "铺装路、石阶、木栈道",
     "elevation": "300米",
     "difficulty": "中等",
     "suitableFor": "亲子、有体能基础长者友好",
     "equipmentMinimum": "运动鞋，饮用水，个人药品，防晒",
     "timezone": "Asia/Shanghai",
-    "date": "2026-09-12",
+    "date": "2026-09-20",
     "meetingPlace": "百望山森林公园东门",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/b87198ef1130090bea91d31512edc83f.jpg",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/7344a1c5b3813d11af0eb49e7b1453a3.jpg",
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/0761d8463f13717ccd3bca130dd2f254.png",
-    "imageAlt": "wqs.jpg",
+    "imageAlt": "ss.jpg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-09-17T05:33:46.198Z"
+    "updatedAt": "2026-09-18T08:45:53.348Z"
   }
 ]
