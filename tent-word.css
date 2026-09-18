@@ -62,6 +62,15 @@
   border-bottom-color: rgba(236, 224, 197, 0.64);
 }
 
+.word-field.is-identity-locked {
+  opacity: 0.66;
+}
+
+.word-field.is-identity-locked input {
+  cursor: not-allowed;
+  border-bottom-style: dashed;
+}
+
 .word-questions {
   display: grid;
   gap: 28px;
@@ -110,9 +119,225 @@
   text-align: center;
 }
 
+.word-library {
+  width: min(100%, 680px);
+  margin: 42px auto 54px;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(220, 210, 187, 0.18);
+  border-bottom: 1px solid rgba(220, 210, 187, 0.14);
+}
+
+.word-library-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.word-library-head h2 {
+  margin: 0;
+  color: rgba(239, 232, 216, 0.8);
+  font: 300 17px/1.3 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.18em;
+}
+
+.word-library-head p {
+  margin: 8px 0 0;
+  color: rgba(225, 219, 206, 0.38);
+  font: 200 11px/1.7 ui-serif, Georgia, serif;
+  letter-spacing: 0.12em;
+}
+
+.word-library-refresh,
+.word-library-tabs button,
+.word-library-edit,
+.word-revision-banner button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: rgba(231, 224, 209, 0.48);
+  cursor: pointer;
+  font: 200 12px/1.4 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.12em;
+}
+
+.word-library-refresh:hover,
+.word-library-refresh:focus-visible,
+.word-library-tabs button:hover,
+.word-library-tabs button:focus-visible,
+.word-library-edit:hover,
+.word-library-edit:focus-visible,
+.word-revision-banner button:hover,
+.word-revision-banner button:focus-visible {
+  color: rgba(245, 236, 218, 0.88);
+  outline: 0;
+}
+
+.word-library-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin-top: 28px;
+  border-top: 1px solid rgba(220, 210, 187, 0.12);
+  border-bottom: 1px solid rgba(220, 210, 187, 0.12);
+}
+
+.word-library-tabs button {
+  position: relative;
+  padding: 14px 6px 13px;
+  text-align: center;
+}
+
+.word-library-tabs button::after {
+  position: absolute;
+  right: 18%;
+  bottom: -1px;
+  left: 18%;
+  height: 1px;
+  content: "";
+  background: transparent;
+}
+
+.word-library-tabs button.is-active {
+  color: rgba(242, 233, 215, 0.82);
+}
+
+.word-library-tabs button.is-active::after {
+  background: rgba(232, 220, 194, 0.58);
+}
+
+.word-library-tabs small {
+  margin-left: 4px;
+  color: rgba(222, 213, 194, 0.32);
+  font-size: 10px;
+}
+
+.word-library-status {
+  min-height: 22px;
+  margin: 18px 0 8px;
+  color: rgba(225, 219, 206, 0.36);
+  font-size: 11px;
+  font-weight: 200;
+  letter-spacing: 0.08em;
+}
+
+.word-library-list {
+  display: grid;
+}
+
+.word-library-card {
+  padding: 22px 0 24px;
+  border-top: 1px solid rgba(220, 210, 187, 0.1);
+}
+
+.word-library-card:first-child {
+  border-top: 0;
+}
+
+.word-library-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.word-library-code {
+  margin: 0 0 7px;
+  color: rgba(223, 214, 194, 0.28);
+  font: 400 9px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+}
+
+.word-library-card h3 {
+  margin: 0;
+  color: rgba(240, 232, 215, 0.74);
+  font: 300 16px/1.55 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.08em;
+}
+
+.word-library-state {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: rgba(232, 220, 196, 0.42);
+  font: 200 11px/1.5 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.12em;
+}
+
+.word-library-meta {
+  margin: 12px 0 0;
+  color: rgba(225, 219, 206, 0.36);
+  font: 200 12px/1.7 ui-serif, Georgia, serif;
+  letter-spacing: 0.06em;
+}
+
+.word-library-review-note {
+  margin-top: 18px;
+  padding-left: 15px;
+  border-left: 1px solid rgba(228, 211, 176, 0.34);
+}
+
+.word-library-review-note strong {
+  color: rgba(232, 221, 198, 0.5);
+  font: 300 10px/1.5 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.14em;
+}
+
+.word-library-review-note p,
+.word-library-frozen {
+  margin: 7px 0 0;
+  color: rgba(231, 225, 211, 0.52);
+  font: 300 13px/1.9 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.03em;
+}
+
+.word-library-edit {
+  margin-top: 18px;
+  color: rgba(238, 227, 205, 0.7);
+}
+
+.word-revision-banner {
+  width: min(100%, 680px);
+  margin: -22px auto 36px;
+  padding: 15px 0;
+  border-top: 1px solid rgba(225, 210, 178, 0.2);
+  border-bottom: 1px solid rgba(225, 210, 178, 0.2);
+}
+
+.word-revision-banner[hidden] {
+  display: none;
+}
+
+.word-revision-text {
+  margin: 0 0 11px;
+  color: rgba(235, 225, 205, 0.58);
+  font: 300 12px/1.85 "Songti SC", "Noto Serif CJK SC", ui-serif, serif;
+  letter-spacing: 0.03em;
+}
+
+.word-revision-banner button {
+  color: rgba(231, 220, 199, 0.46);
+}
+
 @media (max-width: 620px) {
   .word-room {
     width: 84vw;
     max-height: 78svh;
+  }
+
+  .word-library {
+    margin-top: 34px;
+  }
+
+  .word-library-head {
+    gap: 14px;
+  }
+
+  .word-library-tabs button {
+    padding-inline: 2px;
+    font-size: 11px;
+  }
+
+  .word-library-card-head {
+    gap: 12px;
   }
 }
