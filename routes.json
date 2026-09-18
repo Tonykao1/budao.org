@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/b69a47b9f6d6c310b6a5b96804452d38.png",
     "imageAlt": "IMG_6537.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-18T08:45:53.349Z"
+    "updatedAt": "2026-09-18T08:49:38.333Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,7 +55,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/9a0cfe1d06b6b17bbb941062a976c32d.png",
     "imageAlt": "jlx.jpeg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-18T08:45:53.349Z"
+    "updatedAt": "2026-09-18T08:49:38.333Z"
   },
   {
     "id": "budao-hd",
@@ -80,10 +80,10 @@
     "date": "2026-09-20",
     "meetingPlace": "百望山森林公园东门",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/7344a1c5b3813d11af0eb49e7b1453a3.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/0761d8463f13717ccd3bca130dd2f254.png",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/e7ec439a206072805b803abef81e2e31.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/d25dbea31a67ea8c8baab6fd65efde2a.png",
     "imageAlt": "ss.jpg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-09-18T08:45:53.348Z"
+    "updatedAt": "2026-09-18T08:49:38.333Z"
   }
 ]
