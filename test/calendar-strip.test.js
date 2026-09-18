@@ -48,13 +48,15 @@ test('approved historical September step markers render while Aug 29 remains unm
   assert.deepEqual(september[12], ['budao']);
   assert.deepEqual(september[13], ['budao']);
   assert.deepEqual(september[19], ['budao']);
-  assert.equal(markedDays.length, 6, 'only the six approved September dates should be marked');
+  assert.deepEqual(september[20], ['budao']);
+  assert.equal(markedDays.length, 7, 'only the seven approved September dates should be marked');
   assert.match(js, /2026-09-04/);
   assert.match(js, /2026-09-05/);
   assert.match(js, /2026-09-11/);
   assert.match(js, /2026-09-12/);
   assert.match(js, /2026-09-13/);
   assert.match(js, /2026-09-19/);
+  assert.match(js, /2026-09-20/);
   assert.match(js, /data-count=\\\"/);
   assert.match(css, /\.budao-calendar-step-stack\[data-count="2"\]/, 'Sep 5 must use the reserved two-mark layout');
   assert.match(css, /\.budao-calendar-step-stack\[data-count="3"\]/, 'three-mark layout must remain reserved');
