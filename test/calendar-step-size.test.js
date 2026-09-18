@@ -11,9 +11,11 @@ test('calendar step mark is doubled without changing calendar spacing', () => {
   assert.match(css, /\.budao-calendar\{[\s\S]*?margin:\s*-28px 0 88px;/);
 });
 
-test('reserved two and three mark layouts scale with doubled mark size', () => {
-  assert.match(css, /data-count="2"[\s\S]*?- 14px/);
-  assert.match(css, /data-count="2"[\s\S]*?\+ 14px/);
-  assert.match(css, /data-count="3"[\s\S]*?- 22px/);
-  assert.match(css, /data-count="3"[\s\S]*?\+ 22px/);
+test('reserved two and three mark layouts preserve the approved vertical stack', () => {
+  assert.match(css, /data-count="2"[\s\S]*?nth-child\(1\)[\s\S]*?top:\s*0;/);
+  assert.match(css, /data-count="2"[\s\S]*?nth-child\(2\)[\s\S]*?top:\s*46px;/);
+  assert.match(css, /data-count="3"[\s\S]*?nth-child\(1\)[\s\S]*?top:\s*0;/);
+  assert.match(css, /data-count="3"[\s\S]*?nth-child\(2\)[\s\S]*?top:\s*8px;/);
+  assert.match(css, /data-count="3"[\s\S]*?nth-child\(3\)[\s\S]*?top:\s*16px;/);
+  assert.doesNotMatch(css, /translateX\(calc\(-50%\s*[+-]/);
 });
