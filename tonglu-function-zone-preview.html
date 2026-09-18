@@ -43,8 +43,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#92ddfa;fon
 .actions{display:grid;grid-template-columns:repeat(4,minmax(132px,1fr));gap:14px 16px;align-content:start;padding-top:1px}
 .pbtn{height:60px;display:flex;align-items:center;justify-content:center;gap:11px;color:var(--ink);font-size:17px;font-weight:900;letter-spacing:.02em;cursor:default;pointer-events:auto;user-select:none;transition:transform .08s steps(2,end),background .08s steps(2,end)}
 .pbtn:hover{transform:translate(-1px,-1px);background:#fffdf7}
-.pbtn.primary{background:linear-gradient(180deg,var(--green) 0%,var(--green2) 100%)}
+.pbtn.primary{background:linear-gradient(180deg,var(--green) 0%,var(--green2) 100%);height:62px;width:calc(100% + 2px);margin:-1px;cursor:pointer}
 .pbtn.primary:before,.pbtn.primary:after{background:var(--green2)}
+.sky-zone.returning .sky-ui{opacity:0!important;transform:translateY(-8px)!important}
 .icon{width:31px;height:31px;display:block;image-rendering:pixelated}
 .icon svg{width:100%;height:100%;display:block;shape-rendering:crispEdges}
 .badge{position:absolute;right:5px;top:-10px;min-width:22px;height:22px;padding:0 5px;border:2px solid #9e2b26;background:#f05249;color:white;font:900 12px/18px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:center}
@@ -104,7 +105,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#92ddfa;fon
         </div>
       </section>
       <nav class="actions" aria-label="功能入口">
-        <div class="pbtn pixel primary">
+        <div class="pbtn pixel primary" id="returnNow">
           <span class="icon"><svg viewBox="0 0 16 16"><rect x="3" y="5" width="8" height="6" fill="#f3eee0"/><rect x="5" y="3" width="5" height="9" fill="#f3eee0"/><rect x="10" y="6" width="4" height="4" fill="#776c61"/><rect x="12" y="7" width="2" height="1" fill="#37322e"/><rect x="4" y="11" width="2" height="3" fill="#655d55"/><rect x="8" y="11" width="2" height="3" fill="#655d55"/></svg></span>
           回到此刻
         </div>
@@ -124,5 +125,46 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#92ddfa;fon
     
   </div>
 </div>
+<script>
+(() => {
+  const frame = document.querySelector('.scene');
+  const skyZone = document.querySelector('.sky-zone');
+  const returnNow = document.getElementById('returnNow');
+
+  function openSelfSheep() {
+    try {
+      const win = frame.contentWindow;
+      const doc = win.document;
+      const canvas = doc.querySelector('canvas');
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const baseW = canvas.width || 480;
+      const baseH = canvas.height || 300;
+      const targetX = Math.min(baseW - 1, 247);
+      const targetY = Math.min(baseH - 1, 247);
+
+      const clientX = rect.left + (targetX / baseW) * rect.width;
+      const clientY = rect.top + (targetY / baseH) * rect.height;
+
+      skyZone.classList.add('returning');
+      canvas.dispatchEvent(new win.MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        clientX,
+        clientY,
+        view: win
+      }));
+    } catch (err) {
+      console.warn('Unable to open self sheep focus state', err);
+    }
+  }
+
+  returnNow.addEventListener('click', openSelfSheep);
+  skyZone.addEventListener('pointerleave', () => {
+    skyZone.classList.remove('returning');
+  });
+})();
+</script>
 </body>
 </html>
