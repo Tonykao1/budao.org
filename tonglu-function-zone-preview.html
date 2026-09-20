@@ -770,6 +770,65 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     });
   })();}catch(err){console.error("partner scene init failed",err)}
 
+  // Precomputed grapevine world. Kept separate from relationship clusters.
+  const partnerScene={vines:[],leaves:[],tendrils:[],frontLeaves:[]};
+  try{(function buildPartnerScene(){
+    let seed=772031;
+    const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
+
+    // Curving vines across the full canopy.
+    for(let i=0;i<240;i++){
+      const side=i%2===0?-1:1;
+      const sx=400+side*(8+rnd()*45), sy=165+rnd()*75;
+      const ex=side<0?18+rnd()*350:782-rnd()*350;
+      const ey=30+rnd()*260;
+      const bend=side*(55+rnd()*170);
+      partnerScene.vines.push({
+        sx,sy,
+        c1x:sx+bend*.34,c1y:sy-55-rnd()*95,
+        c2x:ex-bend*.20,c2y:ey+(rnd()-.5)*110,
+        ex,ey,
+        w:i<18?3:1+(i%7===0?1:0),
+        col:i%4===0?'#805432':i%3===0?'#6a442a':'#76502f'
+      });
+    }
+
+    // Dense foliage.
+    for(let i=0;i<3200;i++){
+      const band=i%5;
+      const cx=[120,280,425,585,720][band], cy=[112,88,105,90,126][band];
+      const rx=[155,190,210,185,140][band], ry=[112,105,120,108,100][band];
+      const a=rnd()*Math.PI*2, rr=Math.sqrt(rnd());
+      partnerScene.leaves.push({
+        x:cx+Math.cos(a)*rx*rr,
+        y:cy+Math.sin(a)*ry*rr,
+        s:2+Math.floor(rnd()*3),
+        shade:['#315f35','#3f7138','#548242','#679348','#7ca252'][Math.floor(rnd()*5)]
+      });
+    }
+
+    // Hanging tendrils.
+    for(let i=0;i<170;i++){
+      partnerScene.tendrils.push({
+        x:24+rnd()*752,
+        y:80+rnd()*180,
+        len:18+rnd()*75,
+        dir:rnd()>.5?1:-1,
+        phase:rnd()*Math.PI*2
+      });
+    }
+
+    // Small moving foreground layer only.
+    for(let i=0;i<90;i++){
+      partnerScene.frontLeaves.push({
+        x:20+rnd()*760,
+        y:55+rnd()*225,
+        s:2+Math.floor(rnd()*3),
+        phase:rnd()*6.28
+      });
+    }
+  })();}catch(err){console.error("partner scene build failed",err)}
+
   const pathDemo=['p5','p17','p18'];
   let selectedGroup=null,selectedPerson=null,pathMode=false,partnersRAF=0;
 
