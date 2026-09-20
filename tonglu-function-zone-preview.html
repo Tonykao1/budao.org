@@ -113,6 +113,30 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
 .wind-close{position:absolute;left:462px;top:295px;border:0;background:transparent;color:#5a381e;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:5.5px;font-weight:800;pointer-events:auto;cursor:pointer}
 @media(max-width:820px){.wind-layer{top:118px;overflow:auto;align-items:flex-start;justify-content:flex-start}.wind-stage{min-width:900px;width:900px}}
 
+
+/* ===== PARTNERS GRAPEVINE ===== */
+.partners-layer{position:fixed;z-index:37;left:0;right:0;top:116px;bottom:0;display:flex;align-items:flex-start;justify-content:center;padding:6px 14px 14px;pointer-events:none;opacity:0;transform:translateY(10px);transition:opacity .16s steps(3,end),transform .16s steps(3,end)}
+body.partners-open .partners-layer{opacity:1;transform:translateY(0);pointer-events:auto}
+body.partners-open .sky-zone{height:190px;min-height:190px}
+body.partners-open .sky-ui{padding-top:16px}
+body.partners-open .identity,body.partners-open .public-screen,body.partners-open .brand,body.partners-open .pbtn:not(#partnersBtn){opacity:.10}
+body.partners-open #partnersBtn{opacity:.46;background:#edf3d3}
+.partners-stage{position:relative;width:min(1500px,99vw);aspect-ratio:16/9;max-height:calc(100vh - 122px)}
+.partners-coordinate{position:absolute;left:0;top:0;width:640px;height:360px;transform-origin:0 0}
+.partners-canvas{position:absolute;left:0;top:0;width:640px;height:360px;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:auto;cursor:pointer}
+.partners-ui{position:absolute;left:0;top:0;width:640px;height:360px;pointer-events:none;color:#49331f}
+.partners-title{position:absolute;left:233px;top:29px;width:174px;text-align:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:17px;font-weight:900;letter-spacing:1px}
+.group-tag{position:absolute;left:247px;top:72px;min-width:96px;padding:4px 8px;background:#c98d4d;border:2px solid #744721;text-align:center;font:800 8px/1.2 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;display:none}
+.group-tag.show{display:block}
+.person-slip{position:absolute;right:18px;top:92px;width:126px;min-height:78px;padding:10px 10px 9px;background:#ead09a;border:3px solid #76502f;box-shadow:5px 5px 0 rgba(74,45,21,.16);display:none;pointer-events:auto}
+.person-slip.show{display:block}
+.person-slip h4{margin:0 0 6px;font-size:12px}.person-slip p{margin:0 0 4px;font-size:7px;line-height:1.5}.person-slip .tiny{font-size:6px;opacity:.72}
+.person-actions{display:flex;gap:5px;margin-top:8px}.person-actions button{border:2px solid #76502f;background:#d7b274;color:#4a301b;font-size:6px;font-weight:800;padding:3px 5px;cursor:pointer}
+.path-note{position:absolute;left:18px;bottom:25px;width:174px;padding:7px 9px;background:rgba(241,224,182,.94);border:2px solid #76502f;font-size:7px;line-height:1.55;display:none}
+.path-note.show{display:block}
+.partners-close{position:absolute;right:18px;bottom:18px;border:0;background:transparent;color:#5a381e;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:7px;font-weight:800;pointer-events:auto;cursor:pointer}
+@media(max-width:820px){.partners-layer{top:112px;overflow:auto;align-items:flex-start;justify-content:flex-start}.partners-stage{min-width:900px;width:900px}}
+
 @media(max-width:1180px){
   .sky-zone{height:52vh}.sky-ui{padding:22px 24px}.topline{grid-template-columns:190px 290px 1fr;gap:18px}.public-screen{grid-column:2/-1;min-height:106px}.brand .zh{font-size:32px}.actions{grid-template-columns:repeat(3,minmax(135px,1fr))}
   .book-layer{top:142px;padding:16px}.book-object{width:97vw}
@@ -157,7 +181,7 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
         </div>
         <div class="pbtn pixel clickable" id="grassBookBtn"><span class="icon"><svg viewBox="0 0 16 16"><path d="M2 3h5c1 0 2 .6 2 1.5V14c0-1-.8-1.5-2-1.5H2z" fill="#fff1d5" stroke="#234e7a" stroke-width="1.2"/><path d="M14 3H9c-1 0-2 .6-2 1.5V14c0-1 .8-1.5 2-1.5h5z" fill="#fff6e3" stroke="#234e7a" stroke-width="1.2"/></svg></span>我的牧草</div>
         <div class="pbtn pixel clickable" id="windNewsBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" fill="#fff6df" stroke="#1f4f7d" stroke-width="1.5"/><rect x="5" y="5" width="6" height="1" fill="#7da4c6"/><rect x="5" y="8" width="6" height="1" fill="#7da4c6"/><rect x="5" y="11" width="4" height="1" fill="#7da4c6"/></svg></span>风闻有你</div>
-        <div class="pbtn pixel"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="7" width="5" height="4" fill="#e9eee5"/><rect x="3" y="5" width="3" height="3" fill="#e9eee5"/><rect x="9" y="7" width="5" height="4" fill="#cbd9c7"/><rect x="10" y="5" width="3" height="3" fill="#cbd9c7"/><rect x="6" y="9" width="4" height="3" fill="#7a766c"/></svg></span>同路伙伴</div>
+        <div class="pbtn pixel clickable" id="partnersBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="7" width="5" height="4" fill="#e9eee5"/><rect x="3" y="5" width="3" height="3" fill="#e9eee5"/><rect x="9" y="7" width="5" height="4" fill="#cbd9c7"/><rect x="10" y="5" width="3" height="3" fill="#cbd9c7"/><rect x="6" y="9" width="4" height="3" fill="#7a766c"/></svg></span>同路伙伴</div>
         <div class="pbtn pixel"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="9" fill="#dceafb" stroke="#214d7b" stroke-width="1.3"/><path d="M3 5l5 4 5-4" fill="none" stroke="#214d7b" stroke-width="1.3"/></svg></span>信箱<span class="badge">3</span></div>
         <div class="pbtn pixel"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="#d9ebb4" stroke="#315a83" stroke-width="1.3"/><path d="M5 4v8M10 4v8" stroke="#6d9258" stroke-width="1.2"/><path d="M2 9l4-3 4 2 4-3" fill="none" stroke="#4879a6" stroke-width="1.2"/></svg></span>步道卡</div>
         <div class="pbtn pixel"><span class="icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="#a9bed0" stroke="#224f7a" stroke-width="1.2"/><circle cx="8" cy="8" r="1.5" fill="#fff8e8"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3 3l2 2M11 11l2 2M13 3l-2 2M5 11l-2 2" stroke="#224f7a" stroke-width="1.3"/></svg></span>小匣</div>
@@ -259,6 +283,30 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
   </div>
 </section>
 
+<section class="partners-layer" id="partnersLayer" aria-label="同路伙伴">
+  <div class="partners-stage" id="partnersStage">
+    <div class="partners-coordinate" id="partnersCoordinate">
+      <canvas id="partnersCanvas" class="partners-canvas" width="640" height="360" aria-label="关系葡萄树"></canvas>
+      <div class="partners-ui">
+        <div class="partners-title">同路伙伴</div>
+        <div class="group-tag" id="groupTag"></div>
+        <aside class="person-slip" id="personSlip">
+          <h4 id="personName"></h4>
+          <p id="personRelation"></p>
+          <p id="personRecent"></p>
+          <div class="tiny" id="personDistance"></div>
+          <div class="person-actions">
+            <button id="pathBtn" type="button">藤路</button>
+            <button type="button">写信</button>
+          </div>
+        </aside>
+        <div class="path-note" id="pathNote"></div>
+        <button class="partners-close" id="closePartners" type="button">收起 ×</button>
+      </div>
+    </div>
+  </div>
+</section>
+
 <script>
 (() => {
   const frame = document.querySelector('.scene');
@@ -271,6 +319,19 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
   const windCoordinate = document.getElementById('windCoordinate');
   const windCanvas = document.getElementById('windCanvas');
   const windTagText = document.querySelector('.wind-tag');
+  const partnersBtn = document.getElementById('partnersBtn');
+  const closePartners = document.getElementById('closePartners');
+  const partnersStage = document.getElementById('partnersStage');
+  const partnersCoordinate = document.getElementById('partnersCoordinate');
+  const partnersCanvas = document.getElementById('partnersCanvas');
+  const groupTag = document.getElementById('groupTag');
+  const personSlip = document.getElementById('personSlip');
+  const personName = document.getElementById('personName');
+  const personRelation = document.getElementById('personRelation');
+  const personRecent = document.getElementById('personRecent');
+  const personDistance = document.getElementById('personDistance');
+  const pathBtn = document.getElementById('pathBtn');
+  const pathNote = document.getElementById('pathNote');
   const closeBook = document.getElementById('closeBook');
   const refDisplay = document.getElementById('refDisplay');
   const selector = document.getElementById('selector');
@@ -572,6 +633,7 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
 
   function openWind(){
     closeGrassBook();
+    closePartnersLayer();
     document.body.classList.add('wind-open');
     skyZone.classList.add('book-open');
     windNewsBtn.classList.add('grass-active');
@@ -585,6 +647,169 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
     if(windAnimRAF){cancelAnimationFrame(windAnimRAF);windAnimRAF=0}
     if(windTagText) windTagText.style.transform='';
   }
+
+
+  const partnerGroups=[
+    {id:'family',name:'家人',color:'#a8bd4e',branch:'#76502f',cx:244,cy:119,
+      people:[
+        {id:'p1',name:'张洲颖',x:232,y:111,recent:'最近一起走过：今天',distance:1},
+        {id:'p2',name:'Vincent',x:248,y:116,recent:'最近共同经历：家庭',distance:1},
+        {id:'p3',name:'家人 A',x:239,y:128,recent:'同一枝条',distance:1},
+        {id:'p4',name:'家人 B',x:255,y:131,recent:'同一枝条',distance:1}
+      ]},
+    {id:'budao',name:'步道',color:'#6f4f91',branch:'#704628',cx:357,cy:116,
+      people:[
+        {id:'p5',name:'Luke',x:346,y:106,recent:'最近共同走过：9月13日',distance:1},
+        {id:'p6',name:'伙伴 A',x:361,y:107,recent:'最近一起步道',distance:1},
+        {id:'p7',name:'伙伴 B',x:350,y:121,recent:'最近一起步道',distance:1},
+        {id:'p8',name:'伙伴 C',x:366,y:124,recent:'最近一起步道',distance:1},
+        {id:'p9',name:'伙伴 D',x:357,y:136,recent:'最近一起步道',distance:1}
+      ]},
+    {id:'church',name:'尼西帐篷',color:'#9b5b7b',branch:'#744729',cx:444,cy:162,
+      people:[
+        {id:'p10',name:'同伴 A',x:434,y:151,recent:'最近共同聚会',distance:1},
+        {id:'p11',name:'同伴 B',x:449,y:153,recent:'最近共同聚会',distance:1},
+        {id:'p12',name:'同伴 C',x:438,y:167,recent:'最近共同聚会',distance:1},
+        {id:'p13',name:'同伴 D',x:453,y:169,recent:'最近共同聚会',distance:1}
+      ]},
+    {id:'bookstore',name:'无忧书局',color:'#c47d5b',branch:'#704628',cx:175,cy:174,
+      people:[
+        {id:'p14',name:'杨巍',x:166,y:164,recent:'最近共同经历：工作坊',distance:1},
+        {id:'p15',name:'伙伴 E',x:181,y:165,recent:'最近共同经历：工作坊',distance:1},
+        {id:'p16',name:'伙伴 F',x:173,y:179,recent:'最近共同经历：工作坊',distance:1}
+      ]},
+    {id:'far',name:'远方的一串',color:'#d0a649',branch:'#76502f',cx:496,cy:113,
+      people:[
+        {id:'p17',name:'David',x:488,y:105,recent:'通过 Luke 相连',distance:2},
+        {id:'p18',name:'东京的同行者',x:501,y:109,recent:'从一根远枝传来',distance:3},
+        {id:'p19',name:'伙伴 G',x:494,y:122,recent:'远方关系',distance:3}
+      ]}
+  ];
+  const pathDemo=['p5','p17','p18'];
+  let selectedGroup=null,selectedPerson=null,pathMode=false,partnersRAF=0;
+
+  function grapeHit(px,py){
+    for(const g of partnerGroups){
+      for(const p of g.people){
+        if(Math.hypot(px-p.x,py-p.y)<=7)return {group:g,person:p};
+      }
+    }
+    return null;
+  }
+  function groupHit(px,py){
+    for(const g of partnerGroups){
+      const maxD=Math.max(...g.people.map(p=>Math.hypot(p.x-g.cx,p.y-g.cy)))+12;
+      if(Math.hypot(px-g.cx,py-g.cy)<=maxD)return g;
+    }
+    return null;
+  }
+
+  function drawPixelBranch(x,a,b,c,d,col,w=5){
+    x.strokeStyle=col;x.lineWidth=w;x.lineCap='square';x.beginPath();x.moveTo(a,b);x.quadraticCurveTo((a+c)/2,b-18,c,d);x.stroke();
+  }
+  function drawGrape(x,p,col,highlight=false){
+    const r=highlight?7:6;
+    x.fillStyle='#563a28';x.fillRect(p.x-1,p.y-8,2,4);
+    x.fillStyle=col;
+    x.fillRect(p.x-r+2,p.y-r,r*2-4,r*2);
+    x.fillRect(p.x-r,p.y-r+2,r*2,r*2-4);
+    x.fillStyle='rgba(255,255,255,.28)';x.fillRect(p.x-3,p.y-3,2,2);
+    if(highlight){x.strokeStyle='#f4e5a4';x.lineWidth=2;x.strokeRect(p.x-r-2,p.y-r-2,r*2+4,r*2+4)}
+  }
+
+  function drawPartners(time=0){
+    const x=partnersCanvas.getContext('2d');x.imageSmoothingEnabled=false;x.clearRect(0,0,640,360);
+    const sway=Math.sin(time*.00038);
+    // ground shadow
+    x.fillStyle='rgba(57,93,40,.16)';x.fillRect(190,305,265,10);x.fillRect(225,315,205,7);
+    // trunk
+    x.fillStyle='#6d4529';x.fillRect(300,118,42,184);x.fillRect(288,151,20,122);x.fillRect(335,151,18,122);
+    x.fillStyle='#865a33';x.fillRect(307,116,10,185);x.fillRect(325,128,7,173);
+    x.fillStyle='#4f3523';x.fillRect(317,147,5,145);
+    // roots
+    drawPixelBranch(x,320,286,320,286, '#6d4529',8);
+    x.fillStyle='#6d4529';x.fillRect(254,292,72,9);x.fillRect(324,294,83,8);x.fillRect(278,300,38,7);x.fillRect(359,302,45,6);
+
+    // main branches
+    const branches=[
+      [318,142,244,101],[319,139,357,98],[331,148,445,143],[305,153,176,156],[337,129,497,95],
+      [291,166,116,119],[348,169,552,151]
+    ];
+    branches.forEach((b,i)=>drawPixelBranch(x,b[0],b[1],b[2]+sway*(i%2?1:-1)*2,b[3],i%2?'#744729':'#684023',7));
+
+    // canopy blocks
+    const leaves=[[132,87],[164,74],[197,73],[228,68],[263,72],[291,62],[324,65],[356,61],[389,70],[423,67],[455,77],[487,68],[520,83],[548,94],
+      [105,108],[145,111],[186,102],[220,102],[277,94],[327,92],[379,100],[431,103],[478,102],[530,115],
+      [122,137],[155,133],[205,135],[259,128],[389,132],[474,133],[522,144]];
+    leaves.forEach(([lx,ly],i)=>{const drift=Math.round(Math.sin(time*.0005+i*.6)*1.2);x.fillStyle=i%3?'#4f873c':'#6ca14c';x.fillRect(lx+drift,ly,14,10);x.fillStyle='#82af55';x.fillRect(lx+4+drift,ly-4,10,8)});
+
+    // clusters
+    partnerGroups.forEach(g=>{
+      const isSel=selectedGroup?.id===g.id;
+      g.people.forEach(p=>drawGrape(x,p,g.color,isSel||selectedPerson?.id===p.id||pathMode&&pathDemo.includes(p.id)));
+    });
+
+    // title plank
+    x.fillStyle='#704522';x.fillRect(239,22,164,40);x.fillStyle='#b77a41';x.fillRect(235,18,164,40);x.fillStyle='#cf9652';x.fillRect(239,21,156,4);
+    // lantern
+    x.fillStyle='#5c3a24';x.fillRect(522,60,3,28);x.fillRect(514,86,20,4);x.fillRect(516,89,16,22);
+    x.fillStyle='#e5b84e';x.fillRect(520,94,8,12);
+
+    // path mode: vine route to far group
+    if(pathMode){
+      const route=[{x:320,y:150},partnerGroups[1].people[0],partnerGroups[4].people[0],partnerGroups[4].people[1]];
+      x.strokeStyle='#f2d76d';x.lineWidth=3;x.beginPath();x.moveTo(route[0].x,route[0].y);
+      for(let i=1;i<route.length;i++)x.lineTo(route[i].x,route[i].y);
+      x.stroke();
+      route.slice(1).forEach(p=>drawGrape(x,p,'#d8b34e',true));
+    }
+  }
+
+  function resizePartners(){
+    if(!partnersStage||!partnersCoordinate)return;
+    const scale=partnersStage.clientWidth/640;
+    partnersCoordinate.style.transform='scale('+scale+')';
+  }
+  function partnerAnimate(time){
+    if(document.body.classList.contains('partners-open')){drawPartners(time);partnersRAF=requestAnimationFrame(partnerAnimate)}
+    else partnersRAF=0;
+  }
+  function openPartners(){
+    closeGrassBook();closeWindBoard();
+    document.body.classList.add('partners-open');skyZone.classList.add('book-open');partnersBtn.classList.add('grass-active');
+    selectedGroup=null;selectedPerson=null;pathMode=false;groupTag.classList.remove('show');personSlip.classList.remove('show');pathNote.classList.remove('show');
+    drawPartners(performance.now());resizePartners();if(!partnersRAF)partnersRAF=requestAnimationFrame(partnerAnimate);
+  }
+  function closePartnersLayer(){
+    document.body.classList.remove('partners-open');partnersBtn.classList.remove('grass-active');
+    if(!document.body.classList.contains('grassbook-open')&&!document.body.classList.contains('wind-open'))skyZone.classList.remove('book-open');
+    if(partnersRAF){cancelAnimationFrame(partnersRAF);partnersRAF=0}
+  }
+  function showGroup(g){
+    selectedGroup=g;selectedPerson=null;pathMode=false;
+    groupTag.textContent=g.name;groupTag.classList.add('show');personSlip.classList.remove('show');pathNote.classList.remove('show');
+  }
+  function showPerson(g,p){
+    selectedGroup=g;selectedPerson=p;pathMode=false;
+    groupTag.textContent=g.name;groupTag.classList.add('show');
+    personName.textContent=p.name;
+    personRelation.textContent='来自「'+g.name+'」这串关系';
+    personRecent.textContent=p.recent;
+    personDistance.textContent=p.distance===1?'与你相隔 1 步':'与你相隔 '+p.distance+' 步';
+    personSlip.classList.add('show');pathNote.classList.remove('show');
+  }
+
+  partnersCanvas.addEventListener('click',e=>{
+    const r=partnersCanvas.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*640,py=(e.clientY-r.top)/r.height*360;
+    const hit=grapeHit(px,py);
+    if(hit){showPerson(hit.group,hit.person);return}
+    const g=groupHit(px,py);if(g)showGroup(g);
+  });
+  pathBtn.addEventListener('click',()=>{
+    pathMode=true;
+    pathNote.innerHTML='藤路：Tony → Luke → David → 东京的同行者<br><strong>与你相隔 3 步。</strong>';
+    pathNote.classList.add('show');
+  });
 
   const books={
     old:[['创','创世记'],['出','出埃及记'],['利','利未记'],['民','民数记'],['申','申命记'],['书','约书亚记'],['士','士师记'],['得','路得记'],['撒上','撒母耳记上'],['撒下','撒母耳记下'],['王上','列王纪上'],['王下','列王纪下'],['代上','历代志上'],['代下','历代志下'],['拉','以斯拉记'],['尼','尼希米记'],['斯','以斯帖记'],['伯','约伯记'],['诗','诗篇'],['箴','箴言'],['传','传道书'],['歌','雅歌'],['赛','以赛亚书'],['耶','耶利米书'],['哀','耶利米哀歌'],['结','以西结书'],['但','但以理书'],['何','何西阿书'],['珥','约珥书'],['摩','阿摩司书'],['俄','俄巴底亚书'],['拿','约拿书'],['弥','弥迦书'],['鸿','那鸿书'],['哈','哈巴谷书'],['番','西番雅书'],['该','哈该书'],['亚','撒迦利亚书'],['玛','玛拉基书']],
@@ -636,6 +861,7 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
 
   function openBook(){
     closeWindBoard();
+    closePartnersLayer();
     document.body.classList.add('grassbook-open');
     skyZone.classList.add('book-open');grassBookBtn.classList.add('grass-active');
     drawBook();
@@ -649,7 +875,9 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
   closeBook.addEventListener('click',closeGrassBook);
   windNewsBtn.addEventListener('click',openWind);
   closeWind.addEventListener('click',closeWindBoard);
-  window.addEventListener('resize',resizeWind);
+  partnersBtn.addEventListener('click',openPartners);
+  closePartners.addEventListener('click',closePartnersLayer);
+  window.addEventListener('resize',()=>{resizeWind();resizePartners()});
 
   function animateGrass(){
     growthStage=0;drawBook();
@@ -674,6 +902,7 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
   function openSelfSheep(){
     closeGrassBook();
     closeWindBoard();
+    closePartnersLayer();
     try{
       const win=frame.contentWindow,doc=win.document,cv=doc.querySelector('canvas');if(!cv)return;
       const rect=cv.getBoundingClientRect(),baseW=cv.width||480,baseH=cv.height||300;
@@ -690,6 +919,8 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
   drawBook();
   drawWindBoard(0);
   resizeWind();
+  drawPartners(0);
+  resizePartners();
 })();
 </script>
 </body>
