@@ -771,24 +771,14 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     });
   })();}catch(err){console.error("partner scene init failed",err)}
 
-  // Fixed visual layer: approved grapevine sprite only.
-  // The original pasture remains live underneath in tonglu-pasture-v20.html.
+  // Fixed visual layer: approved final grapevine PNG only.
+  // The live tonglu-pasture-v20 iframe remains visible through its transparent pixels.
   const partnersTreeImage=new Image();
   let partnersTreeReady=false,partnersTreeLoading=null;
   function loadPartnersTree(){
     if(partnersTreeReady)return Promise.resolve(true);
     if(partnersTreeLoading)return partnersTreeLoading;
-    const parts=[
-      './assets/partners-tree-1.txt',
-      './assets/partners-tree-2.txt',
-      './assets/partners-tree-3.txt',
-      './assets/partners-tree-4.txt',
-      './assets/partners-tree-5.txt'
-    ];
-    partnersTreeLoading=Promise.all(parts.map(p=>fetch(p,{cache:'force-cache'}).then(r=>{
-      if(!r.ok)throw new Error('tree asset '+r.status);
-      return r.text();
-    }))).then(chunks=>new Promise((resolve,reject)=>{
+    partnersTreeLoading=new Promise((resolve,reject)=>{
       partnersTreeImage.onload=()=>{
         partnersTreeReady=true;
         partnersBaseReady=false;
@@ -797,9 +787,9 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
         }catch(err){console.error('partners redraw failed',err)}
         resolve(true);
       };
-      partnersTreeImage.onerror=()=>reject(new Error('tree sprite decode failed'));
-      partnersTreeImage.src='data:image/png;base64,'+chunks.join('');
-    })).catch(err=>{
+      partnersTreeImage.onerror=()=>reject(new Error('final grapevine sprite failed to load'));
+      partnersTreeImage.src='./assets/partners-grapevine-final.png';
+    }).catch(err=>{
       console.error('partners tree load failed',err);
       partnersTreeLoading=null;
       return false;
@@ -869,7 +859,8 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
 
     // Only the approved transparent grapevine is composited here.
     // Everything visible through its transparent pixels is the original live pasture.
-    x.drawImage(partnersTreeImage,0,0,800,450);
+    x.imageSmoothingEnabled=false;
+    x.drawImage(partnersTreeImage,0,0,partnersTreeImage.naturalWidth,partnersTreeImage.naturalHeight,0,0,800,450);
 
     // Module title remains UI, not part of the tree artwork.
     x.fillStyle='#6c4428';x.fillRect(44,48,154,42);
