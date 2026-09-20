@@ -858,11 +858,28 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     x.fillStyle='#eef0df';x.fillRect(116,246,5,4);x.fillStyle='#d4863e';x.fillRect(121,248,5,2);
   }
 
-  renderPartnersBase();
+  let partnersBaseReady=false;
+  function ensurePartnersBase(){
+    if(partnersBaseReady)return true;
+    try{
+      renderPartnersBase();
+      partnersBaseReady=true;
+      return true;
+    }catch(err){
+      console.error("partners init failed",err);
+      return false;
+    }
+  }
 
   function drawPartners(time=0){
     const x=partnersCanvas.getContext('2d');x.imageSmoothingEnabled=false;
-    x.clearRect(0,0,800,450);x.drawImage(partnersBaseCanvas,0,0);
+    x.clearRect(0,0,800,450);
+    if(!ensurePartnersBase()){
+      x.fillStyle='#5f7f3f';x.fillRect(150,120,500,180);
+      x.fillStyle='#6a4428';x.fillRect(395,180,10,210);
+      return;
+    }
+    x.drawImage(partnersBaseCanvas,0,0);
     const t=time*.001;
 
     // Only a small foreground layer moves.
@@ -895,15 +912,26 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     partnersCoordinate.style.transform='scale('+scale+')';
   }
   function partnerAnimate(time){
-    if(document.body.classList.contains('partners-open')){drawPartners(time);partnersRAF=requestAnimationFrame(partnerAnimate)}
-    else partnersRAF=0;
+    if(!document.body.classList.contains('partners-open')){partnersRAF=0;return}
+    try{
+      drawPartners(time);
+      partnersRAF=requestAnimationFrame(partnerAnimate);
+    }catch(err){
+      console.error("partners animation failed",err);
+      partnersRAF=0;
+    }
   }
   function openPartners(){
     closeGrassBook();closeWindBoard();
     document.body.classList.add('partners-open');skyZone.classList.add('book-open');partnersBtn.classList.add('grass-active');
     selectedGroup=null;selectedPerson=null;pathMode=false;
     groupTag.classList.remove('show');personSlip.classList.remove('show');pathNote.classList.remove('show');
-    drawPartners(performance.now());resizePartners();if(!partnersRAF)partnersRAF=requestAnimationFrame(partnerAnimate);
+    try{
+      drawPartners(performance.now());resizePartners();
+      if(!partnersRAF)partnersRAF=requestAnimationFrame(partnerAnimate);
+    }catch(err){
+      console.error("partners open failed",err);
+    }
   }
   function closePartnersLayer(){
     document.body.classList.remove('partners-open');partnersBtn.classList.remove('grass-active');
@@ -1050,7 +1078,6 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   drawBook();
   drawWindBoard(0);
   resizeWind();
-  drawPartners(0);
   resizePartners();
 })();
 </script>
