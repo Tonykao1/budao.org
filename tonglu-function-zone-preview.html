@@ -778,7 +778,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
 
     // Curving vines across the full canopy.
-    for(let i=0;i<240;i++){
+    for(let i=0;i<168;i++){
       const side=i%2===0?-1:1;
       const sx=400+side*(8+rnd()*45), sy=165+rnd()*75;
       const ex=side<0?18+rnd()*350:782-rnd()*350;
@@ -789,7 +789,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
         c1x:sx+bend*.34,c1y:sy-55-rnd()*95,
         c2x:ex-bend*.20,c2y:ey+(rnd()-.5)*110,
         ex,ey,
-        w:i<18?3:1+(i%7===0?1:0),
+        w:i<14?3:1+(i%11===0?1:0),
         col:i%4===0?'#805432':i%3===0?'#6a442a':'#76502f'
       });
     }
@@ -890,22 +890,35 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   function renderPartnersBase(){
     const x=partnersBaseCtx;x.clearRect(0,0,800,450);
 
-    // Same approved S-curve, but with enough visual weight to carry the abundant canopy.
-    x.fillStyle='rgba(58,86,34,.08)';x.fillRect(333,401,142,4);
-    drawVineCurve(x,{sx:401,sy:414,c1x:385,c1y:368,c2x:419,c2y:327,ex:398,ey:285,w:11,col:'#523421'});
-    drawVineCurve(x,{sx:398,sy:285,c1x:380,c1y:246,c2x:416,c2y:213,ex:402,ey:176,w:10,col:'#523421'});
-    drawVineCurve(x,{sx:405,sy:413,c1x:416,c1y:370,c2x:390,c2y:329,ex:404,ey:287,w:5,col:'#8a5a33'});
-    drawVineCurve(x,{sx:404,sy:287,c1x:414,c1y:250,c2x:392,c2y:211,ex:406,ey:177,w:5,col:'#91613a'});
-    // bark twist
-    drawVineCurve(x,{sx:399,sy:401,c1x:412,c1y:371,c2x:386,c2y:345,ex:402,ey:316,w:2,col:'#36261d'});
-    drawVineCurve(x,{sx:402,sy:316,c1x:414,c1y:289,c2x:388,c2y:261,ex:402,ey:232,w:2,col:'#36261d'});
-    drawVineCurve(x,{sx:402,sy:232,c1x:412,c1y:212,c2x:393,c2y:192,ex:404,ey:176,w:1,col:'#36261d'});
-    // minimal roots
-    drawVineCurve(x,{sx:402,sy:410,c1x:386,c1y:416,c2x:365,c2y:420,ex:344,ey:420,w:4,col:'#604027'});
-    drawVineCurve(x,{sx:404,sy:410,c1x:421,c1y:416,c2x:442,c2y:420,ex:462,ey:420,w:4,col:'#604027'});
-    // primary arms disappear naturally into the canopy
-    drawVineCurve(x,{sx:404,sy:181,c1x:365,c1y:150,c2x:300,c2y:123,ex:228,ey:112,w:5,col:'#604027'});
-    drawVineCurve(x,{sx:404,sy:181,c1x:446,c1y:148,c2x:514,c2y:122,ex:588,ey:111,w:5,col:'#604027'});
+    // A｜稳重型老藤：主干更有承托力，枝干结构更清楚，但不树化。
+    x.fillStyle='rgba(58,86,34,.08)';x.fillRect(326,401,156,5);
+
+    // 主干：约比上一版加粗 35%，保持轻微 S 形和缠绕感。
+    drawVineCurve(x,{sx:400,sy:414,c1x:383,c1y:369,c2x:420,c2y:327,ex:398,ey:286,w:15,col:'#523421'});
+    drawVineCurve(x,{sx:398,sy:286,c1x:380,c1y:247,c2x:417,c2y:214,ex:403,ey:178,w:14,col:'#523421'});
+
+    // 第二股老藤贴着主干缠绕，不形成“双腿”。
+    drawVineCurve(x,{sx:406,sy:411,c1x:417,c1y:370,c2x:390,c2y:330,ex:405,ey:288,w:6,col:'#875731'});
+    drawVineCurve(x,{sx:405,sy:288,c1x:415,c1y:251,c2x:393,c2y:212,ex:407,ey:179,w:6,col:'#91613a'});
+
+    // 克制的树皮扭纹。
+    drawVineCurve(x,{sx:397,sy:398,c1x:411,c1y:370,c2x:387,c2y:343,ex:402,ey:315,w:2,col:'#36261d'});
+    drawVineCurve(x,{sx:402,sy:315,c1x:414,c1y:289,c2x:389,c2y:261,ex:403,ey:233,w:2,col:'#36261d'});
+
+    // 根部更稳、更宽，但仍然像葡萄老藤而不是树根盘。
+    drawVineCurve(x,{sx:399,sy:409,c1x:383,c1y:416,c2x:358,c2y:421,ex:326,ey:421,w:6,col:'#604027'});
+    drawVineCurve(x,{sx:405,sy:409,c1x:421,c1y:416,c2x:446,c2y:421,ex:478,ey:421,w:6,col:'#604027'});
+    drawVineCurve(x,{sx:398,sy:412,c1x:389,c1y:417,c2x:378,c2y:421,ex:365,ey:424,w:3,col:'#805432'});
+    drawVineCurve(x,{sx:406,sy:412,c1x:415,c1y:417,c2x:427,c2y:421,ex:440,ey:424,w:3,col:'#805432'});
+
+    // 两条清晰主蔓负责“托住”藤冠；进入叶冠后逐渐减细。
+    drawVineCurve(x,{sx:403,sy:181,c1x:365,c1y:151,c2x:306,c2y:126,ex:236,ey:116,w:7,col:'#604027'});
+    drawVineCurve(x,{sx:404,sy:181,c1x:446,c1y:150,c2x:507,c2y:126,ex:579,ey:115,w:7,col:'#604027'});
+
+    // 少量次级承托枝，避免裸枝过多。
+    drawVineCurve(x,{sx:309,sy:128,c1x:279,c1y:114,c2x:246,c2y:105,ex:205,ey:101,w:4,col:'#6f482c'});
+    drawVineCurve(x,{sx:506,sy:128,c1x:538,c1y:114,c2x:571,c2y:105,ex:612,ey:101,w:4,col:'#6f482c'});
+    drawVineCurve(x,{sx:403,sy:179,c1x:397,c1y:158,c2x:405,c2y:142,ex:414,ey:129,w:3,col:'#76502f'});
 
     // Hundreds of curved, interwoven canes.
     partnerScene.vines.forEach(v=>drawVineCurve(x,v));
