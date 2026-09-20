@@ -125,8 +125,8 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
 .partners-coordinate{position:absolute;left:0;top:0;width:800px;height:450px;transform-origin:0 0}
 .partners-canvas{position:absolute;left:0;top:0;width:800px;height:450px;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:auto;cursor:pointer}
 .partners-ui{position:absolute;left:0;top:0;width:800px;height:450px;pointer-events:none;color:#49331f}
-.partners-title{position:absolute;left:44px;top:58px;width:145px;padding:7px 10px 8px;background:#c38b4b;border:3px solid #704522;box-shadow:5px 5px 0 rgba(72,45,24,.16);text-align:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:18px;font-weight:900;letter-spacing:2px}
-.partners-verse{position:absolute;left:57px;top:107px;width:118px;padding:8px 8px 7px;background:#ead0a0;border:2px solid #80572f;text-align:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:7px;line-height:1.65}
+.partners-title{display:none}
+
 .group-tag{position:absolute;min-width:70px;padding:4px 8px;background:#ca904d;border:2px solid #704522;box-shadow:3px 3px 0 rgba(80,48,25,.13);text-align:center;font:800 7px/1.2 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;display:none}
 .group-tag.show{display:block}
 .person-slip{position:absolute;left:0;top:0;width:96px;min-height:66px;padding:9px 9px 8px;background:#ead0a0;border:2px solid #76502f;box-shadow:4px 4px 0 rgba(74,45,21,.14);display:none;pointer-events:auto;clip-path:polygon(0 4%,6% 4%,6% 0,94% 0,94% 4%,100% 4%,100% 94%,95% 94%,95% 100%,6% 100%,6% 96%,0 96%)}
@@ -289,7 +289,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     <div class="partners-coordinate" id="partnersCoordinate">
       <canvas id="partnersCanvas" class="partners-canvas" width="800" height="450" aria-label="关系葡萄树"></canvas>
       <div class="partners-ui">
-        <div class="partners-title">同路伙伴</div><div class="partners-verse">“我是葡萄树，<br>你们是枝子。”<br>—— 约15:5</div>
+        <div class="partners-title">同路伙伴</div>
         <div class="group-tag" id="groupTag"></div>
         <aside class="person-slip" id="personSlip">
           <h4 id="personName"></h4>
@@ -696,6 +696,39 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
         {id:'p29',name:'伙伴 M',x:670,y:141,recent:'远方关系',distance:3}
       ]}
   ];
+  // Expand the demo canopy with real Person nodes: every visible grape remains a person.
+  (function enrichPartnerGroups(){
+    let serial=100;
+    const layouts={
+      family:{count:24,rx:44,ry:58},
+      budao:{count:32,rx:52,ry:66},
+      church:{count:28,rx:50,ry:62},
+      bookstore:{count:22,rx:42,ry:55},
+      far:{count:26,rx:48,ry:60}
+    };
+    partnerGroups.forEach((g,gi)=>{
+      const cfg=layouts[g.id];
+      let seed=9137+gi*177;
+      const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
+      const existing=g.people.length;
+      for(let i=existing;i<cfg.count;i++){
+        const row=Math.floor((i-existing)/5);
+        const col=(i-existing)%5;
+        const angle=(col/5)*Math.PI*2 + row*.47 + rnd()*.35;
+        const radX=14+row*7+rnd()*8;
+        const radY=18+row*9+rnd()*9;
+        g.people.push({
+          id:'px'+(serial++),
+          name:'同行者 '+(serial-100),
+          x:Math.round(g.cx+Math.cos(angle)*Math.min(cfg.rx,radX)),
+          y:Math.round(g.cy+10+Math.sin(angle)*Math.min(cfg.ry,radY)),
+          recent:'来自同一段真实关系',
+          distance:g.id==='far'?3:1
+        });
+      }
+    });
+  })();
+
   const pathDemo=['p5','p17','p18'];
   let selectedGroup=null,selectedPerson=null,pathMode=false,partnersRAF=0;
 
@@ -750,49 +783,60 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     const x=partnersCanvas.getContext('2d');x.imageSmoothingEnabled=false;x.clearRect(0,0,800,450);
     const t=time*.001;
 
-    // Roots and broad ancient trunk.
-    x.fillStyle='rgba(58,86,34,.18)';x.fillRect(232,389,360,12);x.fillRect(280,405,266,7);
-    x.fillStyle='#5d3b24';x.fillRect(354,154,84,229);
-    x.fillStyle='#714629';x.fillRect(336,181,34,176);x.fillRect(428,176,31,182);
-    x.fillStyle='#8a5a33';x.fillRect(372,145,18,238);x.fillRect(407,159,14,220);
-    x.fillStyle='#432f22';x.fillRect(394,178,7,199);
-    // pixel bark texture
-    for(let yy=180;yy<370;yy+=15){x.fillStyle=yy%30?'#6b4429':'#97653a';x.fillRect(365+(yy%22),yy,8,4);x.fillRect(414-(yy%19),yy+5,6,3)}
-    // Roots
-    drawBranch(x,[[395,350],[328,382],[244,392]],'#654026',13);
-    drawBranch(x,[[402,354],[466,388],[568,396]],'#654026',12);
-    drawBranch(x,[[383,365],[340,405],[300,414]],'#714629',9);
-    drawBranch(x,[[419,365],[464,410],[522,416]],'#714629',9);
+    // Old grapevine trunk: slimmer, twisted, vine-like rather than a tree bole.
+    x.fillStyle='rgba(58,86,34,.14)';x.fillRect(270,389,280,9);x.fillRect(315,401,190,5);
+    drawBranch(x,[[396,368],[383,318],[389,267],[376,220],[386,176]],'#5a3924',18);
+    drawBranch(x,[[408,370],[421,319],[411,271],[426,224],[414,178]],'#6b4528',15);
+    drawBranch(x,[[391,366],[404,322],[397,278],[408,235],[401,188]],'#8a5a33',7);
+    // Twisting bark pixels
+    for(let yy=205;yy<365;yy+=13){
+      x.fillStyle=yy%26?'#70472a':'#966039';
+      x.fillRect(386+(yy%11),yy,5,3);
+      x.fillRect(413-(yy%9),yy+5,4,3);
+    }
+    // Slim roots
+    drawBranch(x,[[397,356],[351,382],[292,390]],'#604027',8);
+    drawBranch(x,[[407,358],[454,386],[522,393]],'#604027',8);
+    drawBranch(x,[[391,366],[364,402],[326,410]],'#73492a',5);
+    drawBranch(x,[[414,365],[447,404],[492,410]],'#73492a',5);
 
-    // Main scaffold — numerous overlapping branches.
+    // Main scaffold plus many thin canes: grapevine density comes from ramifying branches.
     const mainBranches=[
-      [[388,185],[320,143],[235,114],[130,108]],
-      [[397,180],[355,128],[286,93],[205,89]],
-      [[408,177],[436,124],[511,93],[606,82]],
-      [[422,190],[498,146],[585,129],[721,128]],
-      [[374,210],[303,190],[224,186],[128,205]],
-      [[435,214],[512,205],[605,191],[727,204]],
-      [[363,162],[303,121],[256,102]],
-      [[448,167],[506,129],[556,108]]
+      [[394,190],[330,148],[245,116],[132,109]],[[401,184],[357,130],[287,95],[202,89]],
+      [[410,183],[441,128],[516,96],[607,83]],[[418,193],[500,150],[592,132],[724,129]],
+      [[384,211],[307,192],[226,187],[127,205]],[[426,214],[515,207],[610,193],[730,205]]
     ];
-    mainBranches.forEach((pts,i)=>drawBranch(x,pts,i%2?'#6c4428':'#5e3c25',i<4?12:9));
-    // Secondary vines.
-    const vines=[
-      [[145,104],[202,128],[245,156]],[[210,89],[198,142],[189,190]],[[286,92],[296,137],[297,157]],
-      [[510,94],[474,132],[451,177]],[[606,82],[621,112],[650,133]],[[720,128],[650,160],[568,183]],
-      [[128,205],[165,208],[198,210]],[[727,204],[650,198],[568,183]]
+    mainBranches.forEach((pts,i)=>drawBranch(x,pts,i%2?'#6b4328':'#5c3a25',7));
+    const caneAnchors=[
+      [392,176,176,72],[394,181,117,141],[399,171,250,56],[405,174,318,52],
+      [408,173,474,57],[412,180,557,60],[416,186,656,72],[421,192,739,102],
+      [386,205,171,226],[390,211,250,233],[420,210,552,231],[425,205,685,226],
+      [365,156,98,95],[438,157,714,88],[348,174,145,166],[454,177,675,163]
     ];
-    vines.forEach((pts,i)=>drawBranch(x,pts,i%2?'#7d522e':'#6d4629',5));
+    caneAnchors.forEach((a,i)=>{
+      const mx=(a[0]+a[2])/2 + (i%2?14:-14);
+      const my=Math.min(a[1],a[3])-18-(i%3)*7;
+      drawBranch(x,[[a[0],a[1]],[mx,my],[a[2],a[3]]],i%3?'#77502f':'#664229',3+(i%4===0?1:0));
+    });
+    // Dozens of fine lateral canes.
+    for(let i=0;i<34;i++){
+      const left=i%2===0;
+      const y=78+(i%11)*14;
+      const startX=left?365-(i%5)*12:435+(i%5)*12;
+      const endX=left?72+(i*29)%260:728-(i*31)%250;
+      const endY=55+(i*17)%190;
+      drawBranch(x,[[startX,150+(i%6)*8],[(startX+endX)/2,y],[endX,endY]],i%3===0?'#805633':'#6e472b',2);
+    }
 
     // Dense canopy: foliage dominates, branches only peek through.
     let leafSeed=92831;
     const lr=()=>((leafSeed=(leafSeed*1664525+1013904223)>>>0)/4294967296);
     const canopyBands=[
-      {cx:188,cy:91,rx:120,ry:53,n:54},
-      {cx:357,cy:76,rx:150,ry:52,n:70},
-      {cx:560,cy:92,rx:160,ry:58,n:72},
-      {cx:236,cy:151,rx:135,ry:54,n:50},
-      {cx:482,cy:153,rx:170,ry:60,n:64}
+      {cx:188,cy:91,rx:145,ry:70,n:110},
+      {cx:357,cy:76,rx:175,ry:68,n:130},
+      {cx:560,cy:92,rx:185,ry:74,n:135},
+      {cx:236,cy:151,rx:160,ry:72,n:100},
+      {cx:482,cy:153,rx:190,ry:78,n:120}
     ];
     let li=0;
     canopyBands.forEach(b=>{
@@ -819,6 +863,17 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       // small stem connection
       x.fillStyle='#506f2d';x.fillRect(g.cx-1,g.cy-29,3,16);
     });
+
+    // Pixel title plaque: text is rasterized into the low-res canvas, then nearest-neighbor enlarged.
+    x.fillStyle='#6c4428';x.fillRect(44,48,154,42);
+    x.fillStyle='#bf8748';x.fillRect(40,44,154,42);
+    x.fillStyle='#d39b5a';x.fillRect(44,47,146,4);
+    x.fillStyle='#3f2c1c';
+    x.font='bold 20px "Songti SC","PingFang SC",serif';
+    x.textBaseline='middle';
+    x.textAlign='center';
+    x.fillText('同 路 伙 伴',117,65);
+    x.textAlign='start';
 
     // Small lantern in tree.
     x.fillStyle='#50351f';x.fillRect(696,72,3,30);x.fillRect(687,100,20,4);x.fillRect(689,104,16,22);
