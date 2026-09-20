@@ -656,7 +656,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   // Relationship clusters are open-ended and user-definable.
   // One bunch = one relationship group; one grape = one person.
   const partnerGroups=[];
-  (function buildRelationshipClusters(){
+  try{(function buildRelationshipClusters(){
     const palette=['#745392','#8e5a82','#a8bd4e','#c4775d','#d2a64c','#6d8f52','#a76672','#7588a8'];
     const core=[
       {id:'family',name:'家人',color:'#a8bd4e',cx:235,cy:142,count:58,seed:101},
@@ -744,7 +744,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       for(let i=special.length;i<d.count;i++)g.people.push(placePerson(null,i));
       partnerGroups.push(g);
     });
-  })();
+  })();}catch(err){console.error("partner scene init failed",err)}
 
   const pathDemo=['p5','p17','p18'];
   let selectedGroup=null,selectedPerson=null,pathMode=false,partnersRAF=0;
