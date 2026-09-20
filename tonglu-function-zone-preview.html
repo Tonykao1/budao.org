@@ -694,7 +694,6 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       const g={...d,people:[],labelX:Math.max(16,Math.min(700,d.cx-34)),labelY:Math.max(45,Math.min(340,d.cy+42)),customizable:true};
       let seed=d.seed;
       const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
-      const rows=Math.max(4,Math.ceil(d.count/8));
       const used=new Set();
 
       // Preserve a few named demo people used by the interaction/path prototype.
@@ -715,33 +714,58 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
         );
       }
 
-      function placePerson(meta,idx){
-        // True bunch geometry: broad shoulders, gradually tapering to a rounded point.
-        const row=Math.floor(idx/8);
-        const inRow=Math.min(8,d.count-row*8);
+      // One relationship group can grow as several natural grape bunches.
+      // This is deliberately open-ended and later can be user customized.
+      const bunchCount=Math.max(2,Math.min(6,Math.round(d.count/14)));
+      g.bunches=[];
+      for(let b=0;b<bunchCount;b++){
+        const angle=(b/(bunchCount))*Math.PI*2 + rnd()*.65;
+        const spreadX=20+rnd()*22;
+        const spreadY=12+rnd()*18;
+        g.bunches.push({
+          id:g.id+'_b'+(b+1),
+          cx:Math.round(d.cx+Math.cos(angle)*spreadX),
+          cy:Math.round(d.cy+Math.sin(angle)*spreadY+(b%2)*8),
+          tilt:(rnd()-.5)*.22,
+          scale:.80+rnd()*.34
+        });
+      }
+
+      function placeInBunch(meta,idx){
+        const bunch=g.bunches[idx%bunchCount];
+        const localIndex=Math.floor(idx/bunchCount);
+        const perBunch=Math.ceil(d.count/bunchCount);
+        const rows=Math.max(4,Math.ceil(perBunch/6));
+        const row=Math.floor(localIndex/6);
+        const inRow=Math.min(6,perBunch-row*6);
         const progress=row/Math.max(1,rows-1);
-        const halfWidth=Math.max(6,25*(1-progress*.78));
-        const col=idx%8;
+        const halfWidth=Math.max(3,15*(1-progress*.80))*bunch.scale;
+        const col=localIndex%6;
         const normalized=inRow<=1?0:(col/(inRow-1)-.5)*2;
-        let px=d.cx+normalized*halfWidth+(rnd()-.5)*5;
-        let py=d.cy-20+row*6.2+(rnd()-.5)*4;
-        // Gentle arc makes rows organic rather than grid-like.
-        py+=Math.abs(normalized)*2.2;
+
+        // classic grape-bunch geometry: broad shoulders, tapered point, slight natural tilt.
+        let lx=normalized*halfWidth+(rnd()-.5)*3;
+        let ly=-13+row*5.2+(rnd()-.5)*2.6 + Math.abs(normalized)*1.8;
+        const cos=Math.cos(bunch.tilt),sin=Math.sin(bunch.tilt);
+        let px=bunch.cx+lx*cos-ly*sin;
+        let py=bunch.cy+lx*sin+ly*cos;
         px=Math.round(px/3)*3;py=Math.round(py/3)*3;
+
         let k=0;
-        while(used.has(px+','+py)&&k++<8){px+=(k%2?3:-3);py+=3}
+        while(used.has(px+','+py)&&k++<10){px+=(k%2?3:-3);py+=3}
         used.add(px+','+py);
         return {
           id:meta?.id||('pp'+personSerial++),
           name:meta?.name||('同行者 '+personSerial),
           x:px,y:py,
+          bunchId:bunch.id,
           recent:meta?.recent||'来自同一段真实关系',
           distance:meta?.distance||(d.id==='far'?3:1)
         };
       }
 
-      special.forEach((s,i)=>g.people.push(placePerson(s,i)));
-      for(let i=special.length;i<d.count;i++)g.people.push(placePerson(null,i));
+      special.forEach((s,i)=>g.people.push(placeInBunch(s,i)));
+      for(let i=special.length;i<d.count;i++)g.people.push(placeInBunch(null,i));
       partnerGroups.push(g);
     });
   })();}catch(err){console.error("partner scene init failed",err)}
@@ -803,22 +827,22 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   function renderPartnersBase(){
     const x=partnersBaseCtx;x.clearRect(0,0,800,450);
 
-    // Elegant old grapevine trunk: one continuous living axis with a subtle spiral.
-    x.fillStyle='rgba(58,86,34,.10)';x.fillRect(315,397,175,5);
-    // main dark body
-    drawVineCurve(x,{sx:403,sy:408,c1x:382,c1y:359,c2x:421,c2y:309,ex:398,ey:255,w:10,col:'#5b3923'});
-    drawVineCurve(x,{sx:398,sy:255,c1x:378,c1y:219,c2x:416,c2y:190,ex:402,ey:160,w:9,col:'#5b3923'});
-    // warm side plane
-    drawVineCurve(x,{sx:407,sy:407,c1x:421,c1y:357,c2x:392,c2y:309,ex:408,ey:257,w:5,col:'#865733'});
-    drawVineCurve(x,{sx:408,sy:257,c1x:419,c1y:220,c2x:391,c2y:191,ex:406,ey:162,w:4,col:'#8f6139'});
-    // dark spiral seam wrapping the old vine
-    drawVineCurve(x,{sx:400,sy:397,c1x:420,c1y:367,c2x:383,c2y:339,ex:403,ey:306,w:2,col:'#3f2b20'});
-    drawVineCurve(x,{sx:403,sy:306,c1x:421,c1y:279,c2x:386,c2y:246,ex:404,ey:216,w:2,col:'#3f2b20'});
-    drawVineCurve(x,{sx:404,sy:216,c1x:416,c1y:196,c2x:391,c2y:177,ex:402,ey:160,w:2,col:'#3f2b20'});
-    // restrained roots, all belonging to the same trunk.
-    drawVineCurve(x,{sx:403,sy:404,c1x:382,c1y:411,c2x:350,c2y:418,ex:321,ey:419,w:5,col:'#654027'});
-    drawVineCurve(x,{sx:405,sy:405,c1x:430,c1y:412,c2x:457,c2y:417,ex:483,ey:420,w:5,col:'#654027'});
-    drawVineCurve(x,{sx:401,sy:404,c1x:393,c1y:419,c2x:381,c2y:425,ex:369,ey:430,w:3,col:'#73492a'});
+    // A graceful old grapevine: slim S-curve, restrained roots, no tree-like fork.
+    x.fillStyle='rgba(58,86,34,.08)';x.fillRect(333,401,142,4);
+    drawVineCurve(x,{sx:401,sy:414,c1x:385,c1y:368,c2x:419,c2y:327,ex:398,ey:285,w:7,col:'#523421'});
+    drawVineCurve(x,{sx:398,sy:285,c1x:380,c1y:246,c2x:416,c2y:213,ex:402,ey:176,w:7,col:'#523421'});
+    drawVineCurve(x,{sx:405,sy:413,c1x:416,c1y:370,c2x:390,c2y:329,ex:404,ey:287,w:3,col:'#8a5a33'});
+    drawVineCurve(x,{sx:404,sy:287,c1x:414,c1y:250,c2x:392,c2y:211,ex:406,ey:177,w:3,col:'#91613a'});
+    // bark twist
+    drawVineCurve(x,{sx:399,sy:401,c1x:412,c1y:371,c2x:386,c2y:345,ex:402,ey:316,w:1,col:'#36261d'});
+    drawVineCurve(x,{sx:402,sy:316,c1x:414,c1y:289,c2x:388,c2y:261,ex:402,ey:232,w:1,col:'#36261d'});
+    drawVineCurve(x,{sx:402,sy:232,c1x:412,c1y:212,c2x:393,c2y:192,ex:404,ey:176,w:1,col:'#36261d'});
+    // minimal roots
+    drawVineCurve(x,{sx:402,sy:410,c1x:386,c1y:416,c2x:365,c2y:420,ex:344,ey:420,w:3,col:'#604027'});
+    drawVineCurve(x,{sx:404,sy:410,c1x:421,c1y:416,c2x:442,c2y:420,ex:462,ey:420,w:3,col:'#604027'});
+    // two elegant primary arms disappearing into the canopy
+    drawVineCurve(x,{sx:404,sy:181,c1x:365,c1y:150,c2x:300,c2y:123,ex:228,ey:112,w:4,col:'#604027'});
+    drawVineCurve(x,{sx:404,sy:181,c1x:446,c1y:148,c2x:514,c2y:122,ex:588,ey:111,w:4,col:'#604027'});
 
     // Hundreds of curved, interwoven canes.
     partnerScene.vines.forEach(v=>drawVineCurve(x,v));
@@ -840,8 +864,16 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
 
     // All grapes remain real people.
     partnerGroups.forEach(g=>{
+      (g.bunches||[]).forEach((b,bi)=>{
+        // slender hanging stem for each bunch
+        drawVineCurve(x,{
+          sx:b.cx,sy:b.cy-24,
+          c1x:b.cx+(bi%2?4:-4),c1y:b.cy-38,
+          c2x:b.cx+(bi%3?2:-2),c2y:b.cy-30,
+          ex:b.cx,ey:b.cy-15
+        },'#4f6f2c',1);
+      });
       g.people.forEach(p=>drawGrape(x,p,g.color,false));
-      x.fillStyle='#4f6f2c';x.fillRect(g.cx,g.cy-42,2,23);
     });
 
     // Pixel title plaque lives in the scene.
@@ -941,12 +973,18 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   function showGroup(g){
     selectedGroup=g;selectedPerson=null;pathMode=false;
     groupTag.textContent=g.name;
-    groupTag.style.left=g.labelX+'px';groupTag.style.top=g.labelY+'px';
+    const anchor=(g.bunches&&g.bunches[0])||g;
+    groupTag.style.left=Math.max(10,Math.min(710,anchor.cx-34))+'px';
+    groupTag.style.top=Math.max(40,Math.min(350,anchor.cy+34))+'px';
     groupTag.classList.add('show');personSlip.classList.remove('show');pathNote.classList.remove('show');
   }
   function showPerson(g,p){
     selectedGroup=g;selectedPerson=p;pathMode=false;
-    groupTag.textContent=g.name;groupTag.style.left=g.labelX+'px';groupTag.style.top=g.labelY+'px';groupTag.classList.add('show');
+    groupTag.textContent=g.name;
+    const anchor=(g.bunches&&g.bunches[0])||g;
+    groupTag.style.left=Math.max(10,Math.min(710,anchor.cx-34))+'px';
+    groupTag.style.top=Math.max(40,Math.min(350,anchor.cy+34))+'px';
+    groupTag.classList.add('show');
     personName.textContent=p.name;
     personRelation.textContent='来自「'+g.name+'」这串关系';
     personRecent.textContent=p.recent;
