@@ -89,27 +89,27 @@ body.saved-today .leave-btn{display:none}
 
 
 /* ===== WIND NEWS BOARD: shared 640×360 logical coordinate system ===== */
-.wind-layer{position:fixed;z-index:36;left:0;right:0;top:155px;bottom:0;display:flex;align-items:center;justify-content:center;padding:18px 28px 28px;pointer-events:none;opacity:0;transform:translateY(12px);transition:opacity .16s steps(3,end),transform .16s steps(3,end)}
+.wind-layer{position:fixed;z-index:36;left:0;right:0;top:126px;bottom:0;display:flex;align-items:flex-start;justify-content:center;padding:10px 20px 18px;pointer-events:none;opacity:0;transform:translateY(10px);transition:opacity .16s steps(3,end),transform .16s steps(3,end)}
 body.wind-open .wind-layer{opacity:1;transform:translateY(0);pointer-events:auto}
 body.wind-open .sky-zone{height:205px;min-height:205px}
 body.wind-open .sky-ui{padding-top:18px}
-body.wind-open .identity,body.wind-open .public-screen,body.wind-open .brand,body.wind-open .pbtn:not(#windNewsBtn){opacity:.20}
-body.wind-open #windNewsBtn{opacity:.58;background:#eef2d6}
-.wind-stage{position:relative;width:min(1220px,94vw);aspect-ratio:16/9;max-height:calc(100vh - 205px)}
+body.wind-open .identity,body.wind-open .public-screen,body.wind-open .brand,body.wind-open .pbtn:not(#windNewsBtn){opacity:.12}
+body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
+.wind-stage{position:relative;width:min(1500px,98vw);aspect-ratio:16/9;max-height:calc(100vh - 138px)}
 .wind-coordinate{position:absolute;left:0;top:0;width:640px;height:360px;transform-origin:0 0}
 .wind-canvas{position:absolute;left:0;top:0;width:640px;height:360px;image-rendering:pixelated;image-rendering:crisp-edges}
 .wind-text{position:absolute;left:0;top:0;width:640px;height:360px;color:#2d241c;pointer-events:none}
-.wind-title{position:absolute;left:241px;top:49px;width:190px;text-align:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:28px;font-weight:900;letter-spacing:2px}
+.wind-title{position:absolute;left:236px;top:46px;width:200px;text-align:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:31px;font-weight:900;letter-spacing:2px}
 .wind-note{position:absolute;pointer-events:auto;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
-.wind-note h3{margin:0 0 4px;font-size:15px;line-height:1.25;font-weight:800}
-.wind-note p{margin:0;font-size:11px;line-height:1.5;color:#50473e}
-.wind-meta{margin-top:6px;font-size:9px;color:#6c6259}
-.wind-main{left:201px;top:122px;width:125px}
-.wind-personal{left:381px;top:111px;width:92px}
-.wind-group{left:381px;top:177px;width:94px}
-.wind-world{left:208px;top:236px;width:118px}
-.wind-workshop{left:380px;top:238px;width:96px}
-.wind-tag{position:absolute;left:495px;top:94px;width:16px;height:62px;display:flex;align-items:center;justify-content:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:11px;font-weight:800;writing-mode:vertical-rl;letter-spacing:1px;color:#47301e}
+.wind-note h3{margin:0 0 4px;font-size:16px;line-height:1.22;font-weight:800}
+.wind-note p{margin:0;font-size:12px;line-height:1.45;color:#50473e}
+.wind-meta{margin-top:6px;font-size:9.5px;color:#6c6259}
+.wind-main{left:202px;top:119px;width:130px}
+.wind-personal{left:376px;top:109px;width:100px}
+.wind-group{left:377px;top:174px;width:100px}
+.wind-world{left:204px;top:233px;width:126px}
+.wind-workshop{left:376px;top:235px;width:102px}
+.wind-tag{position:absolute;left:494px;top:91px;width:18px;height:68px;display:flex;align-items:center;justify-content:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:12px;font-weight:800;writing-mode:vertical-rl;letter-spacing:1px;color:#47301e}
 .wind-close{position:absolute;left:462px;top:295px;border:0;background:transparent;color:#5a381e;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:11px;font-weight:800;pointer-events:auto;cursor:pointer}
 @media(max-width:820px){.wind-layer{top:118px;overflow:auto;align-items:flex-start;justify-content:flex-start}.wind-stage{min-width:900px;width:900px}}
 
