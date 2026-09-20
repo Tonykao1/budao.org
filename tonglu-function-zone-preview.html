@@ -653,141 +653,97 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   }
 
 
-  const partnerGroups=[
-    {id:'family',name:'家人',color:'#a8bd4e',cx:297,cy:157,labelX:260,labelY:197,
-      people:[
-        {id:'p1',name:'张洲颖',x:286,y:145,recent:'最近一起走过：今天',distance:1},
-        {id:'p2',name:'Vincent',x:305,y:147,recent:'最近共同经历：家庭',distance:1},
-        {id:'p3',name:'家人 A',x:278,y:162,recent:'同一枝条',distance:1},
-        {id:'p4',name:'家人 B',x:298,y:164,recent:'同一枝条',distance:1},
-        {id:'p20',name:'家人 C',x:316,y:164,recent:'同一枝条',distance:1},
-        {id:'p21',name:'家人 D',x:290,y:181,recent:'同一枝条',distance:1}
-      ]},
-    {id:'budao',name:'步道',color:'#745392',cx:413,cy:137,labelX:382,labelY:176,
-      people:[
-        {id:'p5',name:'Luke',x:400,y:124,recent:'最近共同走过：9月13日',distance:1},
-        {id:'p6',name:'伙伴 A',x:421,y:124,recent:'最近一起步道',distance:1},
-        {id:'p7',name:'伙伴 B',x:391,y:143,recent:'最近一起步道',distance:1},
-        {id:'p8',name:'伙伴 C',x:412,y:145,recent:'最近一起步道',distance:1},
-        {id:'p9',name:'伙伴 D',x:432,y:144,recent:'最近一起步道',distance:1},
-        {id:'p22',name:'伙伴 E',x:403,y:164,recent:'最近一起步道',distance:1},
-        {id:'p23',name:'伙伴 F',x:424,y:164,recent:'最近一起步道',distance:1}
-      ]},
-    {id:'church',name:'尼西帐篷',color:'#8e5a82',cx:568,cy:183,labelX:534,labelY:224,
-      people:[
-        {id:'p10',name:'同伴 A',x:557,y:170,recent:'最近共同聚会',distance:1},
-        {id:'p11',name:'同伴 B',x:578,y:171,recent:'最近共同聚会',distance:1},
-        {id:'p12',name:'同伴 C',x:546,y:189,recent:'最近共同聚会',distance:1},
-        {id:'p13',name:'同伴 D',x:568,y:190,recent:'最近共同聚会',distance:1},
-        {id:'p24',name:'同伴 E',x:589,y:190,recent:'最近共同聚会',distance:1},
-        {id:'p25',name:'同伴 F',x:558,y:210,recent:'最近共同聚会',distance:1}
-      ]},
-    {id:'bookstore',name:'无忧书局',color:'#c4775d',cx:198,cy:210,labelX:164,labelY:250,
-      people:[
-        {id:'p14',name:'杨巍',x:187,y:198,recent:'最近共同经历：工作坊',distance:1},
-        {id:'p15',name:'伙伴 G',x:208,y:199,recent:'最近共同经历：工作坊',distance:1},
-        {id:'p16',name:'伙伴 H',x:178,y:216,recent:'最近共同经历：工作坊',distance:1},
-        {id:'p26',name:'伙伴 I',x:199,y:217,recent:'最近共同经历：工作坊',distance:1},
-        {id:'p27',name:'伙伴 J',x:219,y:217,recent:'最近共同经历：工作坊',distance:1}
-      ]},
-    {id:'far',name:'远方的一串',color:'#d2a64c',cx:649,cy:133,labelX:617,labelY:173,
-      people:[
-        {id:'p17',name:'David',x:638,y:121,recent:'通过 Luke 相连',distance:2},
-        {id:'p18',name:'东京的同行者',x:659,y:122,recent:'从一根远枝传来',distance:3},
-        {id:'p19',name:'伙伴 K',x:630,y:140,recent:'远方关系',distance:3},
-        {id:'p28',name:'伙伴 L',x:651,y:141,recent:'远方关系',distance:3},
-        {id:'p29',name:'伙伴 M',x:670,y:141,recent:'远方关系',distance:3}
-      ]}
-  ];
-  // Every visible grape is still a Person. Dense demo population makes the vine feel truly abundant.
-  (function enrichPartnerGroups(){
-    let serial=100;
-    const layouts={
-      family:{count:270,rx:62,ry:92},
-      budao:{count:370,rx:72,ry:108},
-      church:{count:320,rx:68,ry:102},
-      bookstore:{count:240,rx:58,ry:88},
-      far:{count:300,rx:66,ry:98}
-    };
-    partnerGroups.forEach((g,gi)=>{
-      const cfg=layouts[g.id];
-      let seed=9137+gi*177;
-      const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
-      const original=g.people.slice();
-      g.people=original;
-      const used=new Set(original.map(p=>p.x+','+p.y));
-      for(let i=original.length;i<cfg.count;i++){
-        // Teardrop bunch: wider at top, tapering at bottom.
-        const v=rnd();
-        const yOff=Math.round((v*2-0.68)*cfg.ry);
-        const taper=Math.max(.16,1-Math.max(0,yOff)/(cfg.ry*.88));
-        const xOff=Math.round((rnd()*2-1)*cfg.rx*taper*(.58+rnd()*.42));
-        let px=Math.round(g.cx+xOff), py=Math.round(g.cy+yOff);
-        // Pixel-grid spacing keeps individual grapes readable.
-        px=Math.round(px/4)*4; py=Math.round(py/4)*4;
-        let tries=0;
-        while(used.has(px+','+py)&&tries++<8){px+=((tries%3)-1)*4;py+=4}
-        used.add(px+','+py);
-        g.people.push({
-          id:'px'+(serial++),
-          name:'同行者 '+(serial-100),
-          x:px,y:py,
-          recent:'来自同一段真实关系',
-          distance:g.id==='far'?3:1
-        });
-      }
+  // Relationship clusters are open-ended and user-definable.
+  // One bunch = one relationship group; one grape = one person.
+  const partnerGroups=[];
+  (function buildRelationshipClusters(){
+    const palette=['#745392','#8e5a82','#a8bd4e','#c4775d','#d2a64c','#6d8f52','#a76672','#7588a8'];
+    const core=[
+      {id:'family',name:'家人',color:'#a8bd4e',cx:235,cy:142,count:58,seed:101},
+      {id:'budao',name:'步道',color:'#745392',cx:398,cy:126,count:68,seed:202},
+      {id:'church',name:'尼西帐篷',color:'#8e5a82',cx:548,cy:154,count:62,seed:303},
+      {id:'bookstore',name:'无忧书局',color:'#c4775d',cx:173,cy:213,count:48,seed:404},
+      {id:'far',name:'远方的一串',color:'#d2a64c',cx:663,cy:126,count:54,seed:505}
+    ];
+    const centers=[
+      [92,118],[145,96],[202,82],[278,103],[334,73],[456,78],[514,96],[590,83],[720,102],
+      [112,175],[206,168],[304,176],[455,168],[620,179],[704,167],
+      [84,232],[250,225],[353,220],[489,228],[584,237],[705,224],
+      [150,276],[290,266],[430,270],[555,286],[658,273],[742,258]
+    ];
+    const usedCore=new Set(core.map(g=>g.cx+','+g.cy));
+    const defs=[...core];
+    let gi=0;
+    centers.forEach(([cx,cy],i)=>{
+      // Skip positions too close to a named core group.
+      let near=false;
+      for(const g of core){ if(Math.hypot(cx-g.cx,cy-g.cy)<55){near=true;break;} }
+      if(near)return;
+      defs.push({
+        id:'cluster_'+String(++gi).padStart(2,'0'),
+        name:'同行关系 '+String(gi).padStart(2,'0'),
+        color:palette[(i+2)%palette.length],
+        cx,cy,
+        count:34+(i%5)*7,
+        seed:700+i*31
+      });
     });
-  })();
 
-  // Precomputed world arrays: huge visual density without heavy per-frame regeneration.
-  const partnerScene={vines:[],leaves:[],tendrils:[],frontLeaves:[]};
-  (function buildPartnerScene(){
-    let seed=772031;
-    const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
-    // Curving vines spread beyond the central trunk and weave across the whole viewport.
-    for(let i=0;i<240;i++){
-      const side=i%2===0?-1:1;
-      const sx=400+side*(8+rnd()*45), sy=165+rnd()*75;
-      const ex=side<0?18+rnd()*350:782-rnd()*350;
-      const ey=30+rnd()*260;
-      const bend=side*(55+rnd()*170);
-      partnerScene.vines.push({
-        sx,sy,
-        c1x:sx+bend*.34,c1y:sy-55-rnd()*95,
-        c2x:ex-bend*.20,c2y:ey+(rnd()-.5)*110,
-        ex,ey,
-        w:i<18?3:1+(i%7===0?1:0),
-        col:i%4===0?'#805432':i%3===0?'#6a442a':'#76502f'
-      });
-    }
-    // Dense canopy occupies almost the whole upper 70% of the scene.
-    for(let i=0;i<3200;i++){
-      const band=i%5;
-      const cx=[120,280,425,585,720][band], cy=[112,88,105,90,126][band];
-      const rx=[155,190,210,185,140][band], ry=[112,105,120,108,100][band];
-      const a=rnd()*Math.PI*2, rr=Math.sqrt(rnd());
-      partnerScene.leaves.push({
-        x:cx+Math.cos(a)*rx*rr,
-        y:cy+Math.sin(a)*ry*rr,
-        s:2+Math.floor(rnd()*3),
-        shade:['#315f35','#3f7138','#548242','#679348','#7ca252'][Math.floor(rnd()*5)]
-      });
-    }
-    // Hanging tendrils give the canopy a true vine character.
-    for(let i=0;i<170;i++){
-      partnerScene.tendrils.push({
-        x:24+rnd()*752,
-        y:80+rnd()*180,
-        len:18+rnd()*75,
-        dir:rnd()>.5?1:-1,
-        phase:rnd()*Math.PI*2
-      });
-    }
-    for(let i=0;i<90;i++){
-      partnerScene.frontLeaves.push({
-        x:20+rnd()*760,y:55+rnd()*225,s:2+Math.floor(rnd()*3),phase:rnd()*6.28
-      });
-    }
+    let personSerial=1000;
+    defs.forEach((d,index)=>{
+      const g={...d,people:[],labelX:Math.max(16,Math.min(700,d.cx-34)),labelY:Math.max(45,Math.min(340,d.cy+42)),customizable:true};
+      let seed=d.seed;
+      const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
+      const rows=Math.max(4,Math.ceil(d.count/8));
+      const used=new Set();
+
+      // Preserve a few named demo people used by the interaction/path prototype.
+      const special=[];
+      if(d.id==='family'){
+        special.push(
+          {id:'p1',name:'张洲颖',recent:'最近一起走过：今天',distance:1},
+          {id:'p2',name:'Vincent',recent:'最近共同经历：家庭',distance:1}
+        );
+      }else if(d.id==='budao'){
+        special.push({id:'p5',name:'Luke',recent:'最近共同走过：9月13日',distance:1});
+      }else if(d.id==='bookstore'){
+        special.push({id:'p14',name:'杨巍',recent:'最近共同经历：工作坊',distance:1});
+      }else if(d.id==='far'){
+        special.push(
+          {id:'p17',name:'David',recent:'通过 Luke 相连',distance:2},
+          {id:'p18',name:'东京的同行者',recent:'从一根远枝传来',distance:3}
+        );
+      }
+
+      function placePerson(meta,idx){
+        // True bunch geometry: broad shoulders, gradually tapering to a rounded point.
+        const row=Math.floor(idx/8);
+        const inRow=Math.min(8,d.count-row*8);
+        const progress=row/Math.max(1,rows-1);
+        const halfWidth=Math.max(6,25*(1-progress*.78));
+        const col=idx%8;
+        const normalized=inRow<=1?0:(col/(inRow-1)-.5)*2;
+        let px=d.cx+normalized*halfWidth+(rnd()-.5)*5;
+        let py=d.cy-20+row*6.2+(rnd()-.5)*4;
+        // Gentle arc makes rows organic rather than grid-like.
+        py+=Math.abs(normalized)*2.2;
+        px=Math.round(px/3)*3;py=Math.round(py/3)*3;
+        let k=0;
+        while(used.has(px+','+py)&&k++<8){px+=(k%2?3:-3);py+=3}
+        used.add(px+','+py);
+        return {
+          id:meta?.id||('pp'+personSerial++),
+          name:meta?.name||('同行者 '+personSerial),
+          x:px,y:py,
+          recent:meta?.recent||'来自同一段真实关系',
+          distance:meta?.distance||(d.id==='far'?3:1)
+        };
+      }
+
+      special.forEach((s,i)=>g.people.push(placePerson(s,i)));
+      for(let i=special.length;i<d.count;i++)g.people.push(placePerson(null,i));
+      partnerGroups.push(g);
+    });
   })();
 
   const pathDemo=['p5','p17','p18'];
@@ -803,8 +759,9 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   }
   function groupHit(px,py){
     for(const g of partnerGroups){
-      const maxD=Math.max(...g.people.map(p=>Math.hypot(p.x-g.cx,p.y-g.cy)))+17;
-      if(Math.hypot(px-g.cx,py-g.cy)<=maxD)return g;
+      const xs=g.people.map(p=>p.x),ys=g.people.map(p=>p.y);
+      const minX=Math.min(...xs)-8,maxX=Math.max(...xs)+8,minY=Math.min(...ys)-8,maxY=Math.max(...ys)+8;
+      if(px>=minX&&px<=maxX&&py>=minY&&py<=maxY)return g;
     }
     return null;
   }
@@ -846,13 +803,22 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   function renderPartnersBase(){
     const x=partnersBaseCtx;x.clearRect(0,0,800,450);
 
-    // Slim twisted old vine trunk.
-    x.fillStyle='rgba(58,86,34,.12)';x.fillRect(275,394,255,7);
-    drawVineCurve(x,{sx:392,sy:382,c1x:360,c1y:320,c2x:400,c2y:240,ex:383,ey:172,w:12,col:'#593822'});
-    drawVineCurve(x,{sx:410,sy:382,c1x:443,c1y:315,c2x:397,c2y:245,ex:419,ey:174,w:10,col:'#694326'});
-    drawVineCurve(x,{sx:400,sy:382,c1x:383,c1y:316,c2x:421,c2y:248,ex:401,ey:174,w:5,col:'#8a5a33'});
-    drawVineCurve(x,{sx:394,sy:368,c1x:355,c1y:386,c2x:322,c2y:399,ex:274,ey:401,w:6,col:'#654027'});
-    drawVineCurve(x,{sx:409,sy:370,c1x:449,c1y:390,c2x:487,c2y:402,ex:535,ey:403,w:6,col:'#654027'});
+    // Elegant old grapevine trunk: one continuous living axis with a subtle spiral.
+    x.fillStyle='rgba(58,86,34,.10)';x.fillRect(315,397,175,5);
+    // main dark body
+    drawVineCurve(x,{sx:403,sy:408,c1x:382,c1y:359,c2x:421,c2y:309,ex:398,ey:255,w:10,col:'#5b3923'});
+    drawVineCurve(x,{sx:398,sy:255,c1x:378,c1y:219,c2x:416,c2y:190,ex:402,ey:160,w:9,col:'#5b3923'});
+    // warm side plane
+    drawVineCurve(x,{sx:407,sy:407,c1x:421,c1y:357,c2x:392,c2y:309,ex:408,ey:257,w:5,col:'#865733'});
+    drawVineCurve(x,{sx:408,sy:257,c1x:419,c1y:220,c2x:391,c2y:191,ex:406,ey:162,w:4,col:'#8f6139'});
+    // dark spiral seam wrapping the old vine
+    drawVineCurve(x,{sx:400,sy:397,c1x:420,c1y:367,c2x:383,c2y:339,ex:403,ey:306,w:2,col:'#3f2b20'});
+    drawVineCurve(x,{sx:403,sy:306,c1x:421,c1y:279,c2x:386,c2y:246,ex:404,ey:216,w:2,col:'#3f2b20'});
+    drawVineCurve(x,{sx:404,sy:216,c1x:416,c1y:196,c2x:391,c2y:177,ex:402,ey:160,w:2,col:'#3f2b20'});
+    // restrained roots, all belonging to the same trunk.
+    drawVineCurve(x,{sx:403,sy:404,c1x:382,c1y:411,c2x:350,c2y:418,ex:321,ey:419,w:5,col:'#654027'});
+    drawVineCurve(x,{sx:405,sy:405,c1x:430,c1y:412,c2x:457,c2y:417,ex:483,ey:420,w:5,col:'#654027'});
+    drawVineCurve(x,{sx:401,sy:404,c1x:393,c1y:419,c2x:381,c2y:425,ex:369,ey:430,w:3,col:'#73492a'});
 
     // Hundreds of curved, interwoven canes.
     partnerScene.vines.forEach(v=>drawVineCurve(x,v));
@@ -920,7 +886,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       ];
       routeVines.forEach(v=>drawVineCurve(x,v,'#efcb4a',3));
       x.restore();
-      [partnerGroups[1].people[0],partnerGroups[4].people[0],partnerGroups[4].people[1]].forEach(p=>drawGrape(x,p,'#d8b34e',true));
+      ['p5','p17','p18'].map(id=>partnerGroups.flatMap(g=>g.people).find(p=>p.id===id)).filter(Boolean).forEach(p=>drawGrape(x,p,'#d8b34e',true));
     }
   }
   function resizePartners(){
