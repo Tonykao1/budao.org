@@ -669,7 +669,8 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       [92,118],[145,96],[202,82],[278,103],[334,73],[456,78],[514,96],[590,83],[720,102],
       [112,175],[206,168],[304,176],[455,168],[620,179],[704,167],
       [84,232],[250,225],[353,220],[489,228],[584,237],[705,224],
-      [150,276],[290,266],[430,270],[555,286],[658,273],[742,258]
+      [150,276],[290,266],[430,270],[555,286],[658,273],[742,258],
+      [-24,142],[-18,224],[818,132],[826,218]
     ];
     const usedCore=new Set(core.map(g=>g.cx+','+g.cy));
     const defs=[...core];
@@ -793,24 +794,26 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       });
     }
 
-    // Dense foliage.
+    // Dense foliage. Extend slightly beyond the viewport so the browser edge
+    // feels like a crop through a larger vine, not the edge of the plant.
+    const canopyTop=x=>42+10*Math.sin(x/72)+6*Math.sin((x+40)/31);
     for(let i=0;i<3200;i++){
-      const band=i%5;
-      const cx=[120,280,425,585,720][band], cy=[112,88,105,90,126][band];
-      const rx=[155,190,210,185,140][band], ry=[112,105,120,108,100][band];
-      const a=rnd()*Math.PI*2, rr=Math.sqrt(rnd());
+      const x=-70+rnd()*940;
+      const top=canopyTop(x);
+      const depth=175+rnd()*58;
+      let y=top+Math.pow(rnd(),.72)*depth;
+      if(rnd()<.04)y-=10+rnd()*16;
       partnerScene.leaves.push({
-        x:cx+Math.cos(a)*rx*rr,
-        y:cy+Math.sin(a)*ry*rr,
+        x,y,
         s:2+Math.floor(rnd()*3),
         shade:['#315f35','#3f7138','#548242','#679348','#7ca252'][Math.floor(rnd()*5)]
       });
     }
 
-    // Hanging tendrils.
+    // Hanging tendrils also continue beyond both browser edges.
     for(let i=0;i<170;i++){
       partnerScene.tendrils.push({
-        x:24+rnd()*752,
+        x:-70+rnd()*940,
         y:80+rnd()*180,
         len:18+rnd()*75,
         dir:rnd()>.5?1:-1,
@@ -820,9 +823,10 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
 
     // Small moving foreground layer only.
     for(let i=0;i<90;i++){
+      const x=-70+rnd()*940;
       partnerScene.frontLeaves.push({
-        x:20+rnd()*760,
-        y:55+rnd()*225,
+        x,
+        y:canopyTop(x)+18+rnd()*205,
         s:2+Math.floor(rnd()*3),
         phase:rnd()*6.28
       });
@@ -886,22 +890,22 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   function renderPartnersBase(){
     const x=partnersBaseCtx;x.clearRect(0,0,800,450);
 
-    // A graceful old grapevine: slim S-curve, restrained roots, no tree-like fork.
+    // Same approved S-curve, but with enough visual weight to carry the abundant canopy.
     x.fillStyle='rgba(58,86,34,.08)';x.fillRect(333,401,142,4);
-    drawVineCurve(x,{sx:401,sy:414,c1x:385,c1y:368,c2x:419,c2y:327,ex:398,ey:285,w:7,col:'#523421'});
-    drawVineCurve(x,{sx:398,sy:285,c1x:380,c1y:246,c2x:416,c2y:213,ex:402,ey:176,w:7,col:'#523421'});
-    drawVineCurve(x,{sx:405,sy:413,c1x:416,c1y:370,c2x:390,c2y:329,ex:404,ey:287,w:3,col:'#8a5a33'});
-    drawVineCurve(x,{sx:404,sy:287,c1x:414,c1y:250,c2x:392,c2y:211,ex:406,ey:177,w:3,col:'#91613a'});
+    drawVineCurve(x,{sx:401,sy:414,c1x:385,c1y:368,c2x:419,c2y:327,ex:398,ey:285,w:11,col:'#523421'});
+    drawVineCurve(x,{sx:398,sy:285,c1x:380,c1y:246,c2x:416,c2y:213,ex:402,ey:176,w:10,col:'#523421'});
+    drawVineCurve(x,{sx:405,sy:413,c1x:416,c1y:370,c2x:390,c2y:329,ex:404,ey:287,w:5,col:'#8a5a33'});
+    drawVineCurve(x,{sx:404,sy:287,c1x:414,c1y:250,c2x:392,c2y:211,ex:406,ey:177,w:5,col:'#91613a'});
     // bark twist
-    drawVineCurve(x,{sx:399,sy:401,c1x:412,c1y:371,c2x:386,c2y:345,ex:402,ey:316,w:1,col:'#36261d'});
-    drawVineCurve(x,{sx:402,sy:316,c1x:414,c1y:289,c2x:388,c2y:261,ex:402,ey:232,w:1,col:'#36261d'});
+    drawVineCurve(x,{sx:399,sy:401,c1x:412,c1y:371,c2x:386,c2y:345,ex:402,ey:316,w:2,col:'#36261d'});
+    drawVineCurve(x,{sx:402,sy:316,c1x:414,c1y:289,c2x:388,c2y:261,ex:402,ey:232,w:2,col:'#36261d'});
     drawVineCurve(x,{sx:402,sy:232,c1x:412,c1y:212,c2x:393,c2y:192,ex:404,ey:176,w:1,col:'#36261d'});
     // minimal roots
-    drawVineCurve(x,{sx:402,sy:410,c1x:386,c1y:416,c2x:365,c2y:420,ex:344,ey:420,w:3,col:'#604027'});
-    drawVineCurve(x,{sx:404,sy:410,c1x:421,c1y:416,c2x:442,c2y:420,ex:462,ey:420,w:3,col:'#604027'});
-    // two elegant primary arms disappearing into the canopy
-    drawVineCurve(x,{sx:404,sy:181,c1x:365,c1y:150,c2x:300,c2y:123,ex:228,ey:112,w:4,col:'#604027'});
-    drawVineCurve(x,{sx:404,sy:181,c1x:446,c1y:148,c2x:514,c2y:122,ex:588,ey:111,w:4,col:'#604027'});
+    drawVineCurve(x,{sx:402,sy:410,c1x:386,c1y:416,c2x:365,c2y:420,ex:344,ey:420,w:4,col:'#604027'});
+    drawVineCurve(x,{sx:404,sy:410,c1x:421,c1y:416,c2x:442,c2y:420,ex:462,ey:420,w:4,col:'#604027'});
+    // primary arms disappear naturally into the canopy
+    drawVineCurve(x,{sx:404,sy:181,c1x:365,c1y:150,c2x:300,c2y:123,ex:228,ey:112,w:5,col:'#604027'});
+    drawVineCurve(x,{sx:404,sy:181,c1x:446,c1y:148,c2x:514,c2y:122,ex:588,ey:111,w:5,col:'#604027'});
 
     // Hundreds of curved, interwoven canes.
     partnerScene.vines.forEach(v=>drawVineCurve(x,v));
