@@ -270,6 +270,7 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
   const windStage = document.getElementById('windStage');
   const windCoordinate = document.getElementById('windCoordinate');
   const windCanvas = document.getElementById('windCanvas');
+  const windTagText = document.querySelector('.wind-tag');
   const closeBook = document.getElementById('closeBook');
   const refDisplay = document.getElementById('refDisplay');
   const selector = document.getElementById('selector');
@@ -557,8 +558,14 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
   function windAnimate(time){
     if(document.body.classList.contains('wind-open')){
       drawWindBoard(time);
+      const tagAngle=Math.sin(time*0.001*0.48)*0.055;
+      if(windTagText){
+        windTagText.style.transformOrigin='50% 0%';
+        windTagText.style.transform='rotate('+tagAngle+'rad)';
+      }
       windAnimRAF=requestAnimationFrame(windAnimate);
     }else{
+      if(windTagText) windTagText.style.transform='';
       windAnimRAF=0;
     }
   }
@@ -576,6 +583,7 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
     windNewsBtn.classList.remove('grass-active');
     if(!document.body.classList.contains('grassbook-open')) skyZone.classList.remove('book-open');
     if(windAnimRAF){cancelAnimationFrame(windAnimRAF);windAnimRAF=0}
+    if(windTagText) windTagText.style.transform='';
   }
 
   const books={
