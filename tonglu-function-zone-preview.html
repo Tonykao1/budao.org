@@ -771,67 +771,41 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     });
   })();}catch(err){console.error("partner scene init failed",err)}
 
-  // Precomputed grapevine world. Kept separate from relationship clusters.
-  const partnerScene={vines:[],leaves:[],tendrils:[],frontLeaves:[]};
-  try{(function buildPartnerScene(){
-    let seed=772031;
-    const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
-
-    // Curving vines across the full canopy.
-    for(let i=0;i<240;i++){
-      const side=i%2===0?-1:1;
-      const sx=400+side*(8+rnd()*45), sy=165+rnd()*75;
-      const ex=side<0?18+rnd()*350:782-rnd()*350;
-      const ey=30+rnd()*260;
-      const bend=side*(55+rnd()*170);
-      partnerScene.vines.push({
-        sx,sy,
-        c1x:sx+bend*.34,c1y:sy-55-rnd()*95,
-        c2x:ex-bend*.20,c2y:ey+(rnd()-.5)*110,
-        ex,ey,
-        w:i<18?3:1+(i%7===0?1:0),
-        col:i%4===0?'#805432':i%3===0?'#6a442a':'#76502f'
-      });
-    }
-
-    // Dense foliage. Extend slightly beyond the viewport so the browser edge
-    // feels like a crop through a larger vine, not the edge of the plant.
-    const canopyTop=x=>42+10*Math.sin(x/72)+6*Math.sin((x+40)/31);
-    for(let i=0;i<3200;i++){
-      const x=-70+rnd()*940;
-      const top=canopyTop(x);
-      const depth=175+rnd()*58;
-      let y=top+Math.pow(rnd(),.72)*depth;
-      if(rnd()<.04)y-=10+rnd()*16;
-      partnerScene.leaves.push({
-        x,y,
-        s:2+Math.floor(rnd()*3),
-        shade:['#315f35','#3f7138','#548242','#679348','#7ca252'][Math.floor(rnd()*5)]
-      });
-    }
-
-    // Hanging tendrils also continue beyond both browser edges.
-    for(let i=0;i<170;i++){
-      partnerScene.tendrils.push({
-        x:-70+rnd()*940,
-        y:80+rnd()*180,
-        len:18+rnd()*75,
-        dir:rnd()>.5?1:-1,
-        phase:rnd()*Math.PI*2
-      });
-    }
-
-    // Small moving foreground layer only.
-    for(let i=0;i<90;i++){
-      const x=-70+rnd()*940;
-      partnerScene.frontLeaves.push({
-        x,
-        y:canopyTop(x)+18+rnd()*205,
-        s:2+Math.floor(rnd()*3),
-        phase:rnd()*6.28
-      });
-    }
-  })();}catch(err){console.error("partner scene build failed",err)}
+  // Fixed visual layer: approved grapevine sprite only.
+  // The original pasture remains live underneath in tonglu-pasture-v20.html.
+  const partnersTreeImage=new Image();
+  let partnersTreeReady=false,partnersTreeLoading=null;
+  function loadPartnersTree(){
+    if(partnersTreeReady)return Promise.resolve(true);
+    if(partnersTreeLoading)return partnersTreeLoading;
+    const parts=[
+      './assets/partners-tree-1.txt',
+      './assets/partners-tree-2.txt',
+      './assets/partners-tree-3.txt',
+      './assets/partners-tree-4.txt',
+      './assets/partners-tree-5.txt'
+    ];
+    partnersTreeLoading=Promise.all(parts.map(p=>fetch(p,{cache:'force-cache'}).then(r=>{
+      if(!r.ok)throw new Error('tree asset '+r.status);
+      return r.text();
+    }))).then(chunks=>new Promise((resolve,reject)=>{
+      partnersTreeImage.onload=()=>{
+        partnersTreeReady=true;
+        partnersBaseReady=false;
+        try{
+          if(document.body.classList.contains('partners-open'))drawPartners(performance.now());
+        }catch(err){console.error('partners redraw failed',err)}
+        resolve(true);
+      };
+      partnersTreeImage.onerror=()=>reject(new Error('tree sprite decode failed'));
+      partnersTreeImage.src='data:image/png;base64,'+chunks.join('');
+    })).catch(err=>{
+      console.error('partners tree load failed',err);
+      partnersTreeLoading=null;
+      return false;
+    });
+    return partnersTreeLoading;
+  }
 
   const pathDemo=['p5','p17','p18'];
   let selectedGroup=null,selectedPerson=null,pathMode=false,partnersRAF=0;
@@ -888,76 +862,30 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   }
 
   function renderPartnersBase(){
-    const x=partnersBaseCtx;x.clearRect(0,0,800,450);
+    if(!partnersTreeReady)return false;
+    const x=partnersBaseCtx;
+    x.clearRect(0,0,800,450);
+    x.imageSmoothingEnabled=false;
 
-    // Same approved S-curve, but with enough visual weight to carry the abundant canopy.
-    x.fillStyle='rgba(58,86,34,.08)';x.fillRect(333,401,142,4);
-    drawVineCurve(x,{sx:401,sy:414,c1x:385,c1y:368,c2x:419,c2y:327,ex:398,ey:285,w:11,col:'#523421'});
-    drawVineCurve(x,{sx:398,sy:285,c1x:380,c1y:246,c2x:416,c2y:213,ex:402,ey:176,w:10,col:'#523421'});
-    drawVineCurve(x,{sx:405,sy:413,c1x:416,c1y:370,c2x:390,c2y:329,ex:404,ey:287,w:5,col:'#8a5a33'});
-    drawVineCurve(x,{sx:404,sy:287,c1x:414,c1y:250,c2x:392,c2y:211,ex:406,ey:177,w:5,col:'#91613a'});
-    // bark twist
-    drawVineCurve(x,{sx:399,sy:401,c1x:412,c1y:371,c2x:386,c2y:345,ex:402,ey:316,w:2,col:'#36261d'});
-    drawVineCurve(x,{sx:402,sy:316,c1x:414,c1y:289,c2x:388,c2y:261,ex:402,ey:232,w:2,col:'#36261d'});
-    drawVineCurve(x,{sx:402,sy:232,c1x:412,c1y:212,c2x:393,c2y:192,ex:404,ey:176,w:1,col:'#36261d'});
-    // minimal roots
-    drawVineCurve(x,{sx:402,sy:410,c1x:386,c1y:416,c2x:365,c2y:420,ex:344,ey:420,w:4,col:'#604027'});
-    drawVineCurve(x,{sx:404,sy:410,c1x:421,c1y:416,c2x:442,c2y:420,ex:462,ey:420,w:4,col:'#604027'});
-    // primary arms disappear naturally into the canopy
-    drawVineCurve(x,{sx:404,sy:181,c1x:365,c1y:150,c2x:300,c2y:123,ex:228,ey:112,w:5,col:'#604027'});
-    drawVineCurve(x,{sx:404,sy:181,c1x:446,c1y:148,c2x:514,c2y:122,ex:588,ey:111,w:5,col:'#604027'});
+    // Only the approved transparent grapevine is composited here.
+    // Everything visible through its transparent pixels is the original live pasture.
+    x.drawImage(partnersTreeImage,0,0,800,450);
 
-    // Hundreds of curved, interwoven canes.
-    partnerScene.vines.forEach(v=>drawVineCurve(x,v));
-
-    // Thousands of leaves, static base.
-    partnerScene.leaves.forEach((L,i)=>{
-      drawLeaf(x,L.x,L.y,L.s,L.shade,0);
-    });
-
-    // Tendrils: coils and hanging curls.
-    partnerScene.tendrils.forEach((d,i)=>{
-      x.strokeStyle=i%3===0?'#58752f':'#698335';x.lineWidth=1;
-      x.beginPath();x.moveTo(d.x,d.y);
-      const dx=d.dir*(8+(i%5)*2);
-      x.bezierCurveTo(d.x+dx,d.y+d.len*.25,d.x-dx,d.y+d.len*.55,d.x+dx*.35,d.y+d.len*.72);
-      x.bezierCurveTo(d.x+dx,d.y+d.len*.83,d.x-dx*.7,d.y+d.len*.94,d.x,d.y+d.len);
-      x.stroke();
-    });
-
-    // All grapes remain real people.
-    partnerGroups.forEach(g=>{
-      (g.bunches||[]).forEach((b,bi)=>{
-        // slender hanging stem for each bunch
-        drawVineCurve(x,{
-          sx:b.cx,sy:b.cy-24,
-          c1x:b.cx+(bi%2?4:-4),c1y:b.cy-38,
-          c2x:b.cx+(bi%3?2:-2),c2y:b.cy-30,
-          ex:b.cx,ey:b.cy-15
-        },'#4f6f2c',1);
-      });
-      g.people.forEach(p=>drawGrape(x,p,g.color,false));
-    });
-
-    // Pixel title plaque lives in the scene.
+    // Module title remains UI, not part of the tree artwork.
     x.fillStyle='#6c4428';x.fillRect(44,48,154,42);
     x.fillStyle='#bf8748';x.fillRect(40,44,154,42);
     x.fillStyle='#d39b5a';x.fillRect(44,47,146,4);
     x.fillStyle='#3f2c1c';x.font='bold 20px "Songti SC","PingFang SC",serif';
     x.textBaseline='middle';x.textAlign='center';x.fillText('同 路 伙 伴',117,65);x.textAlign='start';
-
-    // Small lantern + bird.
-    x.fillStyle='#50351f';x.fillRect(696,72,3,30);x.fillRect(687,100,20,4);x.fillRect(689,104,16,22);
-    x.fillStyle='#d9a93f';x.fillRect(693,109,8,12);x.fillStyle='#f0d06a';x.fillRect(695,111,4,8);
-    x.fillStyle='#35586c';x.fillRect(104,249,16,7);x.fillRect(111,243,9,8);
-    x.fillStyle='#eef0df';x.fillRect(116,246,5,4);x.fillStyle='#d4863e';x.fillRect(121,248,5,2);
+    return true;
   }
 
   let partnersBaseReady=false;
   function ensurePartnersBase(){
     if(partnersBaseReady)return true;
+    if(!partnersTreeReady){loadPartnersTree();return false}
     try{
-      renderPartnersBase();
+      if(!renderPartnersBase())return false;
       partnersBaseReady=true;
       return true;
     }catch(err){
@@ -969,19 +897,8 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   function drawPartners(time=0){
     const x=partnersCanvas.getContext('2d');x.imageSmoothingEnabled=false;
     x.clearRect(0,0,800,450);
-    if(!ensurePartnersBase()){
-      x.fillStyle='#5f7f3f';x.fillRect(150,120,500,180);
-      x.fillStyle='#6a4428';x.fillRect(395,180,10,210);
-      return;
-    }
+    if(!ensurePartnersBase())return;
     x.drawImage(partnersBaseCanvas,0,0);
-    const t=time*.001;
-
-    // Only a small foreground layer moves.
-    partnerScene.frontLeaves.forEach((L,i)=>{
-      const drift=Math.round(Math.sin(t*.28+L.phase)*(i%5===0?1.4:.6));
-      drawLeaf(x,L.x,L.y,L.s,i%3===0?'#456f39':'#71994a',drift);
-    });
 
     // Selected relationship or person glows without turning into a graph.
     if(selectedGroup){
@@ -989,16 +906,12 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     }
     if(selectedPerson)drawGrape(x,selectedPerson,selectedGroup?.color||'#8d6aa4',true);
 
-    //藤路 lights only pre-existing vine-like curves.
+    // 藤路暂不覆盖人工黄色曲线，避免破坏已经通过的树体视觉。
     if(pathMode){
-      x.save();x.shadowColor='#f0cc49';x.shadowBlur=6;
-      const routeVines=[
-        {sx:400,sy:174,c1x:430,c1y:130,c2x:500,c2y:100,ex:606,ey:82},
-        {sx:606,sy:82,c1x:626,c1y:100,c2x:640,c2y:112,ex:659,ey:122}
-      ];
-      routeVines.forEach(v=>drawVineCurve(x,v,'#efcb4a',3));
-      x.restore();
-      ['p5','p17','p18'].map(id=>partnerGroups.flatMap(g=>g.people).find(p=>p.id===id)).filter(Boolean).forEach(p=>drawGrape(x,p,'#d8b34e',true));
+      ['p5','p17','p18']
+        .map(id=>partnerGroups.flatMap(g=>g.people).find(p=>p.id===id))
+        .filter(Boolean)
+        .forEach(p=>drawGrape(x,p,'#d8b34e',true));
     }
   }
   function resizePartners(){
@@ -1180,6 +1093,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   drawWindBoard(0);
   resizeWind();
   resizePartners();
+  loadPartnersTree();
 })();
 </script>
 </body>
