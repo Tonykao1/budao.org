@@ -39,6 +39,9 @@ button,input,textarea,select{font:inherit}
 .public-screen{min-height:140px;padding:14px 16px 16px;background:rgba(255,250,240,.96);color:var(--ink);display:flex;flex-direction:column}
 .public-screen .head{display:flex;align-items:center;justify-content:space-between;padding-bottom:9px;border-bottom:2px solid #d8e2ec}.public-screen .head strong{font-size:17px;font-weight:900}.public-screen .kind{font:800 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:#597b9f;border:2px solid #7795b3;padding:4px 6px;background:#edf6ff}.public-screen .message{flex:1;display:flex;align-items:center;font-size:15px;line-height:1.75;letter-spacing:.03em;color:#31547e;padding:12px 1px 8px}.public-screen .foot{font-size:11px;color:#738da8;text-align:right}
 .sky-zone.returning .sky-ui{opacity:0!important;transform:translateY(-8px)!important}
+.self-close{position:absolute;right:34px;top:26px;z-index:5;border:2px solid #684321;background:#d9b36f;color:#4b301b;padding:8px 13px;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:14px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 rgba(78,49,25,.18);opacity:0;visibility:hidden;pointer-events:none}
+.sky-zone.returning .self-close{opacity:1;visibility:visible;pointer-events:auto}
+
 
 /* ===== TRUE PIXEL SCROLL ===== */
 .book-layer{position:fixed;z-index:35;left:0;right:0;top:165px;bottom:0;display:flex;align-items:center;justify-content:center;padding:18px 28px 28px;pointer-events:none;visibility:hidden;opacity:0;transform:translateY(12px);transition:opacity .16s steps(3,end),transform .16s steps(3,end),visibility 0s linear .16s}
@@ -226,6 +229,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       </aside>
     </div>
   </div>
+  <button class="self-close" id="selfClose" type="button">收起 ×</button>
 </div>
 
 <section class="book-layer" id="bookLayer" aria-label="我的牧草">
@@ -379,6 +383,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   const frame = document.querySelector('.scene');
   const skyZone = document.querySelector('.sky-zone');
   const returnNow = document.getElementById('returnNow');
+  const selfClose = document.getElementById('selfClose');
   const grassBookBtn = document.getElementById('grassBookBtn');
   const windNewsBtn = document.getElementById('windNewsBtn');
   const closeWind = document.getElementById('closeWind');
@@ -1357,6 +1362,15 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     }
   }catch(e){}
 
+  function closeSelfView(){
+    try{
+      const doc=frame.contentWindow.document;
+      const back=doc.getElementById('back')||doc.querySelector('.focus-ui .back');
+      if(back&&!back.disabled)back.click();
+    }catch(err){console.warn(err)}
+    skyZone.classList.remove('returning');
+  }
+
   function openSelfSheep(){
     closeGrassBook();
     closeWindBoard();
@@ -1371,6 +1385,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     }catch(err){console.warn(err)}
   }
   returnNow.addEventListener('click',openSelfSheep);
+  selfClose.addEventListener('click',closeSelfView);
   skyZone.addEventListener('pointerleave',()=>skyZone.classList.remove('returning'));
 
   const now=new Date();
