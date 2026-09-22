@@ -537,13 +537,86 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
     drawWeatherFx(weatherKind(current.weatherCode),cloudCover,Number(current.windKmh)||0);
   }
 
+  function buildEnvironmentState(raw,lat,lon,source,city){
+    const offset=Number(raw.utc_offset_seconds||0);
+    const toEpoch=value=>{
+      if(!value)return null;
+      const t=Date.parse(value+'Z');
+      return Number.isFinite(t)?t-offset*1000:null;
+    };
+    const sunrise=raw.daily?.sunrise||[];
+    const sunset=raw.daily?.sunset||[];
+    const now=Date.now();
+    const synodic=29.53058867;
+    const knownNewMoon=Date.UTC(2000,0,6,18,14,0);
+    const days=(now-knownNewMoon)/86400000;
+    const phase=((days/synodic)%1+1)%1;
+    return {
+      ok:true,
+      source,
+      location:{
+        latitude:lat,
+        longitude:lon,
+        city:city||'',
+        timezone:raw.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',
+        timezoneAbbreviation:raw.timezone_abbreviation||'',
+        utcOffsetSeconds:offset
+      },
+      current:{
+        observedAt:now,
+        temperatureC:raw.current?.temperature_2m??null,
+        weatherCode:raw.current?.weather_code??0,
+        cloudCover:raw.current?.cloud_cover??0,
+        precipitationMm:raw.current?.precipitation??0,
+        rainMm:raw.current?.rain??0,
+        snowfallCm:raw.current?.snowfall??0,
+        windKmh:raw.current?.wind_speed_10m??0,
+        isDay:raw.current?.is_day===1
+      },
+      astronomy:{
+        sunsetYesterday:toEpoch(sunset[0]),
+        sunriseToday:toEpoch(sunrise[1]),
+        sunsetToday:toEpoch(sunset[1]),
+        sunriseTomorrow:toEpoch(sunrise[2]),
+        moonPhase:phase,
+        moonAgeDays:phase*synodic
+      }
+    };
+  }
+
+  async function fetchWeatherAt(lat,lon,source,city){
+    const u=new URL('https://api.open-meteo.com/v1/forecast');
+    u.searchParams.set('latitude',String(lat));
+    u.searchParams.set('longitude',String(lon));
+    u.searchParams.set('current','temperature_2m,weather_code,cloud_cover,precipitation,rain,snowfall,wind_speed_10m,is_day');
+    u.searchParams.set('daily','sunrise,sunset');
+    u.searchParams.set('timezone','auto');
+    u.searchParams.set('past_days','1');
+    u.searchParams.set('forecast_days','2');
+    const r=await fetch(u.toString(),{cache:'no-store'});
+    if(!r.ok)throw new Error('weather '+r.status);
+    const raw=await r.json();
+    environmentState=buildEnvironmentState(raw,lat,lon,source,city);
+    drawEnvironment();
+  }
+
   async function fetchEnvironment(lat,lon){
     try{
-      const q=(Number.isFinite(lat)&&Number.isFinite(lon))?'?lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon):'';
-      const r=await fetch('/api/pasture-environment'+q,{cache:'no-store'});
-      const data=await r.json();
-      if(data&&data.ok){environmentState=data;drawEnvironment()}
-    }catch(err){console.warn('pasture environment unavailable',err)}
+      if(Number.isFinite(lat)&&Number.isFinite(lon)){
+        await fetchWeatherAt(lat,lon,'browser','');
+        return;
+      }
+      const ip=await fetch('https://ipwho.is/',{cache:'no-store'});
+      const geo=await ip.json();
+      if(geo&&geo.success!==false&&Number.isFinite(Number(geo.latitude))&&Number.isFinite(Number(geo.longitude))){
+        await fetchWeatherAt(Number(geo.latitude),Number(geo.longitude),'ip',geo.city||'');
+        return;
+      }
+      throw new Error('ip location unavailable');
+    }catch(err){
+      console.warn('pasture environment unavailable',err);
+      try{await fetchWeatherAt(39.9042,116.4074,'fallback','北京')}catch(_){}
+    }
   }
 
   function refreshEnvironment(){
