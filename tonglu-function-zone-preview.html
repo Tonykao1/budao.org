@@ -434,17 +434,9 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
 
   function drawWeatherFx(kind,cloudCover,windKmh){
     const ctx=environmentCtx;
-    if(cloudCover>48||kind==='overcast'){
-      ctx.save();
-      ctx.globalAlpha=Math.min(.34,.10+cloudCover/420);
-      const drift=(environmentTick*(.18+Math.min(1,windKmh/35)))%520;
-      const groups=[[-70,44,92],[95,68,112],[275,42,106],[415,73,92]];
-      for(const g of groups){
-        let x=(g[0]+drift)%560-40,y=g[1],w=g[2];
-        pxRect(x,y,w,8,'#d8e4ea');pxRect(x+12,y-7,w*.55,8,'#e4edf1');pxRect(x+40,y-13,w*.33,7,'#edf3f4');
-      }
-      ctx.restore();
-    }
+    // Keep the pasture's original pixel clouds as the single cloud system.
+    // Do not paint a second weather-cloud layer here; this preserves one visual
+    // language across day/night and prevents overlapping cloud silhouettes.
 
     if(kind==='fog'){
       ctx.save();ctx.globalAlpha=.18;
