@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v18</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  // v18 fixes the v17 wrapper mistake. We keep the approved v15 behavior,
+  // but inject the flock patch into v14's final transformation stage,
+  // where the real v10 sheep[] and drawWorldSheep() actually exist.
+  const r=await fetch('./tonglu-pasture-v15.html',{cache:'no-store'});
+  let src=await r.text();
+  src=src.replaceAll('同路 · 数字牧场 v15','同路 · 数字牧场 v18');
+
+  const flockPatch=String.raw`
+  // v18 flock patch: runs after v14 has produced the real final HTML.
+  html=html.replace('</style>','#worldNeed,#worldGive{display:none!important}</style>');
+
+  html=html.replace(/function sheepBody\(px,py,s,f,h,graze=false\)\{[\s\S]*?\}\nconst sheep=/,
+  "let sheepPhase=0;\nfunction sheepBody(px,py,s,f,h,graze=false){const g=(graze&&Math.sin((tick+sheepPhase)/72)>.58)?4:0;rect(px,py,24*s,12*s,f);rect(px+4*s,py-5*s,17*s,19*s,f);rect(px+8*s,py-8*s,10*s,22*s,f);rect(px+19*s,py+2*s+g,10*s,10*s,h);rect(px+27*s,py+4*s+g,3*s,4*s,h);rect(px+17*s,py+3*s+g,3*s,3*s,h);rect(px+24*s,py+4*s+g,1.5*s,1.5*s,C.ink);rect(px+5*s,py+12*s,3*s,8*s,'#5d5851');rect(px+16*s,py+12*s,3*s,8*s,'#5d5851')}\nconst sheep=");
+
+  html=html.replace(/const sheep=\[[\s\S]*?\];\nfunction drawWorldSheep/,
+  "const sheep=[\n"+
+  "{x:48,y:168,s:.34,f:'#f4ecdc',h:'#8d836e',m:'wander',a:.7,p:11,flip:true},\n"+
+  "{x:96,y:174,s:.38,f:'#d8d7ce',h:'#756d66',m:'idle',a:.5,p:39},\n"+
+  "{x:145,y:169,s:.35,f:'#f1d7bf',h:'#987b68',m:'wander',a:.8,p:67},\n"+
+  "{x:190,y:181,s:.43,f:'#bfd8da',h:'#806f67',m:'graze',a:.5,p:95,flip:true},\n"+
+  "{x:238,y:174,s:.37,f:'#c7d5b5',h:'#78806d',m:'idle',a:.5,p:123},\n"+
+  "{x:284,y:187,s:.47,f:'#dec9c8',h:'#866f70',m:'wander',a:.8,p:151},\n"+
+  "{x:430,y:177,s:.38,f:'#d5c7a8',h:'#81745d',m:'graze',a:.4,p:179,flip:true},\n"+
+  "{x:458,y:190,s:.45,f:'#eee8dc',h:'#746d65',m:'wander',a:.6,p:207},\n"+
+  "{x:34,y:203,s:.57,f:'#f2e3b3',h:'#917d62',m:'graze',a:.6,p:235},\n"+
+  "{x:77,y:214,s:.64,f:'#bfd8da',h:'#776d66',m:'wander',a:1.1,p:263,flip:true},\n"+
+  "{x:123,y:198,s:.55,f:'#f3ead7',h:'#887e6e',m:'idle',a:.5,p:291},\n"+
+  "{x:165,y:221,s:.72,f:'#d8d7ce',h:'#756d66',m:'graze',a:.6,p:319},\n"+
+  "{x:208,y:207,s:.62,f:'#f1d7bf',h:'#947966',m:'wander',a:1.0,p:347},\n"+
+  "{x:255,y:226,s:.76,f:'#c7d5b5',h:'#747c68',m:'idle',a:.7,p:375,flip:true},\n"+
+  "{x:296,y:211,s:.66,f:'#dec9c8',h:'#806a6c',m:'wander',a:.9,p:403},\n"+
+  "{x:431,y:218,s:.63,f:'#f3ead7',h:'#897f70',m:'graze',a:.5,p:431},\n"+
+  "{x:460,y:231,s:.74,f:'#d5c7a8',h:'#80725c',m:'wander',a:.8,p:459,flip:true},\n"+
+  "{x:43,y:244,s:.88,f:'#bfd8da',h:'#756d68',m:'wander',a:1.4,p:487},\n"+
+  "{x:88,y:266,s:1.08,f:'#f2e3b3',h:'#8b785f',m:'graze',a:.7,p:515,flip:true},\n"+
+  "{x:140,y:242,s:.86,f:'#dec9c8',h:'#816b6d',m:'idle',a:.7,p:543},\n"+
+  "{x:181,y:278,s:1.17,f:'#f3ead7',h:'#857b6c',m:'wander',a:1.5,p:571},\n"+
+  "{x:232,y:243,s:1.10,f:C.self,h:C.selfHead,self:true,m:'idle',a:0,p:599},\n"+
+  "{x:276,y:263,s:1.02,f:'#c7d5b5',h:'#727a66',m:'graze',a:.6,p:627,flip:true},\n"+
+  "{x:426,y:253,s:.92,f:'#d8d7ce',h:'#716a64',m:'idle',a:.5,p:655},\n"+
+  "{x:452,y:278,s:1.11,f:'#f1d7bf',h:'#907461',m:'wander',a:1.0,p:683,flip:true}\n"+
+  "];\n"+
+  "function shuffleFlockOnLoad(){"+
+  "const others=sheep.filter(o=>!o.self);"+
+  "const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a};"+
+  "const bands=[o=>o.y<195,o=>o.y>=195&&o.y<238,o=>o.y>=238];"+
+  "bands.forEach(test=>{const members=others.filter(test),slots=shuffle(members.map(o=>({x:o.x,y:o.y,s:o.s,flip:o.flip})));members.forEach((o,i)=>{o.x=slots[i].x;o.y=slots[i].y;o.s=slots[i].s;o.flip=slots[i].flip})});"+
+  "const colors=shuffle(others.map(o=>({f:o.f,h:o.h})));others.forEach((o,i)=>{o.f=colors[i].f;o.h=colors[i].h});"+
+  "}"+
+  "shuffleFlockOnLoad();\n"+
+  "function drawWorldSheep");
+
+  html=html.replace(/function drawWorldSheep\(o,i\)\{[\s\S]*?\}\nfunction drawWorld\(\)/,
+  "function drawWorldSheep(o,i){const phase=o.p||i*29,amp=o.a||0;let dx=0,dy=0;if(o.m==='wander'){dx=Math.sin((tick+phase)/220)*amp;dy=Math.sin((tick+phase)/310)*Math.min(.55,amp*.35)}else if(o.m==='idle'){dx=Math.sin((tick+phase)/300)*Math.min(.45,amp)}else if(o.m==='graze'){dx=Math.sin((tick+phase)/340)*Math.min(.35,amp)}const breath=Math.sin((tick+phase)/95)>.78?1:0,px=Math.round(o.x+dx),py=Math.round(o.y+dy-breath);sheepPhase=phase;ctx.save();ctx.globalAlpha=Math.min(1,.72+o.s*.26);rect(px-2*o.s,py+18*o.s,28*o.s,2*o.s,'rgba(56,93,54,.18)');if(o.flip&&!o.self){ctx.translate(px+30*o.s,0);ctx.scale(-1,1);sheepBody(0,py,o.s,o.f,o.h,o.m==='graze')}else{sheepBody(px,py,o.s,o.f,o.h,o.m==='graze')}ctx.restore();if(o.self){rect(px-4*o.s,py+22*o.s,23*o.s,3*o.s,'rgba(255,248,195,.30)');if(selfNeed)needWave(px+32*o.s,py+6*o.s,true);if(selfOffer)cloth(px-3,py+20,.72,true)}}\nfunction drawWorld()");
+  `;
+
+  // Insert the flock patch into v14's own final-document stage.
+  const nested=flockPatch+'\n  document.open();document.write(html);document.close();';
+  const replacement="  html=html.replace(\"  document.open();document.write(html);document.close();\","+JSON.stringify(nested)+");\n  document.open();document.write(html);document.close();";
+  src=src.replace('  document.open();document.write(html);document.close();',replacement);
+
+  document.open();document.write(src);document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v18 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
