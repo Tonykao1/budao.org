@@ -115,8 +115,8 @@ body.wind-open #windNewsBtn{opacity:.42;background:#eef2d6}
 
 
 /* ===== MAILBOX / LETTERS ===== */
-.mail-layer{position:fixed;z-index:38;left:0;right:0;top:112px;bottom:0;display:flex;align-items:flex-start;justify-content:center;padding:4px 10px 12px;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .16s steps(3,end),transform .16s steps(3,end)}
-body.mail-open .mail-layer{opacity:1;transform:translateY(0);pointer-events:auto}
+.mail-layer{position:fixed;z-index:38;left:0;right:0;top:112px;bottom:0;display:flex;align-items:flex-start;justify-content:center;padding:4px 10px 12px;pointer-events:none;visibility:hidden;opacity:0;transform:translateY(8px);transition:opacity .16s steps(3,end),transform .16s steps(3,end),visibility 0s linear .16s}
+body.mail-open .mail-layer{opacity:1;transform:translateY(0);pointer-events:auto;visibility:visible;transition-delay:0s}
 body.mail-open .sky-zone{height:184px;min-height:184px}
 body.mail-open .sky-ui{padding-top:14px}
 body.mail-open .identity,body.mail-open .public-screen,body.mail-open .brand,body.mail-open .pbtn:not(#mailBtn){opacity:.08}
