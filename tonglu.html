@@ -9,25 +9,37 @@
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fe8ff}
 body{touch-action:none}
-#pastureFrame{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#9fe8ff;pointer-events:none}
+#pastureFrame{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#9fe8ff;pointer-events:none;opacity:0}
 #environmentLayer{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges}
 </style>
 </head>
 <body>
-<iframe id="pastureFrame" src="/tonglu-pasture-v20.html" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20260923a" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
 <canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
+let pastureRetry=0;
 frame.addEventListener('load',()=>{
   try{
     const d=frame.contentDocument;
+    const pasture=d&&d.getElementById('pasture');
+    if(!pasture){
+      frame.style.opacity='0';
+      if(pastureRetry<3){
+        pastureRetry++;
+        setTimeout(()=>{frame.src='/tonglu-pasture-v20.html?v=20260923a-r'+pastureRetry+'-'+Date.now()},500*pastureRetry);
+      }
+      return;
+    }
     const style=d.createElement('style');
     style.textContent='.stage>*:not(canvas),body>.hint,.focus-ui,.world-hit,.toast,.life-slip,button{display:none!important;pointer-events:none!important}';
     d.head.appendChild(style);
-    const canvas=d.getElementById('pasture');
-    if(canvas)canvas.style.pointerEvents='none';
-  }catch(e){}
+    pasture.style.pointerEvents='none';
+    frame.style.opacity='1';
+  }catch(e){
+    frame.style.opacity='0';
+  }
 });
 
 const canvas=document.getElementById('environmentLayer');
