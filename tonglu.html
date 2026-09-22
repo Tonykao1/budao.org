@@ -14,33 +14,45 @@ body{touch-action:none}
 </style>
 </head>
 <body>
-<iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20260923a" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20260923b" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
 <canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
-let pastureRetry=0;
-frame.addEventListener('load',()=>{
-  try{
-    const d=frame.contentDocument;
-    const pasture=d&&d.getElementById('pasture');
-    if(!pasture){
-      frame.style.opacity='0';
-      if(pastureRetry<3){
-        pastureRetry++;
-        setTimeout(()=>{frame.src='/tonglu-pasture-v20.html?v=20260923a-r'+pastureRetry+'-'+Date.now()},500*pastureRetry);
+let pastureWatchTimer=null;
+function revealPastureWhenReady(){
+  clearInterval(pastureWatchTimer);
+  let tries=0;
+  pastureWatchTimer=setInterval(()=>{
+    tries++;
+    try{
+      const d=frame.contentDocument;
+      const pasture=d&&d.getElementById('pasture');
+      if(pasture){
+        let style=d.getElementById('prodPastureOnlyStyle');
+        if(!style){
+          style=d.createElement('style');
+          style.id='prodPastureOnlyStyle';
+          style.textContent='.stage>*:not(canvas),body>.hint,.focus-ui,.world-hit,.toast,.life-slip,button{display:none!important;pointer-events:none!important}';
+          d.head.appendChild(style);
+        }
+        pasture.style.pointerEvents='none';
+        frame.style.opacity='1';
+        clearInterval(pastureWatchTimer);
+        return;
       }
-      return;
+    }catch(e){}
+    if(tries>=100){
+      clearInterval(pastureWatchTimer);
+      frame.style.opacity='0';
+      setTimeout(()=>{
+        frame.src='/tonglu-pasture-v20.html?v=20260923b-'+Date.now();
+      },800);
     }
-    const style=d.createElement('style');
-    style.textContent='.stage>*:not(canvas),body>.hint,.focus-ui,.world-hit,.toast,.life-slip,button{display:none!important;pointer-events:none!important}';
-    d.head.appendChild(style);
-    pasture.style.pointerEvents='none';
-    frame.style.opacity='1';
-  }catch(e){
-    frame.style.opacity='0';
-  }
-});
+  },100);
+}
+frame.addEventListener('load',revealPastureWhenReady);
+revealPastureWhenReady();
 
 const canvas=document.getElementById('environmentLayer');
 const ctx=canvas.getContext('2d');
