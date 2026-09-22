@@ -1,130 +1,160 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>同路 · 场景</title>
-<meta name="theme-color" content="#8ed8ff" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>牧场 · 步道</title>
+<meta name="theme-color" content="#9fe8ff">
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8ed8ff}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fe8ff}
 body{touch-action:none}
-#scene{position:fixed;inset:0;overflow:hidden;isolation:isolate;background:linear-gradient(#8ed8ff 0 34%,#9fdc62 72%,#73bd47 100%)}
-#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 56%;z-index:0;opacity:0;transition:opacity .45s ease;filter:saturate(1.03) brightness(1.025);transform:translateZ(0)}
-#bg.ready{opacity:1}
-
-/* 阳光：明媚，但只做长周期呼吸 */
-#sunwash{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 8% 2%,rgba(255,252,196,.39) 0%,rgba(255,244,166,.16) 15%,rgba(255,255,255,.055) 30%,transparent 54%);mix-blend-mode:screen;animation:sunBreath 21s ease-in-out infinite}
-#sunbeam{position:absolute;z-index:2;pointer-events:none;left:-8%;top:-5%;width:54%;height:50%;background:linear-gradient(112deg,rgba(255,252,210,.16),rgba(255,255,255,.035) 38%,transparent 67%);clip-path:polygon(0 0,100% 0,69% 100%,12% 100%);mix-blend-mode:screen;transform-origin:0 0;animation:sunSweep 31.4s ease-in-out -9.6s infinite}
-@keyframes sunBreath{0%,100%{opacity:.72}47%{opacity:.83}63%{opacity:.78}}
-@keyframes sunSweep{0%,100%{opacity:.20;transform:rotate(-.45deg) scaleX(.99)}43%{opacity:.33;transform:rotate(.25deg) scaleX(1.015)}71%{opacity:.26;transform:rotate(.6deg) scaleX(1.025)}}
-
-/* 云：三层极慢漂移，不同周期，尽量隐藏循环 */
-.cloud{position:absolute;z-index:3;pointer-events:none;width:170px;height:46px;border-radius:999px;background:rgba(255,255,255,.40);filter:blur(8px);box-shadow:48px -12px 0 5px rgba(255,255,255,.34),92px 2px 0 -2px rgba(255,255,255,.29),26px 9px 0 1px rgba(255,255,255,.24);mix-blend-mode:screen;will-change:transform}
-.cloud.c1{top:9%;left:-340px;opacity:.34;animation:cloudDrift1 83s linear -31.7s infinite}
-.cloud.c2{top:18%;left:-430px;opacity:.24;animation:cloudDrift2 121s linear -72.4s infinite}
-.cloud.c3{top:25%;left:-310px;opacity:.17;animation:cloudDrift3 167s linear -118.2s infinite}
-@keyframes cloudDrift1{from{transform:translate3d(0,0,0) scale(.96)}to{transform:translate3d(calc(100vw + 690px),5px,0) scale(.96)}}
-@keyframes cloudDrift2{from{transform:translate3d(0,0,0) scale(.70)}to{transform:translate3d(calc(100vw + 790px),-4px,0) scale(.70)}}
-@keyframes cloudDrift3{from{transform:translate3d(0,0,0) scale(.52)}to{transform:translate3d(calc(100vw + 670px),3px,0) scale(.52)}}
-
-/* 瀑布：主水体 + 细丝 + 中段破碎 + 底雾。拒绝整块条纹滚动。 */
-#waterfall{position:absolute;z-index:5;pointer-events:none;overflow:hidden;border-radius:34% 30% 48% 44%;mix-blend-mode:screen;filter:drop-shadow(0 2px 5px rgba(210,247,255,.26));will-change:left,top,width,height}
-.wf-main{position:absolute;inset:-3% 10% -4% 10%;border-radius:45%;background:linear-gradient(90deg,rgba(204,242,255,.10),rgba(255,255,255,.48) 30%,rgba(203,239,255,.22) 57%,rgba(255,255,255,.38) 76%,rgba(185,231,252,.10));opacity:.68;filter:blur(.45px);animation:wfMain 9.8s ease-in-out -3.7s infinite}
-@keyframes wfMain{0%,100%{transform:translateY(-1.5%) scaleX(.98);opacity:.61}43%{transform:translateY(1.2%) scaleX(1.015);opacity:.74}71%{transform:translateY(.2%) scaleX(.995);opacity:.66}}
-.wf-thread{position:absolute;top:-25%;width:7%;height:43%;border-radius:999px;background:linear-gradient(to bottom,transparent 0%,rgba(255,255,255,.14) 15%,rgba(255,255,255,.86) 45%,rgba(197,239,255,.35) 72%,transparent 100%);filter:blur(.35px);opacity:.20;will-change:transform}
-.wf-thread.t1{left:21%;animation:wfFall 7.1s linear -5.3s infinite}
-.wf-thread.t2{left:38%;width:5%;opacity:.15;animation:wfFall 8.6s linear -2.8s infinite}
-.wf-thread.t3{left:54%;width:8%;opacity:.13;animation:wfFall 10.4s linear -8.1s infinite}
-.wf-thread.t4{left:68%;width:4%;opacity:.16;animation:wfFall 9.2s linear -4.4s infinite}
-.wf-thread.t5{left:78%;width:5%;opacity:.11;animation:wfFall 11.7s linear -7.6s infinite}
-@keyframes wfFall{0%{transform:translateY(-42%);opacity:0}10%{opacity:.18}82%{opacity:.14}100%{transform:translateY(335%);opacity:0}}
-.wf-breakup{position:absolute;left:11%;right:9%;top:41%;height:32%;background:radial-gradient(ellipse at 18% 22%,rgba(255,255,255,.34),transparent 31%),radial-gradient(ellipse at 52% 55%,rgba(215,245,255,.25),transparent 34%),radial-gradient(ellipse at 79% 32%,rgba(255,255,255,.26),transparent 28%);filter:blur(1.1px);animation:wfBreakup 13.7s ease-in-out -6.2s infinite}
-@keyframes wfBreakup{0%,100%{opacity:.10;transform:translateY(0) scaleY(1)}37%{opacity:.17;transform:translateY(.8%) scaleY(1.018)}61%{opacity:.08;transform:translateY(-.7%) scaleY(.986)}}
-.wf-mist{position:absolute;left:-52%;right:-52%;height:34%;bottom:-12%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.58),rgba(215,246,255,.24) 38%,transparent 72%);filter:blur(10px);animation:wfMist 18.9s ease-in-out -11.4s infinite}
-@keyframes wfMist{0%,100%{opacity:.18;transform:scale(.96) translateY(0)}46%{opacity:.30;transform:scale(1.035) translateY(-1px)}72%{opacity:.23;transform:scale(1.01) translateY(-2px)}}
-
-/* 湖面：极慢局部波光，无短周期全屏扫光 */
-#shimmer{position:absolute;z-index:4;pointer-events:none;overflow:hidden;mix-blend-mode:screen;will-change:left,top,width,height;border-radius:46%}
-#shimmer::before{content:"";position:absolute;inset:-20% -28%;background:repeating-linear-gradient(174deg,transparent 0 26px,rgba(255,255,255,.08) 28px 29px,transparent 31px 58px);opacity:.42;animation:rippleTravel 23.8s ease-in-out -7.9s infinite}
-#shimmer::after{content:"";position:absolute;top:8%;height:58%;width:23%;left:-28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),rgba(255,246,188,.11),transparent);filter:blur(7px);opacity:.25;animation:lightSweep 47.3s ease-in-out -19.2s infinite}
-@keyframes rippleTravel{0%,100%{transform:translateX(-3%) translateY(-1px)}47%{transform:translateX(4%) translateY(3px)}71%{transform:translateX(1%) translateY(1px)}}
-@keyframes lightSweep{0%,13%{left:-30%;opacity:0}27%{opacity:.26}63%{opacity:.17}84%,100%{left:109%;opacity:0}}
-.glint{position:absolute;height:2px;border-radius:999px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.74),rgba(255,244,182,.45),transparent);filter:blur(.15px);opacity:0}
-.glint:nth-child(1){width:17%;left:9%;top:24%;animation:glintA 17.3s ease-in-out -8.2s infinite}.glint:nth-child(2){width:10%;left:34%;top:46%;animation:glintB 24.7s ease-in-out -15.1s infinite}.glint:nth-child(3){width:20%;left:57%;top:67%;animation:glintC 31.9s ease-in-out -21.4s infinite}.glint:nth-child(4){width:12%;left:73%;top:31%;animation:glintD 27.6s ease-in-out -10.7s infinite}.glint:nth-child(5){width:8%;left:27%;top:76%;animation:glintB 22.1s ease-in-out -17.3s infinite}
-@keyframes glintA{0%,76%,100%{opacity:0;transform:translateX(-6px) scaleX(.78)}81%{opacity:.52}88%{opacity:.13;transform:translateX(12px) scaleX(1.10)}}
-@keyframes glintB{0%,81%,100%{opacity:0;transform:translateX(-5px) scaleX(.82)}86%{opacity:.43}92%{opacity:.10;transform:translateX(9px) scaleX(1.08)}}
-@keyframes glintC{0%,72%,100%{opacity:0;transform:translateX(-7px) scaleX(.76)}78%{opacity:.47}87%{opacity:.09;transform:translateX(14px) scaleX(1.12)}}
-@keyframes glintD{0%,79%,100%{opacity:0;transform:translateX(-4px) scaleX(.84)}84%{opacity:.39}91%{opacity:.08;transform:translateX(10px) scaleX(1.06)}}
-
-/* 花：更稀、更慢、更随机 */
-#flowers{position:absolute;inset:0;z-index:6;pointer-events:none}
-.spark{position:absolute;width:4px;height:4px;border-radius:50%;background:#fffde7;box-shadow:0 0 5px rgba(255,249,190,.65);opacity:0;animation:flowerBlink var(--dur) ease-in-out infinite var(--delay)}
-.spark.warm{background:#ffe9a5;box-shadow:0 0 5px rgba(255,220,133,.55)}
-@keyframes flowerBlink{0%,82%,100%{opacity:0;transform:scale(.70)}86%{opacity:.72;transform:scale(1.08)}91%{opacity:.12;transform:scale(.86)}}
-#veil{position:absolute;inset:0;z-index:8;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,.014),transparent 48%,rgba(46,111,38,.019))}
-
-@media(max-width:760px){#bg{object-position:50% 54%}.cloud{filter:blur(6px)}}
+#pastureFrame{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#9fe8ff;pointer-events:none}
+#environmentLayer{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges}
 </style>
 </head>
 <body>
-<main id="scene" aria-label="同路草原场景">
-  <img id="bg" alt="阳光下的山谷、草原、湖泊与瀑布" />
-  <div id="sunwash"></div><div id="sunbeam"></div>
-  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
-  <div id="shimmer"><i class="glint"></i><i class="glint"></i><i class="glint"></i><i class="glint"></i><i class="glint"></i></div>
-  <div id="waterfall"><i class="wf-main"></i><i class="wf-thread t1"></i><i class="wf-thread t2"></i><i class="wf-thread t3"></i><i class="wf-thread t4"></i><i class="wf-thread t5"></i><i class="wf-breakup"></i><i class="wf-mist"></i></div>
-  <div id="flowers"></div>
-  <div id="veil"></div>
-</main>
+<iframe id="pastureFrame" src="/tonglu-pasture-v20.html" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script>
 (()=>{
-  const bg=document.getElementById('bg');
-  const waterfall=document.getElementById('waterfall');
-  const shimmer=document.getElementById('shimmer');
-  const flowers=document.getElementById('flowers');
-  const source={w:1448,h:1086};
-  const desktopPosY=.56, mobilePosY=.54;
-  const waterfallRect={x:.885,y:.275,w:.052,h:.155};
-  const lakeRect={x:.505,y:.292,w:.455,h:.205};
+const frame=document.getElementById('pastureFrame');
+frame.addEventListener('load',()=>{
+  try{
+    const d=frame.contentDocument;
+    const style=d.createElement('style');
+    style.textContent='.stage>*:not(canvas),body>.hint,.focus-ui,.world-hit,.toast,.life-slip,button{display:none!important;pointer-events:none!important}';
+    d.head.appendChild(style);
+    const canvas=d.getElementById('pasture');
+    if(canvas)canvas.style.pointerEvents='none';
+  }catch(e){}
+});
 
-  function objectPositionY(){return innerWidth<=760?mobilePosY:desktopPosY}
-  function mapRect(r,el){
-    const vw=innerWidth,vh=innerHeight;
-    const scale=Math.max(vw/source.w,vh/source.h);
-    const dw=source.w*scale,dh=source.h*scale;
-    const ox=(vw-dw)*.5;
-    const oy=(vh-dh)*objectPositionY();
-    el.style.left=(ox+r.x*dw)+'px';
-    el.style.top=(oy+r.y*dh)+'px';
-    el.style.width=(r.w*dw)+'px';
-    el.style.height=(r.h*dh)+'px';
+const canvas=document.getElementById('environmentLayer');
+const ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+let state=null,tick=0;
+
+function rect(x,y,w,h,color){
+  ctx.fillStyle=color;
+  ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));
+}
+function kind(code){
+  code=Number(code)||0;
+  if(code===45||code===48)return'fog';
+  if((code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99))return'rain';
+  if((code>=71&&code<=77)||(code>=85&&code<=86))return'snow';
+  return'clear';
+}
+function moon(cx,cy,phase,latitude){
+  const r=8,a=phase*Math.PI*2;
+  let lx=Math.sin(a),lz=-Math.cos(a);
+  if(Number(latitude)<0)lx=-lx;
+  for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){
+    const nx=x/(r+.2),ny=y/(r+.2),rr=nx*nx+ny*ny;
+    if(rr>1)continue;
+    const nz=Math.sqrt(Math.max(0,1-rr));
+    rect(cx+x,cy+y,1,1,(nx*lx+nz*lz)>0?'#fff1b8':'#52617b');
   }
-  function placeSceneEffects(){mapRect(waterfallRect,waterfall);mapRect(lakeRect,shimmer)}
-
-  const points=[
-    [8,75],[14,67],[20,87],[27,72],[34,90],[41,79],[48,66],[55,86],
-    [62,73],[69,91],[76,78],[83,68],[90,85],[96,76],[24,59],[52,58],[80,60]
-  ];
-  const durations=[11.3,15.7,22.4,29.1,18.6,26.8,33.7];
-  points.forEach((p,i)=>{
-    const s=document.createElement('i');
-    s.className='spark'+(i%5===0?' warm':'');
-    s.style.left=p[0]+'%';s.style.top=p[1]+'%';
-    s.style.setProperty('--dur',durations[i%durations.length]+'s');
-    s.style.setProperty('--delay',(-((i*3.17)%27.9))+'s');
-    flowers.appendChild(s);
+}
+function stars(darkness,cloud){
+  if(darkness<.35||cloud>72)return;
+  [[35,33],[91,57],[129,26],[174,48],[215,31],[258,61],[300,25],[344,47],[389,29],[433,58],[458,24],[112,78],[273,82]].forEach((p,i)=>{
+    if(((tick>>3)+i)%5!==0||darkness>.7)rect(p[0],p[1],1,1,i%3===0?'#fff4be':'#eaf6ff');
   });
-
-  Promise.all([1,2,3,4,5,6].map(i=>fetch(`/assets/tonglu-bg/${i}.txt?v=5`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error('bg '+i);return r.text()})))
-    .then(parts=>{
-      bg.onload=()=>{bg.classList.add('ready');placeSceneEffects()};
-      bg.src='data:image/webp;base64,'+parts.join('').trim();
-    })
-    .catch(()=>{document.getElementById('scene').style.background='linear-gradient(#8ed8ff 0 34%,#a7df67 68%,#75bd4a 100%)'});
-
-  addEventListener('resize',placeSceneEffects,{passive:true});
-  placeSceneEffects();
+}
+function weatherFx(type,cloud){
+  if(type==='fog'){
+    ctx.save();ctx.globalAlpha=.18;
+    for(let i=0;i<5;i++){const x=((i*117+tick*2)%600)-100;rect(x,93+i*16,150,5,'#fff')}
+    ctx.restore();
+  }
+  if(type==='rain'){
+    const n=22+Math.round(Math.min(34,cloud/3));
+    ctx.save();ctx.globalAlpha=.48;
+    for(let i=0;i<n;i++){const x=(i*71+tick*7)%500-10,y=(i*43+tick*11)%292;rect(x,y,1,3,i%4===0?'#dff7ff':'#b9def1')}
+    ctx.restore();
+  }
+  if(type==='snow'){
+    const n=28+Math.round(Math.min(26,cloud/4));
+    ctx.save();ctx.globalAlpha=.8;
+    for(let i=0;i<n;i++){const x=(i*83+tick*(i%3+1))%500-10,y=(i*37+tick*3)%294;rect(x,y,i%7===0?2:1,i%7===0?2:1,'#f5fbff')}
+    ctx.restore();
+  }
+}
+function draw(){
+  tick++;
+  ctx.clearRect(0,0,480,300);
+  if(!state)return;
+  const now=Date.now(),a=state.astronomy,c=state.current;
+  const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
+  rect(42,27,30,30,'#9fe8ff');
+  const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;
+  let darkness=0,progress=.5;
+  if(day){
+    progress=Math.max(0,Math.min(1,(now-sunrise)/(sunset-sunrise)));
+    const edge=Math.min(progress,1-progress);
+    if(edge<.12){ctx.fillStyle='rgba(244,177,112,'+((.12-edge)*.75)+')';ctx.fillRect(0,0,480,300)}
+  }else{
+    let ns,ne;
+    if(now<sunrise){ns=prev;ne=sunrise}else{ns=sunset;ne=next}
+    if(ns&&ne&&ne>ns){
+      progress=Math.max(0,Math.min(1,(now-ns)/(ne-ns)));
+      const edge=Math.min(progress,1-progress);
+      darkness=Math.max(.20,Math.min(.62,.62*(edge/.22)));
+    }else darkness=.52;
+    ctx.fillStyle='rgba(18,34,70,'+darkness+')';ctx.fillRect(0,0,480,300);
+  }
+  const cloud=Number(c.cloudCover)||0;
+  if(day){
+    const x=22+progress*436,y=78-Math.sin(Math.PI*progress)*56;
+    rect(x-13,y-13,26,26,'rgba(255,248,199,.72)');
+    rect(x-9,y-9,18,18,'#fff1a0');
+  }else{
+    stars(darkness,cloud);
+    const x=24+progress*432,y=74-Math.sin(Math.PI*progress)*48;
+    moon(Math.round(x),Math.round(y),Number(a.moonPhase)||0,state.location.latitude);
+  }
+  weatherFx(kind(c.weatherCode),cloud);
+}
+function build(raw,lat,lon,source){
+  const offset=Number(raw.utc_offset_seconds||0);
+  const epoch=v=>{if(!v)return null;const t=Date.parse(v+'Z');return Number.isFinite(t)?t-offset*1000:null};
+  const rise=raw.daily?.sunrise||[],set=raw.daily?.sunset||[];
+  const now=Date.now(),syn=29.53058867,known=Date.UTC(2000,0,6,18,14,0);
+  const phase=((((now-known)/86400000)/syn)%1+1)%1;
+  return{location:{latitude:lat,longitude:lon,timezone:raw.timezone||'UTC'},current:{
+    weatherCode:raw.current?.weather_code??0,cloudCover:raw.current?.cloud_cover??0,
+    windKmh:raw.current?.wind_speed_10m??0
+  },astronomy:{
+    sunsetYesterday:epoch(set[0]),sunriseToday:epoch(rise[1]),sunsetToday:epoch(set[1]),
+    sunriseTomorrow:epoch(rise[2]),moonPhase:phase
+  },source};
+}
+async function weatherAt(lat,lon,source){
+  const u=new URL('https://api.open-meteo.com/v1/forecast');
+  u.searchParams.set('latitude',String(lat));u.searchParams.set('longitude',String(lon));
+  u.searchParams.set('current','weather_code,cloud_cover,wind_speed_10m,is_day');
+  u.searchParams.set('daily','sunrise,sunset');u.searchParams.set('timezone','auto');
+  u.searchParams.set('past_days','1');u.searchParams.set('forecast_days','2');
+  const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');
+  state=build(await r.json(),lat,lon,source);draw();
+}
+async function refresh(){
+  try{
+    const ip=await fetch('https://ipwho.is/',{cache:'no-store'}),g=await ip.json();
+    if(g&&g.success!==false&&Number.isFinite(+g.latitude)&&Number.isFinite(+g.longitude))await weatherAt(+g.latitude,+g.longitude,'ip');
+    else throw new Error('geo');
+  }catch(e){try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}}
+  if(navigator.permissions&&navigator.geolocation){
+    navigator.permissions.query({name:'geolocation'}).then(p=>{
+      if(p.state==='granted')navigator.geolocation.getCurrentPosition(pos=>weatherAt(pos.coords.latitude,pos.coords.longitude,'browser'),()=>{},{maximumAge:900000,timeout:4500,enableHighAccuracy:false});
+    }).catch(()=>{});
+  }
+}
+refresh();
+setInterval(refresh,600000);
+setInterval(draw,120);
 })();
 </script>
 </body>
