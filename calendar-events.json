@@ -35,8 +35,32 @@
     "source": "legacy"
   },
   {
+    "date": "2026-09-19",
+    "type": "budao",
+    "source": "tent",
+    "slot": "IMS",
+    "routeId": "budao-ims",
+    "title": "太舟坞·香八拉“预尝”"
+  },
+  {
     "date": "2026-09-20",
     "type": "budao",
     "source": "legacy"
+  },
+  {
+    "date": "2026-09-20",
+    "type": "budao",
+    "source": "tent",
+    "slot": "HD",
+    "routeId": "budao-hd",
+    "title": "相约百望山"
+  },
+  {
+    "date": "2026-09-26",
+    "type": "budao",
+    "source": "tent",
+    "slot": "BACBC",
+    "routeId": "budao-bacbc",
+    "title": "舞彩浅山·揽胜采摘线"
   }
 ]
