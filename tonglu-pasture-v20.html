@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>同路 · 数字牧场 v20</title></head>
+<body style="margin:0;background:#a8e9ff">
+<script>
+(async()=>{
+  // v20 is based directly on the approved v19 preview.
+  // The ONLY change is the distant waterfall: exactly 2x width and 2x height.
+  // Sheep, river perspective, water sparkle motion and log bridge remain untouched.
+  const r=await fetch('./tonglu-pasture-v19.html',{cache:'no-store'});
+  let src=await r.text();
+  src=src.replaceAll('同路 · 数字牧场 v19','同路 · 数字牧场 v20');
+
+  const oldFalls="rect(357,145,5,2,'#eefcff');rect(358,147,4,3,C.riverLight);rect(357,150,5,4,'#dff8ff');rect(356,154,7,2,'#f4ffff');";
+  const newFalls="rect(355,134,10,4,'#eefcff');rect(357,138,8,6,C.riverLight);rect(355,144,10,8,'#dff8ff');rect(353,152,14,4,'#f4ffff');const wf=Math.floor(tick/8)%6;if(wf<3){rect(358,139+wf*2,2,2,'#f7ffff');rect(362,145+wf,1,3,'#eefcff')}else{rect(360,139+(wf-3)*2,2,2,'#f7ffff');rect(356,146+(wf-3),1,2,'#eefcff')}if((Math.floor(tick/12)%2)===0){rect(354,153,4,1,'#ffffff');rect(362,152,4,1,'#ffffff')}";
+  src=src.replace(oldFalls,newFalls);
+
+  // v20 interaction lock:
+  // Keep the user's foreground sheep clickable. Remove every legacy invisible
+  // pasture/focus hotspot without changing any visual or motion code.
+  const interactionLock=String.raw`
+  html=html.replace('</style>','#worldNeed,#worldGive,.focus-ui .hotspot,.focus-ui .back,.life-slip{display:none!important;pointer-events:none!important}</style>');
+  html=html.replace('<button id="worldNeed"','<button disabled tabindex="-1" id="worldNeed"');
+  html=html.replace('<button id="worldGive"','<button disabled tabindex="-1" id="worldGive"');
+  html=html.replace('<button id="careHit"','<button disabled tabindex="-1" id="careHit"');
+  html=html.replace('<button id="feedHit"','<button disabled tabindex="-1" id="feedHit"');
+  html=html.replace('<button id="departHit"','<button disabled tabindex="-1" id="departHit"');
+  html=html.replace('<button id="askHit"','<button disabled tabindex="-1" id="askHit"');
+  html=html.replace('<button id="offerHit"','<button disabled tabindex="-1" id="offerHit"');
+  html=html.replace('<button class="back" id="back"','<button disabled tabindex="-1" class="back" id="back"');
+  `;
+  src=src.replace(
+    '  "}\\nfunction tree");\n  `;',
+    '  "}\\nfunction tree");\n'+interactionLock+'\n  `;'
+  );
+
+  document.open();document.write(src);document.close();
+})().catch(err=>{
+  document.body.innerHTML='<div style="padding:30px;font:14px sans-serif">v20 加载失败，请刷新。<br>'+String(err)+'</div>';
+});
+</script>
+</body>
+</html>
