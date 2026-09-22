@@ -1,0 +1,38 @@
+{
+  "id": "6KccsBXG",
+  "sourceRoute": {
+    "routeId": "budao-bacbc"
+  },
+  "facts": {
+    "title": "舞彩浅山·揽胜采摘线",
+    "location": "中国· 北京 · 顺义",
+    "date": "2026-09-26",
+    "time": "8:30",
+    "timezone": "Asia/Shanghai",
+    "duration": "3小时",
+    "distance": "5公里",
+    "elevation": "270米",
+    "surface": "经过一段石阶与土石路交替的登山步道，我们将前往桃山揽胜再次集结休整。随后品味来时路不一样的风景，直到月明涧景区的采摘园结束步道。意犹未尽的人，还可以顺路游览月明涧景区。注意！这不是一条环线，因此可能需要配搭车辆接驳。当然，我们也可以原路返回。",
+    "difficulty": "中等",
+    "suitableFor": "7岁以上儿童、身体健康长者可参与",
+    "equipmentMinimum": "徒步鞋 / 防晒",
+    "participantRequirements": "",
+    "meetingPlace": "舞彩浅山白毛峪停车场",
+    "description": "秋天正好，月色将满。\n\n这一次，我们把中秋过在路上。\n从清晨相见，一起走进山野；\n到中午围桌而坐，再把午后的时间留给彼此，也留给安静。\n\n不赶路，不赶节目。\n只愿在一年中最适合团圆的日子里，与同行的人，好好相聚。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/194617178247df1b4b5884e2d877c192.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/dbb65e9c6b6618bacf04bd1c0b1e3c6d.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-09-22T09:17:37.336Z",
+  "createdBy": "budao-bacbc"
+}
