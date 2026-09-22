@@ -45,6 +45,7 @@ module.exports = async function handler(req, res) {
     ].join(','));
     url.searchParams.set('daily', 'sunrise,sunset');
     url.searchParams.set('timezone', 'auto');
+    url.searchParams.set('past_days', '1');
     url.searchParams.set('forecast_days', '2');
 
     const weatherRes = await fetch(url, {
@@ -60,9 +61,10 @@ module.exports = async function handler(req, res) {
       return Number.isFinite(t) ? t - offset * 1000 : null;
     };
 
-    const sunriseToday = localIsoToEpoch(data.daily?.sunrise?.[0]);
-    const sunsetToday = localIsoToEpoch(data.daily?.sunset?.[0]);
-    const sunriseTomorrow = localIsoToEpoch(data.daily?.sunrise?.[1]);
+    const sunsetYesterday = localIsoToEpoch(data.daily?.sunset?.[0]);
+    const sunriseToday = localIsoToEpoch(data.daily?.sunrise?.[1]);
+    const sunsetToday = localIsoToEpoch(data.daily?.sunset?.[1]);
+    const sunriseTomorrow = localIsoToEpoch(data.daily?.sunrise?.[2]);
 
     const now = Date.now();
     const synodic = 29.53058867;
@@ -94,6 +96,7 @@ module.exports = async function handler(req, res) {
         isDay: data.current?.is_day === 1
       },
       astronomy: {
+        sunsetYesterday,
         sunriseToday,
         sunsetToday,
         sunriseTomorrow,
