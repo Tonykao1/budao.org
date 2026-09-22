@@ -45,7 +45,16 @@
   "{x:276,y:263,s:1.02,f:'#c7d5b5',h:'#727a66',m:'graze',a:.6,p:627,flip:true},\n"+
   "{x:426,y:253,s:.92,f:'#d8d7ce',h:'#716a64',m:'idle',a:.5,p:655},\n"+
   "{x:452,y:278,s:1.11,f:'#f1d7bf',h:'#907461',m:'wander',a:1.0,p:683,flip:true}\n"+
-  "];\nfunction drawWorldSheep");
+  "];\n"+
+  "function shuffleFlockOnLoad(){"+
+  "const others=sheep.filter(o=>!o.self);"+
+  "const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a};"+
+  "const bands=[o=>o.y<195,o=>o.y>=195&&o.y<238,o=>o.y>=238];"+
+  "bands.forEach(test=>{const members=others.filter(test),slots=shuffle(members.map(o=>({x:o.x,y:o.y,s:o.s,flip:o.flip})));members.forEach((o,i)=>{o.x=slots[i].x;o.y=slots[i].y;o.s=slots[i].s;o.flip=slots[i].flip})});"+
+  "const colors=shuffle(others.map(o=>({f:o.f,h:o.h})));others.forEach((o,i)=>{o.f=colors[i].f;o.h=colors[i].h});"+
+  "}"+
+  "shuffleFlockOnLoad();\n"+
+  "function drawWorldSheep");
 
   html=html.replace(/function drawWorldSheep\(o,i\)\{[\s\S]*?\}\nfunction drawWorld\(\)/,
   "function drawWorldSheep(o,i){const phase=o.p||i*29,amp=o.a||0;let dx=0,dy=0;if(o.m==='wander'){dx=Math.sin((tick+phase)/220)*amp;dy=Math.sin((tick+phase)/310)*Math.min(.55,amp*.35)}else if(o.m==='idle'){dx=Math.sin((tick+phase)/300)*Math.min(.45,amp)}else if(o.m==='graze'){dx=Math.sin((tick+phase)/340)*Math.min(.35,amp)}const breath=Math.sin((tick+phase)/95)>.78?1:0,px=Math.round(o.x+dx),py=Math.round(o.y+dy-breath);sheepPhase=phase;ctx.save();ctx.globalAlpha=Math.min(1,.72+o.s*.26);rect(px-2*o.s,py+18*o.s,28*o.s,2*o.s,'rgba(56,93,54,.18)');if(o.flip&&!o.self){ctx.translate(px+30*o.s,0);ctx.scale(-1,1);sheepBody(0,py,o.s,o.f,o.h,o.m==='graze')}else{sheepBody(px,py,o.s,o.f,o.h,o.m==='graze')}ctx.restore();if(o.self){rect(px-4*o.s,py+22*o.s,23*o.s,3*o.s,'rgba(255,248,195,.30)');if(selfNeed)needWave(px+32*o.s,py+6*o.s,true);if(selfOffer)cloth(px-3,py+20,.72,true)}}\nfunction drawWorld()");
