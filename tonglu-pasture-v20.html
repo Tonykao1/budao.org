@@ -12,7 +12,7 @@
   src=src.replaceAll('同路 · 数字牧场 v19','同路 · 数字牧场 v20');
 
   const oldFalls="rect(357,145,5,2,'#eefcff');rect(358,147,4,3,C.riverLight);rect(357,150,5,4,'#dff8ff');rect(356,154,7,2,'#f4ffff');";
-  const newFalls="rect(355,134,10,4,'#eefcff');rect(357,138,8,6,C.riverLight);rect(355,144,10,8,'#dff8ff');rect(353,152,14,4,'#f4ffff');";
+  const newFalls="rect(355,134,10,4,'#eefcff');rect(357,138,8,6,C.riverLight);rect(355,144,10,8,'#dff8ff');rect(353,152,14,4,'#f4ffff');const wf=Math.floor(tick/8)%6;if(wf<3){rect(358,139+wf*2,2,2,'#f7ffff');rect(362,145+wf,1,3,'#eefcff')}else{rect(360,139+(wf-3)*2,2,2,'#f7ffff');rect(356,146+(wf-3),1,2,'#eefcff')}if((Math.floor(tick/12)%2)===0){rect(354,153,4,1,'#ffffff');rect(362,152,4,1,'#ffffff')}";
   src=src.replace(oldFalls,newFalls);
 
   // v20 interaction lock:
