@@ -9,17 +9,44 @@
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fe8ff}
 body{touch-action:none}
-#pastureFrame{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#9fe8ff;pointer-events:none;opacity:0}
-#environmentLayer{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:auto;image-rendering:pixelated;image-rendering:crisp-edges;cursor:default}
+#pastureFrame,#portraitFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#9fe8ff}
+#pastureFrame{display:block;pointer-events:none;opacity:0}
+#portraitFrame{display:none;pointer-events:auto;z-index:3}
+#environmentLayer{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:auto;image-rendering:pixelated;image-rendering:crisp-edges;cursor:default;z-index:2}
 </style>
 </head>
 <body>
 <iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20260923b" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<iframe id="portraitFrame" title="牧场竖屏" tabindex="-1" aria-hidden="true"></iframe>
 <canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
+const portraitFrame=document.getElementById('portraitFrame');
+const environmentLayer=document.getElementById('environmentLayer');
 let pastureReady=false;
+let portraitMode=false;
+
+function syncComposition(){
+  const nextPortrait=window.innerHeight>window.innerWidth*1.08;
+  if(nextPortrait===portraitMode&&portraitFrame.dataset.initialized)return;
+  portraitMode=nextPortrait;
+  if(portraitMode){
+    if(!portraitFrame.dataset.initialized){
+      portraitFrame.src='/tonglu-pasture-portrait.html?v=20260923portrait1';
+      portraitFrame.dataset.initialized='1';
+    }
+    portraitFrame.style.display='block';
+    frame.style.display='none';
+    environmentLayer.style.display='none';
+  }else{
+    portraitFrame.style.display='none';
+    frame.style.display='block';
+    environmentLayer.style.display='block';
+    draw();
+  }
+}
+window.addEventListener('resize',syncComposition,{passive:true});
 let pastureWatchTimer=null;
 function revealPastureWhenReady(){
   clearInterval(pastureWatchTimer);
@@ -224,9 +251,10 @@ async function refresh(){
     }).catch(()=>{});
   }
 }
+syncComposition();
 refresh();
 setInterval(refresh,600000);
-setInterval(draw,120);
+setInterval(()=>{if(!portraitMode)draw()},120);
 })();
 </script>
 </body>
