@@ -19,6 +19,7 @@ body{touch-action:none}
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
+let pastureReady=false;
 let pastureWatchTimer=null;
 function revealPastureWhenReady(){
   clearInterval(pastureWatchTimer);
@@ -38,6 +39,8 @@ function revealPastureWhenReady(){
         }
         pasture.style.pointerEvents='none';
         frame.style.opacity='1';
+        pastureReady=true;
+        draw();
         clearInterval(pastureWatchTimer);
         return;
       }
@@ -83,6 +86,7 @@ function drawReturnTwig(){
   rect(30,289,4,1,'#4d9d3a');
 }
 function returnTwigHit(clientX,clientY){
+  if(!pastureReady)return false;
   const r=canvas.getBoundingClientRect();
   const x=(clientX-r.left)/r.width*480;
   const y=(clientY-r.top)/r.height*300;
@@ -152,7 +156,7 @@ function weatherFx(type,cloud){
 function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
-  drawReturnTwig();
+  if(pastureReady)drawReturnTwig();
   if(!state)return;
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
