@@ -42,6 +42,15 @@ for(let i=sheepColors.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));
 sheepColors[21]=[C.self,C.selfHead];
 
 let W=480,H=300,portrait=false,tick=0,state=null,twigHover=false;
+const embedded=window.parent!==window;
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin)return;
+ const d=e.data;
+ if(d&&d.type==='tonglu-environment-v1'&&d.state){
+  state=d.state;
+  draw();
+ }
+});
 function rect(x,y,w,h,c,a=1){ctx.save();ctx.globalAlpha=a;ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));ctx.restore()}
 function poly(points,c){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fill()}
 function cloud(x,y,s,a=1){rect(x,y,18*s,5*s,'#fff',a);rect(x+6*s,y-4*s,11*s,9*s,'#fff',a);rect(x+15*s,y+1*s,16*s,4*s,'#fff',a)}
@@ -153,6 +162,24 @@ function portraitRiverCenter(t){
  }
  return W*.58;
 }
+function portraitRiverHalfWidthAtY(y,sourceY){
+ const t=Math.max(0,Math.min(1,(y-sourceY)/(H+8-sourceY)));
+ return 5+(W*.115-5)*Math.pow(t,1.18);
+}
+function keepCreatureOnBank(x,y,s,sourceY,isLamb=false){
+ const t=Math.max(0,Math.min(1,(y-sourceY)/(H+8-sourceY)));
+ const rx=portraitRiverCenter(t);
+ const riverHalf=portraitRiverHalfWidthAtY(y,sourceY);
+ const bodyHalf=(isLamb?10.5:15)*s;
+ const safety=riverHalf+bodyHalf+5;
+ let center=x+bodyHalf;
+ if(Math.abs(center-rx)<safety){
+  center=rx+(center<rx?-safety:safety);
+  x=center-bodyHalf;
+ }
+ const visualWidth=(isLamb?21:30)*s;
+ return Math.max(3,Math.min(W-visualWidth-3,x));
+}
 function drawPortraitRiver(sourceY){
  const left=[],right=[],innerL=[],innerR=[];
  const bottomY=H+8,steps=34;
@@ -246,13 +273,14 @@ function drawPortrait(){
   for(let j=0;j<r.n;j++){
    const q=j/Math.max(1,r.n-1);
    let x=12+(W-44)*(j+.48+(ri%2)*.31)/(r.n+.05);
-   const t=(r.y-sourceY)/(H+8-sourceY),rx=portraitRiverCenter(Math.max(0,Math.min(1,t)));
-   if(Math.abs(x-rx)<25+(ri*2))x+=(x<rx?-1:1)*(28+ri*2);
-   adults.push({x,y:r.y+(j%2)*5,s:r.min+(r.max-r.min)*q,flip:(j+ri)%3===0,graze:(j+ri)%4===0,wander:.42+ri*.06});
+   const y=r.y+(j%2)*5,s=r.min+(r.max-r.min)*q;
+   x=keepCreatureOnBank(x,y,s,sourceY,false);
+   adults.push({x,y,s,flip:(j+ri)%3===0,graze:(j+ri)%4===0,wander:.42+ri*.06});
   }
  });
  adults.length=25;
  adults[21]={x:W*.34,y:H*.81,s:1.08,flip:false,graze:false,wander:0};
+ adults.forEach(o=>{o.x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,false)});
  adults.forEach(drawSheep);
 
  // 17 lambs: 4 far / 7 middle / 6 foreground.
@@ -272,9 +300,7 @@ function drawPortrait(){
   {x:W*.18,y:H*.895,s:.65,flip:false},{x:W*.84,y:H*.925,s:.67,flip:true}
  ];
  lambs.forEach((o,i)=>{
-   const t=(o.y-sourceY)/(H+8-sourceY),rx=portraitRiverCenter(Math.max(0,Math.min(1,t)));
-   let x=o.x;
-   if(Math.abs(x-rx)<22)x+=(x<rx?-24:24);
+   const x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,true);
    rect(x-1.5*o.s,o.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
    drawLamb(x,o.y,o.s,o.flip);
  });
@@ -354,7 +380,13 @@ async function refresh(){
  try{const ip=await fetch('https://ipwho.is/',{cache:'no-store'}),g=await ip.json();if(g&&g.success!==false&&Number.isFinite(+g.latitude)&&Number.isFinite(+g.longitude))await weatherAt(+g.latitude,+g.longitude,'ip');else throw 0}catch(e){try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}}
  if(navigator.permissions&&navigator.geolocation)navigator.permissions.query({name:'geolocation'}).then(p=>{if(p.state==='granted')navigator.geolocation.getCurrentPosition(pos=>weatherAt(pos.coords.latitude,pos.coords.longitude,'browser'),()=>{},{maximumAge:900000,timeout:4500,enableHighAccuracy:false})}).catch(()=>{});
 }
-addEventListener('resize',resize,{passive:true});resize();refresh();setInterval(refresh,600000);setInterval(draw,120);
+addEventListener('resize',resize,{passive:true});
+resize();
+if(!embedded){
+ refresh();
+ setInterval(refresh,600000);
+}
+setInterval(draw,120);
 })();
 </script>
 </body>
