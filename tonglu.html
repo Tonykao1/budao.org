@@ -63,6 +63,25 @@ function rect(x,y,w,h,color){
   ctx.fillStyle=color;
   ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));
 }
+let returnTwigHover=false;
+function drawReturnTwig(){
+  const main=returnTwigHover?'#8b694b':'#795a40';
+  const dark=returnTwigHover?'#7a5b42':'#6f543d';
+  const light=returnTwigHover?'#b88b61':'#a67a55';
+  rect(27,269,3,19,dark);
+  rect(29,266,3,22,main);
+  rect(30,263,2,7,main);
+  rect(24,268,6,3,main);
+  rect(20,266,6,3,main);
+  rect(16,264,6,3,main);
+  rect(13,262,5,3,dark);
+  rect(12,261,3,2,dark);
+  rect(12,265,3,2,dark);
+  rect(18,264,8,1,light);
+  rect(29,270,1,10,light);
+  rect(26,288,3,1,'#4d9d3a');
+  rect(30,289,4,1,'#4d9d3a');
+}
 function kind(code){
   code=Number(code)||0;
   if(code===45||code===48)return'fog';
@@ -109,6 +128,7 @@ function weatherFx(type,cloud){
 function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
+  drawReturnTwig();
   if(!state)return;
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
