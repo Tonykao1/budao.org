@@ -10,7 +10,7 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fe8ff}
 body{touch-action:none}
 #pastureFrame{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#9fe8ff;pointer-events:none;opacity:0}
-#environmentLayer{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges}
+#environmentLayer{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:auto;image-rendering:pixelated;image-rendering:crisp-edges;cursor:default}
 </style>
 </head>
 <body>
@@ -82,6 +82,30 @@ function drawReturnTwig(){
   rect(26,288,3,1,'#4d9d3a');
   rect(30,289,4,1,'#4d9d3a');
 }
+function returnTwigHit(clientX,clientY){
+  const r=canvas.getBoundingClientRect();
+  const x=(clientX-r.left)/r.width*480;
+  const y=(clientY-r.top)/r.height*300;
+  return x>=8&&x<=39&&y>=254&&y<=297;
+}
+canvas.addEventListener('pointermove',e=>{
+  const hover=returnTwigHit(e.clientX,e.clientY);
+  if(hover!==returnTwigHover){
+    returnTwigHover=hover;
+    canvas.style.cursor=hover?'pointer':'default';
+    draw();
+  }
+});
+canvas.addEventListener('pointerleave',()=>{
+  if(returnTwigHover){
+    returnTwigHover=false;
+    canvas.style.cursor='default';
+    draw();
+  }
+});
+canvas.addEventListener('click',e=>{
+  if(returnTwigHit(e.clientX,e.clientY)) location.assign('/home.html');
+});
 function kind(code){
   code=Number(code)||0;
   if(code===45||code===48)return'fog';
