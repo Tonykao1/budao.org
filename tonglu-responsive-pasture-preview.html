@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>牧场 · 响应式延展预览</title>
+<meta name="theme-color" content="#9fe8ff">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fe8ff}
+body{touch-action:none}
+#extensionLayer,#environmentLayer{position:fixed;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+#extensionLayer{z-index:0;pointer-events:none}
+#pastureFrame{position:fixed;z-index:1;border:0;display:block;background:#9fe8ff;pointer-events:none;opacity:0}
+#environmentLayer{z-index:2;pointer-events:auto;cursor:default}
+</style>
+</head>
+<body>
+<canvas id="extensionLayer" aria-hidden="true"></canvas>
+<iframe id="pastureFrame" src="./tonglu-pasture-v20.html?v=responsive-world-1" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<canvas id="environmentLayer" aria-hidden="true"></canvas>
+<script>
+(()=>{
+const BASE_W=480,BASE_H=300,BASE_RATIO=BASE_W/BASE_H;
+const ext=document.getElementById('extensionLayer');
+const extCtx=ext.getContext('2d');
+const env=document.getElementById('environmentLayer');
+const ctx=env.getContext('2d');
+const frame=document.getElementById('pastureFrame');
+extCtx.imageSmoothingEnabled=false;ctx.imageSmoothingEnabled=false;
+
+let world={w:480,h:300,bx:0,by:0,scale:1};
+let pastureReady=false,state=null,tick=0,returnTwigHover=false;
+let pastureWatchTimer=null;
+
+function rect(g,x,y,w,h,color){
+  g.fillStyle=color;
+  g.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));
+}
+function poly(g,p,color){
+  g.fillStyle=color;g.beginPath();g.moveTo(p[0][0],p[0][1]);
+  for(let i=1;i<p.length;i++)g.lineTo(p[i][0],p[i][1]);
+  g.closePath();g.fill();
+}
+function outsideBase(x,y){
+  return x<world.bx||x>=world.bx+BASE_W||y<world.by||y>=world.by+BASE_H;
+}
+function layoutWorld(){
+  const vw=Math.max(1,window.innerWidth),vh=Math.max(1,window.innerHeight),ratio=vw/vh;
+  let w,h;
+  if(ratio>=BASE_RATIO){h=BASE_H;w=Math.ceil(h*ratio)}
+  else{w=BASE_W;h=Math.ceil(w/ratio)}
+  const scale=vw/w;
+  world={w,h,bx:(w-BASE_W)/2,by:(h-BASE_H)/2,scale};
+
+  ext.width=w;ext.height=h;env.width=w;env.height=h;
+  extCtx.imageSmoothingEnabled=false;ctx.imageSmoothingEnabled=false;
+
+  frame.style.width=(BASE_W*scale)+'px';
+  frame.style.height=(BASE_H*scale)+'px';
+  frame.style.left=(world.bx*scale)+'px';
+  frame.style.top=(world.by*scale)+'px';
+
+  drawExtension();
+  draw();
+}
+function jaggedBand(g,baseY,step,amp,color,bottomY,phase){
+  const pts=[[0,bottomY],[0,baseY]];
+  for(let x=0;x<=world.w+step;x+=step){
+    const k=Math.floor(x/step);
+    const y=baseY-((k*7+phase*5)%5)*amp;
+    pts.push([x,y]);
+  }
+  pts.push([world.w,bottomY]);
+  poly(g,pts,color);
+}
+function drawExtension(){
+  const g=extCtx,b=world.by;
+  g.clearRect(0,0,world.w,world.h);
+  rect(g,0,0,world.w,world.h,'#9fe8ff');
+
+  rect(g,0,b+92,world.w,46,'#dff9ff');
+  jaggedBand(g,b+132,20,3,'#a7c1d5',b+166,1);
+  jaggedBand(g,b+153,26,3,'#789cbb',b+181,3);
+
+  rect(g,0,b+159,world.w,46,'#9bd878');
+  rect(g,0,b+185,world.w,55,'#7dc85d');
+  rect(g,0,b+214,world.w,world.h-(b+214),'#83d75f');
+  if(world.h>b+265)rect(g,0,b+265,world.w,world.h-(b+265),'#62b94a');
+
+  // sparse continuation texture only outside the original 480×300 composition
+  for(let i=0;i<150;i++){
+    const x=(i*83+29)%world.w;
+    const y=b+220+((i*47+11)%Math.max(1,world.h-(b+220)));
+    if(!outsideBase(x,y))continue;
+    const col=i%3===0?'#4d9d3a':(i%2===0?'#6fc355':'#72c95a');
+    rect(g,x,y,1+(i%7===0),2+(i%5===0),col);
+  }
+  const flowers=['#fff1a0','#ffd2ee','#d9f6ae'];
+  for(let i=0;i<28;i++){
+    const x=(i*137+41)%world.w;
+    const y=b+226+((i*31)%Math.max(1,world.h-(b+226)));
+    if(outsideBase(x,y))rect(g,x,y,2,2,flowers[i%flowers.length]);
+  }
+}
+function revealPastureWhenReady(){
+  clearInterval(pastureWatchTimer);
+  let tries=0;
+  pastureWatchTimer=setInterval(()=>{
+    tries++;
+    try{
+      const d=frame.contentDocument;
+      const pasture=d&&d.getElementById('pasture');
+      if(pasture){
+        let style=d.getElementById('responsivePastureOnlyStyle');
+        if(!style){
+          style=d.createElement('style');
+          style.id='responsivePastureOnlyStyle';
+          style.textContent='.stage>*:not(canvas),body>.hint,.focus-ui,.world-hit,.toast,.life-slip,button{display:none!important;pointer-events:none!important}';
+          d.head.appendChild(style);
+        }
+        pasture.style.pointerEvents='none';
+        frame.style.opacity='1';
+        pastureReady=true;
+        draw();
+        clearInterval(pastureWatchTimer);
+        return;
+      }
+    }catch(e){}
+    if(tries>=120)clearInterval(pastureWatchTimer);
+  },100);
+}
+frame.addEventListener('load',revealPastureWhenReady);
+revealPastureWhenReady();
+
+function weatherKind(code){
+  code=Number(code)||0;
+  if(code===45||code===48)return'fog';
+  if((code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99))return'rain';
+  if((code>=71&&code<=77)||(code>=85&&code<=86))return'snow';
+  return'clear';
+}
+function moon(cx,cy,phase,latitude){
+  const r=8,a=phase*Math.PI*2;
+  let lx=Math.sin(a),lz=-Math.cos(a);
+  if(Number(latitude)<0)lx=-lx;
+  for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){
+    const nx=x/(r+.2),ny=y/(r+.2),rr=nx*nx+ny*ny;
+    if(rr>1)continue;
+    const nz=Math.sqrt(Math.max(0,1-rr));
+    rect(ctx,cx+x,cy+y,1,1,(nx*lx+nz*lz)>0?'#fff1b8':'#52617b');
+  }
+}
+function stars(darkness,cloud){
+  if(darkness<.35||cloud>72)return;
+  const n=Math.max(14,Math.round(world.w*world.h/11000));
+  for(let i=0;i<n;i++){
+    const x=(i*97+35)%world.w;
+    const y=(i*53+23)%Math.max(1,Math.round(world.by+95));
+    if(((tick>>3)+i)%5!==0||darkness>.7)rect(ctx,x,y,1,1,i%3===0?'#fff4be':'#eaf6ff');
+  }
+}
+function weatherFx(type,cloud){
+  if(type==='fog'){
+    ctx.save();ctx.globalAlpha=.18;
+    const count=Math.max(5,Math.ceil(world.h/65));
+    for(let i=0;i<count;i++){
+      const x=((i*117+tick*2)%(world.w+220))-120;
+      rect(ctx,x,world.by+93+i*16,150,5,'#fff');
+    }
+    ctx.restore();
+  }
+  if(type==='rain'){
+    const n=Math.round((30+Math.min(44,cloud/2))*world.w*world.h/(BASE_W*BASE_H));
+    ctx.save();ctx.globalAlpha=.48;
+    for(let i=0;i<n;i++){
+      const x=(i*71+tick*7)%world.w,y=(i*43+tick*11)%world.h;
+      rect(ctx,x,y,1,3,i%4===0?'#dff7ff':'#b9def1');
+    }
+    ctx.restore();
+  }
+  if(type==='snow'){
+    const n=Math.round((34+Math.min(30,cloud/3))*world.w*world.h/(BASE_W*BASE_H));
+    ctx.save();ctx.globalAlpha=.8;
+    for(let i=0;i<n;i++){
+      const x=(i*83+tick*(i%3+1))%world.w,y=(i*37+tick*3)%world.h;
+      rect(ctx,x,y,i%7===0?2:1,i%7===0?2:1,'#f5fbff');
+    }
+    ctx.restore();
+  }
+}
+function drawReturnTwig(){
+  if(!pastureReady)return;
+  const x0=12,y0=world.h-39;
+  const main=returnTwigHover?'#8b694b':'#795a40';
+  const dark=returnTwigHover?'#7a5b42':'#6f543d';
+  const light=returnTwigHover?'#b88b61':'#a67a55';
+  rect(ctx,x0+15,y0+8,3,19,dark);
+  rect(ctx,x0+17,y0+5,3,22,main);
+  rect(ctx,x0+18,y0+2,2,7,main);
+  rect(ctx,x0+12,y0+7,6,3,main);
+  rect(ctx,x0+8,y0+5,6,3,main);
+  rect(ctx,x0+4,y0+3,6,3,main);
+  rect(ctx,x0+1,y0+1,5,3,dark);
+  rect(ctx,x0,y0,3,2,dark);
+  rect(ctx,x0,y0+4,3,2,dark);
+  rect(ctx,x0+6,y0+3,8,1,light);
+  rect(ctx,x0+17,y0+9,1,10,light);
+  rect(ctx,x0+14,y0+27,3,1,'#4d9d3a');
+  rect(ctx,x0+18,y0+28,4,1,'#4d9d3a');
+}
+function returnTwigHit(clientX,clientY){
+  if(!pastureReady)return false;
+  const r=env.getBoundingClientRect();
+  const x=(clientX-r.left)/r.width*world.w;
+  const y=(clientY-r.top)/r.height*world.h;
+  return x>=6&&x<=45&&y>=world.h-48&&y<=world.h-2;
+}
+env.addEventListener('pointermove',e=>{
+  const hover=returnTwigHit(e.clientX,e.clientY);
+  if(hover!==returnTwigHover){
+    returnTwigHover=hover;
+    env.style.cursor=hover?'pointer':'default';
+    draw();
+  }
+});
+env.addEventListener('pointerleave',()=>{returnTwigHover=false;env.style.cursor='default';draw()});
+env.addEventListener('click',e=>{if(returnTwigHit(e.clientX,e.clientY))location.assign('/home.html')});
+
+function draw(){
+  tick++;
+  ctx.clearRect(0,0,world.w,world.h);
+  const bX=world.bx,bY=world.by;
+
+  // erase only the original fixed sun from the preserved core composition
+  rect(ctx,bX+42,bY+27,30,30,'#9fe8ff');
+
+  if(state){
+    const now=Date.now(),a=state.astronomy,c=state.current;
+    const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
+    const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;
+    let darkness=0,progress=.5;
+    if(day){
+      progress=Math.max(0,Math.min(1,(now-sunrise)/(sunset-sunrise)));
+      const edge=Math.min(progress,1-progress);
+      if(edge<.12){
+        ctx.fillStyle='rgba(244,177,112,'+((.12-edge)*.75)+')';
+        ctx.fillRect(0,0,world.w,world.h);
+      }
+    }else{
+      let ns,ne;
+      if(now<sunrise){ns=prev;ne=sunrise}else{ns=sunset;ne=next}
+      if(ns&&ne&&ne>ns){
+        progress=Math.max(0,Math.min(1,(now-ns)/(ne-ns)));
+        const edge=Math.min(progress,1-progress);
+        darkness=Math.max(.20,Math.min(.62,.62*(edge/.22)));
+      }else darkness=.52;
+      ctx.fillStyle='rgba(18,34,70,'+darkness+')';
+      ctx.fillRect(0,0,world.w,world.h);
+    }
+
+    const cloud=Number(c.cloudCover)||0;
+    const horizon=bY+159;
+    const edgeY=Math.min(world.h-26,bY+78);
+    const peakY=Math.max(18,bY*.25+22);
+    const cy=edgeY-Math.sin(Math.PI*progress)*(edgeY-peakY);
+    if(day){
+      const x=22+progress*(world.w-44);
+      rect(ctx,x-13,cy-13,26,26,'rgba(255,248,199,.72)');
+      rect(ctx,x-9,cy-9,18,18,'#fff1a0');
+    }else{
+      stars(darkness,cloud);
+      const x=24+progress*(world.w-48);
+      moon(Math.round(x),Math.round(cy),Number(a.moonPhase)||0,state.location.latitude);
+    }
+    weatherFx(weatherKind(c.weatherCode),cloud);
+  }
+  drawReturnTwig();
+}
+function build(raw,lat,lon,source){
+  const offset=Number(raw.utc_offset_seconds||0);
+  const epoch=v=>{if(!v)return null;const t=Date.parse(v+'Z');return Number.isFinite(t)?t-offset*1000:null};
+  const rise=raw.daily?.sunrise||[],set=raw.daily?.sunset||[];
+  const now=Date.now(),syn=29.53058867,known=Date.UTC(2000,0,6,18,14,0);
+  const phase=((((now-known)/86400000)/syn)%1+1)%1;
+  return{location:{latitude:lat,longitude:lon,timezone:raw.timezone||'UTC'},current:{
+    weatherCode:raw.current?.weather_code??0,cloudCover:raw.current?.cloud_cover??0,windKmh:raw.current?.wind_speed_10m??0
+  },astronomy:{
+    sunsetYesterday:epoch(set[0]),sunriseToday:epoch(rise[1]),sunsetToday:epoch(set[1]),
+    sunriseTomorrow:epoch(rise[2]),moonPhase:phase
+  },source};
+}
+async function weatherAt(lat,lon,source){
+  const u=new URL('https://api.open-meteo.com/v1/forecast');
+  u.searchParams.set('latitude',String(lat));u.searchParams.set('longitude',String(lon));
+  u.searchParams.set('current','weather_code,cloud_cover,wind_speed_10m,is_day');
+  u.searchParams.set('daily','sunrise,sunset');u.searchParams.set('timezone','auto');
+  u.searchParams.set('past_days','1');u.searchParams.set('forecast_days','2');
+  const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');
+  state=build(await r.json(),lat,lon,source);draw();
+}
+async function refresh(){
+  try{
+    const ip=await fetch('https://ipwho.is/',{cache:'no-store'}),g=await ip.json();
+    if(g&&g.success!==false&&Number.isFinite(+g.latitude)&&Number.isFinite(+g.longitude))await weatherAt(+g.latitude,+g.longitude,'ip');
+    else throw new Error('geo');
+  }catch(e){try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}}
+  if(navigator.permissions&&navigator.geolocation){
+    navigator.permissions.query({name:'geolocation'}).then(p=>{
+      if(p.state==='granted')navigator.geolocation.getCurrentPosition(pos=>weatherAt(pos.coords.latitude,pos.coords.longitude,'browser'),()=>{},{maximumAge:900000,timeout:4500,enableHighAccuracy:false});
+    }).catch(()=>{});
+  }
+}
+
+window.addEventListener('resize',layoutWorld,{passive:true});
+layoutWorld();
+refresh();
+setInterval(refresh,600000);
+setInterval(draw,120);
+})();
+</script>
+</body>
+</html>
