@@ -27,6 +27,13 @@ const environmentLayer=document.getElementById('environmentLayer');
 let pastureReady=false;
 let portraitMode=false;
 
+function sendPortraitEnvironment(){
+  if(state&&portraitFrame.contentWindow){
+    portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state},location.origin);
+  }
+}
+portraitFrame.addEventListener('load',sendPortraitEnvironment);
+
 function syncComposition(){
   const nextPortrait=window.innerHeight>window.innerWidth*1.08;
   if(nextPortrait===portraitMode&&portraitFrame.dataset.initialized)return;
@@ -39,6 +46,7 @@ function syncComposition(){
     portraitFrame.style.display='block';
     frame.style.display='none';
     environmentLayer.style.display='none';
+    sendPortraitEnvironment();
   }else{
     portraitFrame.style.display='none';
     frame.style.display='block';
@@ -92,6 +100,34 @@ let state=null,tick=0;
 function rect(x,y,w,h,color){
   ctx.fillStyle=color;
   ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));
+}
+function drawDesktopLamb(x,y,s,flip=false){
+  const f='#f6ead7',h='#b98f79';
+  ctx.save();
+  if(flip){ctx.translate(x+21*s,0);ctx.scale(-1,1);x=0}
+  rect(x,y,16*s,8*s,f);rect(x+3*s,y-4*s,11*s,13*s,f);rect(x+6*s,y-6*s,7*s,15*s,f);
+  rect(x+13*s,y+2*s,7*s,7*s,h);rect(x+19*s,y+4*s,2*s,3*s,h);
+  rect(x+12*s,y+3*s,2*s,2*s,h);rect(x+17*s,y+4*s,1,1,'#564d47');
+  rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
+  ctx.restore();
+}
+function drawDesktopLambs(){
+  const lambs=[
+    // far 4
+    [62,176,.22,false],[126,182,.23,true],[242,184,.24,false],[446,183,.23,true],
+    // middle 7
+    [45,211,.34,true],[104,220,.37,false],[174,211,.35,true],[251,224,.40,false],
+    [315,211,.36,true],[434,220,.39,false],[460,238,.42,true],
+    // foreground 6
+    [47,256,.50,false],[112,278,.58,true],[194,255,.53,false],
+    [286,278,.61,true],[428,267,.57,false],[450,289,.64,true]
+  ];
+  lambs.forEach((o,i)=>{
+    const bob=Math.sin((tick+i*41)/110)>.82?1:0;
+    const x=o[0],y=o[1]-bob,s=o[2];
+    rect(x-1.5*s,y+13*s,21*s,2*s,'rgba(56,93,54,.15)');
+    drawDesktopLamb(x,y,s,o[3]);
+  });
 }
 let returnTwigHover=false;
 function drawReturnTwig(){
@@ -183,7 +219,7 @@ function weatherFx(type,cloud){
 function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
-  if(pastureReady)drawReturnTwig();
+  if(pastureReady){drawDesktopLambs();drawReturnTwig();}
   if(!state)return;
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
@@ -237,7 +273,7 @@ async function weatherAt(lat,lon,source){
   u.searchParams.set('daily','sunrise,sunset');u.searchParams.set('timezone','auto');
   u.searchParams.set('past_days','1');u.searchParams.set('forecast_days','2');
   const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');
-  state=build(await r.json(),lat,lon,source);draw();
+  state=build(await r.json(),lat,lon,source);sendPortraitEnvironment();draw();
 }
 async function refresh(){
   try{
