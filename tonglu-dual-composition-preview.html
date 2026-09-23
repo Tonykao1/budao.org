@@ -139,51 +139,145 @@ function drawLandscape(){
  while(slots.length<25)slots.push({x:20+(slots.length*53)%Math.max(40,W-60),y:245+(slots.length%3)*14,s:.85,flip:slots.length%2===0,wander:.5});
  slots.slice(0,25).forEach(drawSheep);
 }
+function portraitRiverCenter(t){
+ const anchors=[
+  [0,.75],[.16,.68],[.34,.77],[.53,.55],[.72,.70],[.88,.43],[1,.58]
+ ];
+ for(let i=0;i<anchors.length-1;i++){
+  const a=anchors[i],b=anchors[i+1];
+  if(t>=a[0]&&t<=b[0]){
+   let q=(t-a[0])/(b[0]-a[0]);
+   q=q*q*(3-2*q);
+   return W*(a[1]+(b[1]-a[1])*q);
+  }
+ }
+ return W*.58;
+}
+function drawPortraitRiver(sourceY){
+ const left=[],right=[],innerL=[],innerR=[];
+ const bottomY=H+8,steps=34;
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,y=sourceY+(bottomY-sourceY)*t,cx=portraitRiverCenter(t);
+  const wd=5+(W*.115-5)*Math.pow(t,1.18);
+  left.push([cx-wd,y]);right.unshift([cx+wd,y]);
+  innerL.push([cx-wd*.74,y]);innerR.unshift([cx+wd*.74,y]);
+ }
+ poly(left.concat(right),C.riverDark);
+ poly(innerL.concat(innerR),C.river);
+
+ // broad distant waterfall, visually tied to the river source
+ const sx=portraitRiverCenter(0);
+ rect(sx-8,sourceY-38,16,5,'#eefcff');
+ rect(sx-6,sourceY-33,12,12,C.riverLight);
+ rect(sx-7,sourceY-21,14,17,'#dff8ff');
+ rect(sx-10,sourceY-4,20,5,'#f4ffff');
+ const wf=Math.floor(tick/8)%6;
+ rect(sx-3+(wf>2?3:0),sourceY-31+(wf%3)*4,3,4,'#f7ffff');
+ if((Math.floor(tick/12)%2)===0){rect(sx-9,sourceY-2,7,1,'#fff');rect(sx+3,sourceY-1,7,1,'#fff')}
+
+ // restrained moving glints following the full S curve
+ for(let j=0;j<7;j++){
+  const t=.13+j*.12,y=sourceY+(bottomY-sourceY)*t,cx=portraitRiverCenter(t);
+  rect(cx-4+(j%2),y,7+j,1,j%2?C.riverLight:'#dff8ff',.65);
+ }
+}
+function drawPortraitBridge(sourceY){
+ const t=.43,y=sourceY+(H+8-sourceY)*t,cx=portraitRiverCenter(t);
+ // slight diagonal, positioned on the first strong return of the S
+ const x=cx-27;
+ rect(x,y+1,13,3,'#6f543d');
+ rect(x+12,y,14,4,'#795a40');
+ rect(x+25,y-1,14,4,'#816046');
+ rect(x+38,y-2,15,4,'#76573f');
+ rect(x+4,y,11,1,'#b88b61');
+ rect(x+28,y-1,10,1,'#b88b61');
+ rect(x+48,y-2,5,1,'#a67a55');
+}
+function drawPortraitMountains(sourceY){
+ const farY=H*.255,midY=H*.315,nearY=H*.365;
+ rect(0,0,W,farY+20,C.sky);
+ rect(0,farY,W,52,C.sky2);
+
+ // broad, asymmetrical ranges inspired by the approved portrait composition
+ poly([[0,farY+28],[0,farY+8],[25,farY+1],[48,farY+12],[72,farY-8],[98,farY+5],[122,farY-2],[148,farY+14],[177,farY-3],[205,farY+9],[232,farY-6],[258,farY+11],[300,farY-2],[300,midY+34],[0,midY+34]],C.mountainFar);
+ poly([[0,midY+25],[0,midY+6],[24,midY+1],[48,midY+13],[76,midY-11],[102,midY+2],[127,midY-15],[154,midY+7],[181,midY-5],[208,midY+10],[234,midY-9],[261,midY+7],[300,midY-12],[300,nearY+30],[0,nearY+30]],C.mountain);
+ poly([[0,nearY+20],[0,nearY+6],[31,nearY-2],[58,nearY+11],[88,nearY-12],[118,nearY+8],[149,nearY-6],[178,nearY+11],[210,nearY-8],[240,nearY+6],[270,nearY-10],[300,nearY+3],[300,nearY+54],[0,nearY+54]],'#6f98b6');
+
+ // low green foothills leading into the waterfall valley
+ poly([[0,H*.405],[0,H*.385],[32,H*.374],[65,H*.395],[96,H*.371],[130,H*.398],[166,H*.378],[201,H*.397],[235,H*.376],[270,H*.394],[300,H*.382],[300,H*.455],[0,H*.455]],'#6eae61');
+}
+function drawLamb(x,y,s,flip=false){
+ const f='#f6ead7',h='#b98f79';
+ ctx.save();
+ if(flip){ctx.translate(x+21*s,0);ctx.scale(-1,1);x=0}
+ rect(x,y,16*s,8*s,f);rect(x+3*s,y-4*s,11*s,13*s,f);rect(x+6*s,y-6*s,7*s,15*s,f);
+ rect(x+13*s,y+2*s,7*s,7*s,h);rect(x+19*s,y+4*s,2*s,3*s,h);
+ rect(x+12*s,y+3*s,2*s,2*s,h);rect(x+17*s,y+4*s,1,1,C.ink);
+ rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
+ ctx.restore();
+}
 function drawPortrait(){
- // Native portrait composition: no inherited 480×300 band.
- const skyEnd=Math.round(H*.28),mountainFarY=Math.round(H*.31),mountainY=Math.round(H*.355);
- const hillY=Math.round(H*.40),hill2Y=Math.round(H*.47),grassY=Math.round(H*.535),frontY=Math.round(H*.79);
- rect(0,0,W,skyEnd,C.sky);rect(0,skyEnd,W,Math.max(28,mountainFarY-skyEnd+18),C.sky2);
- jagged(mountainFarY,18,3,C.mountainFar,mountainY+28,1);
- jagged(mountainY,23,3,C.mountain,hillY+25,3);
+ // Native portrait composition locked to the approved visual direction.
+ const sourceY=Math.round(H*.405);
+ const hillY=Math.round(H*.43),hill2Y=Math.round(H*.50),grassY=Math.round(H*.555),frontY=Math.round(H*.80);
+
+ drawPortraitMountains(sourceY);
  rect(0,hillY,W,H-hillY,C.hill);
  rect(0,hill2Y,W,H-hill2Y,C.hill2);
  rect(0,grassY,W,H-grassY,C.grass);
  rect(0,frontY,W,H-frontY,C.grass2);
 
- const sourceX=Math.round(W*.72),sourceY=Math.round(H*.39);
- drawRiver(sourceX,sourceY,Math.round(W*.72),H+8,Math.max(23,W*.075));
- drawBridge(Math.round(H*.61),Math.round(W*.73));
- tree(Math.round(W*.08),Math.round(H*.53),.9);
- grassTexture(grassY+14);
+ drawPortraitRiver(sourceY);
+ drawPortraitBridge(sourceY);
+ tree(Math.round(W*.08),Math.round(H*.56),.9);
+ grassTexture(grassY+12);
 
- // 25 sheep distributed through the full depth, increasing toward the viewer.
+ // 25 adult sheep, using the same perspective scale progression as the approved pasture.
  const rows=[
-  {y:H*.43,n:4,min:.35,max:.43,skipRiver:true},
-  {y:H*.50,n:5,min:.43,max:.55,skipRiver:true},
-  {y:H*.59,n:5,min:.55,max:.70,skipRiver:false},
-  {y:H*.68,n:4,min:.70,max:.84,skipRiver:false},
-  {y:H*.78,n:4,min:.84,max:1.00,skipRiver:false},
-  {y:H*.89,n:3,min:1.00,max:1.14,skipRiver:false}
+  {y:H*.445,n:4,min:.33,max:.41},
+  {y:H*.515,n:5,min:.42,max:.54},
+  {y:H*.595,n:5,min:.55,max:.69},
+  {y:H*.685,n:4,min:.70,max:.84},
+  {y:H*.785,n:4,min:.85,max:1.00},
+  {y:H*.895,n:3,min:1.00,max:1.14}
  ];
- const slots=[];
+ const adults=[];
  rows.forEach((r,ri)=>{
-   let added=0,j=0;
-   while(added<r.n&&j<r.n+8){
-     const x=12+(W-44)*(j+.55+(ri%2)*.28)/(r.n+.2);
-     const riverX=W*.72+Math.sin((r.y-sourceY)/(H-sourceY)*Math.PI*2.2)*Math.min(15,W*.045)*((r.y-sourceY)/(H-sourceY));
-     if(!(r.skipRiver&&Math.abs(x-riverX)<24)){
-       const q=added/Math.max(1,r.n-1);
-       slots.push({x,y:r.y+(added%2)*5,s:r.min+(r.max-r.min)*q,flip:(added+ri)%3===0,graze:(added+ri)%4===0,wander:.45+ri*.06});
-       added++;
-     }
-     j++;
-   }
+  for(let j=0;j<r.n;j++){
+   const q=j/Math.max(1,r.n-1);
+   let x=12+(W-44)*(j+.48+(ri%2)*.31)/(r.n+.05);
+   const t=(r.y-sourceY)/(H+8-sourceY),rx=portraitRiverCenter(Math.max(0,Math.min(1,t)));
+   if(Math.abs(x-rx)<25+(ri*2))x+=(x<rx?-1:1)*(28+ri*2);
+   adults.push({x,y:r.y+(j%2)*5,s:r.min+(r.max-r.min)*q,flip:(j+ri)%3===0,graze:(j+ri)%4===0,wander:.42+ri*.06});
+  }
  });
- // Ensure exactly 25 and keep one visually calm self sheep in the lower-middle.
- slots.length=25;
- slots[21]={x:W*.38,y:H*.81,s:1.08,flip:false,graze:false,wander:0};
- slots.forEach(drawSheep);
+ adults.length=25;
+ adults[21]={x:W*.34,y:H*.81,s:1.08,flip:false,graze:false,wander:0};
+ adults.forEach(drawSheep);
+
+ // 17 lambs: 4 far / 7 middle / 6 foreground.
+ // Each lamb uses the same depth scale as adults in its band (about 58–66% of adult size).
+ const lambs=[
+  // far 4
+  {x:W*.16,y:H*.468,s:.23,flip:false},{x:W*.31,y:H*.485,s:.25,flip:true},
+  {x:W*.53,y:H*.472,s:.24,flip:false},{x:W*.86,y:H*.492,s:.26,flip:true},
+  // middle 7
+  {x:W*.18,y:H*.585,s:.36,flip:true},{x:W*.28,y:H*.615,s:.39,flip:false},
+  {x:W*.42,y:H*.628,s:.40,flip:true},{x:W*.57,y:H*.585,s:.37,flip:false},
+  {x:W*.73,y:H*.625,s:.41,flip:true},{x:W*.84,y:H*.675,s:.44,flip:false},
+  {x:W*.13,y:H*.695,s:.45,flip:true},
+  // foreground 6
+  {x:W*.23,y:H*.775,s:.55,flip:false},{x:W*.40,y:H*.825,s:.59,flip:true},
+  {x:W*.56,y:H*.765,s:.54,flip:false},{x:W*.76,y:H*.835,s:.62,flip:true},
+  {x:W*.18,y:H*.895,s:.65,flip:false},{x:W*.84,y:H*.925,s:.67,flip:true}
+ ];
+ lambs.forEach((o,i)=>{
+   const t=(o.y-sourceY)/(H+8-sourceY),rx=portraitRiverCenter(Math.max(0,Math.min(1,t)));
+   let x=o.x;
+   if(Math.abs(x-rx)<22)x+=(x<rx?-24:24);
+   rect(x-1.5*o.s,o.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+   drawLamb(x,o.y,o.s,o.flip);
+ });
 }
 function drawTwig(){
  const x0=12,y0=H-39;
