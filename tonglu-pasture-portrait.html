@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>牧场 · 步道</title>
+<meta name="theme-color" content="#9fe8ff">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fe8ff}
+body{touch-action:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+</style>
+</head>
+<body>
+<canvas id="pasture" aria-label="牧场"></canvas>
+<script>
+(()=>{
+const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+
+const C={
+ sky:'#9fe8ff',sky2:'#dff9ff',sun:'#fff1a0',sunHalo:'#fff8c7',
+ mountainFar:'#a7c1d5',mountain:'#789cbb',hill:'#9bd878',hill2:'#7dc85d',
+ grass:'#83d75f',grass2:'#62b94a',grass3:'#4d9d3a',
+ river:'#79dbff',riverLight:'#c9f5ff',riverDark:'#5fc1ea',
+ trunk:'#77644f',tree1:'#6fbe56',tree2:'#95dc74',
+ flower1:'#fff1a0',flower2:'#ffd2ee',flower3:'#d9f6ae',
+ ink:'#564d47',wood:'#795a40',woodDark:'#6f543d',
+ self:'#bfd7a4',selfHead:'#776d60'
+};
+const PAIRS=[
+ ['#f4ecdc','#8d836e'],['#d8d7ce','#756d66'],['#f1d7bf','#987b68'],['#bfd8da','#806f67'],
+ ['#c7d5b5','#78806d'],['#dec9c8','#866f70'],['#d5c7a8','#81745d'],['#eee8dc','#746d65'],
+ ['#f2e3b3','#917d62'],['#bfd8da','#776d66'],['#f3ead7','#887e6e'],['#d8d7ce','#756d66'],
+ ['#f1d7bf','#947966'],['#c7d5b5','#747c68'],['#dec9c8','#806a6c'],['#f3ead7','#897f70'],
+ ['#d5c7a8','#80725c'],['#bfd8da','#756d68'],['#f2e3b3','#8b785f'],['#dec9c8','#816b6d'],
+ ['#f3ead7','#857b6c'],[C.self,C.selfHead],['#c7d5b5','#727a66'],['#d8d7ce','#716a64'],['#f1d7bf','#907461']
+];
+let sheepColors=PAIRS.slice();
+for(let i=sheepColors.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[sheepColors[i],sheepColors[j]]=[sheepColors[j],sheepColors[i]]}
+sheepColors[21]=[C.self,C.selfHead];
+
+let W=480,H=300,portrait=false,tick=0,state=null,twigHover=false;
+function rect(x,y,w,h,c,a=1){ctx.save();ctx.globalAlpha=a;ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));ctx.restore()}
+function poly(points,c){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fill()}
+function cloud(x,y,s,a=1){rect(x,y,18*s,5*s,'#fff',a);rect(x+6*s,y-4*s,11*s,9*s,'#fff',a);rect(x+15*s,y+1*s,16*s,4*s,'#fff',a)}
+function jagged(baseY,step,amp,c,bottom,phase=0){
+ const p=[[0,bottom],[0,baseY]];
+ for(let x=0,k=0;x<=W+step;x+=step,k++)p.push([x,baseY-((k*7+phase*3)%5)*amp]);
+ p.push([W,bottom]);poly(p,c);
+}
+function sheepBody(x,y,s,f,h,flip=false,graze=false){
+ ctx.save();
+ if(flip){ctx.translate(x+30*s,0);ctx.scale(-1,1);x=0}
+ const g=graze&&Math.sin((tick+x+y)/72)>.58?4:0;
+ rect(x,y,24*s,12*s,f);rect(x+4*s,y-5*s,17*s,19*s,f);rect(x+8*s,y-8*s,10*s,22*s,f);
+ rect(x+19*s,y+2*s+g,10*s,10*s,h);rect(x+27*s,y+4*s+g,3*s,4*s,h);
+ rect(x+17*s,y+3*s+g,3*s,3*s,h);rect(x+24*s,y+4*s+g,1.5*s,1.5*s,C.ink);
+ rect(x+5*s,y+12*s,3*s,8*s,'#5d5851');rect(x+16*s,y+12*s,3*s,8*s,'#5d5851');
+ ctx.restore();
+}
+function drawSheep(o,i){
+ const phase=i*29+11,dx=Math.sin((tick+phase)/260)*(o.wander||0);
+ const breath=Math.sin((tick+phase)/95)>.80?1:0;
+ const x=Math.round(o.x+dx),y=Math.round(o.y-breath);
+ rect(x-2*o.s,y+18*o.s,28*o.s,2*o.s,'rgba(56,93,54,.18)');
+ sheepBody(x,y,o.s,sheepColors[i][0],sheepColors[i][1],o.flip,o.graze);
+}
+function tree(x,y,s=1){
+ rect(x+5*s,y+12*s,3*s,10*s,C.trunk);
+ rect(x,y+5*s,13*s,5*s,C.tree1);rect(x+2*s,y,9*s,6*s,C.tree2);rect(x+3*s,y+9*s,7*s,5*s,'#79ca5f');
+}
+function drawRiver(sourceX,sourceY,endX,endY,wideEnd){
+ const left=[],right=[],innerL=[],innerR=[];
+ const steps=18;
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,y=sourceY+(endY-sourceY)*t;
+  const wave=Math.sin(t*Math.PI*2.2)*Math.min(15,W*.045)*t;
+  const cx=sourceX+(endX-sourceX)*t+wave;
+  const wd=5+(wideEnd-5)*Math.pow(t,1.25);
+  left.push([cx-wd,y]);right.unshift([cx+wd,y]);
+  innerL.push([cx-wd*.72,y]);innerR.unshift([cx+wd*.72,y]);
+ }
+ poly(left.concat(right),C.riverDark);poly(innerL.concat(innerR),C.river);
+ // waterfall, same coarse pixel language
+ rect(sourceX-5,sourceY-12,10,4,'#eefcff');rect(sourceX-3,sourceY-8,8,6,C.riverLight);
+ rect(sourceX-5,sourceY-2,10,8,'#dff8ff');rect(sourceX-7,sourceY+6,14,4,'#f4ffff');
+ const wf=Math.floor(tick/8)%6;
+ rect(sourceX-2+(wf>2?2:0),sourceY-7+(wf%3)*2,2,2,'#f7ffff');
+ // glints
+ for(let j=0;j<5;j++){
+  const t=.28+j*.14,y=sourceY+(endY-sourceY)*t;
+  const wave=Math.sin(t*Math.PI*2.2)*Math.min(15,W*.045)*t;
+  const cx=sourceX+(endX-sourceX)*t+wave;
+  rect(cx-3+(j%2),y,6+j,1,j%2?C.riverLight:'#dff8ff',.65);
+ }
+}
+function drawBridge(y,centerX){
+ const widths=[11,13,14,14],cols=['#6f543d','#795a40','#816046','#76573f'];
+ let x=centerX-25;
+ for(let i=0;i<4;i++){rect(x,y-i*.6,widths[i],3.3,cols[i]);x+=widths[i]-1}
+ rect(centerX-20,y-1,10,1,'#b88b61');rect(centerX+3,y-2,9,1,'#b88b61');
+}
+function grassTexture(top){
+ const span=Math.max(1,H-top);
+ for(let i=0;i<90;i++){
+  const x=(i*71+23)%W,y=top+((i*37+19)%span);
+  rect(x,y,1+(i%3===0),2+(i%4===0),i%2?C.grass3:'#6fc355');
+ }
+ const flowers=[C.flower1,C.flower2,C.flower3];
+ for(let i=0;i<18;i++){
+  const x=(i*97+31)%W,y=top+18+((i*43)%Math.max(1,span-24));
+  rect(x,y,2,2,flowers[i%3]);
+ }
+}
+function drawLandscape(){
+ const horizon=152,farBottom=177;
+ rect(0,0,W,96,C.sky);rect(0,96,W,48,C.sky2);
+ jagged(128,20,3,C.mountainFar,166,1);jagged(151,27,3,C.mountain,farBottom,3);
+ rect(0,158,W,H-158,C.hill);rect(0,185,W,H-185,C.hill2);rect(0,214,W,H-214,C.grass);rect(0,264,W,H-264,C.grass2);
+ const sx=W*.74,ex=W*.78;
+ drawRiver(sx,153,ex,H+8,Math.max(18,W*.035));
+ drawBridge(221,sx+18);
+ tree(W*.88,189,.85);
+ grassTexture(218);
+ const slots=[];
+ const rows=[
+  {y:169,n:7,s:[.34,.47]},{y:202,n:7,s:[.52,.70]},{y:239,n:6,s:[.72,.94]},{y:274,n:5,s:[.95,1.16]}
+ ];
+ let idx=0;
+ rows.forEach((r,ri)=>{
+  for(let j=0;j<r.n;j++){
+   const x=18+(W-50)*(j+.35+(ri%2)*.24)/r.n;
+   if(Math.abs(x-sx)<28&&ri<2)continue;
+   slots.push({x,y:r.y+(j%2)*6,s:r.s[0]+(r.s[1]-r.s[0])*(j/Math.max(1,r.n-1)),flip:(j+ri)%3===0,graze:(j+ri)%4===0,wander:.6});
+  }
+ });
+ while(slots.length<25)slots.push({x:20+(slots.length*53)%Math.max(40,W-60),y:245+(slots.length%3)*14,s:.85,flip:slots.length%2===0,wander:.5});
+ slots.slice(0,25).forEach(drawSheep);
+}
+function portraitRiverCenter(t){
+ const anchors=[
+  [0,.75],[.16,.68],[.34,.77],[.53,.55],[.72,.70],[.88,.43],[1,.58]
+ ];
+ for(let i=0;i<anchors.length-1;i++){
+  const a=anchors[i],b=anchors[i+1];
+  if(t>=a[0]&&t<=b[0]){
+   let q=(t-a[0])/(b[0]-a[0]);
+   q=q*q*(3-2*q);
+   return W*(a[1]+(b[1]-a[1])*q);
+  }
+ }
+ return W*.58;
+}
+function drawPortraitRiver(sourceY){
+ const left=[],right=[],innerL=[],innerR=[];
+ const bottomY=H+8,steps=34;
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,y=sourceY+(bottomY-sourceY)*t,cx=portraitRiverCenter(t);
+  const wd=5+(W*.115-5)*Math.pow(t,1.18);
+  left.push([cx-wd,y]);right.unshift([cx+wd,y]);
+  innerL.push([cx-wd*.74,y]);innerR.unshift([cx+wd*.74,y]);
+ }
+ poly(left.concat(right),C.riverDark);
+ poly(innerL.concat(innerR),C.river);
+
+ // broad distant waterfall, visually tied to the river source
+ const sx=portraitRiverCenter(0);
+ rect(sx-8,sourceY-38,16,5,'#eefcff');
+ rect(sx-6,sourceY-33,12,12,C.riverLight);
+ rect(sx-7,sourceY-21,14,17,'#dff8ff');
+ rect(sx-10,sourceY-4,20,5,'#f4ffff');
+ const wf=Math.floor(tick/8)%6;
+ rect(sx-3+(wf>2?3:0),sourceY-31+(wf%3)*4,3,4,'#f7ffff');
+ if((Math.floor(tick/12)%2)===0){rect(sx-9,sourceY-2,7,1,'#fff');rect(sx+3,sourceY-1,7,1,'#fff')}
+
+ // restrained moving glints following the full S curve
+ for(let j=0;j<7;j++){
+  const t=.13+j*.12,y=sourceY+(bottomY-sourceY)*t,cx=portraitRiverCenter(t);
+  rect(cx-4+(j%2),y,7+j,1,j%2?C.riverLight:'#dff8ff',.65);
+ }
+}
+function drawPortraitBridge(sourceY){
+ const t=.43,y=sourceY+(H+8-sourceY)*t,cx=portraitRiverCenter(t);
+ // slight diagonal, positioned on the first strong return of the S
+ const x=cx-27;
+ rect(x,y+1,13,3,'#6f543d');
+ rect(x+12,y,14,4,'#795a40');
+ rect(x+25,y-1,14,4,'#816046');
+ rect(x+38,y-2,15,4,'#76573f');
+ rect(x+4,y,11,1,'#b88b61');
+ rect(x+28,y-1,10,1,'#b88b61');
+ rect(x+48,y-2,5,1,'#a67a55');
+}
+function drawPortraitMountains(sourceY){
+ const farY=H*.255,midY=H*.315,nearY=H*.365;
+ rect(0,0,W,farY+20,C.sky);
+ rect(0,farY,W,52,C.sky2);
+
+ // broad, asymmetrical ranges inspired by the approved portrait composition
+ poly([[0,farY+28],[0,farY+8],[25,farY+1],[48,farY+12],[72,farY-8],[98,farY+5],[122,farY-2],[148,farY+14],[177,farY-3],[205,farY+9],[232,farY-6],[258,farY+11],[300,farY-2],[300,midY+34],[0,midY+34]],C.mountainFar);
+ poly([[0,midY+25],[0,midY+6],[24,midY+1],[48,midY+13],[76,midY-11],[102,midY+2],[127,midY-15],[154,midY+7],[181,midY-5],[208,midY+10],[234,midY-9],[261,midY+7],[300,midY-12],[300,nearY+30],[0,nearY+30]],C.mountain);
+ poly([[0,nearY+20],[0,nearY+6],[31,nearY-2],[58,nearY+11],[88,nearY-12],[118,nearY+8],[149,nearY-6],[178,nearY+11],[210,nearY-8],[240,nearY+6],[270,nearY-10],[300,nearY+3],[300,nearY+54],[0,nearY+54]],'#6f98b6');
+
+ // low green foothills leading into the waterfall valley
+ poly([[0,H*.405],[0,H*.385],[32,H*.374],[65,H*.395],[96,H*.371],[130,H*.398],[166,H*.378],[201,H*.397],[235,H*.376],[270,H*.394],[300,H*.382],[300,H*.455],[0,H*.455]],'#6eae61');
+}
+function drawLamb(x,y,s,flip=false){
+ const f='#f6ead7',h='#b98f79';
+ ctx.save();
+ if(flip){ctx.translate(x+21*s,0);ctx.scale(-1,1);x=0}
+ rect(x,y,16*s,8*s,f);rect(x+3*s,y-4*s,11*s,13*s,f);rect(x+6*s,y-6*s,7*s,15*s,f);
+ rect(x+13*s,y+2*s,7*s,7*s,h);rect(x+19*s,y+4*s,2*s,3*s,h);
+ rect(x+12*s,y+3*s,2*s,2*s,h);rect(x+17*s,y+4*s,1,1,C.ink);
+ rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
+ ctx.restore();
+}
+function drawPortrait(){
+ // Native portrait composition locked to the approved visual direction.
+ const sourceY=Math.round(H*.405);
+ const hillY=Math.round(H*.43),hill2Y=Math.round(H*.50),grassY=Math.round(H*.555),frontY=Math.round(H*.80);
+
+ drawPortraitMountains(sourceY);
+ rect(0,hillY,W,H-hillY,C.hill);
+ rect(0,hill2Y,W,H-hill2Y,C.hill2);
+ rect(0,grassY,W,H-grassY,C.grass);
+ rect(0,frontY,W,H-frontY,C.grass2);
+
+ drawPortraitRiver(sourceY);
+ drawPortraitBridge(sourceY);
+ tree(Math.round(W*.08),Math.round(H*.56),.9);
+ grassTexture(grassY+12);
+
+ // 25 adult sheep, using the same perspective scale progression as the approved pasture.
+ const rows=[
+  {y:H*.445,n:4,min:.33,max:.41},
+  {y:H*.515,n:5,min:.42,max:.54},
+  {y:H*.595,n:5,min:.55,max:.69},
+  {y:H*.685,n:4,min:.70,max:.84},
+  {y:H*.785,n:4,min:.85,max:1.00},
+  {y:H*.895,n:3,min:1.00,max:1.14}
+ ];
+ const adults=[];
+ rows.forEach((r,ri)=>{
+  for(let j=0;j<r.n;j++){
+   const q=j/Math.max(1,r.n-1);
+   let x=12+(W-44)*(j+.48+(ri%2)*.31)/(r.n+.05);
+   const t=(r.y-sourceY)/(H+8-sourceY),rx=portraitRiverCenter(Math.max(0,Math.min(1,t)));
+   if(Math.abs(x-rx)<25+(ri*2))x+=(x<rx?-1:1)*(28+ri*2);
+   adults.push({x,y:r.y+(j%2)*5,s:r.min+(r.max-r.min)*q,flip:(j+ri)%3===0,graze:(j+ri)%4===0,wander:.42+ri*.06});
+  }
+ });
+ adults.length=25;
+ adults[21]={x:W*.34,y:H*.81,s:1.08,flip:false,graze:false,wander:0};
+ adults.forEach(drawSheep);
+
+ // 17 lambs: 4 far / 7 middle / 6 foreground.
+ // Each lamb uses the same depth scale as adults in its band (about 58–66% of adult size).
+ const lambs=[
+  // far 4
+  {x:W*.16,y:H*.468,s:.23,flip:false},{x:W*.31,y:H*.485,s:.25,flip:true},
+  {x:W*.53,y:H*.472,s:.24,flip:false},{x:W*.86,y:H*.492,s:.26,flip:true},
+  // middle 7
+  {x:W*.18,y:H*.585,s:.36,flip:true},{x:W*.28,y:H*.615,s:.39,flip:false},
+  {x:W*.42,y:H*.628,s:.40,flip:true},{x:W*.57,y:H*.585,s:.37,flip:false},
+  {x:W*.73,y:H*.625,s:.41,flip:true},{x:W*.84,y:H*.675,s:.44,flip:false},
+  {x:W*.13,y:H*.695,s:.45,flip:true},
+  // foreground 6
+  {x:W*.23,y:H*.775,s:.55,flip:false},{x:W*.40,y:H*.825,s:.59,flip:true},
+  {x:W*.56,y:H*.765,s:.54,flip:false},{x:W*.76,y:H*.835,s:.62,flip:true},
+  {x:W*.18,y:H*.895,s:.65,flip:false},{x:W*.84,y:H*.925,s:.67,flip:true}
+ ];
+ lambs.forEach((o,i)=>{
+   const t=(o.y-sourceY)/(H+8-sourceY),rx=portraitRiverCenter(Math.max(0,Math.min(1,t)));
+   let x=o.x;
+   if(Math.abs(x-rx)<22)x+=(x<rx?-24:24);
+   rect(x-1.5*o.s,o.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+   drawLamb(x,o.y,o.s,o.flip);
+ });
+}
+function drawTwig(){
+ const x0=12,y0=H-39;
+ const main=twigHover?'#8b694b':'#795a40',dark=twigHover?'#7a5b42':'#6f543d',light=twigHover?'#b88b61':'#a67a55';
+ rect(x0+15,y0+8,3,19,dark);rect(x0+17,y0+5,3,22,main);rect(x0+18,y0+2,2,7,main);
+ rect(x0+12,y0+7,6,3,main);rect(x0+8,y0+5,6,3,main);rect(x0+4,y0+3,6,3,main);
+ rect(x0+1,y0+1,5,3,dark);rect(x0,y0,3,2,dark);rect(x0,y0+4,3,2,dark);
+ rect(x0+6,y0+3,8,1,light);rect(x0+17,y0+9,1,10,light);
+}
+function weatherKind(code){
+ code=Number(code)||0;if(code===45||code===48)return'fog';
+ if((code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99))return'rain';
+ if((code>=71&&code<=77)||(code>=85&&code<=86))return'snow';return'clear';
+}
+function moon(cx,cy,phase,lat){
+ const r=8,a=phase*Math.PI*2;let lx=Math.sin(a),lz=-Math.cos(a);if(Number(lat)<0)lx=-lx;
+ for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const nx=x/(r+.2),ny=y/(r+.2),rr=nx*nx+ny*ny;if(rr>1)continue;const nz=Math.sqrt(Math.max(0,1-rr));rect(cx+x,cy+y,1,1,(nx*lx+nz*lz)>0?'#fff1b8':'#52617b')}
+}
+function weatherOverlay(){
+ if(!state)return;
+ const now=Date.now(),a=state.astronomy,c=state.current;
+ const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
+ const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;let darkness=0,progress=.5;
+ if(day){progress=Math.max(0,Math.min(1,(now-sunrise)/(sunset-sunrise)));const edge=Math.min(progress,1-progress);if(edge<.12)rect(0,0,W,H,'rgba(244,177,112,'+((.12-edge)*.75)+')')}
+ else{
+  let ns,ne;if(now<sunrise){ns=prev;ne=sunrise}else{ns=sunset;ne=next}
+  if(ns&&ne&&ne>ns){progress=Math.max(0,Math.min(1,(now-ns)/(ne-ns)));const edge=Math.min(progress,1-progress);darkness=Math.max(.20,Math.min(.62,.62*(edge/.22)))}else darkness=.52;
+  rect(0,0,W,H,'rgba(18,34,70,'+darkness+')');
+ }
+ const cloud=Number(c.cloudCover)||0,skyBand=portrait?H*.28:100;
+ if(day){
+  const x=20+progress*(W-40),y=skyBand*.72-Math.sin(Math.PI*progress)*skyBand*.5;
+  rect(x-13,y-13,26,26,'rgba(255,248,199,.72)');rect(x-9,y-9,18,18,C.sun);
+ }else{
+  if(darkness>.35&&cloud<=72)for(let i=0;i<Math.max(12,Math.round(W/24));i++)rect((i*97+35)%W,(i*53+23)%Math.max(30,skyBand),1,1,i%3===0?'#fff4be':'#eaf6ff');
+  const x=22+progress*(W-44),y=skyBand*.72-Math.sin(Math.PI*progress)*skyBand*.45;
+  moon(Math.round(x),Math.round(y),Number(a.moonPhase)||0,state.location.latitude);
+ }
+ const kind=weatherKind(c.weatherCode);
+ if(kind==='fog'){ctx.save();ctx.globalAlpha=.18;for(let i=0;i<Math.ceil(H/80);i++)rect(((i*117+tick*2)%(W+180))-90,H*.34+i*18,130,5,'#fff');ctx.restore()}
+ if(kind==='rain'){const n=Math.round((32+Math.min(42,cloud/2))*W*H/(480*300));ctx.save();ctx.globalAlpha=.48;for(let i=0;i<n;i++)rect((i*71+tick*7)%W,(i*43+tick*11)%H,1,3,i%4===0?'#dff7ff':'#b9def1');ctx.restore()}
+ if(kind==='snow'){const n=Math.round((36+Math.min(30,cloud/3))*W*H/(480*300));ctx.save();ctx.globalAlpha=.8;for(let i=0;i<n;i++)rect((i*83+tick*(i%3+1))%W,(i*37+tick*3)%H,i%7===0?2:1,i%7===0?2:1,'#f5fbff');ctx.restore()}
+}
+function draw(){
+ tick++;ctx.clearRect(0,0,W,H);
+ if(portrait)drawPortrait();else drawLandscape();
+ weatherOverlay();drawTwig();
+}
+function resize(){
+ const vw=Math.max(1,innerWidth),vh=Math.max(1,innerHeight);
+ portrait=vh>vw*1.08;
+ if(portrait){W=300;H=Math.max(430,Math.round(W*vh/vw))}
+ else{H=300;W=Math.max(390,Math.round(H*vw/vh))}
+ canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;draw();
+}
+function twigHit(cx,cy){
+ const r=canvas.getBoundingClientRect(),x=(cx-r.left)/r.width*W,y=(cy-r.top)/r.height*H;
+ return x>=6&&x<=45&&y>=H-48&&y<=H-2;
+}
+canvas.addEventListener('pointermove',e=>{const h=twigHit(e.clientX,e.clientY);if(h!==twigHover){twigHover=h;canvas.style.cursor=h?'pointer':'default';draw()}});
+canvas.addEventListener('pointerleave',()=>{twigHover=false;canvas.style.cursor='default';draw()});
+canvas.addEventListener('click',e=>{if(twigHit(e.clientX,e.clientY))top.location.assign('/home.html')});
+
+function build(raw,lat,lon,source){
+ const offset=Number(raw.utc_offset_seconds||0),epoch=v=>{if(!v)return null;const t=Date.parse(v+'Z');return Number.isFinite(t)?t-offset*1000:null};
+ const rise=raw.daily?.sunrise||[],set=raw.daily?.sunset||[],now=Date.now(),syn=29.53058867,known=Date.UTC(2000,0,6,18,14,0);
+ return{location:{latitude:lat,longitude:lon,timezone:raw.timezone||'UTC'},current:{weatherCode:raw.current?.weather_code??0,cloudCover:raw.current?.cloud_cover??0},astronomy:{sunsetYesterday:epoch(set[0]),sunriseToday:epoch(rise[1]),sunsetToday:epoch(set[1]),sunriseTomorrow:epoch(rise[2]),moonPhase:((((now-known)/86400000)/syn)%1+1)%1},source};
+}
+async function weatherAt(lat,lon,source){
+ const u=new URL('https://api.open-meteo.com/v1/forecast');u.searchParams.set('latitude',lat);u.searchParams.set('longitude',lon);u.searchParams.set('current','weather_code,cloud_cover,wind_speed_10m,is_day');u.searchParams.set('daily','sunrise,sunset');u.searchParams.set('timezone','auto');u.searchParams.set('past_days','1');u.searchParams.set('forecast_days','2');
+ const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');state=build(await r.json(),lat,lon,source);draw();
+}
+async function refresh(){
+ try{const ip=await fetch('https://ipwho.is/',{cache:'no-store'}),g=await ip.json();if(g&&g.success!==false&&Number.isFinite(+g.latitude)&&Number.isFinite(+g.longitude))await weatherAt(+g.latitude,+g.longitude,'ip');else throw 0}catch(e){try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}}
+ if(navigator.permissions&&navigator.geolocation)navigator.permissions.query({name:'geolocation'}).then(p=>{if(p.state==='granted')navigator.geolocation.getCurrentPosition(pos=>weatherAt(pos.coords.latitude,pos.coords.longitude,'browser'),()=>{},{maximumAge:900000,timeout:4500,enableHighAccuracy:false})}).catch(()=>{});
+}
+addEventListener('resize',resize,{passive:true});resize();refresh();setInterval(refresh,600000);setInterval(draw,120);
+})();
+</script>
+</body>
+</html>
