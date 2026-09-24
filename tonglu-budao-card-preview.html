@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>同路 · 步道卡</title>
+<style>
+:root{
+  --sky:#8edff1;--sky2:#d9f5fb;--grass:#82d451;--grass2:#5fbe45;
+  --ink:#173b64;--ink2:#315b82;--cream:#fffaf0;--cream2:#f7eed7;
+  --line:#214d7b;--red:#ef2028;--gold:#e8c76f;--muted:#6f86a0;
+  --shadow:rgba(19,51,83,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--sky);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--ink)}
+button,input{font:inherit}
+button{color:inherit}
+.pixel{image-rendering:pixelated;image-rendering:crisp-edges}
+.world{position:fixed;inset:0;overflow:hidden;background:
+ linear-gradient(#83dcf0 0 54%,#a9e8f5 54% 59%,#86d95a 59% 78%,#63c14a 78%)}
+.cloud{position:absolute;height:12px;background:#fff;opacity:.9;box-shadow:12px 0 #fff,24px 0 #fff,12px -10px #fff}
+.c1{left:7%;top:18%;transform:scale(1.25)}.c2{right:12%;top:23%;transform:scale(.85)}
+.mountains{position:absolute;left:0;right:0;bottom:40%;height:24%;opacity:.55;background:
+ linear-gradient(135deg,transparent 0 12%,#5f98b8 12% 22%,transparent 22% 28%,#6aa2be 28% 41%,transparent 41% 47%,#568da9 47% 60%,transparent 60% 67%,#6ea8c5 67% 79%,transparent 79%)}
+.grass-px{position:absolute;left:0;right:0;bottom:0;height:42%;background:
+ linear-gradient(90deg,rgba(255,255,255,.08) 0 9%,transparent 9% 18%,rgba(28,133,54,.08) 18% 31%,transparent 31% 52%,rgba(255,255,255,.06) 52% 71%,transparent 71%)}
+.stage{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:7vh 4vw 9vh}
+.card-shell{width:min(920px,88vw);perspective:1400px;position:relative}
+.card{position:relative;width:100%;aspect-ratio:2/1;transform-style:preserve-3d;transition:transform .45s steps(9,end);cursor:pointer}
+.card.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;overflow:hidden;border:4px solid #e6d6a8;box-shadow:0 18px 0 rgba(35,67,93,.10),0 26px 38px rgba(28,67,97,.18);background-color:#fffdf6;background-image:
+ radial-gradient(circle at 32px 30px,transparent 0 12px,#f5e7b8 13px 17px,transparent 18px 22px,#f5e7b8 23px 27px,transparent 28px);
+ background-size:64px 46px}
+.face.back{transform:rotateY(180deg)}
+.face:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.28),transparent 16%,transparent 84%,rgba(228,205,143,.14))}
+.front-id{position:absolute;top:7%;left:50%;transform:translateX(-50%);z-index:3;border:0;background:transparent;font:800 clamp(18px,3vw,34px)/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.05em;cursor:pointer;background:linear-gradient(90deg,#733dff,#2a77de,#00a890,#18a145);-webkit-background-clip:text;color:transparent;padding:8px}
+.front-title{position:absolute;left:12%;right:7%;top:28%;text-align:center;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:clamp(42px,8.2vw,94px);font-weight:900;line-height:1;letter-spacing:.02em;color:#101010;transform:skewX(-5deg)}
+.front-vertical{position:absolute;left:8%;top:31%;font-family:STKaiti,KaiTi,"Songti SC",serif;font-weight:900;color:#111;writing-mode:vertical-rl;font-size:clamp(13px,2vw,24px);letter-spacing:.2em}
+.front-seal{position:absolute;left:9%;top:65%;width:34px;height:34px;border:3px solid #b42125;color:#b42125;font:900 13px/1 serif;display:grid;place-items:center}
+.since{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);border:0;background:transparent;color:#0d0d0d;font:900 clamp(19px,3.2vw,38px)/1 Georgia,"Times New Roman",serif;cursor:pointer;padding:10px 16px}
+.back-mark{position:absolute;left:5%;top:12%;font-family:STKaiti,KaiTi,"Songti SC",serif;font-size:clamp(34px,6vw,74px);line-height:.9;color:#131313;writing-mode:vertical-rl;transform:rotate(180deg)}
+.hotspot{position:absolute;border:0;background:transparent;cursor:pointer;display:grid;place-items:center;z-index:4;transition:transform .08s steps(2,end),filter .08s steps(2,end)}
+.hotspot:hover{transform:translate(-2px,-2px);filter:drop-shadow(3px 3px 0 rgba(31,76,121,.16))}
+.hotspot:focus-visible{outline:4px solid #5a91c2;outline-offset:4px}
+.rook{right:8%;top:7%;font-size:clamp(55px,8vw,106px);color:#e7edf2;text-shadow:-4px 0 #262626,0 4px #262626,4px 0 #262626,0 -4px #262626}
+.spade{right:8%;bottom:8%;font-size:clamp(90px,16vw,190px);line-height:.8;color:#171719}
+.logo{left:35%;top:28%;width:31%;height:42%}
+.logo svg{width:100%;height:100%;overflow:visible}
+.dice{left:5%;bottom:8%;width:14%;aspect-ratio:1;border:4px solid #161616!important;border-radius:10px!important;background:#fff!important;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:12px;gap:4px}
+.pip{width:12px;height:12px;background:#111;border-radius:50%;place-self:center}.p1{grid-area:1/1}.p2{grid-area:1/3}.p3{grid-area:2/2}.p4{grid-area:3/1}.p5{grid-area:3/3}
+.hint{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:20;background:rgba(255,250,240,.92);border:3px solid var(--line);padding:8px 14px;font-size:13px;font-weight:900;letter-spacing:.05em;box-shadow:4px 4px 0 rgba(24,63,99,.14);white-space:nowrap}
+.close{position:fixed;right:24px;top:22px;z-index:30;border:3px solid var(--line);background:var(--cream);padding:8px 12px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
+.status{position:fixed;left:24px;top:22px;z-index:30;display:flex;gap:8px;align-items:center;background:rgba(255,250,240,.9);border:3px solid var(--line);padding:8px 12px;font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;box-shadow:3px 3px 0 var(--shadow)}
+.dot{width:9px;height:9px;background:#be9a57}.status.active .dot{background:#28b34b}
+.panel{position:fixed;z-index:50;left:50%;top:50%;transform:translate(-50%,-48%) scale(.98);width:min(820px,92vw);max-height:82vh;overflow:auto;background:var(--cream);border:4px solid var(--line);box-shadow:10px 10px 0 rgba(26,60,92,.16);padding:22px;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .12s steps(3,end),transform .12s steps(3,end),visibility 0s .12s}
+.panel.open{visibility:visible;opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);transition-delay:0s}
+.panel h2{margin:0 0 8px;font-size:24px}.panel .kicker{font:900 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;color:#6584a2}
+.panel .desc{margin:8px 0 18px;color:#4c6680;line-height:1.7}
+.panel-close{position:absolute;right:12px;top:12px;border:2px solid var(--line);background:#fff7e7;padding:5px 8px;font-weight:900;cursor:pointer}
+.rows{display:grid;gap:10px}.row{border:3px solid #7896b2;background:#fffdf6;padding:12px 14px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.row:hover{background:#f7efd9}.row strong{display:block}.row small{color:#69819a}.chip{font:900 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;border:2px solid #89a3bb;padding:5px 7px;background:#eef7fb}
+.detail{margin-top:14px;border-top:3px dashed #a9bdcc;padding-top:14px;line-height:1.75}
+.mini-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.mini-actions button{border:2px solid var(--line);background:#fff7e7;padding:8px 10px;font-weight:900;cursor:pointer}.mini-actions button.primary{background:#ccefae}
+.activation{display:grid;gap:10px}.activation input{border:3px solid var(--line);background:white;padding:12px;font:800 17px/1 ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}.activation button{border:3px solid var(--line);background:#cdefad;padding:11px;font-weight:900;cursor:pointer}
+.note{font-size:12px;color:#6d8295}.success{display:none;border:3px solid #3e8e46;background:#e6f8d5;padding:12px;font-weight:900}.success.show{display:block}
+.timeline{display:grid;grid-template-columns:130px 1fr;gap:10px 14px}.time{font:800 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:#62809d}.memory{padding-bottom:12px;border-bottom:2px solid #d7e0e7}
+.echo{background:#eef6fb;border-left:5px solid #7599b8;padding:10px 12px;margin-top:10px}
+.seed{background:#fff4d2;border:3px solid #caaa56;padding:10px 12px}
+.reveal-stage{display:grid;place-items:center;min-height:190px;text-align:center}.big-die{font-size:84px;transition:transform .6s steps(8,end)}.big-die.roll{transform:rotate(540deg) scale(1.12)}.reveal-copy{max-width:520px;line-height:1.8}
+.toast{position:fixed;z-index:80;left:50%;bottom:72px;transform:translateX(-50%) translateY(12px);background:#173b64;color:#fffaf0;border:3px solid white;padding:10px 14px;font-weight:900;opacity:0;visibility:hidden;transition:.12s steps(2,end);box-shadow:5px 5px 0 rgba(12,40,67,.18)}.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+@media(max-width:760px){
+ .stage{padding:11vh 4vw}.card-shell{width:95vw}.face{border-radius:11px;border-width:3px}.front-seal{width:24px;height:24px;font-size:9px}.dice{padding:6px;border-width:3px!important}.pip{width:7px;height:7px}.hint{font-size:11px;bottom:12px}.status{left:10px;top:10px}.close{right:10px;top:10px}.panel{padding:18px}.timeline{grid-template-columns:1fr}.time{margin-top:5px}
+}
+</style>
+</head>
+<body>
+<div class="world" aria-hidden="true">
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="mountains"></div><div class="grass-px"></div>
+</div>
+
+<div class="status" id="status"><span class="dot"></span><span id="statusText">实体卡未激活</span></div>
+<button class="close" id="closeCardPage" type="button">收起 ×</button>
+
+<main class="stage">
+  <div class="card-shell">
+    <div class="card pixel" id="card" aria-label="步道卡，点击空白处翻面">
+      <section class="face front" aria-label="步道卡正面">
+        <button class="front-id" id="idHotspot" type="button" aria-label="Budao ID，激活实体卡">40278001116829481</button>
+        <div class="front-vertical">步道线路</div>
+        <div class="front-seal">路</div>
+        <button class="hotspot front-title" id="identityHotspot" type="button" aria-label="我的步道身份">终成始创</button>
+        <button class="since" id="sinceHotspot" type="button" aria-label="从这里开始">SINCE 2026.3.21</button>
+      </section>
+
+      <section class="face back" aria-label="步道卡反面">
+        <div class="back-mark">步道</div>
+        <button class="hotspot rook" id="peopleHotspot" type="button" aria-label="一起走过的人">♖</button>
+        <button class="hotspot logo" id="marksHotspot" type="button" aria-label="已经走过的路">
+          <svg viewBox="0 0 160 100" aria-hidden="true"><path d="M7 15 L58 34 L81 24 L146 39 L147 65 L90 65 L72 57 L46 76 L13 87 L48 51 L12 43 Z" fill="#ef2028"/><path d="M55 36 L78 28 L102 43 L77 53 Z" fill="#fffdf6"/></svg>
+        </button>
+        <button class="hotspot spade" id="unfinishedHotspot" type="button" aria-label="未完之路">♠</button>
+        <button class="hotspot dice" id="revealHotspot" type="button" aria-label="显现">
+          <span class="pip p1"></span><span class="pip p2"></span><span class="pip p3"></span><span class="pip p4"></span><span class="pip p5"></span>
+        </button>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="hint" id="hint">点击卡面空白处翻面 · 卡上的符号就是入口</div>
+<div class="toast" id="toast"></div>
+
+<section class="panel" id="activationPanel" aria-label="实体步道卡激活">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">REAL → DIGITAL</div>
+  <h2>让原野认出这张卡</h2>
+  <p class="desc">Budao ID 是公开身份号。实体步道卡密码是另一把钥匙。密码验证通过后，这个 Budao ID 与你的数字羊及牧场身份绑定。</p>
+  <div class="activation">
+    <div><strong>Budao ID</strong><br><code>40278001116829481</code></div>
+    <input id="cardPassword" type="password" autocomplete="off" placeholder="输入实体步道卡密码">
+    <button id="activateBtn" type="button">验证并激活原野</button>
+    <div class="note">预览模式：尚未接入真实卡密服务，任意非空输入只用于模拟完整激活流程。</div>
+    <div class="success" id="activateSuccess">原野已经认出这张卡。路、同行、信箱与未来功能均已解锁。</div>
+  </div>
+</section>
+
+<section class="panel" id="identityPanel" aria-label="我的步道身份">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">LIVING IDENTITY</div>
+  <h2>不是资料页，是持续生长的身份</h2>
+  <p class="desc">卡可以换，路不会消失。Budao ID 连接的是同一个人、同一只数字羊，以及现实世界留下的全部路印。</p>
+  <div class="rows">
+    <div class="row"><div><strong>当前状态</strong><small>一人 · 一 ID · 一只数字羊</small></div><span class="chip">IDENTITY</span></div>
+    <div class="row"><div><strong>现实写回</strong><small>报名不是路印；真实参与并被见证之后才会结印。</small></div><span class="chip">WITNESS</span></div>
+    <div class="row"><div><strong>隐私不是抹除</strong><small>经历可以隐藏；真实发生过的历史不会被伪装成没有发生。</small></div><span class="chip">TRUST</span></div>
+  </div>
+</section>
+
+<section class="panel" id="startPanel" aria-label="从这里开始">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">SINCE 2026.3.21</div>
+  <h2>从这里开始</h2>
+  <p class="desc">SINCE 不是注册日期。它指向你的第一枚真实路印：数字身份第一次被现实世界写入。</p>
+  <div class="timeline">
+    <div class="time">2026.3.21</div><div class="memory"><strong>起点</strong><br>第一枚路印在这里结成。以后所有“后来”，都可以回到这个时间坐标。</div>
+    <div class="time">今天</div><div class="memory"><strong>同一个 Budao ID</strong><br>实体卡可以更换；已经走过的路继续属于你。</div>
+  </div>
+</section>
+
+<section class="panel" id="marksPanel" aria-label="路印">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">TRAIL MARKS</div>
+  <h2>已经走过的路</h2>
+  <p class="desc">每一枚路印都来自一次真实发生、被见证并结印的事件。点击一枚，不是看“活动详情”，而是回到那一天。</p>
+  <div class="rows" id="markRows">
+    <div class="row" data-memory="舞彩浅山"><div><strong>路印 #01 · 舞彩浅山</strong><small>第一次，路开始出现。</small></div><span class="chip">回到那一天</span></div>
+    <div class="row" data-memory="宽沟"><div><strong>路印 · 宽沟</strong><small>一条窄路，一次共同的问题。</small></div><span class="chip">回到那一天</span></div>
+    <div class="row" data-memory="百望山"><div><strong>路印 · 百望山</strong><small>后来又在这里与人相遇。</small></div><span class="chip">回到那一天</span></div>
+  </div>
+  <div class="detail" id="markDetail">选择一枚路印。</div>
+</section>
+
+<section class="panel" id="memoryPanel" aria-label="回到那一天">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">AS-OF VIEW</div>
+  <h2 id="memoryTitle">回到那一天</h2>
+  <p class="desc">过去不被后来覆盖；后来可以重新照亮过去。</p>
+  <div class="timeline">
+    <div class="time">那一天</div><div class="memory">只恢复当时已经存在的事实：路线、同行者、问题与当时留下的话。</div>
+    <div class="time">我那时</div><div class="memory">恢复那个时间点的身份状态，而不是拿今天的自己覆盖过去。</div>
+    <div class="time">后来</div><div class="memory"><div class="echo">后来的一封信、一次重访或一段关系，可以成为这一天的回响，但会诚实标记“写于后来”。</div></div>
+  </div>
+  <div class="mini-actions"><button id="writePast">写给过去的我</button><button id="plantSeed">留给未来</button></div>
+</section>
+
+<section class="panel" id="unfinishedPanel" aria-label="未完之路">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">UNFINISHED PATHS</div>
+  <h2>还没有走完的路</h2>
+  <p class="desc">不是 Todo。它必须从真实路印、关系或信件里长出来；没有红点，没有逾期，也没有“完成任务”。</p>
+  <div class="rows">
+    <div class="row" data-path="conversation"><div><strong>一次还没有发生的谈话</strong><small>源自一枚旧路印 · 已陪你 426 天</small></div><span class="chip">仍在行走</span></div>
+    <div class="row" data-path="return"><div><strong>再回这座山</strong><small>原来的问题还在这里等你。</small></div><span class="chip">等待</span></div>
+    <div class="row" data-path="andre"><div><strong>与 Andre 再同行</strong><small>双方共同确认的一段路。</small></div><span class="chip">共同未完</span></div>
+  </div>
+  <div class="detail" id="unfinishedDetail">走到了、改变方向、继续等待，甚至放下，都可能是这条路真实的后来。</div>
+  <div class="mini-actions"><button id="pathLater">接到后来</button><button id="pathRelease">这条路，我决定放下</button></div>
+</section>
+
+<section class="panel" id="peoplePanel" aria-label="一起走过的人">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">COMPANIONSHIP</div>
+  <h2>一起走过的人</h2>
+  <p class="desc">没有“加好友”。关系由共同发生过的现实自然显现；系统只陈述事实，不替人定义亲密。</p>
+  <div class="rows">
+    <div class="row" data-person="Andre"><div><strong>Andre</strong><small>第一次相遇 · 共同走过 6 次 · 共同未完之路 1 段</small></div><span class="chip">共同历史</span></div>
+    <div class="row" data-person="Moses"><div><strong>Moses</strong><small>第一次相遇以后，又在不同的路上重逢。</small></div><span class="chip">共同历史</span></div>
+  </div>
+  <div class="detail" id="peopleDetail">选择一个人，不是查看资料，而是查看“我们之间真实发生过什么”。</div>
+  <div class="mini-actions"><button id="openMailbox">写一封信</button></div>
+</section>
+
+<section class="panel" id="revealPanel" aria-label="显现">
+  <button class="panel-close" data-close>×</button>
+  <div class="kicker">CONTEXTUAL RECALL</div>
+  <h2>显现</h2>
+  <p class="desc">骰子不是抽奖。系统根据地点、时间、旧路印、同行关系与未完之路，让此刻最有理由被重新看见的一件事浮出来。</p>
+  <div class="reveal-stage">
+    <div>
+      <div class="big-die" id="bigDie">⚄</div>
+      <div class="reveal-copy" id="revealCopy">点一下，让一件过去的事重新进入今天。</div>
+      <div class="mini-actions" style="justify-content:center"><button class="primary" id="revealBtn">让它显现</button></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const KEY = 'budao.card.activated.v1';
+  const card = document.getElementById('card');
+  const hint = document.getElementById('hint');
+  const toast = document.getElementById('toast');
+  const status = document.getElementById('status');
+  const statusText = document.getElementById('statusText');
+  const panels = [...document.querySelectorAll('.panel')];
+  let active = localStorage.getItem(KEY) === '1';
+  let revealIndex = 0;
+
+  function syncState(){
+    status.classList.toggle('active', active);
+    statusText.textContent = active ? '实体卡已激活 · 原野已认出你' : '实体卡未激活';
+  }
+  function showToast(msg){
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(showToast.t); showToast.t = setTimeout(() => toast.classList.remove('show'), 1900);
+  }
+  function closePanels(){ panels.forEach(p => p.classList.remove('open')); }
+  function openPanel(id, requireActive=true){
+    if(requireActive && !active){
+      card.classList.remove('flipped');
+      document.getElementById('activationPanel').classList.add('open');
+      document.getElementById('cardPassword').focus();
+      showToast('先让实体步道卡与 Budao ID 相认。');
+      return;
+    }
+    closePanels();
+    document.getElementById(id)?.classList.add('open');
+  }
+  function hot(el, fn){ el.addEventListener('click', e => {e.stopPropagation(); fn();}); }
+
+  card.addEventListener('click', () => {
+    closePanels();
+    card.classList.toggle('flipped');
+    hint.textContent = card.classList.contains('flipped') ? '反面：图案就是功能 · 点击空白处回到正面' : '正面：数字负责激活 · 点击空白处翻面';
+  });
+
+  hot(document.getElementById('idHotspot'), () => openPanel('activationPanel', false));
+  hot(document.getElementById('identityHotspot'), () => openPanel('identityPanel'));
+  hot(document.getElementById('sinceHotspot'), () => openPanel('startPanel'));
+  hot(document.getElementById('marksHotspot'), () => openPanel('marksPanel'));
+  hot(document.getElementById('unfinishedHotspot'), () => openPanel('unfinishedPanel'));
+  hot(document.getElementById('peopleHotspot'), () => openPanel('peoplePanel'));
+  hot(document.getElementById('revealHotspot'), () => openPanel('revealPanel'));
+
+  document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', closePanels));
+
+  document.getElementById('activateBtn').addEventListener('click', () => {
+    const pwd = document.getElementById('cardPassword').value.trim();
+    if(!pwd){ showToast('请输入实体卡上的密码。'); return; }
+    active = true; localStorage.setItem(KEY,'1'); syncState();
+    document.getElementById('activateSuccess').classList.add('show');
+    window.parent?.postMessage({type:'budao-card-activated'}, '*');
+    showToast('原野已经认出这张卡。');
+  });
+
+  document.querySelectorAll('[data-memory]').forEach(row => row.addEventListener('click', () => {
+    const name = row.dataset.memory;
+    document.getElementById('markDetail').innerHTML = '<strong>'+name+'</strong><br>共同事实保持不变；属于你的那一天，会保存当时的身份、同行者和后来回响。';
+    document.getElementById('memoryTitle').textContent = '回到那一天 · ' + name;
+    setTimeout(() => openPanel('memoryPanel'), 120);
+  }));
+
+  document.querySelectorAll('[data-path]').forEach(row => row.addEventListener('click', () => {
+    const map = {
+      conversation:'这条路从一次真实回应里长出来。它没有截止日期；只有新的现实发生时，才会继续往前。',
+      return:'这里不是旅行愿望清单。再次来到同一个地点时，过去留下的问题才会被情境重新唤回。',
+      andre:'双方共同确认，所以它同时存在于两个人的步道卡里；任何一方都不能替另一方定义意义。'
+    };
+    document.getElementById('unfinishedDetail').textContent = map[row.dataset.path];
+  }));
+
+  document.querySelectorAll('[data-person]').forEach(row => row.addEventListener('click', () => {
+    const name = row.dataset.person;
+    document.getElementById('peopleDetail').innerHTML = '<strong>'+name+'</strong><br>第一次同行 → 后来的共同路印 → 与这段关系有关的信 → 仍未走完的共同路。<br><small>共同事实双方共享；各自内心仍然各自拥有。</small>';
+  }));
+
+  document.getElementById('openMailbox').addEventListener('click', () => {
+    window.parent?.postMessage({type:'budao-card-open-mail'}, '*');
+    showToast('把这段关系接回信箱。');
+  });
+  document.getElementById('writePast').addEventListener('click', () => showToast('来自今天的文字会标记“写于后来”。'));
+  document.getElementById('plantSeed').addEventListener('click', () => showToast('时间种子已经埋下；不会天天提醒你。'));
+  document.getElementById('pathLater').addEventListener('click', () => showToast('不是勾选完成，而是记录：后来发生了什么。'));
+  document.getElementById('pathRelease').addEventListener('click', () => showToast('放下也是一种抵达；历史仍会保留。'));
+
+  const reveals = [
+    '你上一次来到百望山时，留下了一句没有写完的话。',
+    '你与 Andre 第一次同行的那一天，后来又收到过一封与它有关的信。',
+    '一年前的你，在一枚路印里留下了一颗时间种子。',
+    '有一条未完之路已经安静很久；今天只是让你重新看见它，不催你做什么。'
+  ];
+  document.getElementById('revealBtn').addEventListener('click', () => {
+    const die = document.getElementById('bigDie');
+    die.classList.remove('roll'); void die.offsetWidth; die.classList.add('roll');
+    const copy = document.getElementById('revealCopy');
+    copy.textContent = '路正在翻找……';
+    setTimeout(() => { copy.textContent = reveals[revealIndex++ % reveals.length]; }, 620);
+  });
+
+  document.getElementById('closeCardPage').addEventListener('click', () => {
+    window.parent?.postMessage({type:'budao-card-close'}, '*');
+    if(window.parent === window) history.back();
+  });
+
+  window.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      const opened = panels.some(p=>p.classList.contains('open'));
+      if(opened) closePanels();
+      else window.parent?.postMessage({type:'budao-card-close'}, '*');
+    }
+  });
+
+  syncState();
+})();
+</script>
+</body>
+</html>
