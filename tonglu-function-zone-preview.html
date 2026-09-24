@@ -183,6 +183,15 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   .sky-zone{height:68vh;min-height:520px}.topline{grid-template-columns:1fr 1fr}.brand{display:none}.identity{height:126px}.actions{grid-column:1/-1;grid-template-columns:1fr 1fr;gap:10px}.pbtn{height:54px;font-size:15px}.public-screen{grid-column:1/-1;min-height:100px}
   .book-layer{top:118px;overflow:auto;align-items:flex-start}.book-object{min-width:900px;width:900px}.book-layer{justify-content:flex-start}
 }
+
+/* ===== BUDAO CARD OS ===== */
+#budaoCardBtn{position:relative}
+.card-dot{position:absolute;right:8px;top:8px;width:8px;height:8px;background:#b99b65;border:1px solid #745f3f}
+.card-dot.active{background:#2cb64a;border-color:#1d7631}
+.budao-card-layer{position:fixed;inset:0;z-index:90;background:#8edff1;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .12s steps(3,end),visibility 0s linear .12s}
+body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-events:auto;transition-delay:0s}
+.budao-card-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#8edff1}
+.budao-card-layer-close{position:absolute;right:24px;top:22px;z-index:3;border:3px solid #214d7b;background:#fffaf0;color:#173b64;padding:8px 12px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 rgba(24,63,99,.14)}
 </style>
 </head>
 <body>
@@ -222,7 +231,7 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
         <div class="pbtn pixel clickable" id="windNewsBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" fill="#fff6df" stroke="#1f4f7d" stroke-width="1.5"/><rect x="5" y="5" width="6" height="1" fill="#7da4c6"/><rect x="5" y="8" width="6" height="1" fill="#7da4c6"/><rect x="5" y="11" width="4" height="1" fill="#7da4c6"/></svg></span>风闻有你</div>
         <div class="pbtn pixel clickable" id="partnersBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="7" width="5" height="4" fill="#e9eee5"/><rect x="3" y="5" width="3" height="3" fill="#e9eee5"/><rect x="9" y="7" width="5" height="4" fill="#cbd9c7"/><rect x="10" y="5" width="3" height="3" fill="#cbd9c7"/><rect x="6" y="9" width="4" height="3" fill="#7a766c"/></svg></span>同路伙伴</div>
         <div class="pbtn pixel clickable" id="mailBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="9" fill="#dceafb" stroke="#214d7b" stroke-width="1.3"/><path d="M3 5l5 4 5-4" fill="none" stroke="#214d7b" stroke-width="1.3"/></svg></span>信箱<span class="badge" id="mailBadge">3</span></div>
-        <div class="pbtn pixel"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="#d9ebb4" stroke="#315a83" stroke-width="1.3"/><path d="M5 4v8M10 4v8" stroke="#6d9258" stroke-width="1.2"/><path d="M2 9l4-3 4 2 4-3" fill="none" stroke="#4879a6" stroke-width="1.2"/></svg></span>步道卡</div>
+        <div class="pbtn pixel clickable" id="budaoCardBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="#d9ebb4" stroke="#315a83" stroke-width="1.3"/><path d="M5 4v8M10 4v8" stroke="#6d9258" stroke-width="1.2"/><path d="M2 9l4-3 4 2 4-3" fill="none" stroke="#4879a6" stroke-width="1.2"/></svg></span>步道卡<span class="card-dot" id="budaoCardDot" aria-hidden="true"></span></div>
         <div class="pbtn pixel"><span class="icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="#a9bed0" stroke="#224f7a" stroke-width="1.2"/><circle cx="8" cy="8" r="1.5" fill="#fff8e8"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3 3l2 2M11 11l2 2M13 3l-2 2M5 11l-2 2" stroke="#224f7a" stroke-width="1.3"/></svg></span>小匣</div>
       </nav>
       <aside class="public-screen pixel" aria-label="公共信息">
@@ -379,6 +388,12 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
       </div>
     </div>
   </div>
+</section>
+
+
+<section class="budao-card-layer" id="budaoCardLayer" aria-label="步道卡">
+  <iframe class="budao-card-frame" id="budaoCardFrame" src="tonglu-budao-card-preview.html" title="步道卡"></iframe>
+  <button class="budao-card-layer-close" id="closeBudaoCard" type="button">收起 ×</button>
 </section>
 
 <script>
@@ -1644,6 +1659,48 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
   resizeWind();
   resizePartners();
   resizeMail();
+})();
+</script>
+
+<script>
+(() => {
+  const KEY='budao.card.activated.v1';
+  const btn=document.getElementById('budaoCardBtn');
+  const layer=document.getElementById('budaoCardLayer');
+  const frame=document.getElementById('budaoCardFrame');
+  const close=document.getElementById('closeBudaoCard');
+  const dot=document.getElementById('budaoCardDot');
+  if(!btn||!layer||!frame||!close) return;
+
+  function syncCardState(){
+    dot?.classList.toggle('active', localStorage.getItem(KEY)==='1');
+  }
+  function openCard(){
+    syncCardState();
+    document.body.classList.add('budao-card-open');
+    frame.contentWindow?.focus();
+  }
+  function closeCard(){
+    document.body.classList.remove('budao-card-open');
+    syncCardState();
+  }
+  btn.addEventListener('click', openCard);
+  close.addEventListener('click', closeCard);
+
+  window.addEventListener('message', e => {
+    const type=e.data && e.data.type;
+    if(type==='budao-card-close') closeCard();
+    if(type==='budao-card-activated') syncCardState();
+    if(type==='budao-card-open-mail'){
+      closeCard();
+      setTimeout(()=>document.getElementById('mailBtn')?.click(),120);
+    }
+  });
+  window.addEventListener('storage', syncCardState);
+  window.addEventListener('keydown', e => {
+    if(e.key==='Escape' && document.body.classList.contains('budao-card-open')) closeCard();
+  });
+  syncCardState();
 })();
 </script>
 </body>
