@@ -223,10 +223,11 @@ function buildDesktopLambLayout(){
 function drawDesktopLambs(){
   const lambs=buildDesktopLambLayout();
   lambs.forEach((o,i)=>{
+    const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
     const bob=Math.sin((tick+i*41)/110)>.82?1:0;
-    const y=o.y-bob;
-    rect(o.x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-    drawDesktopLamb(o.x,y,o.s,o.flip,o.style);
+    const x=o.x+dx,y=o.y-bob;
+    rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+    drawDesktopLamb(x,y,o.s,o.flip,o.style);
   });
 }
 let returnTwigHover=false;
