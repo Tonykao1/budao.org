@@ -281,6 +281,17 @@ function kind(code){
   if((code>=71&&code<=77)||(code>=85&&code<=86))return'snow';
   return'clear';
 }
+function effectiveCloudCover(){
+  const c=state?.current||{},code=Number(c.weatherCode)||0;
+  let cloud=Math.max(0,Math.min(100,Number(c.cloudCover)||0));
+  const type=kind(code);
+  if(type==='fog')cloud=Math.max(cloud,92);
+  else if(type==='rain'||type==='snow')cloud=Math.max(cloud,88);
+  else if(code===3)cloud=Math.max(cloud,85);
+  else if(code===2)cloud=Math.max(cloud,55);
+  else if(code===1)cloud=Math.max(cloud,25);
+  return cloud;
+}
 function sunAlpha(code,cloud){
   code=Number(code)||0;cloud=Number(cloud)||0;
   const type=kind(code);
@@ -314,15 +325,15 @@ function weatherFx(type,cloud){
     ctx.restore();
   }
   if(type==='rain'){
-    const n=22+Math.round(Math.min(34,cloud/3));
+    const n=Math.round(32+Math.min(42,cloud/2));
     ctx.save();ctx.globalAlpha=.48;
-    for(let i=0;i<n;i++){const x=(i*71+tick*7)%500-10,y=(i*43+tick*11)%292;rect(x,y,1,3,i%4===0?'#dff7ff':'#b9def1')}
+    for(let i=0;i<n;i++){const x=(i*71+tick*7)%480,y=(i*43+tick*11)%300;rect(x,y,1,3,i%4===0?'#dff7ff':'#b9def1')}
     ctx.restore();
   }
   if(type==='snow'){
-    const n=28+Math.round(Math.min(26,cloud/4));
+    const n=Math.round(36+Math.min(30,cloud/3));
     ctx.save();ctx.globalAlpha=.8;
-    for(let i=0;i<n;i++){const x=(i*83+tick*(i%3+1))%500-10,y=(i*37+tick*3)%294;rect(x,y,i%7===0?2:1,i%7===0?2:1,'#f5fbff')}
+    for(let i=0;i<n;i++){const x=(i*83+tick*(i%3+1))%480,y=(i*37+tick*3)%300;rect(x,y,i%7===0?2:1,i%7===0?2:1,'#f5fbff')}
     ctx.restore();
   }
 }
@@ -349,7 +360,7 @@ function draw(){
     }else darkness=.52;
     ctx.fillStyle='rgba(18,34,70,'+darkness+')';ctx.fillRect(0,0,480,300);
   }
-  const cloud=Number(c.cloudCover)||0;
+  const cloud=effectiveCloudCover();
   if(day){
     const x=22+progress*436,y=78-Math.sin(Math.PI*progress)*56;
     const sa=sunAlpha(c.weatherCode,cloud);
