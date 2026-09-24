@@ -5,19 +5,19 @@ const test = require('node:test');
 
 const root = path.join(__dirname, '..');
 
-test('calendar module spans previous final week, full current month, and next first week', () => {
+test('calendar module keeps a symmetric 45-day rolling window around today', () => {
   const calendar = require('../budao-calendar.js');
-  const model = calendar.buildCalendarModel(new Date('2026-09-17T12:00:00+08:00'));
+  const model = calendar.buildCalendarModel(new Date('2026-09-24T12:00:00+08:00'));
+  const days = [...model.previous.days, ...model.current.days, ...model.next.days];
 
-  assert.equal(model.previous.days.length, 7);
-  assert.equal(model.current.days.length, 30);
-  assert.equal(model.next.days.length, 7);
-  assert.equal(model.previous.days.at(-1).monthIndex, 7); // August
+  assert.equal(days.length, 45);
+  assert.equal(days[0].dateKey, '2026-09-02');
+  assert.equal(days.at(-1).dateKey, '2026-10-16');
+  assert.equal(days[22].dateKey, '2026-09-24');
+  assert.equal(days[22].isToday, true);
+  assert.equal(model.previous.days.length, 0);
   assert.equal(model.current.monthIndex, 8); // September
-  assert.equal(model.current.days[0].day, 1);
-  assert.equal(model.current.days.at(-1).day, 30);
   assert.equal(model.next.days[0].monthIndex, 9); // October
-  assert.equal(model.current.days.find((day) => day.day === 17).isToday, true);
 });
 
 test('test page places an empty calendar between hero copy and route slots', () => {
