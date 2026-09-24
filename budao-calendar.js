@@ -229,11 +229,13 @@
 
   function renderCalendar(host, now, schedule) {
     const model = buildCalendarModel(now || new Date(), schedule || baseStepSchedule);
-    const currentMonthLength = new Date(model.current.year, model.current.monthIndex + 1, 0).getDate();
+    const widthForDays = function (count) {
+      return "calc(var(--budao-calendar-flank-week-width, 245px) * " + count + " / 7)";
+    };
     const visibleMonths = [
-      { month: model.previous, width: function (count) { return "calc(var(--budao-calendar-flank-week-width, 245px) * " + count + " / 7)"; } },
-      { month: model.current, width: function (count) { return "calc(var(--budao-calendar-current-month-width, 860px) * " + count + " / " + currentMonthLength + ")"; } },
-      { month: model.next, width: function (count) { return "calc(var(--budao-calendar-flank-week-width, 245px) * " + count + " / 7)"; } }
+      { month: model.previous, width: widthForDays },
+      { month: model.current, width: widthForDays },
+      { month: model.next, width: widthForDays }
     ].filter(function (entry) {
       return entry.month.days.length > 0;
     });
