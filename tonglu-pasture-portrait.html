@@ -38,10 +38,21 @@ const PAIRS=[
  ['#f3ead7','#857b6c'],[C.self,C.selfHead],['#c7d5b5','#727a66'],['#d8d7ce','#716a64'],['#f1d7bf','#907461']
 ];
 let sheepColors=PAIRS.slice();
-for(let i=sheepColors.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[sheepColors[i],sheepColors[j]]=[sheepColors[j],sheepColors[i]]}
 sheepColors[21]=[C.self,C.selfHead];
 
 let W=480,H=300,portrait=false,tick=0,state=null,twigHover=false;
+function flockDateKey(){
+ const tz=state?.location?.timezone||'Asia/Shanghai';
+ try{
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const o=Object.fromEntries(p.map(x=>[x.type,x.value]));
+  return o.year+'-'+o.month+'-'+o.day;
+ }catch(e){return new Date().toISOString().slice(0,10)}
+}
+function flockHash(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function flockRand(seed){return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function portraitDailyRand(label){return flockRand(flockHash('budao-'+label+'-'+flockDateKey()))}
+
 const embedded=window.parent!==window;
 window.addEventListener('message',e=>{
  if(e.origin!==location.origin)return;
@@ -109,8 +120,9 @@ function drawSheep(o,i){
  const phase=i*29+11,dx=Math.sin((tick+phase)/260)*(o.wander||0);
  const breath=Math.sin((tick+phase)/95)>.80?1:0;
  const x=Math.round(o.x+dx),y=Math.round(o.y-breath);
+ const pair=o.f&&o.h?[o.f,o.h]:sheepColors[i%sheepColors.length];
  rect(x-2*o.s,y+18*o.s,28*o.s,2*o.s,'rgba(56,93,54,.18)');
- sheepBody(x,y,o.s,sheepColors[i][0],sheepColors[i][1],o.flip,o.graze);
+ sheepBody(x,y,o.s,pair[0],pair[1],o.flip,o.graze);
 }
 function tree(x,y,s=1){
  rect(x+5*s,y+12*s,3*s,10*s,C.trunk);
@@ -279,6 +291,17 @@ function creatureBox(o,isLamb=false){
 function boxesOverlap(a,b,pad=3){
  return !(a.r+pad<b.l||a.l-pad>b.r||a.b+pad<b.t||a.t-pad>b.b);
 }
+function placeAdultAvoidingFlock(o,sourceY,occupied){
+ const offsets=[[0,0],[16,-3],[-16,3],[28,4],[-28,-4],[40,-6],[-40,6],[52,0],[-52,0]];
+ for(let k=0;k<offsets.length;k++){
+  const y=Math.max(sourceY+10,Math.min(H-36,o.y+offsets[k][1]));
+  const x=keepCreatureOnBank(o.x+offsets[k][0],y,o.s,sourceY,false);
+  const test={x,y,s:o.s};
+  const box=creatureBox(test,false);
+  if(!occupied.some(b=>boxesOverlap(box,b,5)))return{x,y};
+ }
+ return{x:keepCreatureOnBank(o.x,o.y,o.s,sourceY,false),y:o.y};
+}
 function placeLambAvoidingFlock(o,sourceY,occupied){
  let x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,true),y=o.y;
  const dirs=[1,-1,1,-1],steps=[12,18,26,34,42,50,58];
@@ -295,20 +318,23 @@ function placeLambAvoidingFlock(o,sourceY,occupied){
  y=o.y-16;
  return {x,y};
 }
-function drawLamb(x,y,s,flip=false){
- const f='#f6ead7',h='#b98f79';
+function drawLamb(x,y,s,flip=false,style='normal'){
+ const bw=style==='blackwhite';
+ const f=bw?'#eeeae2':'#f6ead7',h=bw?'#302d2a':'#b98f79';
  ctx.save();
  if(flip){ctx.translate(x+21*s,0);ctx.scale(-1,1);x=0}
  rect(x,y,16*s,8*s,f);rect(x+3*s,y-4*s,11*s,13*s,f);rect(x+6*s,y-6*s,7*s,15*s,f);
+ if(bw){rect(x+3*s,y-2*s,5*s,5*s,'#4a4642');rect(x+9*s,y+2*s,5*s,4*s,'#4a4642')}
  rect(x+13*s,y+2*s,7*s,7*s,h);rect(x+19*s,y+4*s,2*s,3*s,h);
  rect(x+12*s,y+3*s,2*s,2*s,h);rect(x+17*s,y+4*s,1,1,C.ink);
  rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
  ctx.restore();
 }
 function drawPortrait(){
- // Native portrait composition locked to the approved visual direction.
+ // Native portrait composition + daily deterministic flock.
  const sourceY=Math.round(H*.405);
  const hillY=Math.round(H*.43),hill2Y=Math.round(H*.50),grassY=Math.round(H*.555),frontY=Math.round(H*.80);
+ const rand=portraitDailyRand('portrait-flock');
 
  drawPortraitMountains(sourceY);
  rect(0,hillY,W,H-hillY,C.hill);
@@ -321,52 +347,78 @@ function drawPortrait(){
  tree(Math.round(W*.08),Math.round(H*.56),.9);
  grassTexture(grassY+12);
 
- // 25 adult sheep, using the same perspective scale progression as the approved pasture.
+ // 25 original adults, now with a date-seeded daily positional variation.
  const rows=[
-  {y:H*.445,n:4,min:.33,max:.41},
-  {y:H*.515,n:5,min:.42,max:.54},
-  {y:H*.595,n:5,min:.55,max:.69},
-  {y:H*.685,n:4,min:.70,max:.84},
-  {y:H*.785,n:4,min:.85,max:1.00},
-  {y:H*.895,n:3,min:1.00,max:1.14}
+  {y:H*.445,n:4,min:.33,max:.41,jx:9,jy:4},
+  {y:H*.515,n:5,min:.42,max:.54,jx:11,jy:5},
+  {y:H*.595,n:5,min:.55,max:.69,jx:13,jy:6},
+  {y:H*.685,n:4,min:.70,max:.84,jx:15,jy:7},
+  {y:H*.785,n:4,min:.85,max:1.00,jx:17,jy:8},
+  {y:H*.895,n:3,min:1.00,max:1.14,jx:18,jy:8}
  ];
- const adults=[];
+ const adults=[],adultOccupied=[];
  rows.forEach((r,ri)=>{
   for(let j=0;j<r.n;j++){
-   const q=j/Math.max(1,r.n-1);
-   let x=12+(W-44)*(j+.48+(ri%2)*.31)/(r.n+.05);
-   const y=r.y+(j%2)*5,s=r.min+(r.max-r.min)*q;
-   x=keepCreatureOnBank(x,y,s,sourceY,false);
-   adults.push({x,y,s,flip:(j+ri)%3===0,graze:(j+ri)%4===0,wander:.42+ri*.06});
+   const q=j/Math.max(1,r.n-1),s=r.min+(r.max-r.min)*q;
+   let x=12+(W-44)*(j+.48+(ri%2)*.31)/(r.n+.05)+(rand()-.5)*2*r.jx;
+   let y=r.y+(j%2)*5+(rand()-.5)*2*r.jy;
+   const base={x,y,s,flip:rand()<.38,graze:rand()<.27,wander:.42+ri*.06};
+   const p=placeAdultAvoidingFlock(base,sourceY,adultOccupied);
+   base.x=p.x;base.y=p.y;
+   adults.push(base);adultOccupied.push(creatureBox(base,false));
   }
  });
- adults.length=25;
- adults[21]={x:W*.34,y:H*.81,s:1.08,flip:false,graze:false,wander:0};
- adults.forEach(o=>{o.x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,false)});
- adults.forEach(drawSheep);
- const occupied=adults.map(o=>creatureBox(o,false));
 
- // 17 lambs: 4 far / 7 middle / 6 foreground.
- // Each lamb uses the same depth scale as adults in its band (about 58–66% of adult size).
+ // 26th adult: one large black sheep. Its side changes by day, but it remains an ordinary member of the flock.
+ const blackLeft=rand()<.5;
+ let black={x:blackLeft?W*.16:W*.78,y:H*(.73+rand()*.10),s:1.02,flip:rand()<.5,graze:false,wander:.48,f:'#494642',h:'#292725',black:true};
+ let bp=placeAdultAvoidingFlock(black,sourceY,adultOccupied);black.x=bp.x;black.y=bp.y;
+ adults.push(black);adultOccupied.push(creatureBox(black,false));
+
+ adults.forEach(drawSheep);
+ const occupied=adultOccupied.slice();
+
+ // 17 original lambs, with a smaller date-seeded shift so perspective remains stable.
  const lambs=[
-  // far 4
-  {x:W*.16,y:H*.468,s:.23,flip:false},{x:W*.31,y:H*.485,s:.25,flip:true},
-  {x:W*.53,y:H*.472,s:.24,flip:false},{x:W*.86,y:H*.492,s:.26,flip:true},
-  // middle 7
-  {x:W*.18,y:H*.585,s:.36,flip:true},{x:W*.28,y:H*.615,s:.39,flip:false},
-  {x:W*.42,y:H*.628,s:.40,flip:true},{x:W*.57,y:H*.585,s:.37,flip:false},
-  {x:W*.73,y:H*.625,s:.41,flip:true},{x:W*.90,y:H*.655,s:.44,flip:false},
-  {x:W*.13,y:H*.695,s:.45,flip:true},
-  // foreground 6
-  {x:W*.23,y:H*.775,s:.55,flip:false},{x:W*.40,y:H*.825,s:.59,flip:true},
-  {x:W*.56,y:H*.765,s:.54,flip:false},{x:W*.76,y:H*.835,s:.62,flip:true},
-  {x:W*.18,y:H*.895,s:.65,flip:false},{x:W*.84,y:H*.925,s:.67,flip:true}
+  {x:W*.16,y:H*.468,s:.23},{x:W*.31,y:H*.485,s:.25},
+  {x:W*.53,y:H*.472,s:.24},{x:W*.86,y:H*.492,s:.26},
+  {x:W*.18,y:H*.585,s:.36},{x:W*.28,y:H*.615,s:.39},
+  {x:W*.42,y:H*.628,s:.40},{x:W*.57,y:H*.585,s:.37},
+  {x:W*.73,y:H*.625,s:.41},{x:W*.90,y:H*.655,s:.44},
+  {x:W*.13,y:H*.695,s:.45},
+  {x:W*.23,y:H*.775,s:.55},{x:W*.40,y:H*.825,s:.59},
+  {x:W*.56,y:H*.765,s:.54},{x:W*.76,y:H*.835,s:.62},
+  {x:W*.18,y:H*.895,s:.65},{x:W*.84,y:H*.925,s:.67}
  ];
+ const placedLambs=[];
  lambs.forEach((o,i)=>{
-   const p=placeLambAvoidingFlock(o,sourceY,occupied);
-   rect(p.x-1.5*o.s,p.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-   drawLamb(p.x,p.y,o.s,o.flip);
-   occupied.push(creatureBox({x:p.x,y:p.y,s:o.s},true));
+   const depth=(o.y/H),jx=depth>.75?13:9,jy=depth>.75?7:5;
+   const base={x:o.x+(rand()-.5)*2*jx,y:o.y+(rand()-.5)*2*jy,s:o.s,flip:rand()<.5,style:'normal'};
+   const p=placeLambAvoidingFlock(base,sourceY,occupied);
+   const final={x:p.x,y:p.y,s:o.s,flip:base.flip,style:'normal'};
+   placedLambs.push(final);occupied.push(creatureBox(final,true));
+ });
+
+ // 18th lamb: black-and-white, always on the opposite side from the black adult.
+ const specialBase={
+   x:black.x<W/2?W*.86:W*.10,
+   y:H*(.72+rand()*.13),
+   s:.57,
+   flip:rand()<.5,
+   style:'blackwhite'
+ };
+ let sp=placeLambAvoidingFlock(specialBase,sourceY,occupied);
+ let special={x:sp.x,y:sp.y,s:specialBase.s,flip:specialBase.flip,style:'blackwhite'};
+ // Hard separation guard: they should never read as a pair.
+ if(Math.hypot((special.x+10*special.s)-black.x,(special.y+8*special.s)-black.y)<W*.36){
+   special.x=keepCreatureOnBank(black.x<W/2?W*.88:W*.08,special.y,special.s,sourceY,true);
+ }
+ placedLambs.push(special);
+
+ placedLambs.forEach((o,i)=>{
+   const bob=Math.sin((tick+i*41)/110)>.82?1:0,y=o.y-bob;
+   rect(o.x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+   drawLamb(o.x,y,o.s,o.flip,o.style);
  });
 }
 function drawTwig(){
