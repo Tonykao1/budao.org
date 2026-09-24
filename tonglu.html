@@ -32,6 +32,15 @@ function sendPortraitEnvironment(){
     portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state},location.origin);
   }
 }
+function sendLandscapeEnvironment(){
+  if(!state||!frame.contentWindow)return;
+  try{
+    frame.contentWindow.__tongluWeather={
+      cloudCover:Number(state.current?.cloudCover)||0,
+      weatherCode:Number(state.current?.weatherCode)||0
+    };
+  }catch(e){}
+}
 portraitFrame.addEventListener('load',sendPortraitEnvironment);
 
 function syncComposition(){
@@ -75,6 +84,7 @@ function revealPastureWhenReady(){
         pasture.style.pointerEvents='none';
         frame.style.opacity='1';
         pastureReady=true;
+        sendLandscapeEnvironment();
         draw();
         clearInterval(pastureWatchTimer);
         return;
@@ -232,7 +242,6 @@ function draw(){
   if(!state)return;
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
-  rect(42,27,30,30,'#9fe8ff');
   const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;
   let darkness=0,progress=.5;
   if(day){
@@ -287,7 +296,10 @@ async function weatherAt(lat,lon,source){
   u.searchParams.set('daily','sunrise,sunset');u.searchParams.set('timezone','auto');
   u.searchParams.set('past_days','1');u.searchParams.set('forecast_days','2');
   const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');
-  state=build(await r.json(),lat,lon,source);sendPortraitEnvironment();draw();
+  state=build(await r.json(),lat,lon,source);
+  sendLandscapeEnvironment();
+  sendPortraitEnvironment();
+  draw();
 }
 async function refresh(){
   try{
