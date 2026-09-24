@@ -1,0 +1,291 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0c0e;
+  --panel: #121418;
+  --panel-soft: #171a1f;
+  --line: rgba(255,255,255,.10);
+  --line-strong: rgba(255,255,255,.18);
+  --text: #f3f0e8;
+  --muted: #9a9da3;
+  --warm: #d7c39a;
+  --danger: #d8a3a0;
+  --ok: #b9c7a7;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--bg); }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(215,195,154,.07), transparent 32rem),
+    var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+button, textarea { font: inherit; }
+
+.review-shell {
+  width: min(1120px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 64px 0 100px;
+}
+
+.review-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 9px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .18em;
+}
+
+h1 {
+  margin: 0;
+  font-family: Georgia, "Songti SC", "STSong", serif;
+  font-size: clamp(34px, 5vw, 56px);
+  font-weight: 400;
+  letter-spacing: .04em;
+}
+
+.quiet-button,
+.review-tab,
+.return-button,
+.approve-button {
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, opacity .16s ease;
+}
+
+.quiet-button { padding: 9px 15px; color: var(--muted); }
+.quiet-button:hover { color: var(--text); border-color: rgba(255,255,255,.32); }
+
+.boundary-note {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(215,195,154,.18);
+  border-radius: 14px;
+  background: rgba(215,195,154,.035);
+  line-height: 1.65;
+}
+
+.boundary-note strong { font-weight: 600; }
+.boundary-note span { color: var(--muted); font-size: 14px; }
+
+.review-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.review-tab {
+  padding: 8px 14px;
+  color: var(--muted);
+}
+
+.review-tab.is-active {
+  color: var(--bg);
+  border-color: var(--text);
+  background: var(--text);
+}
+
+.review-status {
+  min-height: 22px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.review-list {
+  display: grid;
+  gap: 24px;
+}
+
+.dao-review-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.012));
+  box-shadow: 0 28px 80px rgba(0,0,0,.18);
+}
+
+.dao-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 28px 30px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dao-code {
+  margin: 0 0 8px;
+  color: var(--warm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: .06em;
+}
+
+.dao-card-header h2 {
+  margin: 0;
+  font-family: Georgia, "Songti SC", "STSong", serif;
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 400;
+}
+
+.dao-meta {
+  display: grid;
+  gap: 5px;
+  text-align: right;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.scripture-block {
+  padding: 28px 30px;
+  border-bottom: 1px solid var(--line);
+}
+
+.scripture-block > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.scripture-block strong {
+  font-family: Georgia, "Songti SC", "STSong", serif;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.scripture-block span { color: var(--muted); font-size: 12px; }
+.scripture-block p { margin: 0; line-height: 1.9; color: #dedbd3; }
+
+.dao-field {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 28px;
+  padding: 24px 30px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dao-field h3 {
+  margin: 1px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .08em;
+}
+
+.dao-field-body { line-height: 1.8; color: #d6d4ce; }
+.intro-field .dao-field-body { font-family: Georgia, "Songti SC", "STSong", serif; font-size: 18px; }
+
+.dao-questions {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dao-questions li {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.dao-questions span {
+  color: var(--warm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+
+.dao-questions p { margin: 0; line-height: 1.7; }
+
+.review-action {
+  padding: 26px 30px 30px;
+  background: rgba(255,255,255,.018);
+}
+
+.review-action label { display: grid; gap: 10px; }
+.review-action label > span { color: var(--muted); font-size: 12px; }
+
+.review-action textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  outline: none;
+  padding: 13px 14px;
+  background: #0d0f12;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.review-action textarea:focus { border-color: rgba(215,195,154,.55); }
+
+.review-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.return-button,
+.approve-button { padding: 10px 18px; }
+.return-button { color: var(--danger); border-color: rgba(216,163,160,.35); }
+.approve-button { color: #0b0c0e; background: var(--ok); border-color: var(--ok); }
+
+button:disabled,
+textarea:disabled { opacity: .45; cursor: default; }
+
+.action-message {
+  min-height: 20px;
+  margin: 10px 0 0;
+  text-align: right;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.review-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 16px;
+  padding: 22px 30px;
+  background: rgba(255,255,255,.018);
+}
+
+.review-result strong { font-weight: 500; }
+.review-result span { color: var(--muted); font-size: 12px; }
+.review-result p { width: 100%; margin: 2px 0 0; color: #d1cec7; line-height: 1.7; }
+
+@media (max-width: 720px) {
+  .review-shell { width: min(100% - 24px, 1120px); padding-top: 34px; }
+  .review-header { align-items: center; }
+  .dao-card-header { padding: 22px 20px; }
+  .scripture-block, .review-action, .review-result { padding-left: 20px; padding-right: 20px; }
+  .dao-field { grid-template-columns: 1fr; gap: 10px; padding: 20px; }
+  .dao-questions li { grid-template-columns: 1fr; gap: 6px; }
+  .dao-meta { display: none; }
+  .review-buttons { flex-direction: column-reverse; }
+  .return-button, .approve-button { width: 100%; }
+}

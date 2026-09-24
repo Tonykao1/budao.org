@@ -122,6 +122,29 @@ const stewardshipAuditEvents = pgTable("stewardship_audit_events", {
   userIndex: index("stewardship_audit_events_user_id_idx").on(table.userId)
 }));
 
+const daoRecords = pgTable("dao_records", {
+  id: uuid("id").primaryKey(),
+  daoCode: text("dao_code").notNull(),
+  status: text("status").notNull().default("PENDING_REVIEW"),
+  frozen: boolean("frozen").notNull().default(false),
+  publisherId: text("publisher_id").notNull(),
+  publisherSlot: text("publisher_slot").notNull(),
+  publisherName: text("publisher_name").notNull().default(""),
+  devotionalDate: text("devotional_date").notNull(),
+  bookCode: text("book_code").notNull(),
+  chapterStart: integer("chapter_start").notNull(),
+  chapterEnd: integer("chapter_end").notNull(),
+  payload: jsonb("payload").notNull(),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  daoCodeUnique: uniqueIndex("dao_records_dao_code_uq").on(table.daoCode),
+  statusIndex: index("dao_records_status_idx").on(table.status),
+  publisherIndex: index("dao_records_publisher_id_idx").on(table.publisherId),
+  scriptureIndex: index("dao_records_scripture_idx").on(table.bookCode, table.chapterStart, table.chapterEnd)
+}));
+
 module.exports = {
   stewardshipUsers,
   passkeyCredentials,
@@ -130,5 +153,6 @@ module.exports = {
   pendingIntents,
   recoveryContacts,
   recoveryCodes,
-  stewardshipAuditEvents
+  stewardshipAuditEvents,
+  daoRecords
 };

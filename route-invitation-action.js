@@ -3,6 +3,9 @@
   const IN_FLIGHT = new WeakMap();
 
   function ensureThreeSlotDesktopLayout(){
+    if(!document || typeof document.getElementById !== 'function' ||
+       typeof document.createElement !== 'function' || !document.head ||
+       typeof document.head.appendChild !== 'function') return;
     if(document.getElementById('budao-three-slot-layout')) return;
     const style = document.createElement('style');
     style.id = 'budao-three-slot-layout';
