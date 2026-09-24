@@ -70,6 +70,21 @@ button{color:inherit}
 @media(max-width:760px){
  .stage{padding:11vh 4vw}.card-shell{width:95vw}.face{border-radius:11px;border-width:3px}.front-seal{width:24px;height:24px;font-size:9px}.dice{padding:6px;border-width:3px!important}.pip{width:7px;height:7px}.hint{font-size:11px;bottom:12px}.status{left:10px;top:10px}.close{right:10px;top:10px}.panel{padding:18px}.timeline{grid-template-columns:1fr}.time{margin-top:5px}
 }
+
+/* ===== APPROVED BUDAO CARD VISUAL ===== */
+.card-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none;z-index:1}
+.face{background:#fffdf6}
+.face:after{z-index:2}
+.hotspot{z-index:4;background:transparent!important;border:0!important;color:transparent!important;text-shadow:none!important;font-size:0!important;filter:none!important}
+.hotspot:hover{transform:none!important;filter:none!important;outline:4px solid rgba(37,78,120,.18);outline-offset:-4px}
+.exact-front-id{left:31%;top:7%;width:38%;height:15%}
+.exact-front-title{left:13%;top:27%;width:76%;height:45%}
+.exact-front-since{left:34%;bottom:5%;width:34%;height:15%}
+.exact-back-people{right:6%;top:7%;width:20%;height:30%}
+.exact-back-marks{left:29%;top:25%;width:38%;height:47%}
+.exact-back-unfinished{right:5%;bottom:7%;width:26%;height:43%}
+.exact-back-reveal{left:5%;bottom:7%;width:18%;height:29%}
+
 </style>
 </head>
 <body>
@@ -84,23 +99,18 @@ button{color:inherit}
   <div class="card-shell">
     <div class="card pixel" id="card" aria-label="步道卡，点击空白处翻面">
       <section class="face front" aria-label="步道卡正面">
-        <button class="front-id" id="idHotspot" type="button" aria-label="Budao ID，激活实体卡">40278001116829481</button>
-        <div class="front-vertical">步道线路</div>
-        <div class="front-seal">路</div>
-        <button class="hotspot front-title" id="identityHotspot" type="button" aria-label="我的步道身份">终成始创</button>
-        <button class="since" id="sinceHotspot" type="button" aria-label="从这里开始">SINCE 2026.3.21</button>
+        <img class="card-art" src="/assets/budao-card/front.png" alt="步道卡正面">
+        <button class="hotspot exact-front-id" id="idHotspot" type="button" aria-label="Budao ID，激活实体卡"></button>
+        <button class="hotspot exact-front-title" id="identityHotspot" type="button" aria-label="我的步道身份"></button>
+        <button class="hotspot exact-front-since" id="sinceHotspot" type="button" aria-label="从这里开始"></button>
       </section>
 
       <section class="face back" aria-label="步道卡反面">
-        <div class="back-mark">步道</div>
-        <button class="hotspot rook" id="peopleHotspot" type="button" aria-label="一起走过的人">♖</button>
-        <button class="hotspot logo" id="marksHotspot" type="button" aria-label="已经走过的路">
-          <svg viewBox="0 0 160 100" aria-hidden="true"><path d="M7 15 L58 34 L81 24 L146 39 L147 65 L90 65 L72 57 L46 76 L13 87 L48 51 L12 43 Z" fill="#ef2028"/><path d="M55 36 L78 28 L102 43 L77 53 Z" fill="#fffdf6"/></svg>
-        </button>
-        <button class="hotspot spade" id="unfinishedHotspot" type="button" aria-label="未完之路">♠</button>
-        <button class="hotspot dice" id="revealHotspot" type="button" aria-label="显现">
-          <span class="pip p1"></span><span class="pip p2"></span><span class="pip p3"></span><span class="pip p4"></span><span class="pip p5"></span>
-        </button>
+        <img class="card-art" src="/assets/budao-card/back.png" alt="步道卡反面">
+        <button class="hotspot exact-back-people" id="peopleHotspot" type="button" aria-label="一起走过的人"></button>
+        <button class="hotspot exact-back-marks" id="marksHotspot" type="button" aria-label="已经走过的路"></button>
+        <button class="hotspot exact-back-unfinished" id="unfinishedHotspot" type="button" aria-label="未完之路"></button>
+        <button class="hotspot exact-back-reveal" id="revealHotspot" type="button" aria-label="显现"></button>
       </section>
     </div>
   </div>
