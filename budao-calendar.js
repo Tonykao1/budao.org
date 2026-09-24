@@ -118,23 +118,36 @@
     const year = today.getFullYear();
     const monthIndex = today.getMonth();
 
+    // Keep the original 44-day visual window moving with today:
+    // 23 days before today + today + 20 days after today.
+    // On 2026-09-17 this is exactly Aug 25–Oct 7, matching the approved layout.
+    const rangeStart = new Date(year, monthIndex, today.getDate() - 23);
+    const rangeEnd = new Date(year, monthIndex, today.getDate() + 20);
+
+    function daysForMonth(targetYear, targetMonthIndex) {
+      const monthStart = new Date(targetYear, targetMonthIndex, 1);
+      const monthEnd = new Date(targetYear, targetMonthIndex + 1, 0);
+
+      if (rangeEnd < monthStart || rangeStart > monthEnd) {
+        return [];
+      }
+
+      const firstDay = rangeStart > monthStart ? rangeStart.getDate() : 1;
+      const lastDay = rangeEnd < monthEnd ? rangeEnd.getDate() : monthEnd.getDate();
+      const days = [];
+
+      for (let day = firstDay; day <= lastDay; day += 1) {
+        days.push(new Date(targetYear, targetMonthIndex, day));
+      }
+
+      return days;
+    }
+
     const previousMonthEnd = new Date(year, monthIndex, 0);
-    const previousDays = [];
-    for (let offset = 6; offset >= 0; offset -= 1) {
-      previousDays.push(new Date(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousMonthEnd.getDate() - offset));
-    }
-
-    const currentMonthLength = new Date(year, monthIndex + 1, 0).getDate();
-    const currentDays = [];
-    for (let day = 1; day <= currentMonthLength; day += 1) {
-      currentDays.push(new Date(year, monthIndex, day));
-    }
-
     const nextMonthStart = new Date(year, monthIndex + 1, 1);
-    const nextDays = [];
-    for (let offset = 0; offset < 7; offset += 1) {
-      nextDays.push(new Date(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextMonthStart.getDate() + offset));
-    }
+    const previousDays = daysForMonth(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth());
+    const currentDays = daysForMonth(year, monthIndex);
+    const nextDays = daysForMonth(nextMonthStart.getFullYear(), nextMonthStart.getMonth());
 
     return {
       previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "", todayKey, schedule || baseStepSchedule),
@@ -216,12 +229,22 @@
 
   function renderCalendar(host, now, schedule) {
     const model = buildCalendarModel(now || new Date(), schedule || baseStepSchedule);
+    const currentMonthLength = new Date(model.current.year, model.current.monthIndex + 1, 0).getDate();
+    const visibleMonths = [
+      { month: model.previous, width: function (count) { return "calc(var(--budao-calendar-flank-week-width, 245px) * " + count + " / 7)"; } },
+      { month: model.current, width: function (count) { return "calc(var(--budao-calendar-current-month-width, 860px) * " + count + " / " + currentMonthLength + ")"; } },
+      { month: model.next, width: function (count) { return "calc(var(--budao-calendar-flank-week-width, 245px) * " + count + " / 7)"; } }
+    ].filter(function (entry) {
+      return entry.month.days.length > 0;
+    });
+    const columns = visibleMonths.map(function (entry) {
+      return entry.width(entry.month.days.length);
+    }).join(" ");
+
     host.innerHTML = "<div class=\"budao-calendar-scroll\">" +
       "<span class=\"budao-calendar-spacer\" aria-hidden=\"true\"></span>" +
-      "<div class=\"budao-calendar-strip\">" +
-        renderMonth(model.previous) +
-        renderMonth(model.current) +
-        renderMonth(model.next) +
+      "<div class=\"budao-calendar-strip\" style=\"grid-template-columns:" + columns + "\">" +
+        visibleMonths.map(function (entry) { return renderMonth(entry.month); }).join("") +
       "</div>" +
       "<span class=\"budao-calendar-spacer\" aria-hidden=\"true\"></span>" +
     "</div>";
