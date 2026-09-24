@@ -1,3 +1,6 @@
 Redeploy requested for Budao static pages.
 Timestamp: 2026-07-17T00:00:00Z
 Reason: refresh Super Saturday static shell and invitation assets.
+
+Preview refresh: 2026-09-24T09:45:00Z
+Reason: refresh current pasture function-zone preview with completed mailbox.
