@@ -371,7 +371,7 @@ function drawPortrait(){
 
  // 26th adult: one large black sheep. Its side changes by day, but it remains an ordinary member of the flock.
  const blackLeft=rand()<.5;
- let black={x:blackLeft?W*.16:W*.78,y:H*(.73+rand()*.10),s:1.02,flip:rand()<.5,graze:false,wander:.48,f:'#494642',h:'#292725',black:true};
+ let black={x:blackLeft?W*.16:W*.78,y:H*(.73+rand()*.10),s:1.02,flip:rand()<.5,graze:false,wander:.95,f:'#494642',h:'#292725',black:true};
  let bp=placeAdultAvoidingFlock(black,sourceY,adultOccupied);black.x=bp.x;black.y=bp.y;
  adults.push(black);adultOccupied.push(creatureBox(black,false));
 
@@ -416,9 +416,10 @@ function drawPortrait(){
  placedLambs.push(special);
 
  placedLambs.forEach((o,i)=>{
-   const bob=Math.sin((tick+i*41)/110)>.82?1:0,y=o.y-bob;
-   rect(o.x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-   drawLamb(o.x,y,o.s,o.flip,o.style);
+   const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
+   const bob=Math.sin((tick+i*41)/110)>.82?1:0,x=o.x+dx,y=o.y-bob;
+   rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+   drawLamb(x,y,o.s,o.flip,o.style);
  });
 }
 function drawTwig(){
