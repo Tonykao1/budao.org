@@ -118,11 +118,10 @@
     const year = today.getFullYear();
     const monthIndex = today.getMonth();
 
-    // Keep the original 44-day visual window moving with today:
-    // 23 days before today + today + 20 days after today.
-    // On 2026-09-17 this is exactly Aug 25–Oct 7, matching the approved layout.
-    const rangeStart = new Date(year, monthIndex, today.getDate() - 23);
-    const rangeEnd = new Date(year, monthIndex, today.getDate() + 20);
+    // Keep the approved day spacing, but make the rolling window visually symmetric:
+    // 22 days before today + today + 22 days after today.
+    const rangeStart = new Date(year, monthIndex, today.getDate() - 22);
+    const rangeEnd = new Date(year, monthIndex, today.getDate() + 22);
 
     function daysForMonth(targetYear, targetMonthIndex) {
       const monthStart = new Date(targetYear, targetMonthIndex, 1);
@@ -242,10 +241,15 @@
     const columns = visibleMonths.map(function (entry) {
       return entry.width(entry.month.days.length);
     }).join(" ");
+    const missingPreviousGap = model.previous.days.length === 0 && model.next.days.length > 0;
+    const missingNextGap = model.next.days.length === 0 && model.previous.days.length > 0;
+    const balanceStyle =
+      (missingPreviousGap ? "padding-left:20px;" : "") +
+      (missingNextGap ? "padding-right:20px;" : "");
 
     host.innerHTML = "<div class=\"budao-calendar-scroll\">" +
       "<span class=\"budao-calendar-spacer\" aria-hidden=\"true\"></span>" +
-      "<div class=\"budao-calendar-strip\" style=\"grid-template-columns:" + columns + "\">" +
+      "<div class=\"budao-calendar-strip\" style=\"grid-template-columns:" + columns + ";" + balanceStyle + "\">" +
         visibleMonths.map(function (entry) { return renderMonth(entry.month); }).join("") +
       "</div>" +
       "<span class=\"budao-calendar-spacer\" aria-hidden=\"true\"></span>" +
