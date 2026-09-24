@@ -180,6 +180,15 @@ function kind(code){
   if((code>=71&&code<=77)||(code>=85&&code<=86))return'snow';
   return'clear';
 }
+function sunAlpha(code,cloud){
+  code=Number(code)||0;cloud=Number(cloud)||0;
+  const type=kind(code);
+  if(type==='rain'||type==='snow'||type==='fog')return 0;
+  if(code===3||cloud>=85)return 0;
+  if(code===2||cloud>=65)return .28;
+  if(code===1||cloud>=40)return .58;
+  return 1;
+}
 function moon(cx,cy,phase,latitude){
   const r=8,a=phase*Math.PI*2;
   let lx=Math.sin(a),lz=-Math.cos(a);
@@ -243,8 +252,13 @@ function draw(){
   const cloud=Number(c.cloudCover)||0;
   if(day){
     const x=22+progress*436,y=78-Math.sin(Math.PI*progress)*56;
-    rect(x-13,y-13,26,26,'rgba(255,248,199,.72)');
-    rect(x-9,y-9,18,18,'#fff1a0');
+    const sa=sunAlpha(c.weatherCode,cloud);
+    if(sa>0){
+      ctx.save();ctx.globalAlpha=sa;
+      rect(x-13,y-13,26,26,'rgba(255,248,199,.72)');
+      rect(x-9,y-9,18,18,'#fff1a0');
+      ctx.restore();
+    }
   }else{
     stars(darkness,cloud);
     const x=24+progress*432,y=74-Math.sin(Math.PI*progress)*48;
