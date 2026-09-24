@@ -26,6 +26,8 @@
 }
 
 .budao-calendar-strip{
+    --budao-calendar-flank-week-width:245px;
+    --budao-calendar-current-month-width:860px;
     display:grid;
     flex:0 0 auto;
     grid-template-columns:minmax(245px,7fr) minmax(860px,30fr) minmax(245px,7fr);
@@ -213,6 +215,7 @@
     }
 
     .budao-calendar-strip{
+        --budao-calendar-current-month-width:920px;
         grid-template-columns:245px 920px 245px;
         min-width:1446px;
         gap:18px;
