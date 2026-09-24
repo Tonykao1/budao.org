@@ -271,6 +271,30 @@ function drawPortraitMountains(sourceY){
  // low green foothills leading into the waterfall valley
  poly([[0,H*.405],[0,H*.385],[32,H*.374],[65,H*.395],[96,H*.371],[130,H*.398],[166,H*.378],[201,H*.397],[235,H*.376],[270,H*.394],[300,H*.382],[300,H*.455],[0,H*.455]],'#6eae61');
 }
+function creatureBox(o,isLamb=false){
+ const w=(isLamb?21:30)*o.s;
+ const h=(isLamb?20:28)*o.s;
+ return {l:o.x-2*o.s,r:o.x+w+2*o.s,t:o.y-8*o.s,b:o.y+h};
+}
+function boxesOverlap(a,b,pad=3){
+ return !(a.r+pad<b.l||a.l-pad>b.r||a.b+pad<b.t||a.t-pad>b.b);
+}
+function placeLambAvoidingFlock(o,sourceY,occupied){
+ let x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,true),y=o.y;
+ const dirs=[1,-1,1,-1],steps=[12,18,26,34,42,50,58];
+ for(let pass=0;pass<steps.length;pass++){
+   const test={x,y,s:o.s};
+   const box=creatureBox(test,true);
+   if(!occupied.some(b=>boxesOverlap(box,b,4))) return {x,y};
+   const dir=dirs[pass%dirs.length];
+   x=keepCreatureOnBank(o.x+dir*steps[pass],o.y,o.s,sourceY,true);
+   if(pass>=3)y=o.y-((pass-2)*5);
+ }
+ // final deterministic fallback: move upward/right while preserving depth as much as possible
+ x=keepCreatureOnBank(Math.min(W-30,o.x+62),o.y-16,o.s,sourceY,true);
+ y=o.y-16;
+ return {x,y};
+}
 function drawLamb(x,y,s,flip=false){
  const f='#f6ead7',h='#b98f79';
  ctx.save();
@@ -320,6 +344,7 @@ function drawPortrait(){
  adults[21]={x:W*.34,y:H*.81,s:1.08,flip:false,graze:false,wander:0};
  adults.forEach(o=>{o.x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,false)});
  adults.forEach(drawSheep);
+ const occupied=adults.map(o=>creatureBox(o,false));
 
  // 17 lambs: 4 far / 7 middle / 6 foreground.
  // Each lamb uses the same depth scale as adults in its band (about 58–66% of adult size).
@@ -338,9 +363,10 @@ function drawPortrait(){
   {x:W*.18,y:H*.895,s:.65,flip:false},{x:W*.84,y:H*.925,s:.67,flip:true}
  ];
  lambs.forEach((o,i)=>{
-   const x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,true);
-   rect(x-1.5*o.s,o.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-   drawLamb(x,o.y,o.s,o.flip);
+   const p=placeLambAvoidingFlock(o,sourceY,occupied);
+   rect(p.x-1.5*o.s,p.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+   drawLamb(p.x,p.y,o.s,o.flip);
+   occupied.push(creatureBox({x:p.x,y:p.y,s:o.s},true));
  });
 }
 function drawTwig(){
