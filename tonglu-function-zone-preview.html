@@ -380,7 +380,7 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
           <div class="tiny" id="personDistance"></div>
           <div class="person-actions">
             <button id="pathBtn" type="button">藤路</button>
-            <button type="button">写信</button>
+            <button id="partnerWriteBtn" type="button">写信</button>
           </div>
         </aside>
         <div class="path-note" id="pathNote"></div>
@@ -686,6 +686,7 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
   const personRecent = document.getElementById('personRecent');
   const personDistance = document.getElementById('personDistance');
   const pathBtn = document.getElementById('pathBtn');
+  const partnerWriteBtn = document.getElementById('partnerWriteBtn');
   const pathNote = document.getElementById('pathNote');
   const closeBook = document.getElementById('closeBook');
   const refDisplay = document.getElementById('refDisplay');
@@ -1435,6 +1436,15 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
     pathNote.innerHTML='藤路：Tony → Luke → David → 东京的同行者<br><strong>与你相隔 3 步。</strong>';
     pathNote.classList.add('show');
   });
+  partnerWriteBtn.addEventListener('click',()=>{
+    if(!selectedPerson)return;
+    const name=selectedPerson.name||'';
+    closePartnersLayer();
+    openMail();
+    mailCompose.classList.add('open');
+    mailTo.value=name;
+    mailText.focus();
+  });
 
   // ===== Mailbox: slow letters, not realtime chat =====
   const mailItems=[
@@ -1687,6 +1697,19 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
   btn.addEventListener('click', openCard);
   close.addEventListener('click', closeCard);
 
+  const protectedIds=['grassBookBtn','windNewsBtn','partnersBtn','mailBtn'];
+  protectedIds.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.addEventListener('click',e=>{
+      if(localStorage.getItem(KEY)==='1')return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openCard();
+      setTimeout(()=>frame.contentWindow?.postMessage({type:'budao-card-request-activation'},'*'),120);
+    },true);
+  });
+
   window.addEventListener('message', e => {
     const type=e.data && e.data.type;
     if(type==='budao-card-close') closeCard();
@@ -1694,6 +1717,10 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
     if(type==='budao-card-open-mail'){
       closeCard();
       setTimeout(()=>document.getElementById('mailBtn')?.click(),120);
+    }
+    if(type==='budao-card-open-partners'){
+      closeCard();
+      setTimeout(()=>document.getElementById('partnersBtn')?.click(),120);
     }
   });
   window.addEventListener('storage', syncCardState);
