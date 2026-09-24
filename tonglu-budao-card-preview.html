@@ -206,7 +206,7 @@ button{color:inherit}
     <div class="row" data-person="Moses"><div><strong>Moses</strong><small>第一次相遇以后，又在不同的路上重逢。</small></div><span class="chip">共同历史</span></div>
   </div>
   <div class="detail" id="peopleDetail">选择一个人，不是查看资料，而是查看“我们之间真实发生过什么”。</div>
-  <div class="mini-actions"><button id="openMailbox">写一封信</button></div>
+  <div class="mini-actions"><button id="openPartners">进入同路伙伴</button><button id="openMailbox">写一封信</button></div>
 </section>
 
 <section class="panel" id="revealPanel" aria-label="显现">
@@ -303,6 +303,9 @@ button{color:inherit}
     document.getElementById('peopleDetail').innerHTML = '<strong>'+name+'</strong><br>第一次同行 → 后来的共同路印 → 与这段关系有关的信 → 仍未走完的共同路。<br><small>共同事实双方共享；各自内心仍然各自拥有。</small>';
   }));
 
+  document.getElementById('openPartners').addEventListener('click', () => {
+    window.parent?.postMessage({type:'budao-card-open-partners'}, '*');
+  });
   document.getElementById('openMailbox').addEventListener('click', () => {
     window.parent?.postMessage({type:'budao-card-open-mail'}, '*');
     showToast('把这段关系接回信箱。');
@@ -336,6 +339,15 @@ button{color:inherit}
       const opened = panels.some(p=>p.classList.contains('open'));
       if(opened) closePanels();
       else window.parent?.postMessage({type:'budao-card-close'}, '*');
+    }
+  });
+
+  window.addEventListener('message', e => {
+    if(e.data && e.data.type === 'budao-card-request-activation'){
+      closePanels();
+      card.classList.remove('flipped');
+      document.getElementById('activationPanel').classList.add('open');
+      setTimeout(()=>document.getElementById('cardPassword')?.focus(),60);
     }
   });
 
