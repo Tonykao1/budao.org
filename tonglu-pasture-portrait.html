@@ -240,15 +240,18 @@ function drawPortraitRiver(sourceY){
  poly(left.concat(right),C.riverDark);
  poly(innerL.concat(innerR),C.river);
 
- // broad distant waterfall, visually tied to the river source
+ // distant waterfall: its maximum width is now tied to the river source
  const sx=portraitRiverCenter(0);
- rect(sx-8,sourceY-38,16,5,'#eefcff');
- rect(sx-6,sourceY-33,12,12,C.riverLight);
- rect(sx-7,sourceY-21,14,17,'#dff8ff');
- rect(sx-10,sourceY-4,20,5,'#f4ffff');
+ const riverSourceW=Math.max(8,Math.round(portraitRiverHalfWidthAtY(sourceY,sourceY)*2));
+ const fallW=Math.max(6,Math.round(riverSourceW*.82));
+ const fallTop=sourceY-21;
+ rect(sx-riverSourceW/2,fallTop,riverSourceW,3,'#eefcff');
+ rect(sx-fallW/2,fallTop+3,fallW,7,C.riverLight);
+ rect(sx-fallW/2,fallTop+10,fallW,9,'#dff8ff');
+ rect(sx-riverSourceW/2,sourceY-2,riverSourceW,3,'#f4ffff');
  const wf=Math.floor(tick/8)%6;
- rect(sx-3+(wf>2?3:0),sourceY-31+(wf%3)*4,3,4,'#f7ffff');
- if((Math.floor(tick/12)%2)===0){rect(sx-9,sourceY-2,7,1,'#fff');rect(sx+3,sourceY-1,7,1,'#fff')}
+ rect(sx-1+(wf>2?1:0),fallTop+5+(wf%3)*2,2,2,'#f7ffff');
+ if((Math.floor(tick/12)%2)===0){rect(sx-riverSourceW/2,sourceY-1,3,1,'#fff');rect(sx+riverSourceW/2-3,sourceY-1,3,1,'#fff')}
 
  // restrained moving glints following the full S curve
  for(let j=0;j<7;j++){
@@ -291,32 +294,34 @@ function creatureBox(o,isLamb=false){
 function boxesOverlap(a,b,pad=3){
  return !(a.r+pad<b.l||a.l-pad>b.r||a.b+pad<b.t||a.t-pad>b.b);
 }
-function placeAdultAvoidingFlock(o,sourceY,occupied){
- const offsets=[[0,0],[16,-3],[-16,3],[28,4],[-28,-4],[40,-6],[-40,6],[52,0],[-52,0]];
- for(let k=0;k<offsets.length;k++){
-  const y=Math.max(sourceY+10,Math.min(H-36,o.y+offsets[k][1]));
-  const x=keepCreatureOnBank(o.x+offsets[k][0],y,o.s,sourceY,false);
-  const test={x,y,s:o.s};
-  const box=creatureBox(test,false);
-  if(!occupied.some(b=>boxesOverlap(box,b,5)))return{x,y};
+function findOpenFlockSpot(o,sourceY,occupied,isLamb=false){
+ const minY=sourceY+(isLamb?6:10),maxY=H-(isLamb?24:36);
+ const dx=[0,12,-12,24,-24,36,-36,48,-48,60,-60,72,-72,84,-84,96,-96,108,-108,120,-120];
+ const dy=isLamb?[0,-5,5,-10,10,-15,15,-20,20,-25,25,-30,30,-36,36,-42,42]:
+                 [0,-4,4,-8,8,-12,12,-16,16,-20,20,-24,24,-28,28,-32,32];
+ const pads=isLamb?[6,4,2,0]:[7,5,3,0];
+ for(const pad of pads){
+  for(const oy of dy){
+   const y=Math.max(minY,Math.min(maxY,o.y+oy));
+   for(const ox of dx){
+    const x=keepCreatureOnBank(o.x+ox,y,o.s,sourceY,isLamb);
+    const test={x,y,s:o.s};
+    const box=creatureBox(test,isLamb);
+    if(!occupied.some(b=>boxesOverlap(box,b,pad)))return{x,y};
+   }
+  }
  }
- return{x:keepCreatureOnBank(o.x,o.y,o.s,sourceY,false),y:o.y};
+ return null;
+}
+function placeAdultAvoidingFlock(o,sourceY,occupied){
+ const p=findOpenFlockSpot(o,sourceY,occupied,false);
+ if(p)return p;
+ return{x:keepCreatureOnBank(o.x,o.y,o.s,sourceY,false),y:Math.max(sourceY+10,Math.min(H-36,o.y))};
 }
 function placeLambAvoidingFlock(o,sourceY,occupied){
- let x=keepCreatureOnBank(o.x,o.y,o.s,sourceY,true),y=o.y;
- const dirs=[1,-1,1,-1],steps=[12,18,26,34,42,50,58];
- for(let pass=0;pass<steps.length;pass++){
-   const test={x,y,s:o.s};
-   const box=creatureBox(test,true);
-   if(!occupied.some(b=>boxesOverlap(box,b,4))) return {x,y};
-   const dir=dirs[pass%dirs.length];
-   x=keepCreatureOnBank(o.x+dir*steps[pass],o.y,o.s,sourceY,true);
-   if(pass>=3)y=o.y-((pass-2)*5);
- }
- // final deterministic fallback: move upward/right while preserving depth as much as possible
- x=keepCreatureOnBank(Math.min(W-30,o.x+62),o.y-16,o.s,sourceY,true);
- y=o.y-16;
- return {x,y};
+ const p=findOpenFlockSpot(o,sourceY,occupied,true);
+ if(p)return p;
+ return{x:keepCreatureOnBank(o.x,o.y,o.s,sourceY,true),y:Math.max(sourceY+6,Math.min(H-24,o.y))};
 }
 function drawLamb(x,y,s,flip=false,style='normal'){
  const bw=style==='blackwhite';
@@ -375,7 +380,6 @@ function drawPortrait(){
  let bp=placeAdultAvoidingFlock(black,sourceY,adultOccupied);black.x=bp.x;black.y=bp.y;
  adults.push(black);adultOccupied.push(creatureBox(black,false));
 
- adults.forEach(drawSheep);
  const occupied=adultOccupied.slice();
 
  // 17 original lambs, with a smaller date-seeded shift so perspective remains stable.
@@ -411,15 +415,28 @@ function drawPortrait(){
  let special={x:sp.x,y:sp.y,s:specialBase.s,flip:specialBase.flip,style:'blackwhite'};
  // Hard separation guard: they should never read as a pair.
  if(Math.hypot((special.x+10*special.s)-black.x,(special.y+8*special.s)-black.y)<W*.36){
-   special.x=keepCreatureOnBank(black.x<W/2?W*.88:W*.08,special.y,special.s,sourceY,true);
+   const farBase={...specialBase,x:black.x<W/2?W*.88:W*.08,y:special.y};
+   const far=placeLambAvoidingFlock(farBase,sourceY,occupied);
+   special.x=far.x;special.y=far.y;
  }
  placedLambs.push(special);
+ occupied.push(creatureBox(special,true));
 
- placedLambs.forEach((o,i)=>{
-   const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
-   const bob=Math.sin((tick+i*41)/110)>.82?1:0,x=o.x+dx,y=o.y-bob;
-   rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-   drawLamb(x,y,o.s,o.flip,o.style);
+ // Adults and lambs share one depth order so a distant lamb can no longer be painted on top of a nearer adult.
+ const creatures=[];
+ adults.forEach((o,i)=>creatures.push({kind:'adult',o,i,depth:o.y+20*o.s}));
+ placedLambs.forEach((o,i)=>creatures.push({kind:'lamb',o,i,depth:o.y+14*o.s}));
+ creatures.sort((a,b)=>a.depth-b.depth||a.o.s-b.o.s);
+ creatures.forEach(c=>{
+   if(c.kind==='adult'){
+    drawSheep(c.o,c.i);
+   }else{
+    const o=c.o,i=c.i;
+    const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
+    const bob=Math.sin((tick+i*41)/110)>.82?1:0,x=o.x+dx,y=o.y-bob;
+    rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+    drawLamb(x,y,o.s,o.flip,o.style);
+   }
  });
 }
 function drawTwig(){
