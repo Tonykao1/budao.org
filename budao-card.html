@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>步道卡 · 同路</title><meta name="robots" content="noindex">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#4d5145;background:#9fe8ff}body{overflow:hidden}button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #3e694d;outline-offset:4px}.scene{position:relative;height:100svh;min-height:520px;overflow:hidden;isolation:isolate}.pasture{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}.scene:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(230,255,242,.20),rgba(237,251,207,.12) 50%,rgba(53,108,66,.08));pointer-events:none}.mast{position:absolute;left:clamp(16px,5vw,80px);top:clamp(18px,5vh,44px);z-index:2}.mast small{display:block;font-size:11px;letter-spacing:.2em;font-weight:800;color:#476e52}.mast h1{font-size:clamp(23px,3vw,35px);margin:5px 0 4px;letter-spacing:.08em}.mast p{margin:0;color:#526d57;font-size:13px}.home{position:absolute;right:clamp(16px,5vw,80px);top:clamp(18px,5vh,44px);z-index:3;border:2px solid #6c664f;background:#fcf3d6;color:#514d3b;box-shadow:4px 4px 0 #8c8361;padding:9px 14px;font-weight:700}.stage{position:absolute;inset:90px 20px 75px;display:grid;place-items:center;perspective:1300px}.card{position:relative;width:min(650px,calc((100svh - 205px)*1.9697),calc(100vw - 46px));aspect-ratio:650/330;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.22,.72,.18,1);cursor:pointer;filter:drop-shadow(12px 19px 8px rgba(54,77,56,.32))}.card.flipped{transform:rotateY(180deg)}.face{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;border:3px solid #f9f5e9;border-radius:clamp(8px,2vw,17px);background:#fff;box-shadow:inset 0 0 0 2px #ded6b3}.face.back{transform:rotateY(180deg)}.face img{display:block;width:50%;height:50%;max-width:none;transform:scale(2);transform-origin:top left;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}.face:after{content:"";position:absolute;inset:0;border:2px solid rgba(115,103,75,.19);border-radius:inherit;pointer-events:none}.card.flip-fast{transition-duration:.01s}.controls{position:absolute;bottom:clamp(17px,4vh,38px);left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:13px;white-space:nowrap}.controls button{border:2px solid #645e49;background:#fbf1cc;color:#534a3a;box-shadow:4px 4px 0 #877b59;padding:10px 17px;font-weight:800}.controls button:hover{background:#fff9df;transform:translateY(-2px)}.which{min-width:60px;text-align:center;color:#385c45;background:rgba(250,255,223,.8);padding:8px 9px;font-weight:800;font-size:13px}.hint{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;color:#4e6653;text-shadow:0 1px #e5f5de}@media(max-width:650px){.mast{top:15px}.mast h1{font-size:22px}.mast p{font-size:11px}.home{top:17px;font-size:12px;padding:8px}.stage{inset:95px 12px 120px}.controls{bottom:33px}.hint{bottom:90px;font-size:11px}.controls button{padding:9px 12px;font-size:12px}}@media(prefers-reduced-motion:reduce){.card{transition-duration:.01s}}
+</style>
+</head>
+<body>
+<main class="scene" aria-label="步道卡正反面像素预览">
+<canvas class="pasture" id="pasture" width="480" height="300" aria-hidden="true"></canvas>
+<div class="mast"><small>同路 · 我的卡</small><h1>步道卡</h1><p>从牧场出发，把卡拿在手中。</p></div>
+<button class="home" type="button" id="home">↖ 回到牧场</button>
+<div class="stage"><div class="card" id="card" role="button" tabindex="0" aria-label="查看步道卡反面" aria-pressed="false"><div class="face front"><img src="/assets/budao-card/front.png" alt="步道卡正面：数字编号、余生行走不偏左右、Since 2026.3.21"></div><div class="face back"><img src="/assets/budao-card/back.png" alt="步道卡反面：步道、黑色路线标记、手杖、骰子与红色图形"></div></div></div>
+<div class="hint">点击卡片，也可以翻面</div>
+<div class="controls"><button type="button" id="front">正面</button><span class="which" id="which" aria-live="polite">正面</span><button type="button" id="back">反面 ↷</button></div>
+</main>
+<script>
+(()=>{
+const card=document.getElementById('card'),which=document.getElementById('which');let flipped=false;
+function show(side){flipped=side==='back';card.classList.toggle('flipped',flipped);card.setAttribute('aria-label',flipped?'查看步道卡正面':'查看步道卡反面');card.setAttribute('aria-pressed',String(flipped));which.textContent=flipped?'反面':'正面'}
+card.addEventListener('click',()=>show(flipped?'front':'back'));
+card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(flipped?'front':'back')}});
+document.getElementById('front').addEventListener('click',()=>show('front'));
+document.getElementById('back').addEventListener('click',()=>show('back'));
+document.getElementById('home').addEventListener('click',()=>location.assign('/tonglu.html'));
+const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+const r=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+function hill(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,300);for(const [x,y] of points)ctx.lineTo(x,y);ctx.lineTo(480,300);ctx.fill()}
+function tree(x,y,s){r(x-2*s,y,4*s,20*s,'#80664b');r(x-10*s,y-9*s,20*s,10*s,'#5cab56');r(x-7*s,y-17*s,14*s,10*s,'#72c462')}
+function draw(){r(0,0,480,300,'#9fe8ff');r(0,120,480,100,'#dff9ff');r(397,37,21,21,'#fff1a0');for(const [x,y] of [[30,48],[183,32],[300,65]]){r(x,y,47,5,'#fff');r(x+9,y-5,25,6,'#fff')}hill([[0,170],[90,98],[140,160],[240,83],[325,167],[414,100],[480,160]],'#a7c1d5');hill([[0,208],[85,153],[174,207],[270,145],[353,197],[480,149]],'#789cbb');hill([[0,230],[80,182],[160,215],[275,172],[385,220],[480,175]],'#9bd878');r(0,226,480,74,'#83d75f');for(const [x,y,s] of [[31,207,2],[95,225,2],[178,205,3],[304,216,2],[447,213,3]])tree(x,y,s);for(let i=0;i<45;i++)r((i*83)%480,236+(i*41)%64,2,1,i%3?'#62b94a':'#fff1a0');r(0,263,480,37,'#62b94a')}
+draw();
+})();
+</script>
+</body>
+</html>
