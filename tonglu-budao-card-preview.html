@@ -137,7 +137,7 @@ button{color:inherit}
   <button class="panel-close" data-close>×</button>
   <div class="kicker">LIVING IDENTITY</div>
   <h2>不是资料页，是持续生长的身份</h2>
-  <p class="desc">卡可以换，路不会消失。Budao ID 连接的是同一个人、同一只数字羊，以及现实世界留下的全部路印。</p>
+  <p class="desc">卡可以换，路不会消失。Budao ID 连接的是同一个人、同一只数字羊，以及现实世界留下的全部路印。</p><div class="mini-actions"><button id="openSelfView" type="button">回到「归回自己」</button></div>
   <div class="rows">
     <div class="row"><div><strong>当前状态</strong><small>一人 · 一 ID · 一只数字羊</small></div><span class="chip">IDENTITY</span></div>
     <div class="row"><div><strong>现实写回</strong><small>报名不是路印；真实参与并被见证之后才会结印。</small></div><span class="chip">WITNESS</span></div>
@@ -166,7 +166,7 @@ button{color:inherit}
     <div class="row" data-memory="宽沟"><div><strong>路印 · 宽沟</strong><small>一条窄路，一次共同的问题。</small></div><span class="chip">回到那一天</span></div>
     <div class="row" data-memory="百望山"><div><strong>路印 · 百望山</strong><small>后来又在这里与人相遇。</small></div><span class="chip">回到那一天</span></div>
   </div>
-  <div class="detail" id="markDetail">选择一枚路印。</div>
+  <div class="detail" id="markDetail">选择一枚路印。</div><div class="mini-actions"><button id="openWindReal" type="button">看看「风闻有你」</button></div>
 </section>
 
 <section class="panel" id="memoryPanel" aria-label="回到那一天">
@@ -309,6 +309,15 @@ button{color:inherit}
   document.getElementById('openMailbox').addEventListener('click', () => {
     window.parent?.postMessage({type:'budao-card-open-mail'}, '*');
     showToast('把这段关系接回信箱。');
+  });
+  document.getElementById('openPartnersReal')?.addEventListener('click', () => {
+    window.parent?.postMessage({type:'budao-card-open-partners'}, '*');
+  });
+  document.getElementById('openSelfView')?.addEventListener('click', () => {
+    window.parent?.postMessage({type:'budao-card-open-self'}, '*');
+  });
+  document.getElementById('openWindReal')?.addEventListener('click', () => {
+    window.parent?.postMessage({type:'budao-card-open-wind'}, '*');
   });
   document.getElementById('writePast').addEventListener('click', () => showToast('来自今天的文字会标记“写于后来”。'));
   document.getElementById('plantSeed').addEventListener('click', () => showToast('时间种子已经埋下；不会天天提醒你。'));
