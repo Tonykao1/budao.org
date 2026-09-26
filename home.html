@@ -97,6 +97,8 @@ const playlist = [
 const silentNightStartTracks = [0, 10];
 const REFERENCE_B_URL = "music/music.json";
 let currentTrack = 0;
+let playbackDirection = 1;
+const LONG_PRESS_MS = 800;
 
 /*
  * 余 DSP Reference B 的响度数据来自对仓库原始 MP3 的离线实测：
@@ -377,7 +379,7 @@ function forceUnityPlaybackRate() {
 }
 
 async function handleTrackEnded() {
-  currentTrack = (currentTrack + 1) % playlist.length;
+  currentTrack = (currentTrack + playbackDirection + playlist.length) % playlist.length;
   await playCurrentTrack();
 }
 
@@ -605,17 +607,67 @@ playBtn.addEventListener("click", async () => {
   }
 });
 
-/* 点击“右” */
-nextBtn.addEventListener("click", async () => {
-  currentTrack++;
-  if (currentTrack >= playlist.length) currentTrack = 0;
+/*
+ * 左右保持原有短按切歌：
+ * - 左短按：上一首
+ * - 右短按：下一首
+ *
+ * 新增长按播放方向：
+ * - 左长按 800ms：自动续播改为反向列表
+ * - 右长按 800ms：自动续播恢复正常列表
+ *
+ * 长按触发后会吞掉随后浏览器派发的 click，避免误切一首。
+ */
+function bindDirectionLongPress(button, direction, shortPressAction) {
+  let longPressTimer = null;
+  let longPressTriggered = false;
+
+  const cancelTimer = () => {
+    if (longPressTimer !== null) {
+      window.clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  };
+
+  button.addEventListener("pointerdown", (event) => {
+    if (event.button != null && event.button !== 0) return;
+
+    cancelTimer();
+    longPressTriggered = false;
+    longPressTimer = window.setTimeout(() => {
+      longPressTimer = null;
+      longPressTriggered = true;
+      playbackDirection = direction;
+    }, LONG_PRESS_MS);
+  });
+
+  button.addEventListener("pointerup", cancelTimer);
+  button.addEventListener("pointercancel", cancelTimer);
+  button.addEventListener("pointerleave", cancelTimer);
+
+  button.addEventListener("contextmenu", (event) => {
+    if (longPressTriggered) event.preventDefault();
+  });
+
+  button.addEventListener("click", async (event) => {
+    if (longPressTriggered) {
+      longPressTriggered = false;
+      event.preventDefault();
+      return;
+    }
+    await shortPressAction();
+  });
+}
+
+bindDirectionLongPress(prevBtn, -1, async () => {
+  currentTrack--;
+  if (currentTrack < 0) currentTrack = playlist.length - 1;
   await playCurrentTrack();
 });
 
-/* 点击“左” */
-prevBtn.addEventListener("click", async () => {
-  currentTrack--;
-  if (currentTrack < 0) currentTrack = playlist.length - 1;
+bindDirectionLongPress(nextBtn, 1, async () => {
+  currentTrack++;
+  if (currentTrack >= playlist.length) currentTrack = 0;
   await playCurrentTrack();
 });
 
