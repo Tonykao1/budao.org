@@ -1722,6 +1722,14 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
       closeCard();
       setTimeout(()=>document.getElementById('partnersBtn')?.click(),120);
     }
+    if(type==='budao-card-open-wind'){
+      closeCard();
+      setTimeout(()=>document.getElementById('windNewsBtn')?.click(),120);
+    }
+    if(type==='budao-card-open-self'){
+      closeCard();
+      setTimeout(()=>document.getElementById('returnNow')?.click(),120);
+    }
   });
   window.addEventListener('storage', syncCardState);
   window.addEventListener('keydown', e => {
