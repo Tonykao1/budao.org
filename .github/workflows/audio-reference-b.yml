@@ -45,6 +45,8 @@ jobs:
               "music/2-08 Blaze Of Glory.mp3",
               "music/04 Stofnar Falla.mp3",
               "music/06 You Shouldn't Kiss Me Like This.mp3",
+              "music/08 Fool No More.mp3",
+              "music/11 Sad Eyes.mp3",
           ]
 
           # Reference B prioritizes fidelity over streaming-style loudness.
