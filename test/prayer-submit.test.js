@@ -5,7 +5,7 @@ const crypto = require("node:crypto");
 process.env.NODE_ENV = "test";
 process.env.BUDAO_PRAYER_DATA_KEY = Buffer.alloc(32, 11).toString("base64url");
 
-const submitModule = require("../api/prayer-submit");
+const submitModule = require("../api/_security/prayer-submit-handler");
 const { createPrayerRequest } = require("../api/_security/prayer-store");
 
 function request(body, overrides = {}) {

@@ -2,6 +2,11 @@
   "crons": [{ "path": "/api/prayer-purge", "schedule": "17 3 * * *" }],
   "rewrites": [
     { "source": "/i/:id", "destination": "/invitation.html?id=:id" },
-    { "source": "/api/create-invitation", "destination": "/api/invitation" }
+    { "source": "/api/create-invitation", "destination": "/api/invitation" },
+    { "source": "/api/publish", "destination": "/api/publish-route" },
+    { "source": "/api/prayer-submit", "destination": "/api/prayer/submit" },
+    { "source": "/api/prayer-list", "destination": "/api/prayer/list" },
+    { "source": "/api/prayer-action", "destination": "/api/prayer/action" },
+    { "source": "/api/prayer-purge", "destination": "/api/prayer/purge" }
   ]
 }

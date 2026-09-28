@@ -9,8 +9,8 @@ process.env.BUDAO_PRAYER_LEADER_IDS = "leader-1";
 
 const { createSessionCookie } = require("../api/_security/auth");
 const { encryptPrayerPayload } = require("../api/_security/prayer-crypto");
-const listModule = require("../api/prayer-list");
-const actionModule = require("../api/prayer-action");
+const listModule = require("../api/_security/prayer-list-handler");
+const actionModule = require("../api/_security/prayer-action-handler");
 
 function cookie(slot = "IMS", id = "leader-1") {
   return createSessionCookie({ id, role: "publisher", slot }, false).split(";")[0];

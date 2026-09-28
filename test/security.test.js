@@ -21,7 +21,6 @@ process.env.STEWARDSHIP_OPERATOR_USER_ID = "publisher-ims";
 const login = require("../api/auth/login");
 const legacyPublish = require("../api/publish-route");
 const publish = require("../api/publish-route-v2");
-const disabledPublish = require("../api/publish");
 const eebee = require("../api/eebee");
 const { resetForTests } = require("../api/_security/rate-limit");
 const { validateRoute } = require("../api/_security/route-schema");
@@ -80,7 +79,7 @@ test("anonymous users cannot publish", async () => {
   await legacyPublish(request({ title: "No" }), legacy);
   assert.equal(legacy.statusCode, 409);
   const tombstone = response();
-  await disabledPublish(request({ title: "No" }), tombstone);
+  await legacyPublish(request({ title: "No" }, { url: "/api/publish" }), tombstone);
   assert.equal(tombstone.statusCode, 410);
 });
 
