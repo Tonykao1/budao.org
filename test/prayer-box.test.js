@@ -9,8 +9,10 @@ const prayerBox = require("../prayer-box");
 
 test("homepage keeps its existing sentence while prayer becomes an accessible trigger", () => {
   const section = home.match(/<h2 class="title-adjust">“步道”有什么？<\/h2>\s*<p>([\s\S]*?)<\/p>/)?.[1] || "";
-  const visibleText = section.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-  assert.equal(visibleText, "· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 · 一起祷告 ·");
+  assert.equal(
+    section.trim(),
+    '· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 · <button id="prayerBoxTrigger" class="prayer-box-trigger" type="button" aria-controls="prayerBox" aria-expanded="false">一起祷告</button> ·'
+  );
   assert.match(section, /<button[^>]+id="prayerBoxTrigger"[^>]+type="button"[^>]+aria-controls="prayerBox"/);
   assert.match(home, /<link rel="stylesheet" href="prayer-box\.css">/);
   assert.match(home, /<script src="prayer-box\.js"><\/script>/);
