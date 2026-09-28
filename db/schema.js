@@ -6,6 +6,7 @@ const {
   integer,
   boolean,
   jsonb,
+  check,
   index,
   uniqueIndex
 } = require("drizzle-orm/pg-core");
@@ -122,6 +123,56 @@ const stewardshipAuditEvents = pgTable("stewardship_audit_events", {
   userIndex: index("stewardship_audit_events_user_id_idx").on(table.userId)
 }));
 
+const prayerRequests = pgTable("prayer_requests", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  bodyCiphertext: text("body_ciphertext").notNull(),
+  bodyNonce: text("body_nonce").notNull(),
+  bodyTag: text("body_tag").notNull(),
+  contactCiphertext: text("contact_ciphertext"),
+  contactNonce: text("contact_nonce"),
+  contactTag: text("contact_tag"),
+  visibility: text("visibility").notNull().default("LEADERS_ONLY"),
+  wantsReply: boolean("wants_reply").notNull().default(false),
+  status: text("status").notNull().default("NEW"),
+  assignedSlot: text("assigned_slot"),
+  claimedBy: text("claimed_by"),
+  idempotencyKeyHash: text("idempotency_key_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  claimedAt: timestamp("claimed_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  deleteAfter: timestamp("delete_after", { withTimezone: true })
+}, (table) => ({
+  idempotencyKeyUnique: uniqueIndex("prayer_requests_idempotency_key_hash_uq").on(table.idempotencyKeyHash),
+  queueIndex: index("prayer_requests_queue_idx").on(table.status, table.createdAt),
+  slotIndex: index("prayer_requests_assigned_slot_idx").on(table.assignedSlot, table.status),
+  visibilityCheck: check("prayer_requests_visibility_check", sql`${table.visibility} in ('LEADERS_ONLY', 'TRUSTED_TEAM')`),
+  statusCheck: check("prayer_requests_status_check", sql`${table.status} in ('NEW', 'PRAYING', 'COMPLETED')`),
+  contactCheck: check("prayer_requests_contact_check", sql`(
+    ${table.wantsReply} = false and ${table.contactCiphertext} is null and ${table.contactNonce} is null and ${table.contactTag} is null
+  ) or (
+    ${table.wantsReply} = true and ${table.contactCiphertext} is not null and ${table.contactNonce} is not null and ${table.contactTag} is not null
+  )`)
+}));
+
+const prayerAuditEvents = pgTable("prayer_audit_events", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  prayerId: uuid("prayer_id").notNull().references(() => prayerRequests.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(),
+  actorId: text("actor_id"),
+  actorSlot: text("actor_slot"),
+  metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  prayerIndex: index("prayer_audit_events_prayer_id_idx").on(table.prayerId, table.createdAt),
+  eventTypeIndex: index("prayer_audit_events_event_type_idx").on(table.eventType)
+}));
+
+const prayerRateLimits = pgTable("prayer_rate_limits", {
+  keyHash: text("key_hash").primaryKey(),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull(),
+  count: integer("count").notNull().default(1)
+});
+
 module.exports = {
   stewardshipUsers,
   passkeyCredentials,
@@ -130,5 +181,8 @@ module.exports = {
   pendingIntents,
   recoveryContacts,
   recoveryCodes,
-  stewardshipAuditEvents
+  stewardshipAuditEvents,
+  prayerRequests,
+  prayerAuditEvents,
+  prayerRateLimits
 };

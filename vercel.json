@@ -1,4 +1,5 @@
 {
+  "crons": [{ "path": "/api/prayer-purge", "schedule": "17 3 * * *" }],
   "rewrites": [
     { "source": "/i/:id", "destination": "/invitation.html?id=:id" },
     { "source": "/api/create-invitation", "destination": "/api/invitation" }

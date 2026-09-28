@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>步道 budao</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="prayer-box.css">
   <link rel="icon" href="/favicon.ico">
   <style>
     /* 首页隐藏式音频播放器：左右仅在按下时变灰，松开后恢复 */
@@ -61,9 +62,68 @@
 
   <section>
     <h2 class="title-adjust">“步道”有什么？</h2>
-    <p>· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 · 一起祷告 ·</p>
+    <p>· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 · <button id="prayerBoxTrigger" class="prayer-box-trigger" type="button" aria-controls="prayerBox" aria-expanded="false">一起祷告</button> ·</p>
   </section>
 </main>
+
+<div class="prayer-box-shell" id="prayerBox" hidden>
+  <button class="prayer-box-backdrop" type="button" aria-label="关闭一起祷告"></button>
+  <aside class="prayer-box-panel" role="dialog" aria-modal="true" aria-labelledby="prayerBoxTitle">
+    <button class="prayer-box-close" type="button" aria-label="关闭">×</button>
+
+    <div class="prayer-box-form-view">
+      <header class="prayer-box-header">
+        <h2 id="prayerBoxTitle">一起祷告</h2>
+        <p>有什么想让我们陪你一起记念？</p>
+      </header>
+
+      <form class="prayer-box-form" novalidate>
+        <label class="prayer-box-field">
+          <span class="prayer-box-sr-only">代祷事项</span>
+          <textarea name="body" rows="7" maxlength="1000" required></textarea>
+        </label>
+
+        <fieldset class="prayer-box-options">
+          <legend>关于这份祷告</legend>
+          <label>
+            <input type="radio" name="visibility" value="LEADERS_ONLY" checked>
+            <span>仅由步道带领人阅读和代祷</span>
+          </label>
+          <label>
+            <input type="radio" name="visibility" value="TRUSTED_TEAM">
+            <span>同意带领人邀请受托同工一起代祷</span>
+          </label>
+        </fieldset>
+
+        <label class="prayer-box-reply-choice">
+          <input type="checkbox" name="wantsReply">
+          <span>希望带领人私下回应我</span>
+        </label>
+
+        <label class="prayer-box-field prayer-box-contact" hidden>
+          <span>联系方式</span>
+          <small>仅在希望获得回应时填写</small>
+          <input name="contact" type="text" maxlength="500" autocomplete="email">
+        </label>
+
+        <label class="prayer-box-honeypot" aria-hidden="true">
+          <span>网站</span>
+          <input name="website" type="text" tabindex="-1" autocomplete="off">
+        </label>
+
+        <p class="prayer-box-privacy">你的内容不会公开。<br>我们会谨慎承接，只用于代祷与必要的关怀。</p>
+        <p class="prayer-box-message" role="status" aria-live="polite"></p>
+        <button class="prayer-box-submit" type="submit" disabled>提交祷告</button>
+      </form>
+    </div>
+
+    <section class="prayer-box-success" aria-live="polite" hidden>
+      <h2>已经收到了。</h2>
+      <p>会有一位步道带领人安静地承接这份祷告。愿你在前面的路上，得着平安与同行。</p>
+      <button class="prayer-box-return" type="button">回到步道</button>
+    </section>
+  </aside>
+</div>
 
 <footer>
   <a class="campfire-link" href="yhzd.html">
@@ -733,5 +793,6 @@ if ("mediaSession" in navigator) {
   });
 }
 </script>
+<script src="prayer-box.js"></script>
 </body>
 </html>
