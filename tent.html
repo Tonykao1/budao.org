@@ -6,6 +6,7 @@
     <title>Tent - Budao</title>
     <link rel="stylesheet" href="tent-style.css">
     <link rel="stylesheet" href="tent-word.css">
+    <link rel="stylesheet" href="tent-prayer.css">
     <style>
       .publish-card-wrap {
         --preview-scale: 0.78;
@@ -96,6 +97,28 @@
             <span>道</span>
             <small>让心灵归回</small>
           </button>
+
+          <div class="path-divider" aria-hidden="true"></div>
+
+          <button class="path-choice prayer-path-choice" type="button" data-tent-path="prayer">
+            <span>祷</span>
+            <small>在路上彼此守望</small>
+          </button>
+        </section>
+
+        <section class="prayer-room" aria-label="代祷清单">
+          <header class="prayer-room-head">
+            <p>祷</p>
+            <button class="prayer-return" type="button">返回帐篷</button>
+          </header>
+          <nav class="prayer-statuses" aria-label="代祷状态">
+            <button type="button" data-prayer-status="NEW" aria-current="true">新收到</button>
+            <button type="button" data-prayer-status="PRAYING">代祷中</button>
+            <button type="button" data-prayer-status="COMPLETED">已完成</button>
+          </nav>
+          <p class="prayer-room-note">这里的托付，只在被授权的同行者中安静流转。</p>
+          <div class="prayer-list" aria-live="polite"></div>
+          <p class="prayer-room-message" aria-live="polite"></p>
         </section>
 
         <section class="word-room" aria-label="道">
@@ -398,6 +421,7 @@
     <script src="tent-image-pipeline.js?v=20260813"></script>
     <script src="tent-draft-images.js?v=20260814"></script>
     <script src="tent-app.js?v=20260814"></script>
+    <script src="tent-prayer.js?v=20260928"></script>
     <script src="tent-meeting-module.js?v=20260717"></script>
     <script src="tent-word.js"></script>
   </body>
