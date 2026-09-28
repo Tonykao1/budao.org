@@ -11,6 +11,19 @@ test("tent adds a quiet prayer entrance beneath step and word", () => {
   assert.match(html, /新收到[\s\S]*代祷中[\s\S]*已完成/);
 });
 
+test("prayer entrance shares the step and word title and caption sizing", () => {
+  const sharedCss = fs.readFileSync(path.join(__dirname, "../tent-style.css"), "utf8");
+  const prayerCss = fs.readFileSync(path.join(__dirname, "../tent-prayer.css"), "utf8");
+
+  assert.match(sharedCss, /\.path-choice span\s*\{[^}]*font-size:/s);
+  assert.match(sharedCss, /\.path-choice small\s*\{[^}]*font-size:/s);
+  assert.doesNotMatch(
+    prayerCss,
+    /\.prayer-path-choice\s+(?:span|small)\s*\{[^}]*font-size:/s,
+    "祷与说明文字不可使用独立字号"
+  );
+});
+
 test("prayer room client uses only protected APIs and ritual action labels", () => {
   const source = fs.readFileSync(path.join(__dirname, "../tent-prayer.js"), "utf8");
   assert.match(source, /\/api\/prayer-list/);
