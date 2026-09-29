@@ -93,7 +93,7 @@
     '</div><div class="gs-panel"><h3>我亲自朗读的声音</h3>'+
     '<span class="gs-badge">真人原声</span><p class="gs-small">只有点击录音后，浏览器才会申请麦克风许可；朗读不会被自动上传或用于训练模型。</p>'+
     '<div class="gs-actions"><button class="gs-action" type="button" data-action="record" '+(audioPending?'disabled':'')+'>'+(recorder?.state==='recording'?'结束朗读':'开始朗读')+'</button>'+
-    '<button class="gs-action secondary" type="button" data-action="play" '+(!draft.reading.audioId?'disabled':'')+'>回听录音</button></div>'+
+    '<button class="gs-action secondary" type="button" data-action="play" '+(!draft.reading.audioId?'disabled':'')+'>回听录音</button>'+'<button class="gs-action secondary" type="button" data-action="download-audio" '+(!draft.reading.audioId?'disabled':'')+'>导出原声</button></div>'+
     '<div id="gsAudioHost" aria-live="polite"></div>'+
     '<label class="gs-checkbox"><input type="checkbox" data-field="audioVerified" '+(draft.scripture.verifiedAgainstRecording?'checked':'')+'>'+
     '<span>我已确认：经文出处、录入文字与本人朗读相对应。</span></label>'+
@@ -147,7 +147,7 @@
     '<div class="gs-stage">'+(archiveOpen?'<p class="gs-intro">同一节经文在不同日子留下的文字与声音，由你自己决定何时回看。</p>'+insertArchiveText():
       tab==='reading'?stageReading():tab==='reflection'?stageReflection():stageSharing())+'</div>'+
     '<footer class="gs-foot"><span><strong>本机私密预览</strong> · 文字保存在此浏览器，音频保存在本机音频库；尚无云同步或公开发布。</span>'+
-    '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回本次灵修':'翻阅档案')+'</button></footer>'+
+    '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出我的文字档案</button>'+'<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回本次灵修':'翻阅档案')+'</button></div></footer>'+
     '<div class="gs-status" id="gsStatus" aria-live="polite">'+escape(notice)+'</div>';
    if(tab==='reading'&&!archiveOpen&&draft.reading.audioId)restoreAudio(draft.reading.audioId);
   }
@@ -253,6 +253,30 @@
     saveAll();tell('一粒牧草已加入个人私人收藏；没有公开发布。');microDraft='';render();
    }catch(e){tell(e.message||String(e))}
   }
+  function downloadBlob(blob,name){
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement('a');a.href=url;a.download=name;
+   a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),30000);
+  }
+  function exportTextArchive(){
+   const payload={format:'budao-my-grass',version:1,exportedAt:iso(),identityScope:scope,
+    notice:'此处保存了经文出处、用户录入的文字、本人笔记及私人微分享；音频属于独立二进制资产，请分别使用导出原声。',
+    entries,micros};
+   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+   downloadBlob(blob,'我的牧草-文字档案-'+new Date().toISOString().slice(0,10)+'.json');
+   tell('文字档案已导出。原始朗读请通过对应记录的「导出原声」单独保存。');
+  }
+  async function exportAudio(){
+   if(!draft.reading.audioId){tell('当前记录还没有本机朗读音频。');return}
+   try{
+    const blob=await getAudio(draft.reading.audioId);
+    if(!blob){tell('本机未找到这份朗读音频。');return}
+    const ext=blob.type.includes('mp4')?'m4a':blob.type.includes('ogg')?'ogg':'webm';
+    downloadBlob(blob,'我的牧草-本人原声-'+draft.id+'.'+ext);
+    tell('原始朗读已单独导出，不会上传，也不代表授权训练语音模型。');
+   }catch(e){tell('音频导出失败：'+String(e.message||e))}
+  }
   async function copyMicro(id){
    const item=micros.find(m=>m.id===id);if(!item)return;
    const message=item.reference+'\n'+item.text+'\n（本人确认的私人微分享草稿）';
@@ -280,6 +304,8 @@
     case 'tab': setTab(b.dataset.tab);break;
     case 'record':await startOrStopRecording();break;
     case 'play':await restoreAudio(draft.reading.audioId);$('#gsAudioHost audio')?.play?.().catch(()=>{});break;
+    case 'download-audio':await exportAudio();break;
+    case 'export':exportTextArchive();break;
     case 'save':saveEntry();break;
     case 'next-reflection':setTab('reflection');break;
     case 'next-sharing':setTab('sharing');break;
