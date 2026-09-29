@@ -17,8 +17,28 @@
   const iso=()=>new Date().toISOString();
   const datetime=s=>{try{return new Date(s).toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(e){return String(s||'')}};
   const PREFIX=C.STORAGE_PREFIX;
-  function getJson(k,fallback){try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?fallback:v}catch(e){return fallback}}
-  function writeJson(k,v){localStorage.setItem(k,JSON.stringify(v))}
+  // The function-zone keeps a legacy in-memory shim; devotional records must instead
+  // persist through the same-origin, card-scoped bridge hosted by the parent preview.
+  // Direct standalone opening falls back to this document's own browser storage.
+  function getStored(k){
+    try{
+      if(window.parent!==window&&window.parent.MyGrassBridge){
+        const result=window.parent.MyGrassBridge.read(k);
+        if(result!==null)return result;
+      }
+    }catch(e){}
+    try{return window.localStorage.getItem(k)}catch(e){return null}
+  }
+  function setStored(k,v){
+    if(window.parent!==window){
+      try{
+        if(window.parent.MyGrassBridge)return window.parent.MyGrassBridge.write(k,v);
+      }catch(e){throw Error('本机档案尚未成功保存：'+String(e.message||e))}
+    }
+    return window.localStorage.setItem(k,v);
+  }
+  function getJson(k,fallback){try{const v=JSON.parse(getStored(k)||'null');return v==null?fallback:v}catch(e){return fallback}}
+  function writeJson(k,v){setStored(k,JSON.stringify(v))}
   function cardIdentity(){return getJson('budao_pixel_card_activation_prototype_v1',{phase:'guest'})}
   function emptyDraft(ref){return {
    id:randomId(),
@@ -47,7 +67,7 @@
    editingSavedId=entries.some(e=>e.id===draft.id)?draft.id:null;
    // One-time import of a previously saved 48-character parchment note.
    // Its Scripture text/audio are unknown and are NOT fabricated.
-   if(!localStorage.getItem(names.legacy)&&scope!=='unassigned-preview'){
+   if(!getStored(names.legacy)&&scope!=='unassigned-preview'){
     const old=getJson('budao-grass-preview',null);
     if(old?.note&&old?.ref&&!entries.some(e=>e.reflection?.text===old.note&&e.scripture?.reference===old.ref)){
      const now=old.date?(String(old.date).slice(0,10)+'T12:00:00.000Z'):iso();
@@ -57,7 +77,7 @@
       reflection:{source:'user-authored',text:old.note},shareIds:[],legacy:true});
      writeJson(names.entries,entries);
     }
-    localStorage.setItem(names.legacy,'1');
+    setStored(names.legacy,'1');
    }
   }
   function saveAll(){writeJson(persistentKeys().entries,entries);writeJson(persistentKeys().micros,micros)}
@@ -183,7 +203,7 @@
    const host=$('#gsAudioHost');if(!host)return;
    try{
     const blob=await getAudio(id);
-    if(!$('gsAudioHost'))return;
+    if(!$('#gsAudioHost'))return;
     if(!blob){host.textContent='本机没有找到对应原声。请重新录制，避免把不存在的音频标记为已保存。';return}
     clearPlayer();activeAudioURL=URL.createObjectURL(blob);
     const player=document.createElement('audio');player.controls=true;player.preload='metadata';player.src=activeAudioURL;
