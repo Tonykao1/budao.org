@@ -193,6 +193,17 @@ body.partners-open #partnersBtn{opacity:.44;background:#edf3d3}
 body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-events:auto;transition-delay:0s}
 .budao-card-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#8edff1}
 .budao-card-layer-close{position:absolute;right:24px;top:22px;z-index:3;border:3px solid #214d7b;background:#fffaf0;color:#173b64;padding:8px 12px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 rgba(24,63,99,.14)}
+
+/* 归回自己：独立近景，牧场原有景观与其他板块不改动。返回由完整预览外层统一控制。 */
+.self-view{position:fixed;inset:0;z-index:34;background:rgba(36,75,58,.25);display:none;align-items:center;justify-content:center;padding:70px 18px 24px;pointer-events:auto}
+body.self-open .self-view{display:flex}
+.self-focus{width:min(560px,94vw);max-height:calc(100dvh - 100px);overflow:auto;background:#f7efdb;border:4px solid #315b4d;box-shadow:7px 8px 0 #123a3055;padding:18px 20px 20px;text-align:center;color:#335340}
+.self-focus h2{font-size:20px;letter-spacing:.16em;margin:0 0 6px}.self-focus p{font-size:13px;line-height:1.75;margin:3px auto 10px}
+#selfSheepCanvas{width:min(100%,480px);height:auto;aspect-ratio:480/300;display:block;margin:0 auto 10px;image-rendering:pixelated}
+.self-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.self-actions button{border:3px solid #254c3c;background:#e8d39d;color:#2c4d3c;padding:9px 16px;font-size:13px;font-weight:900;cursor:pointer}
+.self-actions button:focus-visible{outline:3px solid #ad803d;outline-offset:3px}
+#selfFeedback{min-height:24px;font-weight:800;color:#6b5c3c}
 </style>
 </head>
 <body>
@@ -245,6 +256,15 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
   </div>
   <button class="self-close" id="selfClose" type="button">收起 ×</button>
 </div>
+<section class="self-view" id="selfView" aria-label="归回自己" aria-hidden="true">
+  <div class="self-focus">
+    <h2>归回自己</h2>
+    <p>这里有一只与你同行的小羊。今天，也给自己一点安静与照顾。</p>
+    <canvas id="selfSheepCanvas" width="480" height="300" aria-label="近景像素小羊"></canvas>
+    <div class="self-actions"><button type="button" id="selfCare">轻轻抚摸</button><button type="button" id="selfFeed">喂一把草</button></div>
+    <p id="selfFeedback" role="status" aria-live="polite">它正在草地上等你。</p>
+  </div>
+</section>
 
 <section class="book-layer" id="bookLayer" aria-label="我的牧草">
   <div class="book-object">
@@ -1636,30 +1656,37 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
     }
   }catch(e){}
 
+  const selfView=document.getElementById('selfView'),selfCanvas=document.getElementById('selfSheepCanvas');
+  const selfCtx=selfCanvas.getContext('2d');selfCtx.imageSmoothingEnabled=false;
+  let selfMood=0;
+  function paintSelfSheep(){
+    const g=selfCtx;g.clearRect(0,0,480,300);
+    const r=(x,y,w,h,ink)=>{g.fillStyle=ink;g.fillRect(x,y,w,h)};
+    r(0,0,480,175,'#b9d9cc');r(0,175,480,125,'#8dbc78');
+    for(let i=0;i<18;i++)r((i*67+17)%480,210+(i*19)%80,3,6,'#669c58');
+    r(125,250,220,10,'#67976d');
+    const bob=selfMood%2===1?3:0,y=104-bob;
+    r(139,y+45,156,82,'#efe7d2');r(153,y+24,132,92,'#fff4df');
+    r(177,y+8,83,96,'#f9f0dc');r(167,y+119,18,62,'#746757');r(254,y+119,18,62,'#746757');
+    r(285,y+45,91,68,'#b78b75');r(365,y+67,24,27,'#ba927a');r(289,y+34,31,21,'#b18c70');
+    r(330,y+57,8,8,'#352e2c');r(365,y+77,6,6,'#59473d');
+    r(186,y+20,25,13,'#fff6e4');r(220,y+5,22,17,'#fff7e9');r(169,y+65,27,18,'#fff6e5');
+    if(selfMood>0){r(290,y+18,9,9,'#efd3ad');r(302,y+11,5,5,'#fff4cf')}
+  }
   function closeSelfView(){
-    skyZone.classList.remove('returning');
-    try{
-      const src=frame.getAttribute('src')||'./tonglu-pasture-v20.html';
-      frame.setAttribute('src',src);
-    }catch(err){console.warn(err)}
+    document.body.classList.remove('self-open');
+    selfView.setAttribute('aria-hidden','true');skyZone.classList.remove('returning');
   }
-
   function openSelfSheep(){
-    closeGrassBook();
-    closeWindBoard();
-    closePartnersLayer();
-    closeMailLayer();
-    try{
-      const win=frame.contentWindow,doc=win.document,cv=doc.querySelector('canvas');if(!cv)return;
-      const rect=cv.getBoundingClientRect(),baseW=cv.width||480,baseH=cv.height||300;
-      const clientX=rect.left+(247/baseW)*rect.width,clientY=rect.top+(247/baseH)*rect.height;
-      skyZone.classList.add('returning');
-      cv.dispatchEvent(new win.MouseEvent('click',{bubbles:true,cancelable:true,clientX,clientY,view:win}));
-    }catch(err){console.warn(err)}
+    closeGrassBook();closeWindBoard();closePartnersLayer();closeMailLayer();
+    document.body.classList.add('self-open');selfView.setAttribute('aria-hidden','false');
+    skyZone.classList.add('returning');paintSelfSheep();
+    document.getElementById('selfFeedback').textContent='它正在草地上等你。';
   }
+  document.getElementById('selfCare').addEventListener('click',()=>{selfMood++;paintSelfSheep();document.getElementById('selfFeedback').textContent='小羊靠近了一点。今天也好好照顾自己。'});
+  document.getElementById('selfFeed').addEventListener('click',()=>{selfMood++;paintSelfSheep();document.getElementById('selfFeedback').textContent='小羊吃下牧草，安静地陪你一会儿。'});
   returnNow.addEventListener('click',openSelfSheep);
   selfClose.addEventListener('click',closeSelfView);
-  skyZone.addEventListener('pointerleave',()=>skyZone.classList.remove('returning'));
 
   const now=new Date();
   document.getElementById('pageDate').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日';
