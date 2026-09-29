@@ -33,7 +33,7 @@
  // Surgically patch the original compressed card *after* decompression, before srcdoc.
  // Keep all original approved pixels, image sources, layout and draw/flip workflow.
  if(!html.includes('const cardDoc=cardHTML.replace('))throw new Error('无法识别原版步道卡引擎；已终止加载以防止意外替换。');
- html=html.replace('</head>','<script src="./card-six-dim-patch.js"></script></head>');
+ html=html.replace('</head>','<scr'+'ipt src="./card-six-dim-patch.js"></scr'+'ipt></head>');
  html=html.replace('const cardDoc=cardHTML.replace(','const cardDoc=window.patchOriginalBudaoCard(cardHTML).replace(');
  const oldRead="function readState(){try{return JSON.parse(mirror || localStorage.getItem(STORE)||'null')||{phase:'guest'}}catch(e){try{return JSON.parse(mirror)||{phase:'guest'}}catch(_){return{phase:'guest'}}}}";
  const newRead="function readState(){let v;try{v=JSON.parse(mirror||localStorage.getItem(STORE)||'null')}catch(e){try{v=JSON.parse(mirror)}catch(_){}}if(!v||typeof v!=='object')return{phase:'guest'};if(v.phase==='active'&&(!v.final||!v.final.numberColor||!(v.final.side||v.final.color)))return{phase:'guest'};return v}";
