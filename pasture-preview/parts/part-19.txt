@@ -5,7 +5,7 @@ const cardHTML=await(async()=>{const b=atob(ORIGINAL),bytes=new Uint8Array(b.len
 function upgradeApprovedCard(original){
  let h=original;
  const change=(from,to,label)=>{if(!h.includes(from))throw new Error('原卡局部修复缺少锚点：'+label);h=h.replace(from,to)};
- change('</style>','.card,.side,.side img,.side canvas{border-radius:16px!important}.side{overflow:hidden!important}.side img,.side canvas{border-radius:14px!important}</style>','数字卡圆角');
+ change('</style>','.card,.side,.side img,.side canvas{border-radius:16px!important}.side{overflow:hidden!important}.side img,.side canvas{border-radius:14px!important}.card-owner-info{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0;font:800 12px/1.5 "PingFang SC",sans-serif}.card-owner-info>div{padding:8px;border:1px solid #d3c3a1;background:#f8eed5;min-width:0}.card-owner-info span{display:block;color:#796c53;font-size:11px;margin-bottom:3px}.card-owner-info strong{display:block;color:#304e3a;font-size:13px;overflow-wrap:anywhere}</style>','数字卡圆角');
  // The core is loaded inside the ORIGINAL card's srcdoc, before the legacy draw script runs.
  change('</head>','<script src="/pasture-preview/six-dim-core.js"><'+'/script></head>','六维模块');
  change("const $=id=>document.getElementById(id);const suits=", "const six=window.BudaoSix;if(!six||six.CAPACITY!==7488||six.PUBLIC_LIMIT!==7000)throw Error('六维生成器未就绪');const $=id=>document.getElementById(id);const suits=", '六维初始化');
@@ -22,6 +22,11 @@ function upgradeApprovedCard(original){
  h=h.replaceAll("{suit:'club',rank:'2',dice:4,color:'white',piece:'knight'}", "{suit:'club',rank:'2',numberColor:'black',dice:4,color:'white',side:'white',piece:'knight'}");
  h=h.replaceAll("state={phase:'verified',first:null,final:null,usedSecond:false}", "state={phase:'verified',seriesId:six.SERIES.id,first:null,final:null,usedSecond:false}");
  // The example card remains visual reference only. Never restrict suits/number inks using its sample pairing.
+ // Preserve the existing approved card while naming both flip directions consistently.
+ change("flipped?'↺ 翻回书法面':'↻ 翻转卡片'","flipped?'↺ 翻面':'↻ 翻面'",'翻面按钮文字');
+ change("<h3>这张卡，属于你。</h3><div class=\"active-block\">","<h3>持卡人基本资料</h3><div class=\"card-owner-info\"><div><span>持卡人</span><strong id=\"cardHolderName\">${parent.getPastureHolderName?.()||\"同行者\"}</strong></div><div><span>所属系列</span><strong>创始成终</strong></div><div style=\"grid-column:1/-1\"><span>六维卡组</span><strong>${readable(state.final)}</strong></div><div><span>确认状态</span><strong>已确认 · 本机预览</strong></div><div><span>确认日期</span><strong>${state.confirmedAt?new Date(state.confirmedAt).toLocaleDateString(\"zh-CN\"):\"未记录\"}</strong></div></div><div class=\"active-block\">",'确认后显示基础资料');
+ change("state.phase='active';state.final={...state.first};state.usedSecond=false;save();","state.phase='active';state.final={...state.first};state.usedSecond=false;state.confirmedAt=Date.now();save();",'首次确认记录日期');
+ change("state.phase='active';save();setValue(state.final);setPanel();refreshNav();","state.phase='active';state.confirmedAt=Date.now();save();setValue(state.final);setPanel();refreshNav();",'第二次自动确认记录日期');
  h=h.replaceAll('五维','六维').replaceAll('3,744','7,488').replaceAll('3,000','7,000').replaceAll('744 位','488 位');
  h=h.replace('4 × 13 × 6 × 2 × 6 =','4 × 13 × 2 × 6 × 2 × 6 =');
  h=h.replaceAll('DIGITAL PASTURE · BUDĀO CARD / 01','数字牧场 · 步道卡')
@@ -48,14 +53,33 @@ function isActive(){return readState().phase==='active'}
 function toast(msg){clearTimeout(toastTimer);$('toast').textContent=msg;$('toast').classList.add('show');toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200)}
 function syncState(){const p=readState().phase;$('phaseText').textContent=p==='active'?'已激活：七个按钮均可进入':p==='draw1'?'第 1 / 2 次已生成：可确认或放弃':p==='draw2'?'第 2 / 2 次正在揭晓：将自动确认':p==='verified'?'密钥有效：可开始第一次抽取':'未激活：先领取步道卡';
   if(p==='active'){try{localStorage.setItem(UNLOCK,'1')}catch(e){};try{const d=main.contentDocument;if(d){const dot=d.getElementById('budaoCardDot');dot?.classList.add('active');}}catch(e){}}
-  if(p!==lastPhase){lastPhase=p;if(p==='active')toast('身份已确认。现在可以进入已经设计好的功能板块。')}
+  if(p!==lastPhase){lastPhase=p;window.PastureBox?.applyPrefs?.();if(p==='active')toast('身份已确认。现在可以进入已经设计好的功能板块。')}syncReturnButton();
 }
 const cardOnlyStyle=`<style>.pasture,.mast,.farm-shell,#resetDemo{display:none!important}.overlay{visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:transparent!important;padding:3px!important}.window{max-height:calc(100dvh - 14px)!important;box-shadow:7px 8px #0005!important}.window-body{padding-top:18px!important}#exit{display:none!important}body{background:transparent!important}</style>`;
+window.getPastureHolderName=()=>{try{const pref=JSON.parse(localStorage.getItem('budao_pasture_box_prefs_preview_v1')||'{}');return pref.private?'同行者':String(pref.nickname||'同行者').trim().slice(0,12)||'同行者'}catch(e){return'同行者'}};
 const cardDoc=approvedSixCardHTML.replace('</head>',cardOnlyStyle+shimScript(mirror)+'</head>');
 card.addEventListener('load',()=>{try{const doc=card.contentDocument;doc?.addEventListener('click',e=>{if(e.target.closest('#closeActivated'))setTimeout(hideCard,45)},true)}catch(e){};syncState()});card.srcdoc=cardDoc;
 function showCard(){shade.classList.add('open');$('topExit').style.display='block';try{const d=card.contentDocument;d?.getElementById('overlay')?.classList.add('show');d?.getElementById('card')?.focus()}catch(e){};syncState()}
 function hideCard(){shade.classList.remove('open');$('topExit').style.display='none';try{const w=card.contentWindow,d=card.contentDocument;d?.getElementById('previewAuto')?.textContent?.includes('暂停')&&d.getElementById('previewAuto').click();}catch(e){};syncState()}
-$('floatingCard').onclick=showCard;$('offlineCard').onclick=showCard;$('topExit').onclick=hideCard;shade.addEventListener('click',e=>{if(e.target===shade)hideCard()});
+function syncReturnButton(){
+ let active=shade.classList.contains('open')||!!$('shopShade')?.classList.contains('open')||!!$('boxShade')?.classList.contains('open');
+ try{const cl=main.contentDocument?.body?.classList;if(cl)active=active||['self-open','grassbook-open','wind-open','mail-open','partners-open'].some(x=>cl.contains(x))}catch(e){}
+ $('topExit').style.display=active?'block':'none';
+}
+function closeCurrentPage(){
+ if(shade.classList.contains('open')){hideCard();return}
+ if($('boxShade')?.classList.contains('open')){$('boxClose')?.click();syncReturnButton();return}
+ if($('shopShade')?.classList.contains('open')){$('shopClose')?.click();syncReturnButton();return}
+ try{
+  const d=main.contentDocument,cl=d?.body?.classList;
+  const routes=[['self-open','selfClose'],['grassbook-open','closeBook'],['wind-open','closeWind'],['mail-open','closeMail'],['partners-open','closePartners']];
+  for(const [klass,id] of routes){if(cl?.contains(klass)){d.getElementById(id)?.click();break}}
+ }catch(e){}
+ syncReturnButton();
+}
+$('floatingCard').onclick=showCard;$('offlineCard').onclick=showCard;$('topExit').onclick=closeCurrentPage;
+shade.addEventListener('click',e=>{if(e.target===shade)hideCard()});
+document.addEventListener('click',()=>setTimeout(syncReturnButton,0),true);
 $('reset').onclick=()=>{if(!confirm('只清除这份审看样机的本地激活状态，不影响 budao.org，也不是正式产品的功能。是否继续？'))return;try{localStorage.removeItem(STORE);localStorage.removeItem(UNLOCK)}catch(e){}location.reload()};
 function injectFeature(source){
   // Do not replace the previously made parchment / wind / grape / mailbox panels.
@@ -87,7 +111,7 @@ const links=[
  ];
  let problem='';for(const u of links){try{let ctrl=new AbortController();let t=setTimeout(()=>ctrl.abort(),11000);const r=await fetch(u,{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);let h=await r.text();if(!h.includes('grassBookBtn')||!h.includes('partnersBtn'))throw new Error('源文件不符合');injectFeature(h);return;}catch(e){problem=String(e)}}
  $('loadStatus').textContent='功能区在线源文件暂时无法读取（'+problem+'）。步道卡仍可单独体验；连接网络后刷新即可载入原有板块。';}
-setInterval(syncState,350);syncState();loadFeature();document.addEventListener('keydown',e=>{if(e.key==='Escape'&&shade.classList.contains('open'))hideCard()});
+setInterval(syncState,350);syncState();loadFeature();document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('topExit').style.display==='block')closeCurrentPage()});
 })();
 </script>
 <section id="shopShade" role="dialog" aria-modal="true" aria-label="牧场小铺" aria-hidden="true">
@@ -240,7 +264,7 @@ function applyPrefs(){
     let st=d.getElementById('boxPreviewQuietStyle');if(!st){st=d.createElement('style');st.id='boxPreviewQuietStyle';st.textContent='html.box-ui-reduced .sky-ui,html.box-ui-reduced .pbtn{transition:none!important}html.box-ui-reduced .pixel:before,html.box-ui-reduced .pixel:after{animation:none!important}';d.head.appendChild(st)}
     d.documentElement.classList.toggle('box-ui-reduced',prefs.quiet);
     const name=d.querySelector('.identity .idtext .name');if(name)name.textContent=prefs.private?'同行者':prefs.nickname;
-    const bid=d.querySelector('.identity .idtext .bid');if(bid)bid.textContent=prefs.private?'身份已隐去':isActive()?code(cardState().final):'五维身份待领取';
+    const bid=d.querySelector('.identity .idtext .bid');if(bid){const state=cardState();bid.textContent=prefs.private?'身份已隐去':state.phase==='active'&&state.final?'创始成终 · '+code(state.final):'六维身份待领取';}
  }}catch(e){}
 }
 function render(){
