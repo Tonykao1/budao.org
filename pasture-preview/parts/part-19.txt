@@ -57,7 +57,7 @@ function syncState(){const p=readState().phase;$('phaseText').textContent=p==='a
   if(p!==lastPhase){lastPhase=p;window.PastureBox?.applyPrefs?.();if(p==='active')toast('身份已确认。现在可以进入已经设计好的功能板块。')}syncReturnButton();
 }
 const cardOnlyStyle=`<style>.pasture,.mast,.farm-shell,#resetDemo{display:none!important}.overlay{visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:transparent!important;padding:3px!important}.window{max-height:calc(100dvh - 14px)!important;box-shadow:7px 8px #0005!important}.window-body{padding-top:18px!important}#exit{display:none!important}body{background:transparent!important}</style>`;
-window.getPastureHolderName=()=>{try{const pref=JSON.parse(localStorage.getItem('budao_pasture_box_prefs_preview_v1')||'{}');return pref.private?'同行者':String(pref.nickname||'同行者').trim().slice(0,12)||'同行者'}catch(e){return'同行者'}};
+window.getPastureHolderName=()=>{try{const pref=JSON.parse(localStorage.getItem('budao_pasture_box_prefs_preview_v1')||'{}');return pref.private?'同行者':String(pref.nickname||'Tony').trim().slice(0,12)||'Tony'}catch(e){return'Tony'}};
 const cardDoc=approvedSixCardHTML.replace('</head>',cardOnlyStyle+shimScript(mirror)+'</head>');
 card.addEventListener('load',()=>{try{const doc=card.contentDocument;doc?.addEventListener('click',e=>{if(e.target.closest('#closeActivated'))setTimeout(hideCard,45)},true)}catch(e){};syncState()});card.srcdoc=cardDoc;
 function showCard(){shade.classList.add('open');$('topExit').style.display='block';try{const d=card.contentDocument;d?.getElementById('overlay')?.classList.add('show');d?.getElementById('card')?.focus()}catch(e){};syncState()}
