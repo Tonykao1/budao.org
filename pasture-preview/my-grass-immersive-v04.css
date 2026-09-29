@@ -3,6 +3,7 @@
 body.grassbook-open .book-layer{
  inset:0!important;top:0!important;bottom:0!important;z-index:72;
  padding:clamp(12px,2.8dvh,28px) clamp(10px,2vw,30px)!important;
+ overflow:hidden!important;
  background:radial-gradient(ellipse at 50% 25%,rgba(31,52,37,.80),rgba(9,25,21,.94) 75%);
  backdrop-filter:blur(4px);align-items:center;justify-content:center;
 }
@@ -10,7 +11,7 @@ body.grassbook-open .sky-zone{height:205px;min-height:205px}
 body.grassbook-open .book-object{
  display:block;width:min(1550px,96vw)!important;
  height:min(900px,92dvh)!important;
- max-height:none!important;min-height:0!important;
+ max-height:none!important;min-height:0!important;min-width:0!important;
  aspect-ratio:auto!important;position:relative;
  overflow:hidden;filter:drop-shadow(12px 14px 8px rgba(0,0,0,.4))
 }
