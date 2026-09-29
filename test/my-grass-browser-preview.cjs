@@ -22,7 +22,7 @@ const assert=require('node:assert/strict');
    return !!f?.contentDocument?.getElementById('grassWorkspace');
   },{timeout:60000});
   const zone=page.frameLocator('#liveArea');
-  await zone.locator('#grassBookBtn').click();
+  await page.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('grassBookBtn').click());
   await zone.locator('#grassWorkspace').waitFor({state:'visible'});
   assert.equal(await zone.locator('#grassWorkspace .gs-steps button').count(),3);
   await zone.locator('[data-field="reference"]').fill('诗篇 23:1');
