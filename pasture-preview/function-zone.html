@@ -31,6 +31,7 @@ button,input,textarea,select{font:inherit}
 .avatar svg{width:100%;height:100%;display:block;shape-rendering:crispEdges}
 .idtext{min-width:0;color:var(--ink)}.idtext .name{font-size:24px;font-weight:900;margin-bottom:5px}.idtext .bid{font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;color:#4d6f95;margin-bottom:8px}.idtext .state{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:900;color:#2a9837;margin-bottom:8px}.state-dot{width:10px;height:10px;background:#25b53b;border-radius:50%}.idtext .days{font-size:15px;font-weight:800;color:#234c7a}
 .actions{display:grid;grid-template-columns:repeat(4,minmax(132px,1fr));gap:14px 16px;align-content:start;padding-top:1px}
+@media(min-width:1101px){#boxEntryBtn{grid-column:4;grid-row:2}}
 .pbtn{height:60px;display:flex;align-items:center;justify-content:center;gap:11px;color:var(--ink);font-size:17px;font-weight:900;letter-spacing:.02em;cursor:default;pointer-events:auto;user-select:none;transition:transform .08s steps(2,end)}
 .pbtn.clickable{cursor:pointer}.pbtn:hover{transform:translate(-1px,-1px)}
 .pbtn.primary{background:linear-gradient(180deg,var(--green) 0%,var(--green2) 100%);height:62px;width:calc(100% + 2px);margin:-1px}
@@ -233,6 +234,7 @@ body.budao-card-open .budao-card-layer{visibility:visible;opacity:1;pointer-even
         <div class="pbtn pixel clickable" id="mailBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="9" fill="#dceafb" stroke="#214d7b" stroke-width="1.3"/><path d="M3 5l5 4 5-4" fill="none" stroke="#214d7b" stroke-width="1.3"/></svg></span>信箱<span class="badge" id="mailBadge">3</span></div>
         <div class="pbtn pixel clickable" id="budaoCardBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="#d9ebb4" stroke="#315a83" stroke-width="1.3"/><path d="M5 4v8M10 4v8" stroke="#6d9258" stroke-width="1.2"/><path d="M2 9l4-3 4 2 4-3" fill="none" stroke="#4879a6" stroke-width="1.2"/></svg></span>步道卡<span class="card-dot" id="budaoCardDot" aria-hidden="true"></span></div>
         <div class="pbtn pixel"><span class="icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="#a9bed0" stroke="#224f7a" stroke-width="1.2"/><circle cx="8" cy="8" r="1.5" fill="#fff8e8"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3 3l2 2M11 11l2 2M13 3l-2 2M5 11l-2 2" stroke="#224f7a" stroke-width="1.3"/></svg></span>小匣</div>
+        <div class="pbtn pixel clickable" id="boxEntryBtn" role="button" tabindex="0" aria-label="打开小匣"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="5" width="12" height="9" fill="#d7bd8b" stroke="#224f7a" stroke-width="1.2"/><path d="M3 5V3h10v2M6 8h4M8 7v4" fill="none" stroke="#224f7a" stroke-width="1.2"/></svg></span>小匣</div>
       </nav>
       <aside class="public-screen pixel" aria-label="公共信息">
         <div class="head"><strong>今日</strong><span class="kind">QUOTE</span></div>
