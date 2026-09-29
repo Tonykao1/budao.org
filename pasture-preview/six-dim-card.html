@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>步道卡 · 六维系列预览</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#244961;background:transparent}
+button,input{font:inherit}button{cursor:pointer}
+.overlay{position:fixed;inset:0;visibility:visible;opacity:1;display:flex;align-items:center;justify-content:center;padding:12px;background:transparent}
+.window{position:relative;width:min(960px,100%);max-height:calc(100dvh - 18px);overflow:auto;border:4px solid #2c5b72;background:#f6ecd0;box-shadow:8px 9px #24445470}
+header{padding:13px 22px;background:#365c63;color:#fff7df;display:flex;justify-content:space-between;gap:12px;align-items:center}
+header h1{margin:0;font-size:21px;letter-spacing:.2em}header small{font-size:11px;color:#e0d8b6}
+#closeActivated{background:#fff4da;border:2px solid #a99169;padding:7px 12px;color:#385565;font-weight:900}
+.body{display:grid;grid-template-columns:minmax(280px,.85fr) minmax(270px,1fr);gap:22px;padding:22px}
+.summary{font-size:13px;line-height:1.9;color:#415e60}.summary strong{color:#1f4b53}
+.summary .status{display:inline-block;padding:5px 10px;background:#dce8c3;border:2px solid #648562;font-weight:900;margin-bottom:12px}
+.count{display:flex;gap:10px;margin:13px 0}.count div{flex:1;padding:11px;background:#fcf7e9;border:2px solid #aeac88;text-align:center}.count b{display:block;font-size:23px}
+.control{padding:14px;border:2px solid #b9a077;background:#fff7e3;margin:16px 0}
+.control input{padding:10px;border:2px solid #45637b;width:100%;background:white;outline:none}
+.control button,.actions button{padding:10px 14px;border:2px solid #31586a;background:#bcdca3;color:#294b49;font-weight:900}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.actions button.secondary{background:#e7d4ae}
+.actions button:disabled{opacity:.4;cursor:not-allowed}
+#notice{font-size:13px;min-height:23px;line-height:1.7;color:#78552d;font-weight:700}
+#card{position:relative;margin:0 auto;width:min(100%,360px);aspect-ratio: .68;perspective:1200px;outline:0;cursor:pointer}
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s steps(10,end)}
+#card.flipped .card-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:5px solid #d2b979;border-radius:22px;overflow:hidden;background:#f9f1d9;box-shadow:0 8px 0 #26465a30,0 16px 25px #26465a20}
+.face::before{content:"";position:absolute;inset:7px;border:2px solid #9a7951;border-radius:14px;pointer-events:none}
+.back{transform:rotateY(180deg);display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(0deg,#d5c394 0 7px,#decba0 7px 14px)}
+.back .calligraphy{writing-mode:vertical-rl;font-family:"STKaiti","KaiTi","Songti SC",serif;font-size:clamp(35px,5vw,66px);font-weight:900;letter-spacing:.16em;color:#403b32;text-shadow:2px 2px #e8d5a7}
+.f-top{height:23%;padding:19px 24px;display:flex;justify-content:space-between;align-items:flex-start;background:#e8dfbb}
+.suit{font-size:61px;line-height:1;color:#242b29}
+.rank{font-family:Georgia,serif;font-weight:900;font-size:62px;line-height:1}
+.f-center{min-height:47%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px}
+.chess{font-family:Georgia,serif;font-size:110px;line-height:1;color:#1c2c2c;text-shadow:2px 3px #a5a38e}
+.chess.white{color:#fffaf0;-webkit-text-stroke:2px #233d49;text-shadow:2px 4px #7d8880}
+.dice{font-size:50px;line-height:1;color:#263c41}
+.dimension{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:0 20px;border-top:3px solid #9b8d62;padding-top:11px}
+.dimension div{text-align:center;font-size:12px;color:#49615a;font-weight:800}
+.dimension b{display:block;font-size:15px;color:#253e48}
+.series{position:absolute;bottom:11px;width:100%;text-align:center;font-size:12px;letter-spacing:.2em;color:#705b42;font-weight:900}
+.blank{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;line-height:2;padding:30px;color:#6d745e;font-weight:900}
+small.disclaimer{display:block;font-size:11px;color:#77735f;line-height:1.65}
+@media(max-width:680px){.window{max-height:calc(100dvh - 10px)}.body{display:flex;flex-direction:column-reverse;align-items:stretch;padding:14px;gap:12px}#card{width:min(59vw,250px)}header h1{font-size:15px}.f-top{padding:9px 15px}.suit,.rank{font-size:39px}.chess{font-size:70px}.dice{font-size:32px}.dimension{gap:0;margin:0 10px;padding-top:6px}.dimension div{font-size:9px}.dimension b{font-size:11px}.series{font-size:8px;bottom:7px}.face{border-radius:15px}.face:before{border-radius:9px}.control{margin:7px 0}.summary{line-height:1.6}}
+</style><script src="./six-dim-core.js"></script></head>
+<body><div class="overlay show" id="overlay"><section class="window" aria-label="步道卡六维预览">
+<header><div><h1>步道卡 · 创始成终</h1><small>六维身份 · 第一书法系列</small></div><button id="closeActivated" type="button">收起 ×</button></header>
+<div class="body">
+<section class="summary">
+<span class="status" id="phaseStatus">尚未领取</span>
+<div>六维独立生成：<strong>花色、牌值、数字颜色、骰子、国际象棋阵营、棋子类型。</strong>卡面样本不限制合法组合。</div>
+<div class="count"><div><b>7,000</b>开放组合</div><div><b>488</b>系列储备</div></div>
+<div class="control" id="verify"><label for="activationCode"><b>演示身份验证</b></label><input id="activationCode" type="text" placeholder="输入演示激活码" autocomplete="off"><div class="actions"><button id="verifyBtn">验证激活码</button></div><small class="disclaimer">本独立预览只使用演示激活码 BUDAO-2026；不创建正式持卡身份。</small></div>
+<div class="actions" id="drawActions" hidden><button id="drawBtn">第一次随机抽取</button><button id="confirmBtn" disabled>确认当前卡组</button><button id="redrawBtn" class="secondary" disabled>放弃并第二次抽取</button></div>
+<p id="notice" aria-live="polite">输入演示激活码，查看六维卡片。</p>
+<small class="disclaimer">注意：当前为本机交互预览；跨用户永久占位须接入数据库并通过事务验证后才能正式发行。没有完成服务端确认前，预览生成不计入 7,000 张发行量。</small>
+</section>
+<div id="card" tabindex="0" aria-label="步道卡，点击翻转"><div class="card-inner"><div class="face front" id="front"><div class="blank">六维身份尚未生成</div></div><div class="face back"><div class="calligraphy" id="backCalligraphy">创始成终</div></div></div></div>
+</div></section></div>
+<script>
+(()=>{
+ 'use strict';
+ const core=window.BudaoSix,key='budao_pixel_card_activation_prototype_v1', $=id=>document.getElementById(id);
+ const SUIT={spade:'♠',heart:'♥',club:'♣',diamond:'♦'};
+ const SIDENAME={spade:'黑桃',heart:'红桃',club:'梅花',diamond:'方片'};
+ const PIECE={king:['♚','♔','王'],queen:['♛','♕','后'],rook:['♜','♖','车'],bishop:['♝','♗','象'],knight:['♞','♘','马'],pawn:['♟','♙','兵']};
+ const DICE=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+ let state;
+ try{state=JSON.parse(localStorage.getItem(key)||'null')||{phase:'guest'}}catch(e){state={phase:'guest'}}
+ if(state.final&&!state.final.numberColor){state={phase:'guest'};} // Old five-dimensional demo identities are not six-dimensional cards.
+ function save(){localStorage.setItem(key,JSON.stringify(state));drawUI()}
+ function setNotice(value){$('notice').textContent=value}
+ function renderCard(combo){
+   if(!combo){$('front').innerHTML='<div class="blank">六维身份尚未生成</div>';return}
+   const chess=PIECE[combo.piece],white=combo.side==='white';
+   $('front').innerHTML='<div class="f-top"><div class="rank" style="color:'+(combo.numberColor==='red'?'#c73536':'#222a2c')+'">'+combo.rank+'</div><div class="suit">'+SUIT[combo.suit]+'</div></div><div class="f-center"><div class="chess '+(white?'white':'')+'">'+chess[white?1:0]+'</div><div class="dice">'+DICE[combo.dice]+'</div></div><div class="dimension"><div>花色<b>'+SIDENAME[combo.suit]+'</b></div><div>数字颜色<b>'+(combo.numberColor==='red'?'红色':'黑色')+'</b></div><div>棋子阵营<b>'+(white?'白方':'黑方')+'</b></div><div>棋子类型<b>'+chess[2]+'</b></div></div><div class="series">创始成终</div>';
+ }
+ function drawUI(){
+   const p=state.phase;const verified=p==='verified'||p==='draw1'||p==='draw2'||p==='active';
+   $('verify').hidden=verified;$('drawActions').hidden=!verified;
+   $('phaseStatus').textContent=p==='active'?'卡组已确认（本机演示）':p==='draw1'?'首次抽取 · 可确认或再抽一次':p==='verified'?'已验证 · 准备抽取':'尚未领取';
+   $('drawBtn').disabled=p!=='verified';$('drawBtn').textContent=p==='verified'?'第一次随机抽取':'第一次抽取已完成';
+   $('confirmBtn').disabled=p!=='draw1';$('redrawBtn').disabled=p!=='draw1';
+   renderCard(p==='active'?state.final:(p==='draw1'||p==='draw2')?state.current:null);
+   if(p==='active')setNotice('当前卡组已确认。预览状态仅保存于本机，不代表服务端占位。');
+ }
+ function seen(){const set=new Set(state.issued||[]); if(Number.isInteger(state.currentCode))set.add(state.currentCode);return set}
+ function newDraw(){
+   const v=core.randomPublic(seen());state.current=v.combo;state.currentCode=v.code;
+   state.issued=[...(state.issued||[]),v.code];return v;
+ }
+ function confirm(){
+   if(state.phase!=='draw1'&&state.phase!=='draw2')return;
+   state.final=state.current;state.finalCode=state.currentCode;
+   state.seriesId=core.SERIES.id;state.phase='active';delete state.current;delete state.currentCode;save();
+ }
+ $('verifyBtn').onclick=()=>{if($('activationCode').value.trim()!=='BUDAO-2026'){setNotice('演示激活码不正确。');return}state={phase:'verified',seriesId:core.SERIES.id,issued:[]};save();setNotice('验证通过。可从本系列开放池抽取。')};
+ $('drawBtn').onclick=()=>{if(state.phase!=='verified')return;try{newDraw();state.phase='draw1';save();setNotice('第一次抽取完成：可以确认，也可以放弃并进行最后一次抽取。')}catch(e){setNotice(e.message)}};
+ $('confirmBtn').onclick=()=>{if(state.phase!=='draw1')return;confirm()};
+ $('redrawBtn').onclick=()=>{if(state.phase!=='draw1')return;try{newDraw();state.phase='draw2';save();setNotice('第二次抽取完成，自动确认这组身份。');confirm()}catch(e){setNotice(e.message)}};
+ $('card').onclick=()=>$('card').classList.toggle('flipped');
+ $('card').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('card').click()}};
+ $('closeActivated').onclick=()=>{parent.postMessage({type:'budao-card-close'},'*')};
+ drawUI();
+})();
+</script></body></html>
