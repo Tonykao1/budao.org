@@ -30,16 +30,14 @@
  // Only update hosting-specific paths; preserve the approved seven module UI and card engine.
  html=html.replace('https://budao.org/tonglu.html','/tonglu.html');
 
- // Surgically patch the original compressed card *after* decompression, before srcdoc.
- // Keep all original approved pixels, image sources, layout and draw/flip workflow.
- if(!html.includes('const cardDoc=cardHTML.replace('))throw new Error('无法识别原版步道卡引擎；已终止加载以防止意外替换。');
- html=html.replace('</head>','<scr'+'ipt src="./card-six-dim-patch.js"></scr'+'ipt></head>');
- html=html.replace('const cardDoc=cardHTML.replace(','const cardDoc=window.patchOriginalBudaoCard(cardHTML).replace(');
- const oldRead="function readState(){try{return JSON.parse(mirror || localStorage.getItem(STORE)||'null')||{phase:'guest'}}catch(e){try{return JSON.parse(mirror)||{phase:'guest'}}catch(_){return{phase:'guest'}}}}";
- const newRead="function readState(){let v;try{v=JSON.parse(mirror||localStorage.getItem(STORE)||'null')}catch(e){try{v=JSON.parse(mirror)}catch(_){}}if(!v||typeof v!=='object')return{phase:'guest'};if(v.phase==='active'&&(!v.final||!v.final.numberColor||!(v.final.side||v.final.color)))return{phase:'guest'};return v}";
- if(!html.includes(oldRead))throw new Error('原卡状态读取位置变化，请勿盲目升级。');
- html=html.replace(oldRead,newRead);
-
+ // The assembled approved card engine already upgrades the original card through
+ // upgradeApprovedCard(cardHTML) and mounts approvedSixCardHTML in cardIframe.
+ // Do not try to find a removed legacy cardDoc=cardHTML marker or double-patch it.
+ if(!html.includes('const approvedSixCardHTML=upgradeApprovedCard(cardHTML);')||
+    !html.includes("const cardDoc=approvedSixCardHTML.replace(")||
+    !html.includes('function upgradeApprovedCard(original){'))
+   throw new Error('原卡六维引擎不完整，预览未发布。');
+ 
  // Restore the previously approved embedded pixel-card visuals. The separate six-dimension
  // logic prototype stays in the review branch, but is not allowed to replace this card artwork.
 
