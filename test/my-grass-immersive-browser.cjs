@@ -90,7 +90,7 @@ const activate=()=>localStorage.setItem('budao_pixel_card_activation_prototype_v
       iframeMeta:doc?.querySelector('meta[name="viewport"]')?.content};
   });
   console.log('MOBILE VIEWPORT DIAGNOSTIC',JSON.stringify(mobileViewport));
-  assert.ok(m.width>=370,JSON.stringify(m));
+  assert.ok(m.width>=370&&m.width<=390,JSON.stringify(m));
   assert.ok(m.height>=790,JSON.stringify(m));
   assert.equal(m.canvasW,320);
   assert.ok(Math.abs(m.canvasW/m.canvasH-m.width/m.height)<0.035,JSON.stringify(m));
