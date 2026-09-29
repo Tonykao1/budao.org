@@ -4,7 +4,7 @@ const $=x=>document.getElementById(x), main=$('liveArea'),card=$('cardIframe'), 
 const STORE='budao_pixel_card_activation_prototype_v1', UNLOCK='budao.card.activated.v1';
 let lastPhase='guest', toastTimer=0, sourceLoaded=false, mirror=null;
 try{mirror=localStorage.getItem(STORE)}catch(e){}
-function readState(){try{return JSON.parse(mirror || localStorage.getItem(STORE)||'null')||{phase:'guest'}}catch(e){try{return JSON.parse(mirror)||{phase:'guest'}}catch(_){return{phase:'guest'}}}}
+function readState(){let value;try{value=JSON.parse(mirror || localStorage.getItem(STORE)||'null')}catch(e){try{value=JSON.parse(mirror)}catch(_){}}if(!value||typeof value!=='object')return{phase:'guest'};if(value.phase==='active'&&(!value.final||!value.final.numberColor||!value.final.side||value.seriesId!=='CSCZ-001'))return{phase:'guest'};return value}
 window.addEventListener('message',e=>{if(e.source!==card.contentWindow||!e.data||e.data.type!=='budao-integrated-store')return;if(e.data.key===STORE){mirror=e.data.value;try{localStorage.setItem(STORE,mirror)}catch(_){}syncState();}});
 function shimScript(initial){const v=JSON.stringify(initial||null);return '<script>'+`(()=>{const memory={};if(${v}!==null)memory[${JSON.stringify(STORE)}]=${v};const store={getItem:k=>memory[k]??null,setItem:(k,value)=>{memory[k]=String(value);parent.postMessage({type:'budao-integrated-store',key:k,value:memory[k]},'*')},removeItem:k=>{delete memory[k]}};try{Object.defineProperty(window,'localStorage',{configurable:true,value:store})}catch(e){}})();`+'<'+'/script>';}
 
