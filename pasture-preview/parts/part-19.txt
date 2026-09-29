@@ -82,6 +82,23 @@ $('floatingCard').onclick=showCard;$('offlineCard').onclick=showCard;$('topExit'
 shade.addEventListener('click',e=>{if(e.target===shade)hideCard()});
 document.addEventListener('click',()=>setTimeout(syncReturnButton,0),true);
 $('reset').onclick=()=>{if(!confirm('只清除这份审看样机的本地激活状态，不影响 budao.org，也不是正式产品的功能。是否继续？'))return;try{localStorage.removeItem(STORE);localStorage.removeItem(UNLOCK)}catch(e){}location.reload()};
+// Only the devotional module uses durable preview storage. The older seven modules
+// retain their existing demo-local storage shim and behavior.
+window.MyGrassBridge=Object.freeze({
+ read(key){
+  if(!/^budao\.my-grass\.v1\./.test(key)&&key!=='budao_pixel_card_activation_prototype_v1'&&key!=='budao-grass-preview')return null;
+  try{return localStorage.getItem(key)}catch(e){return null}
+ },
+ write(key,value){
+  if(!/^budao\.my-grass\.v1\./.test(key))throw new Error('非牧草范围写入已拒绝');
+  localStorage.setItem(key,String(value));
+  return true
+ },
+ remove(key){
+  if(!/^budao\.my-grass\.v1\./.test(key))throw new Error('非牧草范围移除已拒绝');
+  localStorage.removeItem(key);return true
+ }
+});
 function injectFeature(source){
   // Do not replace the previously made parchment / wind / grape / mailbox panels.
   // The older card module alone is suppressed; the new approved pixel card is opened by parent.
