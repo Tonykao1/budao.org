@@ -64,7 +64,7 @@ function showCard(){shade.classList.add('open');$('topExit').style.display='bloc
 function hideCard(){shade.classList.remove('open');$('topExit').style.display='none';try{const w=card.contentWindow,d=card.contentDocument;d?.getElementById('previewAuto')?.textContent?.includes('暂停')&&d.getElementById('previewAuto').click();}catch(e){};syncState()}
 function syncReturnButton(){
  let active=shade.classList.contains('open'); // 小铺与小匣保留自身按钮，外观统一为步道卡样式。
- try{const cl=main.contentDocument?.body?.classList;if(cl)active=active||['self-open','grassbook-open','wind-open','mail-open','partners-open'].some(x=>cl.contains(x))}catch(e){}
+ try{const cl=main.contentDocument?.body?.classList;if(cl){active=active||['self-open','grassbook-open','wind-open','mail-open','partners-open'].some(x=>cl.contains(x));document.body.classList.toggle('grass-immersive',cl.contains('grassbook-open'));}}catch(e){document.body.classList.remove('grass-immersive')}
  $('topExit').style.display=active?'block':'none';
 }
 function closeCurrentPage(){
