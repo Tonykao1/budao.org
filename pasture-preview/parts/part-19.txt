@@ -62,7 +62,7 @@ card.addEventListener('load',()=>{try{const doc=card.contentDocument;doc?.addEve
 function showCard(){shade.classList.add('open');$('topExit').style.display='block';try{const d=card.contentDocument;d?.getElementById('overlay')?.classList.add('show');d?.getElementById('card')?.focus()}catch(e){};syncState()}
 function hideCard(){shade.classList.remove('open');$('topExit').style.display='none';try{const w=card.contentWindow,d=card.contentDocument;d?.getElementById('previewAuto')?.textContent?.includes('暂停')&&d.getElementById('previewAuto').click();}catch(e){};syncState()}
 function syncReturnButton(){
- let active=shade.classList.contains('open')||!!$('shopShade')?.classList.contains('open')||!!$('boxShade')?.classList.contains('open');
+ let active=shade.classList.contains('open'); // 小铺与小匣保留自身按钮，外观统一为步道卡样式。
  try{const cl=main.contentDocument?.body?.classList;if(cl)active=active||['self-open','grassbook-open','wind-open','mail-open','partners-open'].some(x=>cl.contains(x))}catch(e){}
  $('topExit').style.display=active?'block':'none';
 }
