@@ -75,7 +75,11 @@ function patch(html){
  "state.phase='draw2';state.final=second;state.seriesId='CSCZ-001';state.first=null;state.usedSecond=true;");
  html=html.replaceAll('五维','六维').replaceAll('3,744','7,488').replaceAll('3,000','7,000').replaceAll('744 位','488 组').replaceAll('4 × 13 × 6 × 2 × 6','4 × 13 × 2 × 6 × 2 × 6');
  html=html.replace('第一阶段计划开放 <strong>7,000</strong> 位，保留 488 组。','第一系列开放 <strong>7,000</strong> 组，保留 <strong>488</strong> 组。');
- html=html.replace('DIGITAL PASTURE · BUDĀO CARD / 01','').replace('SECOND AND FINAL CHANCE','');
+ // Remove, rather than merely conceal, the English labels from the card interface.
+ html=html.replace(/<div class="overline">[^<]*<\/div>/g,'')
+          .replace(/<div class="panel-k">[^<]*<\/div>/g,'')
+          .replace(/<div class="brand-k">SECOND AND FINAL CHANCE<\/div>/g,'');
+
  html=html.replace('本样机不会连接真实用户。','本预览不会连接真实用户，也不会占用线上卡池。');
  return html;
 }
