@@ -71,7 +71,7 @@ small.disclaimer{display:block;font-size:11px;color:#77735f;line-height:1.65}
  function renderCard(combo){
    if(!combo){$('front').innerHTML='<div class="blank">六维身份尚未生成</div>';return}
    const chess=PIECE[combo.piece],white=combo.side==='white';
-   $('front').innerHTML='<div class="f-top"><div class="rank" style="color:'+(combo.numberColor==='red'?'#c73536':'#222a2c')+'">'+combo.rank+'</div><div class="suit">'+SUIT[combo.suit]+'</div></div><div class="f-center"><div class="chess '+(white?'white':'')+'">'+chess[white?1:0]+'</div><div class="dice">'+DICE[combo.dice]+'</div></div><div class="dimension"><div>花色<b>'+SIDENAME[combo.suit]+'</b></div><div>数字颜色<b>'+(combo.numberColor==='red'?'红色':'黑色')+'</b></div><div>棋子阵营<b>'+(white?'白方':'黑方')+'</b></div><div>棋子类型<b>'+chess[2]+'</b></div></div><div class="series">创始成终</div>';
+   $('front').innerHTML='<div class="f-top"><div class="rank" style="color:'+(combo.numberColor==='red'?'#c73536':'#222a2c')+'">'+combo.rank+'</div><div class="suit" style="color:'+(combo.suit==='heart'||combo.suit==='diamond'?'#c73536':'#242b29')+'">'+SUIT[combo.suit]+'</div></div><div class="f-center"><div class="chess '+(white?'white':'')+'">'+chess[white?1:0]+'</div><div class="dice">'+DICE[combo.dice]+'</div></div><div class="dimension"><div>花色<b>'+SIDENAME[combo.suit]+'</b></div><div>数字颜色<b>'+(combo.numberColor==='red'?'红色':'黑色')+'</b></div><div>棋子阵营<b>'+(white?'白方':'黑方')+'</b></div><div>棋子类型<b>'+chess[2]+'</b></div></div><div class="series">创始成终</div>';
  }
  function drawUI(){
    const p=state.phase;const verified=p==='verified'||p==='draw1'||p==='draw2'||p==='active';
