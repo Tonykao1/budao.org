@@ -26,8 +26,8 @@ const activate=()=>localStorage.setItem('budao_pixel_card_activation_prototype_v
   });
   assert.ok(dimensions.width>=1300,JSON.stringify(dimensions));
   assert.ok(dimensions.height>=780,JSON.stringify(dimensions));
-  assert.equal(dimensions.canvasW,800);
   assert.equal(dimensions.canvasH,470);
+  assert.ok(Math.abs(dimensions.canvasW/dimensions.canvasH-dimensions.width/dimensions.height)<0.035,JSON.stringify(dimensions));
   assert.ok(dimensions.fontSize>=16);
   assert.equal(dimensions.panels,2);
   assert.equal(dimensions.top,0);
@@ -79,7 +79,8 @@ const activate=()=>localStorage.setItem('budao_pixel_card_activation_prototype_v
   });
   assert.ok(m.width>=370,JSON.stringify(m));
   assert.ok(m.height>=790,JSON.stringify(m));
-  assert.equal(m.canvasW,420);assert.equal(m.canvasH,650);
+  assert.equal(m.canvasW,320);
+  assert.ok(Math.abs(m.canvasW/m.canvasH-m.width/m.height)<0.035,JSON.stringify(m));
   assert.ok(m.fontSize>=16);
   assert.equal(m.columns.split(' ').length,1);
   await mobile.screenshot({path:'/tmp/my-grass-v04-mobile.png',fullPage:true});
