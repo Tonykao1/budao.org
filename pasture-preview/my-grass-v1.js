@@ -1,16 +1,19 @@
 /* 我的牧草 V0.1 — three stages inside the approved pixel scroll. */
 (function () {
   'use strict';
-  const C=window.MyGrassCore;
+  const C=window.MyGrassCore, B=window.MyGrassBible;
   const book=document.querySelector('#bookLayer .book-object');
   const entryButton=document.getElementById('grassBookBtn');
-  if(!C||!book||!entryButton)return;
+  if(!C||!B||!book||!entryButton)return;
 
   const root=document.createElement('section');
   root.id='grassWorkspace';
   root.setAttribute('aria-label','我的牧草：领受、沉淀与牧养');
   root.innerHTML='<span class="gs-sr-only">我的牧草正在开启</span>';
   book.appendChild(root);
+  const bibleNav=document.createElement('section');
+  bibleNav.id='gsBibleNav';bibleNav.hidden=true;bibleNav.setAttribute('aria-label','圣经经文导航');
+  book.appendChild(bibleNav);
   const $=s=>root.querySelector(s);
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const randomId=()=>window.crypto?.randomUUID?.()||('grass-'+Date.now()+'-'+Math.floor(Math.random()*1e9));
@@ -49,6 +52,99 @@
   let scope='',key='',draft,entries=[],micros=[],tab='reading',archiveOpen=false,editingSavedId=null;
   let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null;
   let audioPending=false,notice='';
+
+  // Full canonical navigation restores the previous testament/book/chapter/verse picker.
+  // Passage text is still entered by the user; no unauthorized translation is bundled.
+  let navState={testament:'new',book:'路',chapter:6,start:1,end:11,whole:false};
+  function paintBibleNav(){
+    const group=B.groups[navState.testament];
+    if(!B.resolve(navState.book)||B.groupOf(navState.book)!==navState.testament)
+      navState.book=group[0][0];
+    const selected=B.resolve(navState.book);
+    navState.chapter=B.clampChapter(navState.book,navState.chapter);
+    const books=group.map(([abbr,name])=>'<option value="'+escape(abbr)+'" '+(navState.book===abbr?'selected':'')+'>'+
+      escape(name)+'</option>').join('');
+    const chapters=Array.from({length:selected[2]},(_,i)=>i+1)
+      .map(n=>'<option value="'+n+'" '+(navState.chapter===n?'selected':'')+'>'+n+'</option>').join('');
+    bibleNav.innerHTML='<div class="gs-nav-card" role="dialog" aria-modal="true" aria-labelledby="gsNavTitle">'+
+      '<div class="gs-nav-top"><h2 id="gsNavTitle">经文定位</h2><button type="button" data-nav="close" aria-label="关闭导航">×</button></div>'+
+      '<div class="gs-nav-testament" role="group" aria-label="旧约或新约">'+
+      '<button type="button" data-nav="testament" data-value="old" aria-pressed="'+(navState.testament==='old')+'">旧约</button>'+
+      '<button type="button" data-nav="testament" data-value="new" aria-pressed="'+(navState.testament==='new')+'">新约</button></div>'+
+      '<div class="gs-nav-fields"><label>书卷<select id="gsNavBook" aria-label="圣经书卷">'+books+'</select></label>'+
+      '<label>章<select id="gsNavChapter" aria-label="章节">'+chapters+'</select></label></div>'+
+      '<div class="gs-nav-verses"><label>起始节<input type="number" min="1" max="176" id="gsNavFrom" value="'+navState.start+'" '+(navState.whole?'disabled':'')+'></label>'+
+      '<label>结束节<input type="number" min="1" max="176" id="gsNavTo" value="'+navState.end+'" '+(navState.whole?'disabled':'')+'></label>'+
+      '<label class="gs-nav-whole"><input type="checkbox" id="gsNavWhole" '+(navState.whole?'checked':'')+'>整章</label></div>'+
+      '<div class="gs-nav-bottom"><span id="gsNavWarning" role="status">请选择经文范围</span>'+
+      '<button class="gs-nav-apply" type="button" data-nav="apply">定下</button></div></div>';
+  }
+  function showBibleNav(){
+    if(recorder?.state==='recording'){tell('请先结束朗读录音，再切换经文。');return}
+    navState=B.parse(draft.scripture.reference)||{testament:'new',book:'路',chapter:6,start:1,end:11,whole:false};
+    paintBibleNav();bibleNav.hidden=false;
+    bibleNav.querySelector('#gsNavBook')?.focus();
+  }
+  function closeBibleNav(){bibleNav.hidden=true}
+  function setNavWarning(v){const target=bibleNav.querySelector('#gsNavWarning');if(target)target.textContent=v}
+  function readNavNumbers(){
+    navState.book=bibleNav.querySelector('#gsNavBook').value;
+    navState.chapter=Number(bibleNav.querySelector('#gsNavChapter').value);
+    navState.whole=bibleNav.querySelector('#gsNavWhole').checked;
+    navState.start=Number(bibleNav.querySelector('#gsNavFrom').value);
+    navState.end=Number(bibleNav.querySelector('#gsNavTo').value);
+  }
+  function commitBibleNav(){
+    readNavNumbers();
+    let reference;
+    try{reference=B.format(navState.book,navState.chapter,navState.start,navState.end,navState.whole)}
+    catch(e){setNavWarning(String(e.message||e));return}
+    if(reference!==C.trim(draft.scripture.reference)){
+      const saved=getEntry();
+      const hasContent=!!(C.trim(draft.scripture.text)||C.trim(draft.reflection)||draft.reading.audioId);
+      const changed=saved&&(saved.scripture.text!==C.trim(draft.scripture.text)||
+        saved.reflection?.text!==C.trim(draft.reflection)||
+        saved.scripture.reference!==C.trim(draft.scripture.reference)||
+        saved.reading?.audioId!==draft.reading.audioId);
+      if(hasContent&&(!saved||changed)){
+        setNavWarning('先保存当前文字及录音，再切换经文。');return;
+      }
+      if(saved){
+        clearPlayer();draft=emptyDraft(reference);editingSavedId=null;microDraft='';
+      }else{
+        draft.scripture.reference=reference;
+        draft.scripture.verifiedAgainstRecording=false;
+      }
+    }
+    const original=document.getElementById('refDisplay');
+    if(original)original.textContent=reference;
+    persistDraft();closeBibleNav();render();tell('已定位 '+reference);
+  }
+  bibleNav.addEventListener('click',e=>{
+    const action=e.target.closest('button[data-nav]');if(!action)return;
+    switch(action.dataset.nav){
+     case 'close':closeBibleNav();break;
+     case 'testament':
+      navState.testament=action.dataset.value;
+      navState.book=B.groups[navState.testament][0][0];
+      navState.chapter=1;navState.start=1;navState.end=1;
+      paintBibleNav();break;
+     case 'apply':commitBibleNav();break;
+    }
+  });
+  bibleNav.addEventListener('change',e=>{
+    if(e.target.id==='gsNavBook'){navState.book=e.target.value;navState.chapter=1;paintBibleNav()}
+    else if(e.target.id==='gsNavChapter')navState.chapter=Number(e.target.value);
+    else if(e.target.id==='gsNavWhole'){
+      navState.whole=e.target.checked;
+      bibleNav.querySelector('#gsNavFrom').disabled=navState.whole;
+      bibleNav.querySelector('#gsNavTo').disabled=navState.whole;
+    }
+  });
+  bibleNav.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.stopPropagation();closeBibleNav()}
+  });
+
   function tell(v){notice=v;const node=$('#gsStatus');if(node)node.textContent=v}
   function persistentKeys(){
    return {entries:key+'.entries',micros:key+'.micros',draft:key+'.draft',legacy:key+'.legacyImported'};
@@ -94,7 +190,7 @@
     return next;
    }catch(e){tell(e.message||String(e));return null}
   }
-  function setTab(next){if(!C.PHASES.includes(next))return;tab=next;archiveOpen=false;render();}
+  function setTab(next){if(!C.PHASES.includes(next))return;closeBibleNav();tab=next;archiveOpen=false;render();}
   function insertArchiveText(){
    const groups=C.groupByReference(entries);
    if(!groups.length)return '<p class="gs-empty">还没有正式保存的记录。每一次真实阅读，都可以从这里开始。</p>';
@@ -322,6 +418,7 @@
    const b=e.target.closest('button[data-action]');if(!b)return;
    switch(b.dataset.action){
     case 'tab': setTab(b.dataset.tab);break;
+    case 'scripture-nav': showBibleNav();break;
     case 'record':await startOrStopRecording();break;
     case 'play':await restoreAudio(draft.reading.audioId);$('#gsAudioHost audio')?.play?.().catch(()=>{});break;
     case 'download-audio':await exportAudio();break;
