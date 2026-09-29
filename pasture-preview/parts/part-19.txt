@@ -41,7 +41,7 @@ main.addEventListener('load',()=>{
   // Only the former 小匣 entrance is changed, retaining every other approved module.
   const shopTrigger=[...d.querySelectorAll('.pbtn')].find(el=>el.textContent.includes('小匣')||el.textContent.includes('小铺'));
   window.PastureShop?.attach(shopTrigger,{isActive,showCard,toast});
-  window.PastureBox?.attach(d.querySelector('.identity'),{isActive,showCard,toast});
+  window.PastureBox?.attach(d.getElementById('boxEntryBtn'),{isActive,showCard,toast});
   $('offline').style.display='none';main.classList.add('ready');sourceLoaded=true;syncState();
 });
 async function loadFeature(){const branch='feature/tonglu-pixel-pasture-v1';
@@ -233,11 +233,10 @@ function render(){
 }
 function open(review=false){lastFocused=document.activeElement;tab='name';shade.classList.add('open');shade.setAttribute('aria-hidden','false');win.dataset.preview=String(review);applyPrefs();render();$('boxClose').focus()}
 function close(){shade.classList.remove('open');shade.setAttribute('aria-hidden','true');lastFocused?.focus?.()}
-function attach(identity,{isActive:activeCheck,showCard,toast}){
- if(!identity||identity.dataset.boxAttached)return;identity.dataset.boxAttached='1';
- identity.style.position='relative';const b=identity.ownerDocument.createElement('button');b.type='button';b.className='pasture-private-box-link';b.textContent='▣ 小匣';b.setAttribute('aria-label','打开小匣，个人与显示设置');b.title='打开私人小匣';
- b.style.cssText='position:absolute;z-index:4;right:-7px;top:-12px;background:#e9dbb9;color:#355a4b;border:2px solid #3b6454;box-shadow:2px 2px #173e47;font:900 11px/1.1 sans-serif;padding:6px 7px;cursor:pointer;white-space:nowrap;';
- identity.appendChild(b);
+function attach(b,{isActive:activeCheck,showCard,toast}){
+ if(!b||b.dataset.boxAttached)return;b.dataset.boxAttached='1';
+ // Use the eighth full-size grid entry directly; never add an overlay to identity.
+ b.setAttribute('aria-label','打开小匣，个人与显示设置');b.title='打开私人小匣';
  b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();if(!activeCheck()){showCard();toast('先领取步道卡，小匣随后为你打开。');return}open(false)},true);
  b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click()}},true);applyPrefs();
 }
