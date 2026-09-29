@@ -243,6 +243,9 @@
   async function saveMicro(){
    const origin=getEntry();
    if(!origin){tell('请先保存原始经文和默想，再留下微分享。');return}
+   if(origin.reflection.text!==C.normalizeReflection(draft.reflection)||origin.scripture.text!==C.trim(draft.scripture.text)||origin.scripture.reference!==C.trim(draft.scripture.reference)){
+    tell('母本内容已修改。请先保存最新经文和默想，再从这份准确的母本制作微分享。');return;
+   }
    try{
     const m=C.makeMicro(origin,microDraft,randomId(),iso());
     micros.unshift(m);
