@@ -194,7 +194,7 @@ function readPrefs(){try{const v=JSON.parse(localStorage.getItem(KEY)||'null');r
 let prefs=readPrefs(),tab='name',noticeTimer=0,lastFocused=null;
 function cardState(){try{return JSON.parse(localStorage.getItem(CARDKEY)||'null')||{phase:'guest'}}catch(e){return{phase:'guest'}}}
 function isActive(){return cardState().phase==='active'}
-function code(v){if(!v)return '';const ss={spade:'♠',heart:'♥',club:'♣',diamond:'♦'}, dd=['','⚀','⚁','⚂','⚃','⚄','⚅'],pc={king:'王',queen:'后',rook:'车',bishop:'象',knight:'马',pawn:'兵'};return `${ss[v.suit]||v.suit} · ${v.rank} · ${dd[v.dice]||v.dice} · ${v.color==='white'?'白':'黑'} · ${pc[v.piece]||v.piece}`}
+function code(v){if(!v)return '';const ss={spade:'♠',heart:'♥',club:'♣',diamond:'♦'}, dd=['','⚀','⚁','⚂','⚃','⚄','⚅'],pc={king:'王',queen:'后',rook:'车',bishop:'象',knight:'马',pawn:'兵'};return `${ss[v.suit]||v.suit} · ${v.rank}（${v.numberColor==='red'?'红字':'黑字'}） · ${dd[v.dice]||v.dice} · ${v.side==='white'?'白方':'黑方'} · ${pc[v.piece]||v.piece}`}
 function h(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function notify(v){clearTimeout(noticeTimer);$('boxToast').textContent=v;$('boxToast').classList.add('show');noticeTimer=setTimeout(()=>$('boxToast').classList.remove('show'),2400)}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch(e){};applyPrefs()}
