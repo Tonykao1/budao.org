@@ -80,6 +80,16 @@ const activate=()=>localStorage.setItem('budao_pixel_card_activation_prototype_v
     fontSize:parseFloat(getComputedStyle(d.querySelector('[data-field="scriptureText"]')).fontSize),
     columns:getComputedStyle(d.querySelector('.gs-grid')).gridTemplateColumns};
   });
+  const mobileViewport=await mobile.evaluate(()=>{
+    const frame=document.getElementById('liveArea'),doc=frame?.contentDocument,view=frame?.contentWindow;
+    const obj=doc?.querySelector('.book-object'),css=obj?getComputedStyle(obj):null;
+    return {outer:innerWidth,outerClient:document.documentElement.clientWidth,
+      screenW:screen.width,visualW:visualViewport?.width,frameWidth:frame?.getBoundingClientRect().width,
+      iframeW:view?.innerWidth,iframeVisual:view?.visualViewport?.width,
+      iframeClient:doc?.documentElement?.clientWidth,bookStyleWidth:css?.width,
+      iframeMeta:doc?.querySelector('meta[name="viewport"]')?.content};
+  });
+  console.log('MOBILE VIEWPORT DIAGNOSTIC',JSON.stringify(mobileViewport));
   assert.ok(m.width>=370,JSON.stringify(m));
   assert.ok(m.height>=790,JSON.stringify(m));
   assert.equal(m.canvasW,320);
