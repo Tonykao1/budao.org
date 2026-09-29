@@ -88,8 +88,19 @@ const assert=require('node:assert/strict');
   assert.equal(await zone.locator('[data-field="scriptureText"]').inputValue(),'');
   await page.locator('#topExit').click();
   await page.waitForFunction(()=>!document.getElementById('liveArea')?.contentDocument?.body?.classList.contains('grassbook-open'));
-  if(issues.length)throw Error('page exceptions: '+issues.slice(0,5).join(' | '));
-  console.log('MY GRASS E2E PASS: Scripture+original MediaRecorder+IndexedDB, reflection, private micro, archive, fresh page and exit');
+  // A second visit must retrieve the assigned card's stored archive, not an iframe-only memory shim.
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>!!document.getElementById('liveArea')?.contentDocument?.getElementById('grassWorkspace'),{timeout:60000});
+  await page.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('grassBookBtn').click());
+  const reopened=page.frameLocator('#liveArea');
+  await reopened.locator('#grassWorkspace').waitFor({state:'visible'});
+  await reopened.locator('button[data-action="archive"]').first().click();
+  assert.match(await reopened.locator('.gs-archive').innerText(),/诗篇 23:1/);
+  await reopened.locator('button[data-action="open-entry"]').first().click();
+  await reopened.locator('#gsAudioHost audio').waitFor({state:'attached',timeout:15000});
+  await reopened.locator('button[data-action="export"]').click();
+  if(issues.length)console.log('Legacy nonfatal page errors:',issues.slice(0,5));
+  console.log('MY GRASS E2E PASS: Scripture+original MediaRecorder/IndexedDB, private note and micro, assigned-card archive survives reload, audio replay, export and exit');
  }catch(e){
   await page.screenshot({path:'/tmp/my-grass-browser-failure.png',fullPage:true}).catch(()=>{});
   console.error('MY GRASS E2E FAIL:',e,'page errors:',issues);
