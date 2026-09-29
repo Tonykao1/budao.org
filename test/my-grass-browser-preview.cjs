@@ -33,7 +33,18 @@ const assert=require('node:assert/strict');
   await zone.locator('#gsStatus').filter({hasText:'正在录制'}).waitFor({timeout:10000});
   await page.waitForTimeout(900);
   await zone.locator('button[data-action="record"]').click();
-  await zone.locator('#gsAudioHost audio').waitFor({state:'attached',timeout:15000});
+  await zone.locator('#gsAudioHost audio').waitFor({state:'attached',timeout:15000}).catch(async e=>{
+    const status=await zone.locator('#gsStatus').innerText().catch(()=>'(missing status)');
+    const host=await zone.locator('#gsAudioHost').innerText().catch(()=>'(missing host)');
+    const draft=await zone.locator('#grassWorkspace').evaluate(()=>{
+      const state=JSON.parse(localStorage.getItem('budao_pixel_card_activation_prototype_v1'));
+      const scope=window.MyGrassCore.scopeFromIdentity(state);
+      const stored=JSON.parse(localStorage.getItem('budao.my-grass.v1.'+scope+'.draft')||'null');
+      return {scope,reading:stored?.reading,verified:stored?.scripture?.verifiedAgainstRecording,MediaRecorderType:typeof MediaRecorder};
+    }).catch(err=>String(err));
+    console.error('AUDIO DIAGNOSTICS',{status,host,draft});
+    throw e;
+  });
   await zone.locator('[data-field="audioVerified"]').check();
   await zone.locator('button[data-action="save"]').click();
   await zone.locator('#gsStatus').filter({hasText:'已保存'}).waitFor();
