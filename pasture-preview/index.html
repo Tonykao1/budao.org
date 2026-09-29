@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>数字牧场 · 完整预览站｜步道</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#91d9e9;color:#2b525b}
+#loading{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;padding:26px;background:linear-gradient(#91dcf0 0 49%,#b8d69b 49% 62%,#6ebc65 62%);text-align:center}
+.paper{padding:26px;width:min(480px,100%);background:#fff9e7;border:4px solid #2c556b;box-shadow:7px 7px #24495655}.paper h1{letter-spacing:.16em;font-size:26px;margin:4px 0 8px}.paper p{font-size:13px;line-height:1.85;margin:10px 0}
+.track{height:13px;background:#e3e9c9;border:2px solid #476b56;margin:17px 5px 10px}.fill{height:100%;width:0;background:#74a972;transition:width .15s steps(3,end)}#error{color:#994d40;font-size:12px;white-space:pre-wrap;display:none}
+</style></head><body><div id="loading"><div class="paper"><h1>同路原野</h1><p>正在开启完整数字牧场……<br>载入已完成的七大板块、步道卡与小匣。</p><div class="track"><div class="fill" id="fill"></div></div><p id="status">准备载入</p><p id="error"></p><p style="font-size:11px;color:#657f78">独立预览环境 · 演示激活码 BUDAO-2026 · 不进行真实交易或收款</p></div></div>
+<script>
+(async()=>{
+ const total=20,parts=Array.from({length:total},(_,i)=>'./parts/part-'+String(i).padStart(2,'0')+'.txt');
+ let loaded=0;
+ const texts=await Promise.all(parts.map(async(path)=>{
+  const response=await fetch(path,{cache:'no-store'});
+  if(!response.ok)throw new Error('部分文件未能加载：'+path+'（'+response.status+'）');
+  const t=await response.text();loaded++;
+  document.getElementById('fill').style.width=Math.round(loaded/total*100)+'%';
+  document.getElementById('status').textContent='载入进度 '+loaded+'/'+total;
+  return t;
+ }));
+ let html=texts.join('');
+ if(!html.startsWith('<!doctype html>')||!html.includes('window.PastureShop')||!html.includes('window.PastureBox')||!html.endsWith('</body></html>'))throw new Error('完整性校验失败，请刷新重试。');
+ // Only update hosting-specific paths; preserve the approved seven module UI and card engine.
+ html=html.replace('https://budao.org/tonglu.html','/tonglu.html');
+ const start=html.indexOf('async function loadFeature(){');
+ const end=html.indexOf('\nsetInterval(syncState,350);',start);
+ if(start<0||end<0)throw new Error('无法找到牧场功能区装载器。');
+ const localLoader="async function loadFeature(){try{const r=await fetch('./function-zone.html',{cache:'no-store'});if(!r.ok)throw new Error('功能区 HTTP '+r.status);const h=await r.text();if(!h.includes('grassBookBtn')||!h.includes('partnersBtn')||!h.includes('mailBtn'))throw new Error('原功能区数据不完整');injectFeature(h)}catch(e){$('loadStatus').textContent='功能区暂无法加载：'+e+'。请刷新页面重试。';}}";
+ html=html.slice(0,start)+localLoader+html.slice(end);
+ html=html.replace('<title>数字牧场｜七功能整合 × 小铺与小匣 V1 · 交互审看</title>','<title>数字牧场 · 七大板块完整预览</title><meta name="robots" content="noindex,nofollow">');
+ html=html.replace('此整合样机从 GitHub 已有的功能区原型读取界面，并采用 budao.org 当前牧场景观','本预览使用本站已开发的功能区与牧场景观');
+ html=html.replace('同路原野 · 整合审看版','同路原野 · 完整预览站');
+ // The original card, store and private drawer remain unchanged; demo data cannot trigger payments.
+ document.open();document.write(html);document.close();
+})().catch(e=>{
+ document.getElementById('status').textContent='载入未完成';
+ const err=document.getElementById('error');err.style.display='block';err.textContent=String(e);
+})();
+</script></body></html>
