@@ -66,7 +66,7 @@ function patch(html){
  "setValue({suit:'club',rank:'2',numberColor:'black',dice:4,color:'white',side:'white',piece:'knight'});");
  html=replace(html,
  "const save=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(state));}catch(e){}};",
- "const save=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(state));}catch(e){}};if(state.phase==='active'&&(!state.final||!state.final.numberColor||!(state.final.side||state.final.color))){state={phase:'guest',first:null,final:null,usedSecond:false};save();}");
+ "const save=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(state));}catch(e){}};if((state.first&&!state.first.numberColor)||(state.final&&!state.final.numberColor)||(state.phase==='active'&&(!state.final||!(state.final.side||state.final.color)))){state={phase:'guest',first:null,final:null,usedSecond:false};save();}");
  html=replace(html,
  "state.phase='active';state.final={...state.first};state.usedSecond=false;save();",
  "state.phase='active';state.final={...state.first};state.seriesId='CSCZ-001';state.usedSecond=false;save();");
