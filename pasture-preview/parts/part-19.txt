@@ -18,7 +18,8 @@ function upgradeApprovedCard(original){
  change("${v.rank}　/　${diceFaces[v.dice]}　/　${v.color==='white'?'白':'黑'}", "${v.rank}（${v.numberColor==='red'?'红字':'黑字'}）　/　${diceFaces[v.dice]}　/　${v.side==='white'?'白':'黑'}",'六维身份显示');
  change("DATA.print_rank_colors[v.suit]+'_'+v.rank", "v.numberColor+'_'+v.rank",'牌值颜色与花色脱钩');
  change("$('tupleReadout').classList.toggle('red',['heart','diamond'].includes(value.suit))", "$('tupleReadout').classList.toggle('red',value.numberColor==='red')",'身份显示颜色');
- change("{suit:'club',rank:'2',dice:4,color:'white',piece:'knight'}", "{suit:'club',rank:'2',numberColor:'black',dice:4,color:'white',side:'white',piece:'knight'}",'初始样卡六维默认值');
+ if(!h.includes("{suit:'club',rank:'2',dice:4,color:'white',piece:'knight'}"))throw Error('原卡默认值锚点缺失');
+ h=h.replaceAll("{suit:'club',rank:'2',dice:4,color:'white',piece:'knight'}", "{suit:'club',rank:'2',numberColor:'black',dice:4,color:'white',side:'white',piece:'knight'}");
  h=h.replaceAll("state={phase:'verified',first:null,final:null,usedSecond:false}", "state={phase:'verified',seriesId:six.SERIES.id,first:null,final:null,usedSecond:false}");
  // The example card remains visual reference only. Never restrict suits/number inks using its sample pairing.
  h=h.replaceAll('五维','六维').replaceAll('3,744','7,488').replaceAll('3,000','7,000').replaceAll('744 位','488 位');
@@ -39,7 +40,7 @@ const $=x=>document.getElementById(x), main=$('liveArea'),card=$('cardIframe'), 
 const STORE='budao_pixel_card_activation_prototype_v1', UNLOCK='budao.card.activated.v1';
 let lastPhase='guest', toastTimer=0, sourceLoaded=false, mirror=null;
 try{mirror=localStorage.getItem(STORE)}catch(e){}
-function readState(){try{return JSON.parse(mirror || localStorage.getItem(STORE)||'null')||{phase:'guest'}}catch(e){try{return JSON.parse(mirror)||{phase:'guest'}}catch(_){return{phase:'guest'}}}}
+function readState(){let v;try{v=JSON.parse(mirror || localStorage.getItem(STORE)||'null')}catch(e){try{v=JSON.parse(mirror)}catch(_){}}if(!v||typeof v!=='object')return{phase:'guest'};if(v.phase==='active'&&(!v.final||!v.final.numberColor||!v.final.side||v.seriesId!=='CSCZ-001'))return{phase:'guest'};return v}
 window.addEventListener('message',e=>{if(e.source!==card.contentWindow||!e.data||e.data.type!=='budao-integrated-store')return;if(e.data.key===STORE){mirror=e.data.value;try{localStorage.setItem(STORE,mirror)}catch(_){}syncState();}});
 function shimScript(initial){const v=JSON.stringify(initial||null);return '<script>'+`(()=>{const memory={};if(${v}!==null)memory[${JSON.stringify(STORE)}]=${v};const store={getItem:k=>memory[k]??null,setItem:(k,value)=>{memory[k]=String(value);parent.postMessage({type:'budao-integrated-store',key:k,value:memory[k]},'*')},removeItem:k=>{delete memory[k]}};try{Object.defineProperty(window,'localStorage',{configurable:true,value:store})}catch(e){}})();`+'<'+'/script>';}
 
