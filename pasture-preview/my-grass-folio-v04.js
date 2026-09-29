@@ -36,10 +36,17 @@
   rect(x+3,y+3,w-6,h-6,ink.page);
   rect(x+6,y+7,w-12,h-14,ink.paperLight);
   rect(x+7,y+9,w-14,h-18,ink.page);
-  // Broad, discontinuous parchment tone bands, never a photographic gradient.
-  for(let px=x+8;px<x+w-8;px+=3){
-   const d=Math.min(px-x,x+w-px),shade=d<17?ink.paperDeep:d<35?ink.page:ink.paperLight;
-   if(rng()>.23)rect(px,y+12,2,h-25,shade);
+  // Premium paper grain: concentrate discoloration at the perimeter. Long
+  // full-height strokes across the reading area looked like lined graph paper.
+  // The central 85% of each page remains quiet enough for actual Scripture.
+  for(let step=0;step<13;step+=2){
+   const shade=step<5?'#d8b685':'#e5c998';
+   rect(x+8+step,y+12,2,h-25,shade);
+   rect(x+w-11-step,y+12,2,h-25,shade);
+  }
+  for(let i=0;i<Math.round(w*h/1900);i++){
+   const xx=x+18+Math.floor(rng()*(w-36)),yy=y+18+Math.floor(rng()*(h-36));
+   rect(xx,yy,3+Math.floor(rng()*8),1,rng()>.50?'#eddbb6':'#dabe91');
   }
   // Texture is drawn per 2–3 logical pixels; it scales naturally with the folio.
   for(let i=0;i<Math.round(w*h*.015);i++){
