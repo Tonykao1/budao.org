@@ -37,9 +37,9 @@ const assert=require('node:assert/strict');
     const status=await zone.locator('#gsStatus').innerText().catch(()=>'(missing status)');
     const host=await zone.locator('#gsAudioHost').innerText().catch(()=>'(missing host)');
     const draft=await zone.locator('#grassWorkspace').evaluate(()=>{
-      const state=JSON.parse(localStorage.getItem('budao_pixel_card_activation_prototype_v1'));
+      const state=JSON.parse(window.parent.MyGrassBridge.read('budao_pixel_card_activation_prototype_v1'));
       const scope=window.MyGrassCore.scopeFromIdentity(state);
-      const stored=JSON.parse(localStorage.getItem('budao.my-grass.v1.'+scope+'.draft')||'null');
+      const stored=JSON.parse(window.parent.MyGrassBridge.read('budao.my-grass.v1.'+scope+'.draft')||'null');
       return {scope,reading:stored?.reading,verified:stored?.scripture?.verifiedAgainstRecording,MediaRecorderType:typeof MediaRecorder};
     }).catch(err=>String(err));
     console.error('AUDIO DIAGNOSTICS',{status,host,draft});
@@ -49,10 +49,10 @@ const assert=require('node:assert/strict');
   await zone.locator('button[data-action="save"]').click();
   await zone.locator('#gsStatus').filter({hasText:'已保存'}).waitFor();
   const saved=await zone.locator('#grassWorkspace').evaluate(()=>{
-   const state=JSON.parse(localStorage.getItem('budao_pixel_card_activation_prototype_v1'));
+   const state=JSON.parse(window.parent.MyGrassBridge.read('budao_pixel_card_activation_prototype_v1'));
    const sc=window.MyGrassCore.scopeFromIdentity(state),base='budao.my-grass.v1.'+sc;
-   return {entries:JSON.parse(localStorage.getItem(base+'.entries')||'[]'),
-           micros:JSON.parse(localStorage.getItem(base+'.micros')||'[]')};
+   return {entries:JSON.parse(window.parent.MyGrassBridge.read(base+'.entries')||'[]'),
+           micros:JSON.parse(window.parent.MyGrassBridge.read(base+'.micros')||'[]')};
   });
   assert.equal(saved.entries.length,1);
   assert.equal(saved.entries[0].scripture.reference,'诗篇 23:1');
@@ -72,10 +72,10 @@ const assert=require('node:assert/strict');
   await zone.locator('button[data-action="save-micro"]').click();
   await zone.locator('#gsStatus').filter({hasText:'私人收藏'}).waitFor();
   const after=await zone.locator('#grassWorkspace').evaluate(()=>{
-   const state=JSON.parse(localStorage.getItem('budao_pixel_card_activation_prototype_v1'));
+   const state=JSON.parse(window.parent.MyGrassBridge.read('budao_pixel_card_activation_prototype_v1'));
    const sc=window.MyGrassCore.scopeFromIdentity(state),base='budao.my-grass.v1.'+sc;
-   return {entries:JSON.parse(localStorage.getItem(base+'.entries')||'[]'),
-           micros:JSON.parse(localStorage.getItem(base+'.micros')||'[]')};
+   return {entries:JSON.parse(window.parent.MyGrassBridge.read(base+'.entries')||'[]'),
+           micros:JSON.parse(window.parent.MyGrassBridge.read(base+'.micros')||'[]')};
   });
   assert.equal(after.entries.length,1);
   assert.equal(after.micros.length,1);
