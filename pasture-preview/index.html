@@ -29,6 +29,10 @@
  html=html.replace('</style></head><body>','\n#topTools{display:none!important}\n</style></head><body>');
  // Only update hosting-specific paths; preserve the approved seven module UI and card engine.
  html=html.replace('https://budao.org/tonglu.html','/tonglu.html');
+ // Swap the compressed legacy five-dimensional card sample for the independent six-dimensional renderer.
+ // All surrounding existing pasture modules and gate behavior remain intact.
+ html=html.replace('const cardDoc=cardHTML.replace(', 'const sixCardSource=await (await fetch("./six-dim-card.html",{cache:"no-store"})).text();const cardDoc=sixCardSource.replace(');
+
  const start=html.indexOf('async function loadFeature(){');
  const end=html.indexOf('\nsetInterval(syncState,350);',start);
  if(start<0||end<0)throw new Error('无法找到牧场功能区装载器。');
