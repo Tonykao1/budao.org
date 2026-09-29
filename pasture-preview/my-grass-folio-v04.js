@@ -9,7 +9,6 @@
  canvas.id='grassPixelFolio';canvas.setAttribute('aria-hidden','true');
  book.insertBefore(canvas,book.firstChild);
  const c=canvas.getContext('2d',{alpha:false});
- let lastMobile=null;
  const ink={
   dark:'#382c22',shadow:'#17241c',binding:'#5b3e28',bindingHi:'#936740',
   page:'#ebd4a7',paperLight:'#f5e3ba',paperDeep:'#d3ad77',edge:'#986d42',
@@ -72,8 +71,13 @@
  }
  function paint(){
   const mobile=window.matchMedia('(max-width:820px)').matches;
-  if(lastMobile!==mobile||canvas.width===0){
-   canvas.width=mobile?420:800;canvas.height=mobile?650:470;lastMobile=mobile;
+  const bounds=book.getBoundingClientRect(),ratio=bounds.width/Math.max(1,bounds.height);
+  // Recalculate logical pixel dimensions from the actual device aspect ratio:
+  // never stretch an antique book raster to fit a different viewport.
+  const desiredW=mobile?320:Math.max(560,Math.min(1120,Math.round(470*ratio)));
+  const desiredH=mobile?Math.max(480,Math.round(desiredW/Math.max(.25,ratio))):470;
+  if(canvas.width!==desiredW||canvas.height!==desiredH){
+   canvas.width=desiredW;canvas.height=desiredH;
   }
   const W=canvas.width,H=canvas.height;
   c.imageSmoothingEnabled=false;
@@ -94,23 +98,24 @@
   // Two sewn pages, landscape proportions native to the full-screen experience.
   rect(14,16,W-24,H-20,'#101f18');
   rect(18,13,W-34,H-23,ink.binding);
-  page(19,14,371,H-32,20260929,true);
-  page(410,14,371,H-32,20260930,false);
+  const middle=Math.floor(W/2),paperWidth=middle-29;
+  page(19,14,paperWidth,H-32,20260929,true);
+  page(middle+10,14,paperWidth,H-32,20260930,false);
   // Central split is a physical seam, not a UI column gap.
-  rect(390,17,20,H-39,'#745235');
-  rect(392,24,16,H-51,'#a57b4d');
-  rect(396,25,8,H-53,'#62432c');
-  rect(397,31,2,H-66,'#c69b62');
-  rect(405,31,2,H-66,'#412c1f');
+  rect(middle-10,17,20,H-39,'#745235');
+  rect(middle-8,24,16,H-51,'#a57b4d');
+  rect(middle-4,25,8,H-53,'#62432c');
+  rect(middle-3,31,2,H-66,'#c69b62');
+  rect(middle+5,31,2,H-66,'#412c1f');
   for(let y=30;y<H-30;y+=27){
-   rect(393,y,3,5,'#bd965f');rect(405,y+3,2,4,'#c29a62');
+   rect(middle-7,y,3,5,'#bd965f');rect(middle+5,y+3,2,4,'#c29a62');
   }
   // Page stitch and a restrained leaf emblem near the lower edge.
-  for(let x=40;x<760;x+=17){
+  for(let x=40;x<W-40;x+=17){
    const shift=Math.round(Math.sin(x*.3)*2);
    rect(x,H-14+shift,4,2,'#b08854');
   }
-  leaf(368,H-52,1);
+  leaf(middle-32,H-52,1);
  }
  const observer=new MutationObserver(()=>{
   if(document.body.classList.contains('grassbook-open'))requestAnimationFrame(paint);
