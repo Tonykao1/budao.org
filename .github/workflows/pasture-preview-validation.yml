@@ -1,0 +1,24 @@
+name: Digital Pasture Preview Regression
+on:
+  push:
+    branches:
+      - preview/digital-pasture-complete-20260929
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  card-and-panels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test six dimensions, approved art, identity sync and all eight exits
+        run: >-
+          node --test --test-concurrency=1
+          test/pasture-six-dim.test.js
+          test/pasture-card-approved-visual.test.js
+          test/pasture-card-integrated.test.js
+          test/pasture-eight-panels.test.js
