@@ -4,7 +4,7 @@ const $=x=>document.getElementById(x), main=$('liveArea'),card=$('cardIframe'), 
 const STORE='budao_pixel_card_activation_prototype_v1', UNLOCK='budao.card.activated.v1';
 let lastPhase='guest', toastTimer=0, sourceLoaded=false, mirror=null;
 try{mirror=localStorage.getItem(STORE)}catch(e){}
-function readState(){let value;try{value=JSON.parse(mirror || localStorage.getItem(STORE)||'null')}catch(e){try{value=JSON.parse(mirror)}catch(_){}}if(!value||typeof value!=='object')return{phase:'guest'};if(value.phase==='active'&&(!value.final||!value.final.numberColor||!value.final.side||value.seriesId!=='CSCZ-001'))return{phase:'guest'};return value}
+function readState(){try{return JSON.parse(mirror || localStorage.getItem(STORE)||'null')||{phase:'guest'}}catch(e){try{return JSON.parse(mirror)||{phase:'guest'}}catch(_){return{phase:'guest'}}}}
 window.addEventListener('message',e=>{if(e.source!==card.contentWindow||!e.data||e.data.type!=='budao-integrated-store')return;if(e.data.key===STORE){mirror=e.data.value;try{localStorage.setItem(STORE,mirror)}catch(_){}syncState();}});
 function shimScript(initial){const v=JSON.stringify(initial||null);return '<script>'+`(()=>{const memory={};if(${v}!==null)memory[${JSON.stringify(STORE)}]=${v};const store={getItem:k=>memory[k]??null,setItem:(k,value)=>{memory[k]=String(value);parent.postMessage({type:'budao-integrated-store',key:k,value:memory[k]},'*')},removeItem:k=>{delete memory[k]}};try{Object.defineProperty(window,'localStorage',{configurable:true,value:store})}catch(e){}})();`+'<'+'/script>';}
 
@@ -194,7 +194,7 @@ function readPrefs(){try{const v=JSON.parse(localStorage.getItem(KEY)||'null');r
 let prefs=readPrefs(),tab='name',noticeTimer=0,lastFocused=null;
 function cardState(){try{return JSON.parse(localStorage.getItem(CARDKEY)||'null')||{phase:'guest'}}catch(e){return{phase:'guest'}}}
 function isActive(){return cardState().phase==='active'}
-function code(v){if(!v)return '';const ss={spade:'♠',heart:'♥',club:'♣',diamond:'♦'}, dd=['','⚀','⚁','⚂','⚃','⚄','⚅'],pc={king:'王',queen:'后',rook:'车',bishop:'象',knight:'马',pawn:'兵'};return `${ss[v.suit]||v.suit} · ${v.rank}（${v.numberColor==='red'?'红字':'黑字'}） · ${dd[v.dice]||v.dice} · ${v.side==='white'?'白方':'黑方'} · ${pc[v.piece]||v.piece}`}
+function code(v){if(!v)return '';const ss={spade:'♠',heart:'♥',club:'♣',diamond:'♦'}, dd=['','⚀','⚁','⚂','⚃','⚄','⚅'],pc={king:'王',queen:'后',rook:'车',bishop:'象',knight:'马',pawn:'兵'};return `${ss[v.suit]||v.suit} · ${v.rank}${v.numberColor?('（'+(v.numberColor==='red'?'红字':'黑字')+'）'):''} · ${dd[v.dice]||v.dice} · ${(v.side||v.color)==='white'?'白方':'黑方'} · ${pc[v.piece]||v.piece}`}
 function h(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function notify(v){clearTimeout(noticeTimer);$('boxToast').textContent=v;$('boxToast').classList.add('show');noticeTimer=setTimeout(()=>$('boxToast').classList.remove('show'),2400)}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch(e){};applyPrefs()}
