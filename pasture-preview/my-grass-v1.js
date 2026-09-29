@@ -200,71 +200,73 @@
     '<span class="gs-archive-date">'+escape(datetime(e.createdAt))+(e.legacy?' · 旧版笔记已保留':'')+'</span></button>').join('')+'</div>').join('')+'</div>';
   }
   function stageReading(){
-   return '<p class="gs-intro">从一段经文开始。文字与本人原声一一关联；未接入授权译本前，由你自行录入或粘贴经文，系统不擅自代写。</p>'+
-    '<div class="gs-grid"><div class="gs-panel"><h3>经文文字</h3>'+
-    '<label class="gs-field">经文出处<input data-field="reference" maxlength="96" placeholder="例如：诗篇 23:1" value="'+escape(draft.scripture.reference)+'"></label>'+
-    '<label class="gs-field">译本及来源标注<input data-field="translation" maxlength="64" placeholder="填写实际使用的译本" value="'+escape(draft.scripture.translation)+'"></label>'+
-    '<label class="gs-field">今日阅读的经文<textarea class="gs-large" data-field="scriptureText" maxlength="10000" placeholder="请粘贴你实际阅读、有权使用的经文文字。">'+escape(draft.scripture.text)+'</textarea></label>'+
-    '<p class="gs-small">经文原文与个人领受独立保存。请确认出处和译本；预览版尚未接入全文圣经授权服务。</p>'+
-    '</div><div class="gs-panel"><h3>我亲自朗读的声音</h3>'+
-    '<span class="gs-badge">真人原声</span><p class="gs-small">只有点击录音后，浏览器才会申请麦克风许可；朗读不会被自动上传或用于训练模型。</p>'+
-    '<div class="gs-actions"><button class="gs-action" type="button" data-action="record" '+(audioPending?'disabled':'')+'>'+(recorder?.state==='recording'?'结束朗读':'开始朗读')+'</button>'+
-    '<button class="gs-action secondary" type="button" data-action="play" '+(!draft.reading.audioId?'disabled':'')+'>回听录音</button>'+'<button class="gs-action secondary" type="button" data-action="download-audio" '+(!draft.reading.audioId?'disabled':'')+'>导出原声</button></div>'+
+   const barHeights=Array.from({length:31},(_,i)=>8+Math.round(Math.abs(Math.sin(i*1.68)*Math.cos(i*.37))*54));
+   return '<div class="gs-grid"><section class="gs-panel" aria-label="圣经文字"><h3>今日经文</h3>'+
+    '<div class="gs-inline-ref"><label class="gs-field">经文出处<input data-field="reference" maxlength="96" placeholder="诗篇 23:1" value="'+escape(draft.scripture.reference)+'"></label>'+
+    '<button class="gs-action secondary" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷、章节和节数导航">▣ 选经文</button></div>'+
+    '<label class="gs-field">译本<input data-field="translation" maxlength="64" placeholder="所使用的译本" value="'+escape(draft.scripture.translation)+'"></label>'+
+    '<label class="gs-field">经文<textarea class="gs-large" data-field="scriptureText" maxlength="10000" placeholder="在这里录入今日阅读的经文。">'+escape(draft.scripture.text)+'</textarea></label>'+
+    '<span class="gs-small">请按所选译本核对经文。</span></section>'+
+    '<section class="gs-panel" aria-label="个人原声朗读"><h3>我的朗读</h3>'+
+    '<div class="gs-voice-mark" aria-hidden="true">'+barHeights.map(v=>'<span style="--height:'+v+'px"></span>').join('')+'</div>'+
+    '<span class="gs-badge">真人原声 · 本机保存</span>'+
+    '<div class="gs-actions"><button class="gs-action" type="button" data-action="record" '+(audioPending?'disabled':'')+'>'+(recorder?.state==='recording'?'■ 结束朗读':'● 开始朗读')+'</button>'+
+    '<button class="gs-action secondary" type="button" data-action="play" '+(!draft.reading.audioId?'disabled':'')+'>回听</button>'+
+    '<button class="gs-action secondary" type="button" data-action="download-audio" '+(!draft.reading.audioId?'disabled':'')+'>导出原声</button></div>'+
     '<div id="gsAudioHost" aria-live="polite"></div>'+
     '<label class="gs-checkbox"><input type="checkbox" data-field="audioVerified" '+(draft.scripture.verifiedAgainstRecording?'checked':'')+'>'+
-    '<span>我已确认：经文出处、录入文字与本人朗读相对应。</span></label>'+
-    '<p class="gs-voice-note">未来可在单独授权下，以朗读文字与原声建立专属声音模型。目前仅保留训练所需的原始资产，不提供或默认同意语音克隆。</p>'+
-    '<div class="gs-actions"><button class="gs-action" type="button" data-action="save">保存本次领受</button>'+
-    '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></div></div>';
+    '<span>经文文字与本人朗读相符</span></label>'+
+    '<div class="gs-rule"></div><div class="gs-actions">'+
+    '<button class="gs-action" type="button" data-action="save">留下领受</button>'+
+    '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
   }
   function stageReflection(){
-   return '<p class="gs-intro">原始笔记是母本。这里可以只有一句话，也可以写下完整默想；不要求重新录制心得。</p>'+
-    '<div class="gs-grid"><div class="gs-panel"><h3>今日默想</h3>'+
-    '<div class="gs-small">对应经文：<strong>'+escape(draft.scripture.reference||'尚未选择')+'</strong></div>'+
-    '<label class="gs-field">我读到、想到、疑惑或愿意回应的事<textarea class="gs-large" rows="7" maxlength="12000" data-field="reflection" placeholder="写下真实的领受。无需迎合任何评分或格式。">'+escape(draft.reflection)+'</textarea></label>'+
-    '<p class="gs-small">原始文字由你亲自书写，不会自动被 AI 改写；私密保存，不自动分享到任何人。</p>'+
-    '<div class="gs-actions"><button class="gs-action" type="button" data-action="save">保存灵修笔记</button>'+
-    '<button class="gs-action secondary" type="button" data-action="next-sharing">去看看微分享 →</button></div></div>'+
-    '<div class="gs-panel"><h3>默想的声音</h3>'+
-    '<span class="gs-badge">专属声音模型 · 尚未接入</span>'+
-    '<p class="gs-small">我们将来希望在你单独授权之后，让既有文字笔记以你的专属声音呈现，不要求你重复录制每篇心得。</p>'+
-    '<div class="gs-voice-note"><strong>三项分别授权：</strong><br>① 是否训练个人声音<br>② 是否生成仅供本人听取的合成心得<br>③ 是否允许对外分享合成音频<br>当前三项均为关闭状态。</div>'+
-    '<div class="gs-rule"></div><h4>自己的时间轴</h4><p class="gs-small">当同一节经文再次出现，你可以主动翻开过去的默想，不由算法替你作出属灵判断。</p>'+
-    '<button class="gs-smallbutton" type="button" data-action="archive">翻阅个人古卷</button></div></div>';
+   return '<div class="gs-grid">'+
+    '<section class="gs-panel" aria-label="默想对应经文"><h3>经文 · '+escape(draft.scripture.reference||'尚未定位')+'</h3>'+
+    '<div class="gs-scripture-read">'+escape(draft.scripture.text||'请先在「领受」中选择经文，并录入今日阅读的文字。')+'</div>'+
+    '<button class="gs-smallbutton" type="button" data-action="tab" data-tab="reading">返回经文</button></section>'+
+    '<section class="gs-panel" aria-label="个人默想笔记"><h3>我的默想</h3>'+
+    '<label class="gs-field">留给自己的一页<textarea class="gs-large gs-reflection" rows="9" maxlength="12000" data-field="reflection" placeholder="今天，这段经文让我想到……">'+escape(draft.reflection)+'</textarea></label>'+
+    '<span class="gs-small">原始笔记 · 默认私密</span>'+
+    '<div class="gs-actions"><button class="gs-action" type="button" data-action="save">保存默想</button>'+
+    '<button class="gs-action secondary" type="button" data-action="next-sharing">一粒牧草 →</button></div>'+
+    '<div class="gs-rule"></div><span class="gs-badge">专属声音 · 待单独授权后接入</span></section></div>';
   }
   function stageSharing(){
-   const saved=getEntry();
-   const associated=micros.filter(m=>m.entryId===draft.id);
-   return '<p class="gs-intro">微分享不是自动生产的讲道。只从你已保存、亲自确认的默想中留下一句话。默认私人收藏，不会自动上传互联网。</p>'+
-    '<div class="gs-grid"><div class="gs-panel"><h3>一粒牧草 · 不超过80字</h3>'+
-    '<div class="gs-small">经文出处：<strong>'+escape(draft.scripture.reference||'尚未选择')+'</strong>　'+(saved?'<span class="gs-badge">母本已保存</span>':'<span class="gs-badge">请先保存母本</span>')+'</div>'+
-    '<div class="gs-note-source">'+escape(draft.reflection||'你的个人默想仍是空白。在「默想｜沉淀」留下真实的领受后，再挑选值得分享的一句话。')+'</div>'+
-    '<label class="gs-field">从母本选择、修改并亲自审核的微分享<textarea id="gsMicroText" class="gs-micro" maxlength="120" placeholder="例如：一个真实的领受，可能只有一句话。">'+escape(microDraft)+'</textarea></label>'+
+   const saved=getEntry(),associated=micros.filter(m=>m.entryId===draft.id);
+   return '<div class="gs-grid">'+
+    '<section class="gs-panel" aria-label="原始默想母本"><h3>默想母本</h3>'+
+    '<div class="gs-small">'+escape(draft.scripture.reference||'尚未定位')+'</div>'+
+    '<div class="gs-note-source">'+escape(draft.reflection||'还没有写下默想。')+'</div>'+
+    '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="tab" data-tab="reflection">回到默想</button>'+
+    '<span class="gs-badge">'+(saved?'母本已保存':'先保存母本')+'</span></div></section>'+
+    '<section class="gs-panel" aria-label="微分享私藏"><h3>一粒牧草</h3>'+
+    '<label class="gs-field">一句真实的领受<textarea id="gsMicroText" class="gs-micro" maxlength="120" placeholder="一句话，也可以成为他人的祝福。">'+escape(microDraft)+'</textarea></label>'+
     '<div class="gs-meter" id="gsMicroCount">'+C.count(microDraft)+' / 80字</div>'+
-    '<div class="gs-actions"><button class="gs-action secondary" type="button" data-action="suggest-micro">从原文摘出一句</button>'+
-    '<button class="gs-action" type="button" data-action="save-micro" '+(!saved?'disabled':'')+'>保存为私人微分享</button></div>'+
-    '<p class="gs-small">这里只生成文字作品草稿。未来的声音版本须待个人模型接入后由本人审核，且要另外授权公开。</p></div>'+
-    '<div class="gs-panel"><h3>逐渐长成的个人牧养档案</h3>'+
-    '<p class="gs-small">同一节经文的历次阅读和心得，会在时间里自然相连。不以点赞、发布量或阅读天数给人评分。</p>'+
-    '<span class="gs-badge">此条记录的微分享</span>'+
+    '<div class="gs-actions"><button class="gs-action secondary" type="button" data-action="suggest-micro">摘取一句</button>'+
+    '<button class="gs-action" type="button" data-action="save-micro" '+(!saved?'disabled':'')+'>私人收藏</button></div>'+
+    '<div class="gs-rule"></div><h4>已留下</h4>'+
     (associated.length?'<div class="gs-archive">'+associated.map(m=>
-       '<button type="button" data-action="copy-micro" data-id="'+escape(m.id)+'">'+escape(m.text)+
-       '<span class="gs-archive-date">本人审核 · 私人保存 · '+escape(datetime(m.createdAt))+' · 点击复制</span></button>').join('')+'</div>':
-       '<div class="gs-empty">从一粒真实的牧草开始。它首先属于你。</div>')+
-    '<div class="gs-rule"></div><button class="gs-smallbutton" type="button" data-action="archive">按经文翻阅自己的积累</button></div></div>';
+      '<button type="button" data-action="copy-micro" data-id="'+escape(m.id)+'">'+escape(m.text)+
+      '<span class="gs-archive-date">'+escape(datetime(m.createdAt))+' · 私密 · 点击复制</span></button>').join('')+'</div>':
+      '<div class="gs-empty">还没有留下微分享。</div>')+'</section></div>';
   }
   let microDraft='';
   function render(){
    if(!document.body.classList.contains('grassbook-open'))return;
-   let tabs=[['reading','读经｜领受'],['reflection','默想｜沉淀'],['sharing','分享｜牧养']];
+   const tabs=[['reading','领受'],['reflection','沉淀'],['sharing','牧养']];
    root.innerHTML=
-    '<div class="gs-head"><div><div class="gs-head-title">我的牧草</div><div class="gs-head-sub">一生的灵修与牧养成长档案</div></div>'+
-    '<nav class="gs-steps" aria-label="我的牧草三个阶段">'+tabs.map(([id,name])=>'<button type="button" data-action="tab" data-tab="'+id+'" aria-selected="'+(tab===id)+'">'+name+'</button>').join('')+'</nav></div>'+
-    '<div class="gs-stage">'+(archiveOpen?'<p class="gs-intro">同一节经文在不同日子留下的文字与声音，由你自己决定何时回看。</p>'+insertArchiveText():
-      tab==='reading'?stageReading():tab==='reflection'?stageReflection():stageSharing())+'</div>'+
-    '<footer class="gs-foot"><span><strong>本机私密预览</strong> · 文字保存在此浏览器，音频保存在本机音频库；尚无云同步或公开发布。</span>'+
-    '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出我的文字档案</button>'+'<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回本次灵修':'翻阅档案')+'</button></div></footer>'+
-    '<div class="gs-status" id="gsStatus" aria-live="polite">'+escape(notice)+'</div>';
+    '<header class="gs-head"><div class="gs-head-title">我的牧草</div>'+
+    '<nav class="gs-steps" aria-label="我的牧草三个阶段">'+tabs.map(([id,name])=>
+      '<button type="button" data-action="tab" data-tab="'+id+'" aria-selected="'+(tab===id)+'">'+name+'</button>').join('')+'</nav></header>'+
+    '<main class="gs-stage">'+(archiveOpen?
+      '<div class="gs-grid"><section class="gs-panel"><h3>个人古卷</h3>'+insertArchiveText()+'</section>'+
+      '<section class="gs-panel"><h3>经文重逢</h3><div class="gs-empty">每一次真实的领受，都有自己的时间与声音。</div></section></div>':
+      tab==='reading'?stageReading():tab==='reflection'?stageReflection():stageSharing())+'</main>'+
+    '<footer class="gs-foot"><span>本机私密 · 原声与文字可导出</span>'+
+    '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
+    '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回':'翻阅档案')+'</button></div></footer>'+
+    '<div class="gs-status" id="gsStatus" role="status" aria-live="polite">'+escape(notice)+'</div>';
    if(tab==='reading'&&!archiveOpen&&draft.reading.audioId)restoreAudio(draft.reading.audioId);
   }
   // The sound blob is a separate original asset; it is NEVER treated as voice-model consent.
