@@ -26,7 +26,7 @@
  if(!html.startsWith('<!doctype html>')||!html.includes('window.PastureShop')||!html.includes('window.PastureBox')||!html.endsWith('</body></html>'))throw new Error('完整性校验失败，请刷新重试。');
  // Review change 01: remove the entire bottom-right prototype toolbar (all buttons and text).
  // Keep the elements in the DOM to preserve existing event bindings; only remove presentation.
- html=html.replace('</style></head><body>','\n#topTools{display:none!important}\n</style></head><body>');
+ html=html.replace('</style></head><body>','\n#topTools{display:none!important}\n#shopClose,#boxClose{background:#f9f0d5!important;border:3px solid #254c3c!important;color:#264b3d!important;padding:7px 13px!important;font-weight:900!important;border-radius:0!important;box-shadow:none!important;cursor:pointer!important}\n</style></head><body>');
  // Only update hosting-specific paths; preserve the approved seven module UI and card engine.
  html=html.replace('https://budao.org/tonglu.html','/tonglu.html');
 
