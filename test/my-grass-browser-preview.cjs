@@ -22,7 +22,7 @@ const assert=require('node:assert/strict');
    const f=document.getElementById('liveArea');
    return !!f?.contentDocument?.getElementById('grassWorkspace');
   },{timeout:60000});
-  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.body.classList.add('pasture-resident-authenticated');const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true});
+  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.body.classList.add('pasture-resident-authenticated');const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true});
   const zone=page.frameLocator('#liveArea');
   await page.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('grassBookBtn').click());
   await zone.locator('#grassWorkspace').waitFor({state:'visible'});
