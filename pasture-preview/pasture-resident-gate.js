@@ -55,6 +55,7 @@ function clearResident(){
   sendToPasture(false);
 }
 function lockEvent(event){
+  if(location.hostname==='127.0.0.1'&&window.__PASTURE_TEST_UNLOCK===true)return;
   const button=event.target.closest('.pbtn');
   if(!button||!actions?.contains(button))return;
   event.preventDefault();
