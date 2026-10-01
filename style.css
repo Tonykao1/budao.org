@@ -15,7 +15,7 @@ nav {
   justify-content: center;
   align-items: center;
 
-  gap: 38px;
+  gap: 44px;
 
   flex-wrap: nowrap;
 
@@ -27,9 +27,9 @@ nav a {
 
   text-decoration: none;
 
-  font-size: 17px;
+  font-size: 19px;
 
-  letter-spacing: 1.3px;
+  letter-spacing: 1.5px;
 
   flex-shrink: 0;
 
@@ -56,7 +56,7 @@ nav a:hover {
   }
 
   nav a {
-    font-size: clamp(13px, 3.35vw, 14px);
+    font-size: clamp(14.5px, 3.7vw, 15.5px);
     letter-spacing: 0.2px;
   }
 }
