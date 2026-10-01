@@ -5,28 +5,28 @@
     "owner": "IMS@budao.org",
     "slot": "IMS",
     "country": "中国",
-    "city": "北京",
-    "region": "海淀",
-    "location": "中国·北京·海淀",
-    "title": "太舟坞·香八拉“预尝”",
-    "description": "从太舟坞启程，沿山径缓缓走向四棵树。初秋的风已有凉意，草木正悄悄换色。我们穿过树影，也穿过彼此的故事；路有高低，爱却始终同行。愿这一程，把秋天走深，也把彼此放进心里。",
-    "time": "8:00",
-    "duration": "3小时",
-    "distance": "7千米",
-    "surface": "防火道、土石路",
-    "elevation": "300米",
-    "difficulty": "中等",
+    "city": "天津",
+    "region": "宝坻",
+    "location": "中国·天津·宝坻",
+    "title": "于家堼·麦浪之约",
+    "description": "从村健身广场出发，沿着大路向东一直走，抵达村东口石碑处，转向南，看到金黄的麦田右转，一直将麦田处于你的左侧。等走到荷塘映月之后，穿过池塘中间的小桥，后向村北走，遇到（左前）朱红色的大门左转径直走向村西。远眺高铁，再返回村子的主干道，往村北的小路进发，延村北小路一直向东，直到沟渠处右转，你将再一次看到村东的界碑。这时你可以沿着来时的主干道返回健身广场。",
+    "time": "15:00",
+    "duration": "2小时",
+    "distance": "3.5千米",
+    "surface": "铺装路",
+    "elevation": "<20米",
+    "difficulty": "简单",
     "suitableFor": "儿童、长者友好",
-    "equipmentMinimum": "运动鞋、防晒",
+    "equipmentMinimum": "便鞋",
     "timezone": "Asia/Shanghai",
-    "date": "2026-09-19",
-    "meetingPlace": "北京市海淀区和平小学（东北门）",
+    "date": "2026-10-03",
+    "meetingPlace": "于家堼村健身广场",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/e4398aebe55ed33fe6e47ff15f14215d.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/b69a47b9f6d6c310b6a5b96804452d38.png",
-    "imageAlt": "IMG_6537.jpg",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/04053c7680b5dfdc3d70e3c4aff0a57f.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/2067bc46d85de5cd81b7111bca4c6cda.png",
+    "imageAlt": "IMG_6732.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-22T09:17:19.971Z"
+    "updatedAt": "2026-10-01T09:06:23.736Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,7 +55,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/dbb65e9c6b6618bacf04bd1c0b1e3c6d.png",
     "imageAlt": "qianshan.png",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-09-22T09:17:19.970Z"
+    "updatedAt": "2026-10-01T09:06:23.737Z"
   },
   {
     "id": "budao-hd",
@@ -84,6 +84,6 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/d25dbea31a67ea8c8baab6fd65efde2a.png",
     "imageAlt": "ss.jpg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-09-22T09:17:19.971Z"
+    "updatedAt": "2026-10-01T09:06:23.737Z"
   }
 ]
