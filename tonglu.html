@@ -244,6 +244,88 @@ function drawDesktopLambs(){
     drawDesktopLamb(x,y,o.s,o.flip,o.style);
   });
 }
+
+let desktopResidentCacheKey='',desktopResidentLayout=null;
+function residentAppearance(){
+  const s=resident&&resident.sheep;
+  if(!s)return null;
+  return {f:String(s.bodyColor||'#f4ecdc'),h:String(s.headColor||'#8d836e'),marking:String(s.marking||'NONE')};
+}
+function residentSeed(){
+  return 'pasture-resident-'+String(resident?.id||'')+'-'+flockDateKeyFromState(state);
+}
+function buildDesktopResidentSheep(){
+  const appearance=residentAppearance();
+  if(!appearance)return null;
+  const adultLayout=(()=>{
+    try{return Array.isArray(frame.contentWindow.__tongluAdultLayout)?frame.contentWindow.__tongluAdultLayout:[]}catch(e){return[]}
+  })();
+  const lambs=buildDesktopLambLayout();
+  const signature=residentSeed()+'|'+appearance.f+'|'+appearance.h+'|'+appearance.marking+'|'+
+    adultLayout.map(o=>Math.round(o.x)+','+Math.round(o.y)).join('|');
+  if(signature===desktopResidentCacheKey&&desktopResidentLayout)return desktopResidentLayout;
+  const occupied=[
+    ...adultLayout.map(o=>desktopCreatureBox(o,false)),
+    ...lambs.map(o=>desktopCreatureBox(o,true))
+  ];
+  const rand=flockRand(flockHash(signature));
+  const zones=[
+    {y0:171,y1:194,s0:.25,s1:.34},
+    {y0:199,y1:232,s0:.40,s1:.53},
+    {y0:238,y1:282,s0:.61,s1:.83}
+  ];
+  let chosen=null;
+  for(let attempt=0;attempt<180&&!chosen;attempt++){
+    const z=zones[Math.floor(rand()*zones.length)];
+    const o={
+      x:18+rand()*430,
+      y:z.y0+rand()*(z.y1-z.y0),
+      s:z.s0+rand()*(z.s1-z.s0),
+      flip:rand()<.5,
+      ...appearance
+    };
+    if(desktopForbidden(o))continue;
+    const box=desktopCreatureBox(o,true);
+    if(occupied.some(b=>desktopBoxesOverlap(box,b,5)))continue;
+    chosen=o;
+  }
+  if(!chosen)chosen={x:205,y:190,s:.31,flip:false,...appearance};
+  desktopResidentLayout=chosen;
+  desktopResidentCacheKey=signature;
+  return chosen;
+}
+function drawResidentLamb(x,y,o){
+  const s=o.s,f=o.f,h=o.h;
+  ctx.save();
+  if(o.flip){ctx.translate(x+21*s,0);ctx.scale(-1,1);x=0}
+  rect(x,y,16*s,8*s,f);rect(x+3*s,y-4*s,11*s,13*s,f);rect(x+6*s,y-6*s,7*s,15*s,f);
+  rect(x+13*s,y+2*s,7*s,7*s,h);rect(x+19*s,y+4*s,2*s,3*s,h);
+  rect(x+12*s,y+3*s,2*s,2*s,h);rect(x+17*s,y+4*s,1,1,'#564d47');
+  rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
+  if(o.marking==='FACE')rect(x+14*s,y+2*s,3*s,3*s,'#f7efe1');
+  if(o.marking==='BACK')rect(x+4*s,y-2*s,7*s,3*s,'#fff3dd');
+  if(o.marking==='SOCKS'){rect(x+4*s,y+11*s,2*s,3*s,'#f4eee4');rect(x+11*s,y+11*s,2*s,3*s,'#f4eee4')}
+  ctx.restore();
+}
+function drawDesktopResidentSheep(){
+  const o=buildDesktopResidentSheep();if(!o)return;
+  let y=o.y,x=o.x,landing=1;
+  if(residentArrivalStarted){
+    const elapsed=performance.now()-residentArrivalStarted;
+    const t=Math.max(0,Math.min(1,elapsed/1750));
+    const eased=1-Math.pow(1-t,3);
+    y=-26+(o.y+26)*eased;
+    x=o.x+Math.sin(t*Math.PI*5)*(1-t)*8;
+    landing=t;
+    if(t>=1)residentArrivalStarted=0;
+  }
+  const bounce=landing>=.93&&landing<1?Math.sin((landing-.93)/.07*Math.PI)*5*o.s:0;
+  y-=bounce;
+  const shadowAlpha=Math.max(.04,Math.min(.18,landing*.18));
+  rect(o.x-2*o.s,o.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,'+shadowAlpha+')');
+  drawResidentLamb(x,y,o);
+}
+
 let returnTwigHover=false;
 function drawReturnTwig(){
   const main=returnTwigHover?'#8b694b':'#795a40';
@@ -354,7 +436,7 @@ function weatherFx(type,cloud){
 function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
-  if(pastureReady){drawDesktopLambs();drawReturnTwig();}
+  if(pastureReady){drawDesktopLambs();drawDesktopResidentSheep();drawReturnTwig();}
   if(!state)return;
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
