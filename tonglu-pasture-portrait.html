@@ -40,7 +40,7 @@ const PAIRS=[
 let sheepColors=PAIRS.slice();
 sheepColors[21]=[C.self,C.selfHead];
 
-let W=480,H=300,portrait=false,tick=0,state=null,twigHover=false;
+let W=480,H=300,portrait=false,tick=0,state=null,twigHover=false,resident=null,residentArrivalNonce=0,residentArrivalStarted=0;
 function flockDateKey(){
  const tz=state?.location?.timezone||'Asia/Shanghai';
  try{
@@ -59,6 +59,11 @@ window.addEventListener('message',e=>{
  const d=e.data;
  if(d&&d.type==='tonglu-environment-v1'&&d.state){
   state=d.state;
+  resident=d.resident&&d.resident.sheep?d.resident:null;
+  if(Number(d.arrivalNonce)>residentArrivalNonce&&resident){
+    residentArrivalNonce=Number(d.arrivalNonce);
+    residentArrivalStarted=performance.now();
+  }
   draw();
  }
 });
