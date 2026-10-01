@@ -1,0 +1,30 @@
+/* Pasture resident gate: the landscape is public; controls belong to authenticated residents. */
+body:not(.pasture-resident-authenticated) .actions{
+  display:none!important;
+}
+body.pasture-resident-authenticated .actions{
+  display:grid;
+}
+body.pasture-resident-authenticated .pbtn{
+  position:relative;
+}
+body.pasture-resident-authenticated .pbtn.pasture-feature-locked{
+  opacity:.48!important;
+  cursor:not-allowed!important;
+  filter:saturate(.55);
+}
+body.pasture-resident-authenticated .pbtn.pasture-feature-locked::after{
+  content:"";
+  position:absolute;
+  right:7px;
+  bottom:7px;
+  width:6px;
+  height:6px;
+  background:#8d816b;
+  border:1px solid #385a72;
+  box-shadow:1px 1px rgba(255,255,255,.55);
+}
+body:not(.pasture-resident-authenticated) .identity .state,
+body:not(.pasture-resident-authenticated) .identity .days{
+  visibility:hidden;
+}
