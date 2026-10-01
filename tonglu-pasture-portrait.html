@@ -340,6 +340,19 @@ function drawLamb(x,y,s,flip=false,style='normal'){
  rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
  ctx.restore();
 }
+function drawResidentLamb(x,y,o){
+ const s=o.s,f=o.f,h=o.h;
+ ctx.save();
+ if(o.flip){ctx.translate(x+21*s,0);ctx.scale(-1,1);x=0}
+ rect(x,y,16*s,8*s,f);rect(x+3*s,y-4*s,11*s,13*s,f);rect(x+6*s,y-6*s,7*s,15*s,f);
+ rect(x+13*s,y+2*s,7*s,7*s,h);rect(x+19*s,y+4*s,2*s,3*s,h);
+ rect(x+12*s,y+3*s,2*s,2*s,h);rect(x+17*s,y+4*s,1,1,C.ink);
+ rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
+ if(o.marking==='FACE')rect(x+14*s,y+2*s,3*s,3*s,'#f7efe1');
+ if(o.marking==='BACK')rect(x+4*s,y-2*s,7*s,3*s,'#fff3dd');
+ if(o.marking==='SOCKS'){rect(x+4*s,y+11*s,2*s,3*s,'#f4eee4');rect(x+11*s,y+11*s,2*s,3*s,'#f4eee4')}
+ ctx.restore();
+}
 function drawPortrait(){
  // Native portrait composition + daily deterministic flock.
  const sourceY=Math.round(H*.405);
@@ -427,14 +440,47 @@ function drawPortrait(){
  placedLambs.push(special);
  occupied.push(creatureBox(special,true));
 
+ let residentLamb=null;
+ if(resident&&resident.sheep){
+   const rr=flockRand(flockHash('resident-portrait-'+resident.id+'-'+flockDateKey()));
+   const zones=[
+     {y0:H*.46,y1:H*.55,s0:.25,s1:.34},
+     {y0:H*.58,y1:H*.72,s0:.39,s1:.53},
+     {y0:H*.76,y1:H*.91,s0:.57,s1:.76}
+   ];
+   for(let attempt=0;attempt<140&&!residentLamb;attempt++){
+     const z=zones[Math.floor(rr()*zones.length)];
+     const base={x:16+rr()*(W-48),y:z.y0+rr()*(z.y1-z.y0),s:z.s0+rr()*(z.s1-z.s0),flip:rr()<.5};
+     const p=placeLambAvoidingFlock(base,sourceY,occupied);
+     const candidate={x:p.x,y:p.y,s:base.s,flip:base.flip,f:resident.sheep.bodyColor,h:resident.sheep.headColor,marking:resident.sheep.marking||'NONE'};
+     const box=creatureBox(candidate,true);
+     if(!occupied.some(q=>boxesOverlap(box,q,5))){
+       residentLamb=candidate;occupied.push(box);
+     }
+   }
+   if(!residentLamb)residentLamb={x:W*.5,y:H*.50,s:.30,flip:false,f:resident.sheep.bodyColor,h:resident.sheep.headColor,marking:resident.sheep.marking||'NONE'};
+ }
+
  // Adults and lambs share one depth order so a distant lamb can no longer be painted on top of a nearer adult.
  const creatures=[];
  adults.forEach((o,i)=>creatures.push({kind:'adult',o,i,depth:o.y+20*o.s}));
  placedLambs.forEach((o,i)=>creatures.push({kind:'lamb',o,i,depth:o.y+14*o.s}));
+ if(residentLamb)creatures.push({kind:'resident',o:residentLamb,i:45,depth:residentLamb.y+14*residentLamb.s});
  creatures.sort((a,b)=>a.depth-b.depth||a.o.s-b.o.s);
  creatures.forEach(c=>{
    if(c.kind==='adult'){
     drawSheep(c.o,c.i);
+   }else if(c.kind==='resident'){
+    const o=c.o;
+    let x=o.x,y=o.y,progress=1;
+    if(residentArrivalStarted){
+      const elapsed=performance.now()-residentArrivalStarted;
+      const t=Math.max(0,Math.min(1,elapsed/1750)),eased=1-Math.pow(1-t,3);
+      y=-24+(o.y+24)*eased;x=o.x+Math.sin(t*Math.PI*5)*(1-t)*7;progress=t;
+      if(t>=1)residentArrivalStarted=0;
+    }
+    rect(o.x-1.5*o.s,o.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,'+Math.max(.04,progress*.18)+')');
+    drawResidentLamb(x,y,o);
    }else{
     const o=c.o,i=c.i;
     const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
