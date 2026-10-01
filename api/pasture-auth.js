@@ -32,6 +32,9 @@ module.exports = async function handler(request, response) {
     if (error && error.code === "DATABASE_NOT_CONFIGURED") {
       return sendJson(response, 503, { ok: false, reason: "database_not_configured" });
     }
+    if (error && error.code === "PASTURE_EMAIL_UNAVAILABLE") {
+      return sendJson(response, 503, { ok: false, reason: "email_unavailable" });
+    }
     if (error && error.code === "INVALID_SHEEP") {
       return sendJson(response, 400, { ok: false, reason: "invalid_sheep" });
     }
