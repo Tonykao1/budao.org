@@ -1,0 +1,38 @@
+{
+  "id": "X7XzmPvC",
+  "sourceRoute": {
+    "routeId": "budao-hd"
+  },
+  "facts": {
+    "title": "假日骑行·百望山徒步",
+    "location": "中国·北京·海淀",
+    "date": "2026-10-03",
+    "time": "11:00",
+    "timezone": "Asia/Shanghai",
+    "duration": "4小时",
+    "distance": "10千米骑行+6千米徒步",
+    "elevation": "300米",
+    "surface": "公路+铺装路、石阶、木栈道",
+    "difficulty": "中等",
+    "suitableFor": "亲子、有体能基础长者友好",
+    "equipmentMinimum": "运动鞋，饮用水，个人药品，防晒",
+    "participantRequirements": "",
+    "meetingPlace": "地铁18号线文华市场站+百望山森林公园东门",
+    "description": "中午11点去文华市场（18号线文华市场站）逛吃午餐，然后骑空中自行车道10公里到百望山。下午约1点半开始爬百望山，3点多结束。当十月的风越过百望山，群山披上初秋的光，远方的路也向我们发出召唤。国庆长假里，我们不赶赴喧闹，只选择一条山路，与久别的人重逢，与陌生的人并肩。愿脚下每一步，都像远行者归来的歌：穿过林木与山脊，走向更辽阔的心。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/a09859cb0be57ea448ed6fc00261700e.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/c5a75f21c8ac1756e0b8f8476ee4e8c5.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-10-01T10:41:09.072Z",
+  "createdBy": "publisher-hd"
+}
