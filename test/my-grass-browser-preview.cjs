@@ -9,6 +9,7 @@ const assert=require('node:assert/strict');
  page.on('pageerror',e=>issues.push(String(e)));
  // Only for this isolated QA browser. The previous integrated E2E still tests full real card activation.
  await page.addInitScript(()=>{
+  window.__PASTURE_TEST_UNLOCK=true;
   localStorage.setItem('budao_pixel_card_activation_prototype_v1',JSON.stringify({
     phase:'active',seriesId:'CSCZ-001',usedSecond:false,
     final:{suit:'spade',rank:'A',numberColor:'red',dice:1,color:'white',side:'white',piece:'king'}
@@ -21,7 +22,7 @@ const assert=require('node:assert/strict');
    const f=document.getElementById('liveArea');
    return !!f?.contentDocument?.getElementById('grassWorkspace');
   },{timeout:60000});
-  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.body.classList.add('pasture-resident-authenticated');d.querySelectorAll('.pbtn').forEach(el=>el.classList.remove('pbtn'));const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true});
+  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.body.classList.add('pasture-resident-authenticated');const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true});
   const zone=page.frameLocator('#liveArea');
   await page.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('grassBookBtn').click());
   await zone.locator('#grassWorkspace').waitFor({state:'visible'});
