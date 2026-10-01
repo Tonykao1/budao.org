@@ -14,7 +14,7 @@ const activate=()=>localStorage.setItem('budao_pixel_card_activation_prototype_v
   await desktop.goto('http://127.0.0.1:8787/pasture-preview/',{waitUntil:'domcontentloaded'});
   await desktop.waitForFunction(()=>!!document.getElementById('liveArea')?.contentDocument?.getElementById('grassWorkspace'),{timeout:60000});
   await desktop.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true;d.body.classList.add('pasture-resident-authenticated')});
-  await desktop.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('grassBookBtn').click());
+  await desktop.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.getElementById('grassBookBtn').click()});
   await desktop.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.body.classList.add('pasture-resident-authenticated');const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true});
   const zone=desktop.frameLocator('#liveArea');
   await zone.locator('#grassWorkspace').waitFor({state:'visible'});
