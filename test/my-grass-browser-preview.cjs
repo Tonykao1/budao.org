@@ -24,7 +24,7 @@ const assert=require('node:assert/strict');
   },{timeout:60000});
   await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.body.classList.add('pasture-resident-authenticated');const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true});
   const zone=page.frameLocator('#liveArea');
-  await page.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('grassBookBtn').click());
+  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.getElementById('grassBookBtn').click()});
   await zone.locator('#grassWorkspace').waitFor({state:'visible'});
   assert.equal(await zone.locator('#grassWorkspace .gs-steps button').count(),3);
   await zone.locator('[data-field="reference"]').fill('诗篇 23:1');
