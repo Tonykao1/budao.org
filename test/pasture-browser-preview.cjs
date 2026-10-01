@@ -10,7 +10,7 @@ const assert=require('node:assert/strict');
   await page.goto('http://127.0.0.1:8787/pasture-preview/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!!document.getElementById('cardIframe')?.contentDocument?.getElementById('panelContent'),{timeout:60000});
   await page.waitForFunction(()=>!!document.getElementById('liveArea')?.contentDocument?.getElementById('returnNow'),{timeout:60000});
-  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.body.classList.add('pasture-resident-authenticated');d.querySelectorAll('.pbtn').forEach(el=>el.classList.remove('pbtn'))});
+  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.body.classList.add('pasture-resident-authenticated');d.querySelectorAll('.pbtn').forEach(el=>el.classList.remove('pbtn'));const gate=document.getElementById('pastureResidentLayer');if(gate)gate.hidden=true});
   const card=page.frameLocator('#cardIframe');
   await page.evaluate(()=>document.getElementById('floatingCard').click());
   await page.waitForSelector('#cardShade.open');
