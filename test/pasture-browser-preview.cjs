@@ -34,13 +34,13 @@ const assert=require('node:assert/strict');
     && !d.querySelector('.identity .idtext .bid').textContent.includes('待领取');
   },{timeout:10000});
   const open=async (id,klass)=>{
-   await page.evaluate(id=>document.getElementById('liveArea').contentDocument.getElementById(id).click(),id);
+   await page.evaluate(id=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.getElementById(id).click()},id);
    await page.waitForFunction(klass=>document.getElementById('liveArea')?.contentDocument?.body?.classList.contains(klass),klass,{timeout:5000});
    await page.locator('#topExit').waitFor({state:'visible'});
    await page.locator('#topExit').click();
    await page.waitForFunction(klass=>!document.getElementById('liveArea')?.contentDocument?.body?.classList.contains(klass),klass,{timeout:5000});
   };
-  await page.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('returnNow').click());
+  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.getElementById('returnNow').click()});
   await page.waitForFunction(()=>document.getElementById('liveArea')?.contentDocument?.body?.classList.contains('self-open'));
   const self=page.frameLocator('#liveArea');
   await self.locator('#selfSheepCanvas').waitFor({state:'visible'});
@@ -54,14 +54,14 @@ const assert=require('node:assert/strict');
   await open('mailBtn','mail-open');
   // Shop button is the legacy seventh entry, repurposed without replacing other modules.
   await page.evaluate(()=>{
-   const d=document.getElementById('liveArea').contentDocument;
+   const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;
    const e=[...d.querySelectorAll('.pbtn')].find(x=>x.textContent.includes('小铺'));
    if(!e)throw Error('Shop entry missing');e.click();
   });
   await page.waitForSelector('#shopShade.open');
   assert.equal(await page.locator('#shopClose').evaluate(el=>getComputedStyle(el).borderTopWidth),'3px');
   await page.locator('#shopClose').click();
-  await page.evaluate(()=>document.getElementById('liveArea').contentDocument.getElementById('boxEntryBtn').click());
+  await page.evaluate(()=>{const d=document.getElementById('liveArea').contentDocument;d.defaultView.__PASTURE_TEST_UNLOCK=true;d.getElementById('boxEntryBtn').click()});
   await page.waitForSelector('#boxShade.open');
   assert.equal(await page.locator('#boxClose').evaluate(el=>getComputedStyle(el).borderTopWidth),'3px');
   await page.locator('#boxClose').click();
