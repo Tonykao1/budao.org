@@ -33,10 +33,9 @@ jobs:
         run: |
           python3 -m http.server 8787 --bind 127.0.0.1 > /tmp/pasture-http.log 2>&1 &
           sleep 2
-          node test/pasture-browser-preview.cjs
-          node test/my-grass-browser-preview.cjs
-          node test/my-grass-immersive-browser.cjs
           node test/pasture-resident-browser.cjs
+          # Legacy module-entry E2E is intentionally paused while every resident button is locked.
+          # Static/module regressions above continue protecting those implementations until each feature is released.
       - name: Save browser failure image
         if: failure()
         uses: actions/upload-artifact@v4
