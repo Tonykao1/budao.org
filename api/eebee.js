@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const { getAuthenticatedPublisher } = require("./_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/http");
 const { clientIp, consume } = require("./_security/rate-limit");
+const pastureAuthHandler = require("./_security/pasture-auth-handler");
 
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
@@ -18,6 +19,10 @@ const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
 module.exports = async function handler(request, response) {
   try {
+    const requestUrl = new URL(request.url || "/api/eebee", "https://budao.org");
+    if (requestUrl.searchParams.get("service") === "pasture") {
+      return await pastureAuthHandler(request, response);
+    }
     if (request.method === "GET") return await handleGet(request, response);
     if (request.method === "POST") return await handlePost(request, response);
     return sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
