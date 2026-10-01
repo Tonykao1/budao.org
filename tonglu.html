@@ -29,7 +29,7 @@ let portraitMode=false;
 
 function sendPortraitEnvironment(){
   if(state&&portraitFrame.contentWindow){
-    portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state},location.origin);
+    portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state,resident,arrivalNonce:residentArrivalNonce},location.origin);
   }
 }
 function flockDateKeyFromState(s){
@@ -56,6 +56,20 @@ function sendLandscapeEnvironment(){
   }catch(e){}
 }
 portraitFrame.addEventListener('load',sendPortraitEnvironment);
+window.addEventListener('message',event=>{
+  if(event.origin!==location.origin)return;
+  const data=event.data;
+  if(!data||data.type!=='pasture-resident-session-v1')return;
+  resident=data.resident&&data.resident.sheep?data.resident:null;
+  if(resident&&data.arrival){
+    residentArrivalStarted=performance.now();
+    residentArrivalNonce++;
+  }
+  desktopResidentCacheKey='';
+  sendPortraitEnvironment();
+  draw();
+});
+
 
 function syncComposition(){
   const nextPortrait=window.innerHeight>window.innerWidth*1.08;
@@ -119,7 +133,7 @@ revealPastureWhenReady();
 const canvas=document.getElementById('environmentLayer');
 const ctx=canvas.getContext('2d');
 ctx.imageSmoothingEnabled=false;
-let state=null,tick=0;
+let state=null,tick=0,resident=null,residentArrivalStarted=0,residentArrivalNonce=0;
 
 function rect(x,y,w,h,color){
   ctx.fillStyle=color;
