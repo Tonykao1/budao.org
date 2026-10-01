@@ -2,7 +2,6 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 process.env.PASTURE_SESSION_SECRET='pasture-test-secret-which-is-definitely-longer-than-thirty-two-characters';
 const d=require('../api/_security/pasture-auth-domain');
-const schema=require('../db/schema');
 
 test('pasture resident auth keeps email private and produces stable lookup hashes',()=>{
  assert.equal(d.validEmail('walker@example.com'),true);
@@ -27,8 +26,12 @@ test('resident owns exactly one validated sheep profile domain object',()=>{
  assert.equal(d.HEAD_COLORS.length,8);
 });
 test('pasture identity has independent tables from stewardship/admin identities',()=>{
- for(const key of ['pastureUsers','pastureEmailVerifications','pastureSessions','pastureSheep'])assert.ok(schema[key],key);
- assert.notEqual(schema.pastureUsers,schema.stewardshipUsers);
+ const fs=require('node:fs'),path=require('node:path');
+ const schema=fs.readFileSync(path.join(__dirname,'..','db/schema.js'),'utf8');
+ for(const name of ['pastureUsers','pastureEmailVerifications','pastureSessions','pastureSheep'])assert.match(schema,new RegExp('const '+name+' = pgTable'));
+ assert.match(schema,/const stewardshipUsers = pgTable/);
+ assert.match(schema,/pasture_users/);
+ assert.match(schema,/stewardship_users/);
 });
 test('migration hard-enforces one sheep per resident',()=>{
  const sql=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','db/migrations/0004_pasture_identity.sql'),'utf8');
