@@ -4,7 +4,8 @@ const assert=require('node:assert/strict');
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:900}});
  const errors=[];
- page.on('pageerror',e=>errors.push(String(e)));
+ page.on('pageerror',e=>{const detail=String(e.stack||e);errors.push(detail);console.error('PAGEERROR DETAIL',detail)});
+ page.on('console',m=>{if(m.type()==='error')console.error('BROWSER CONSOLE',m.text())});
  try{
   await page.goto('http://127.0.0.1:8787/pasture-preview/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!!document.getElementById('cardIframe')?.contentDocument?.getElementById('panelContent'),{timeout:60000});
