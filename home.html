@@ -28,6 +28,31 @@
     #dspBtn.dsp-on {
       color: #b8b8b8;
     }
+
+
+    /* 首页白/灰分界线：步道微型物理世界。零高度叠加，不改变原页面排版。 */
+    .home-boundary-physics {
+      position: relative;
+      height: 0;
+      z-index: 2;
+    }
+
+    #homeBoundaryCanvas {
+      position: absolute;
+      left: 0;
+      top: -65px;
+      width: 100%;
+      height: 130px;
+      display: block;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 700px) {
+      #homeBoundaryCanvas {
+        top: -48px;
+        height: 96px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -48,6 +73,11 @@
     不偏<span id="prevBtn">左</span><span id="nextBtn">右</span>
   </p>
 </header>
+
+
+<div class="home-boundary-physics" id="homeBoundaryPhysics" aria-hidden="true">
+  <canvas id="homeBoundaryCanvas"></canvas>
+</div>
 
 <main>
   <section>
@@ -794,6 +824,367 @@ if ("mediaSession" in navigator) {
   });
 }
 </script>
+
+<script>
+/*
+ * 首页分界线微型物理世界
+ * 通过参数：无前景脚印 / 步幅 ×5 / 作用面积 ×4。
+ * 逻辑借鉴连续物理 Footer：持续积分、弹性节点传播、非固定周期、轻微鼠标扰动。
+ */
+(() => {
+  const canvas = document.getElementById("homeBoundaryCanvas");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const world = {
+    width: 0,
+    height: 0,
+    groundY: 0,
+    pointInterval: 5,
+    points: [],
+    dust: [],
+    mouse: null,
+    lastT: 0,
+    walker: null,
+    passPause: 0,
+    running: true
+  };
+
+  class SurfacePoint {
+    constructor(x) {
+      this.x = x;
+      this.y = 0;
+      this.v = 0;
+      this.prev = null;
+      this.next = null;
+      this.fp = 0;
+      this.fn = 0;
+    }
+
+    disturb(impulse) {
+      this.v += impulse;
+    }
+
+    update(dt) {
+      const spring = 0.035;
+      const friction = Math.pow(0.89, dt * 60);
+      const spread = 0.24;
+
+      this.v += (-this.y) * spring * dt * 60;
+      this.v *= friction;
+      this.y += this.v * dt * 60;
+
+      if (this.prev) this.fp = spread * (this.y - this.prev.y);
+      if (this.next) this.fn = spread * (this.y - this.next.y);
+    }
+
+    spread(dt) {
+      const k = dt * 60;
+      if (this.prev) {
+        this.prev.y += this.fp * k;
+        this.prev.v += this.fp * k;
+      }
+      if (this.next) {
+        this.next.y += this.fn * k;
+        this.next.v += this.fn * k;
+      }
+    }
+  }
+
+  class Dust {
+    constructor(x, y, impact) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = (5 + Math.random() * 16) * impact;
+
+      this.x = x + (Math.random() - 0.5) * 10;
+      this.y = y;
+      this.vx = Math.cos(angle) * speed * 0.28;
+      this.vy = -Math.abs(Math.sin(angle)) * speed * 0.16 -
+        (1 + Math.random() * 3) * impact;
+      this.r = 0.45 + Math.random() * 0.9;
+      this.age = 0;
+      this.life = 0.42 + Math.random() * 0.46;
+    }
+
+    update(dt) {
+      this.age += dt;
+      this.vy += 10 * dt;
+      this.vx *= Math.pow(0.95, dt * 60);
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+    }
+
+    get alpha() {
+      return Math.max(0, 1 - this.age / this.life) * 0.13;
+    }
+
+    get dead() {
+      return this.age >= this.life;
+    }
+  }
+
+  class Walker {
+    constructor() {
+      this.reset(true);
+    }
+
+    reset(first = false) {
+      this.dir = first ? 1 : (Math.random() < 0.5 ? 1 : -1);
+      this.x = this.dir > 0 ? -70 : world.width + 70;
+
+      this.speed = Math.max(92, Math.min(142, 102 + Math.random() * 38));
+      this.stepLength = (58 + Math.random() * 14) * 5;
+      this.stepFreq = this.speed / this.stepLength;
+
+      this.phase = Math.random() * Math.PI * 2;
+      this.lastHalf = Math.floor(this.phase / Math.PI);
+      this.pressure = 0.92 + Math.random() * 0.14;
+      this.active = true;
+    }
+
+    update(dt) {
+      if (!this.active) return;
+
+      this.x += this.dir * this.speed * dt;
+      this.phase += Math.PI * 2 * this.stepFreq * dt;
+
+      const half = Math.floor(this.phase / Math.PI);
+      if (half !== this.lastHalf) {
+        this.lastHalf = half;
+        this.strike();
+      }
+
+      if (
+        (this.dir > 0 && this.x > world.width + 100) ||
+        (this.dir < 0 && this.x < -100)
+      ) {
+        this.active = false;
+        world.passPause = 0.55 + Math.random() * 1.2;
+      }
+    }
+
+    strike() {
+      const x = this.x + (Math.random() - 0.5) * 2.2;
+      const pressure = this.pressure * (0.9 + Math.random() * 0.2);
+
+      disturb(x, 3.0 * pressure + Math.random() * 0.35);
+
+      const count = 2 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < count; i++) {
+        world.dust.push(new Dust(x, world.groundY, pressure));
+      }
+    }
+  }
+
+  function buildSurface() {
+    world.points = [];
+
+    const count = Math.max(3, Math.round(world.width / 5));
+    const interval = world.width / (count - 1);
+    world.pointInterval = interval;
+
+    for (let i = 0; i < count; i++) {
+      world.points.push(new SurfacePoint(i * interval));
+    }
+
+    world.points.forEach((point, index) => {
+      point.prev = world.points[index - 1] || null;
+      point.next = world.points[index + 1] || null;
+    });
+  }
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    world.width = rect.width;
+    world.height = rect.height;
+    world.groundY = rect.height / 2;
+
+    canvas.width = Math.max(1, Math.round(rect.width * DPR));
+    canvas.height = Math.max(1, Math.round(rect.height * DPR));
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    buildSurface();
+
+    if (!world.walker) world.walker = new Walker();
+    else world.walker.reset(true);
+  }
+
+  function disturb(x, impulse) {
+    if (!world.points.length) return;
+
+    const center = Math.max(
+      0,
+      Math.min(
+        world.points.length - 1,
+        Math.round(x / world.pointInterval)
+      )
+    );
+
+    /* 作用面积 ×4：有效半径约为基准的 2 倍，总冲量保持克制。 */
+    const radius = world.pointInterval * 2;
+    const affected = [];
+    let weightSum = 0;
+
+    for (
+      let i = Math.max(0, center - 2);
+      i <= Math.min(world.points.length - 1, center + 2);
+      i++
+    ) {
+      const dx = Math.abs(world.points[i].x - x);
+      if (dx > radius) continue;
+
+      const t = dx / Math.max(1, radius);
+      const weight = Math.exp(-3.2 * t * t);
+      affected.push([i, weight]);
+      weightSum += weight;
+    }
+
+    if (!affected.length) {
+      world.points[center]?.disturb(impulse);
+      return;
+    }
+
+    affected.forEach(([index, weight]) => {
+      world.points[index]?.disturb(impulse * (weight / weightSum));
+    });
+  }
+
+  function update(dt) {
+    if (reducedMotion) return;
+
+    world.points.forEach((point) => point.update(dt));
+    world.points.forEach((point) => point.spread(dt * 0.18));
+
+    if (world.walker.active) {
+      world.walker.update(dt);
+    } else {
+      world.passPause -= dt;
+      if (world.passPause <= 0) world.walker.reset(false);
+    }
+
+    world.dust.forEach((particle) => particle.update(dt));
+    world.dust = world.dust.filter((particle) => !particle.dead);
+  }
+
+  function drawBoundary() {
+    const points = world.points;
+    if (!points.length) return;
+
+    const gy = world.groundY;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(world.width, 0);
+    ctx.lineTo(
+      world.width,
+      gy + points[points.length - 1].y
+    );
+
+    for (let i = points.length - 1; i >= 0; i--) {
+      ctx.lineTo(points[i].x, gy + points[i].y);
+    }
+
+    ctx.closePath();
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(0, gy + points[0].y);
+
+    for (const point of points) {
+      ctx.lineTo(point.x, gy + point.y);
+    }
+
+    ctx.lineTo(world.width, world.height);
+    ctx.lineTo(0, world.height);
+    ctx.closePath();
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(0, gy + points[0].y);
+
+    for (const point of points) {
+      ctx.lineTo(point.x, gy + point.y);
+    }
+
+    ctx.strokeStyle = "rgba(38,38,38,0.07)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function drawDust() {
+    for (const particle of world.dust) {
+      ctx.beginPath();
+      ctx.arc(
+        particle.x,
+        particle.y,
+        particle.r,
+        0,
+        Math.PI * 2
+      );
+      ctx.fillStyle = `rgba(45,45,45,${particle.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  function render(time) {
+    requestAnimationFrame(render);
+
+    if (!world.running) {
+      world.lastT = time / 1000;
+      return;
+    }
+
+    const now = time / 1000;
+    const dt = world.lastT
+      ? Math.min(0.033, now - world.lastT)
+      : 1 / 60;
+
+    world.lastT = now;
+
+    update(dt);
+    ctx.clearRect(0, 0, world.width, world.height);
+    drawBoundary();
+    drawDust();
+  }
+
+  canvas.addEventListener("mousemove", (event) => {
+    if (reducedMotion) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    if (world.mouse) {
+      const vy = y - world.mouse.y;
+      if (Math.abs(y - world.groundY) < 46) {
+        disturb(x, vy * 0.16);
+      }
+    }
+
+    world.mouse = { x, y };
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    world.mouse = null;
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    world.running = !document.hidden;
+    world.lastT = 0;
+  });
+
+  window.addEventListener("resize", resize, { passive: true });
+
+  resize();
+  requestAnimationFrame(render);
+})();
+</script>
+
 <script src="prayer-box.js"></script>
 </body>
 </html>
