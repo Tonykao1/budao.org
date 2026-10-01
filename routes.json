@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/2067bc46d85de5cd81b7111bca4c6cda.png",
     "imageAlt": "IMG_6732.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-10-01T09:06:23.736Z"
+    "updatedAt": "2026-10-01T09:15:30.847Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,7 +55,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/dbb65e9c6b6618bacf04bd1c0b1e3c6d.png",
     "imageAlt": "qianshan.png",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-10-01T09:06:23.737Z"
+    "updatedAt": "2026-10-01T09:15:30.847Z"
   },
   {
     "id": "budao-hd",
@@ -67,23 +67,23 @@
     "region": "海淀",
     "location": "中国·北京·海淀",
     "title": "相约百望山",
-    "description": "本周日，我们把百望山走到7公里。沿山脊缓缓起伏，在秋意初生的林间行走，也在山中择一处停下，把食物铺开，把时间放慢。走过的是山路，共享的却不只是这一餐。",
+    "description": "当十月的风越过百望山，群山披上初秋的光，远方的路也向我们发出召唤。国庆长假里，我们不赶赴喧闹，只选择一条山路，与久别的人重逢，与陌生的人并肩。愿脚下每一步，都像远行者归来的歌：穿过林木与山脊，走向更辽阔的心。",
     "time": "08:30",
     "duration": "3小时",
-    "distance": "7千米",
+    "distance": "6千米",
     "surface": "铺装路、石阶、木栈道",
     "elevation": "300米",
     "difficulty": "中等",
     "suitableFor": "亲子、有体能基础长者友好",
     "equipmentMinimum": "运动鞋，饮用水，个人药品，防晒",
     "timezone": "Asia/Shanghai",
-    "date": "2026-09-20",
+    "date": "2026-10-03",
     "meetingPlace": "百望山森林公园东门",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/e7ec439a206072805b803abef81e2e31.jpg",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/5f4b1f36bbe5136be48b7c3669a1b68c.jpg",
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/d25dbea31a67ea8c8baab6fd65efde2a.png",
-    "imageAlt": "ss.jpg",
+    "imageAlt": "images (1).jpeg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-10-01T09:06:23.737Z"
+    "updatedAt": "2026-10-01T09:15:30.842Z"
   }
 ]
