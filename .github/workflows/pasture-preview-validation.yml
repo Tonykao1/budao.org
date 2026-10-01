@@ -24,6 +24,7 @@ jobs:
           test/pasture-eight-panels.test.js
           test/my-grass-core.test.js
           test/my-grass-bible-immersive.test.js
+          test/pasture-resident-auth.test.js
       - name: Install headless browser
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
@@ -35,6 +36,7 @@ jobs:
           node test/pasture-browser-preview.cjs
           node test/my-grass-browser-preview.cjs
           node test/my-grass-immersive-browser.cjs
+          node test/pasture-resident-browser.cjs
       - name: Save browser failure image
         if: failure()
         uses: actions/upload-artifact@v4
@@ -45,6 +47,7 @@ jobs:
             /tmp/my-grass-browser-failure.png
             /tmp/my-grass-v04-desktop.png
             /tmp/my-grass-v04-mobile.png
+            /tmp/pasture-resident-failure.png
           if-no-files-found: ignore
       - name: Save immersion review screenshots
         if: always()
