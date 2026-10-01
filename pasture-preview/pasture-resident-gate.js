@@ -1,6 +1,7 @@
 (()=>{
 'use strict';
 const scene=document.querySelector('.scene');
+const HOST_ORIGIN=(()=>{try{return window.parent.location.origin}catch(e){return '*'}})();
 const actions=document.querySelector('.actions');
 const identity=document.querySelector('.identity');
 const nameNode=identity?.querySelector('.name');
@@ -40,7 +41,7 @@ function sendToPasture(arrival=false){
       type:'pasture-resident-session-v1',
       resident:resident?{id:resident.id,emailMasked:resident.emailMasked,sheep:resident.sheep}:null,
       arrival:!!pendingArrival
-    },location.origin);
+    },HOST_ORIGIN);
     pendingArrival=false;
   }catch(e){}
 }
@@ -65,7 +66,7 @@ function lockEvent(event){
     window.parent.postMessage({
       type:resident?'pasture-feature-locked':'pasture-resident-required',
       label:String(button.textContent||'').replace(/\s+/g,' ').trim().slice(0,24)
-    },location.origin);
+    },HOST_ORIGIN);
   }catch(e){}
 }
 document.addEventListener('click',lockEvent,true);
