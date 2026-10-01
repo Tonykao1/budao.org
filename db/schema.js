@@ -234,4 +234,9 @@ module.exports = {
   stewardshipAuditEvents,
   prayerRequests,
   prayerAuditEvents,
-  prayerRateLimits,\n  pastureUsers,\n  pastureEmailVerifications,\n  pastureSessions,\n  pastureSheep\n};
+  prayerRateLimits,
+  pastureUsers,
+  pastureEmailVerifications,
+  pastureSessions,
+  pastureSheep
+};
