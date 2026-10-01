@@ -308,7 +308,7 @@ function drawResidentLamb(x,y,o){
   ctx.restore();
 }
 function drawDesktopResidentSheep(){
-  const o=buildDesktopResidentSheep();if(!o)return;
+  const o=buildDesktopResidentSheep();window.__tongluFlockCount=o?45:44;window.__tongluResidentLayout=o?{x:o.x,y:o.y,s:o.s,flip:o.flip}:null;if(!o)return;
   let y=o.y,x=o.x,landing=1;
   if(residentArrivalStarted){
     const elapsed=performance.now()-residentArrivalStarted;
@@ -319,6 +319,7 @@ function drawDesktopResidentSheep(){
     landing=t;
     if(t>=1)residentArrivalStarted=0;
   }
+  window.__tongluResidentArrivalActive=!!residentArrivalStarted;
   const bounce=landing>=.93&&landing<1?Math.sin((landing-.93)/.07*Math.PI)*5*o.s:0;
   y-=bounce;
   const shadowAlpha=Math.max(.04,Math.min(.18,landing*.18));
