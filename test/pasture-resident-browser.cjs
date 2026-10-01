@@ -46,7 +46,7 @@ const assert=require('node:assert/strict');
    await page.selectOption('#pastureSheepHead','#776d66');
    await page.selectOption('#pastureSheepMark','FACE');
    await page.locator('#pastureSaveSheep').click();
-   await page.waitForSelector('#pastureResidentLayer[hidden]',{timeout:10000});
+   await page.waitForSelector('#pastureResidentLayer',{state:'hidden',timeout:10000});
 
    await page.waitForFunction(()=>{
      const d=document.getElementById('liveArea')?.contentDocument;
