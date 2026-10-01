@@ -55,7 +55,6 @@ function clearResident(){
   sendToPasture(false);
 }
 function lockEvent(event){
-  if(!resident)return;
   const button=event.target.closest('.pbtn');
   if(!button||!actions?.contains(button))return;
   event.preventDefault();
@@ -63,7 +62,7 @@ function lockEvent(event){
   if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
   try{
     window.parent.postMessage({
-      type:'pasture-feature-locked',
+      type:resident?'pasture-feature-locked':'pasture-resident-required',
       label:String(button.textContent||'').replace(/\s+/g,' ').trim().slice(0,24)
     },location.origin);
   }catch(e){}
