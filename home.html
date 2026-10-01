@@ -475,11 +475,38 @@ async function handleTrackEnded() {
   await playCurrentTrack();
 }
 
+function syncMediaPositionState() {
+  if (!("mediaSession" in navigator) ||
+      typeof navigator.mediaSession.setPositionState !== "function") return;
+
+  const duration = Number(audio.duration);
+  const position = Number(audio.currentTime);
+  const playbackRate = Number(audio.playbackRate) || 1;
+
+  if (!Number.isFinite(duration) || duration <= 0 ||
+      !Number.isFinite(position) || position < 0) return;
+
+  try {
+    navigator.mediaSession.setPositionState({
+      duration,
+      playbackRate,
+      position: Math.min(position, duration)
+    });
+  } catch (error) {
+    console.debug("MediaSession position state unavailable", error);
+  }
+}
+
 function bindAudioEvents(element) {
   element.addEventListener("play", syncPlaybackUi);
   element.addEventListener("pause", syncPlaybackUi);
   element.addEventListener("ended", handleTrackEnded);
   element.addEventListener("ratechange", forceUnityPlaybackRate);
+  element.addEventListener("loadedmetadata", syncMediaPositionState);
+  element.addEventListener("durationchange", syncMediaPositionState);
+  element.addEventListener("timeupdate", syncMediaPositionState);
+  element.addEventListener("seeking", syncMediaPositionState);
+  element.addEventListener("seeked", syncMediaPositionState);
 }
 
 function unbindAudioEvents(element) {
@@ -487,6 +514,11 @@ function unbindAudioEvents(element) {
   element.removeEventListener("pause", syncPlaybackUi);
   element.removeEventListener("ended", handleTrackEnded);
   element.removeEventListener("ratechange", forceUnityPlaybackRate);
+  element.removeEventListener("loadedmetadata", syncMediaPositionState);
+  element.removeEventListener("durationchange", syncMediaPositionState);
+  element.removeEventListener("timeupdate", syncMediaPositionState);
+  element.removeEventListener("seeking", syncMediaPositionState);
+  element.removeEventListener("seeked", syncMediaPositionState);
 }
 
 bindAudioEvents(audio);
@@ -795,7 +827,10 @@ if (navigator.mediaDevices && "addEventListener" in navigator.mediaDevices) {
   });
 }
 
-/* 让系统锁屏媒体控件和网页播放器共用同一套状态。 */
+/*
+ * 系统媒体控制层：锁屏、耳机、蓝牙与车载媒体键共用这一套。
+ * metadata 暂时保持固定，不随曲目变化；这里只增强控制可靠性。
+ */
 if ("mediaSession" in navigator) {
   const setMediaAction = (action, handler) => {
     try {
@@ -806,10 +841,22 @@ if ("mediaSession" in navigator) {
   };
 
   setMediaAction("play", async () => {
+    if (!hasStartedPlayback) {
+      currentTrack = silentNightStartTracks[
+        Math.floor(Math.random() * silentNightStartTracks.length)
+      ];
+      await playCurrentTrack();
+      return;
+    }
     await resumeCurrentTrack();
   });
 
   setMediaAction("pause", () => {
+    audio.pause();
+  });
+
+  /* 部分车机会发送 stop，而不是 pause。保留当前位置，方便继续播放。 */
+  setMediaAction("stop", () => {
     audio.pause();
   });
 
@@ -821,6 +868,26 @@ if ("mediaSession" in navigator) {
   setMediaAction("previoustrack", async () => {
     currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
     await playCurrentTrack();
+  });
+
+  setMediaAction("seekbackward", (details) => {
+    const offset = Number(details && details.seekOffset) || 10;
+    audio.currentTime = Math.max(0, audio.currentTime - offset);
+    syncMediaPositionState();
+  });
+
+  setMediaAction("seekforward", (details) => {
+    const offset = Number(details && details.seekOffset) || 10;
+    const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
+    audio.currentTime = Math.min(duration, audio.currentTime + offset);
+    syncMediaPositionState();
+  });
+
+  setMediaAction("seekto", (details) => {
+    if (!details || !Number.isFinite(details.seekTime)) return;
+    const duration = Number.isFinite(audio.duration) ? audio.duration : details.seekTime;
+    audio.currentTime = Math.max(0, Math.min(duration, details.seekTime));
+    syncMediaPositionState();
   });
 }
 </script>
