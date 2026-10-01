@@ -13,17 +13,17 @@ let ensured = false;
 async function ensurePastureSchema(env = process.env) {
   if (ensured) return;
   const query = neon(getDatabaseUrl(env));
-  await query\`CREATE EXTENSION IF NOT EXISTS pgcrypto\`;
-  await query\`CREATE TABLE IF NOT EXISTS pasture_users (
+  await query`CREATE EXTENSION IF NOT EXISTS pgcrypto`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_users (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     email_hash text NOT NULL,
     email_masked text NOT NULL,
     status text NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','SUSPENDED','DELETED')),
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
-  )\`;
-  await query\`CREATE UNIQUE INDEX IF NOT EXISTS pasture_users_email_hash_uq ON pasture_users(email_hash)\`;
-  await query\`CREATE TABLE IF NOT EXISTS pasture_email_verifications (
+  )`;
+  await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_users_email_hash_uq ON pasture_users(email_hash)`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_email_verifications (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     email_hash text NOT NULL,
     code_hash text NOT NULL,
@@ -31,9 +31,9 @@ async function ensurePastureSchema(env = process.env) {
     consumed_at timestamptz,
     attempts integer NOT NULL DEFAULT 0,
     created_at timestamptz NOT NULL DEFAULT now()
-  )\`;
-  await query\`CREATE INDEX IF NOT EXISTS pasture_email_verifications_lookup_idx ON pasture_email_verifications(email_hash, created_at)\`;
-  await query\`CREATE TABLE IF NOT EXISTS pasture_sessions (
+  )`;
+  await query`CREATE INDEX IF NOT EXISTS pasture_email_verifications_lookup_idx ON pasture_email_verifications(email_hash, created_at)`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_sessions (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES pasture_users(id) ON DELETE CASCADE,
     token_hash text NOT NULL,
@@ -42,9 +42,9 @@ async function ensurePastureSchema(env = process.env) {
     last_seen_at timestamptz NOT NULL DEFAULT now(),
     revoked_at timestamptz,
     user_agent_summary text
-  )\`;
-  await query\`CREATE UNIQUE INDEX IF NOT EXISTS pasture_sessions_token_hash_uq ON pasture_sessions(token_hash)\`;
-  await query\`CREATE TABLE IF NOT EXISTS pasture_sheep (
+  )`;
+  await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_sessions_token_hash_uq ON pasture_sessions(token_hash)`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_sheep (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES pasture_users(id) ON DELETE CASCADE,
     body_color text NOT NULL,
@@ -52,8 +52,8 @@ async function ensurePastureSchema(env = process.env) {
     marking text NOT NULL DEFAULT 'NONE' CHECK (marking IN ('NONE','FACE','BACK','SOCKS')),
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
-  )\`;
-  await query\`CREATE UNIQUE INDEX IF NOT EXISTS pasture_sheep_user_id_uq ON pasture_sheep(user_id)\`;
+  )`;
+  await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_sheep_user_id_uq ON pasture_sheep(user_id)`;
   ensured = true;
 }
 
@@ -79,7 +79,7 @@ async function latestVerification(emailHash) {
 async function incrementVerificationAttempts(id) {
   const db = getDb();
   const rows = await db.update(pastureEmailVerifications)
-    .set({ attempts: sql\`\${pastureEmailVerifications.attempts} + 1\` })
+    .set({ attempts: sql`${pastureEmailVerifications.attempts} + 1` })
     .where(eq(pastureEmailVerifications.id, id)).returning();
   return rows[0] || null;
 }
