@@ -1,0 +1,38 @@
+{
+  "id": "CDVn9nPa",
+  "sourceRoute": {
+    "routeId": "budao-hd"
+  },
+  "facts": {
+    "title": "相约百望山",
+    "location": "中国·北京·海淀",
+    "date": "2026-10-03",
+    "time": "08:30",
+    "timezone": "Asia/Shanghai",
+    "duration": "3小时",
+    "distance": "6千米",
+    "elevation": "300米",
+    "surface": "铺装路、石阶、木栈道",
+    "difficulty": "中等",
+    "suitableFor": "亲子、有体能基础长者友好",
+    "equipmentMinimum": "运动鞋，饮用水，个人药品，防晒",
+    "participantRequirements": "",
+    "meetingPlace": "百望山森林公园东门",
+    "description": "当十月的风越过百望山，群山披上初秋的光，远方的路也向我们发出召唤。国庆长假里，我们不赶赴喧闹，只选择一条山路，与久别的人重逢，与陌生的人并肩。愿脚下每一步，都像远行者归来的歌：穿过林木与山脊，走向更辽阔的心。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/5f4b1f36bbe5136be48b7c3669a1b68c.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/d25dbea31a67ea8c8baab6fd65efde2a.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-10-01T09:18:02.726Z",
+  "createdBy": "publisher-hd"
+}
