@@ -1,0 +1,38 @@
+{
+  "id": "qcdEaFvV",
+  "sourceRoute": {
+    "routeId": "budao-ims"
+  },
+  "facts": {
+    "title": "于家堼·麦浪之约",
+    "location": "中国·天津·宝坻",
+    "date": "2026-10-03",
+    "time": "15:00",
+    "timezone": "Asia/Shanghai",
+    "duration": "2小时",
+    "distance": "3.5千米",
+    "elevation": "<20米",
+    "surface": "铺装路",
+    "difficulty": "简单",
+    "suitableFor": "儿童、长者友好",
+    "equipmentMinimum": "便鞋",
+    "participantRequirements": "",
+    "meetingPlace": "于家堼村健身广场",
+    "description": "从村健身广场出发，沿着大路向东一直走，抵达村东口石碑处，转向南，看到金黄的麦田右转，一直将麦田处于你的左侧。等走到荷塘映月之后，穿过池塘中间的小桥，后向村北走，遇到（左前）朱红色的大门左转径直走向村西。远眺高铁，再返回村子的主干道，往村北的小路进发，延村北小路一直向东，直到沟渠处右转，你将再一次看到村东的界碑。这时你可以沿着来时的主干道返回健身广场。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/04053c7680b5dfdc3d70e3c4aff0a57f.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/2067bc46d85de5cd81b7111bca4c6cda.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-10-01T09:06:38.123Z",
+  "createdBy": "budao-ims"
+}
