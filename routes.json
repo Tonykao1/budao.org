@@ -26,7 +26,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/2067bc46d85de5cd81b7111bca4c6cda.png",
     "imageAlt": "IMG_6732.jpg",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-10-01T09:15:30.847Z"
+    "updatedAt": "2026-10-01T10:40:22.243Z"
   },
   {
     "id": "budao-bacbc",
@@ -55,7 +55,7 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/bacbc/dbb65e9c6b6618bacf04bd1c0b1e3c6d.png",
     "imageAlt": "qianshan.png",
     "createdAt": "2026-07-01T00:00:00.000Z",
-    "updatedAt": "2026-10-01T09:15:30.847Z"
+    "updatedAt": "2026-10-01T10:40:22.243Z"
   },
   {
     "id": "budao-hd",
@@ -66,24 +66,24 @@
     "city": "北京",
     "region": "海淀",
     "location": "中国·北京·海淀",
-    "title": "相约百望山",
-    "description": "当十月的风越过百望山，群山披上初秋的光，远方的路也向我们发出召唤。国庆长假里，我们不赶赴喧闹，只选择一条山路，与久别的人重逢，与陌生的人并肩。愿脚下每一步，都像远行者归来的歌：穿过林木与山脊，走向更辽阔的心。",
-    "time": "08:30",
-    "duration": "3小时",
-    "distance": "6千米",
-    "surface": "铺装路、石阶、木栈道",
+    "title": "假日骑行·百望山徒步",
+    "description": "中午11点去文华市场（18号线文华市场站）逛吃午餐，然后骑空中自行车道10公里到百望山。下午约1点半开始爬百望山，3点多结束。当十月的风越过百望山，群山披上初秋的光，远方的路也向我们发出召唤。国庆长假里，我们不赶赴喧闹，只选择一条山路，与久别的人重逢，与陌生的人并肩。愿脚下每一步，都像远行者归来的歌：穿过林木与山脊，走向更辽阔的心。",
+    "time": "11:00",
+    "duration": "4小时",
+    "distance": "10千米骑行+6千米徒步",
+    "surface": "公路+铺装路、石阶、木栈道",
     "elevation": "300米",
     "difficulty": "中等",
     "suitableFor": "亲子、有体能基础长者友好",
     "equipmentMinimum": "运动鞋，饮用水，个人药品，防晒",
     "timezone": "Asia/Shanghai",
     "date": "2026-10-03",
-    "meetingPlace": "百望山森林公园东门",
+    "meetingPlace": "地铁18号线文华市场站+百望山森林公园东门",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/5f4b1f36bbe5136be48b7c3669a1b68c.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/d25dbea31a67ea8c8baab6fd65efde2a.png",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/a09859cb0be57ea448ed6fc00261700e.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/hd/c5a75f21c8ac1756e0b8f8476ee4e8c5.png",
     "imageAlt": "images (1).jpeg",
     "createdAt": "2026-09-04T02:04:50.525Z",
-    "updatedAt": "2026-10-01T09:15:30.842Z"
+    "updatedAt": "2026-10-01T10:40:22.242Z"
   }
 ]
