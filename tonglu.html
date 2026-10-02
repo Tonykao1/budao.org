@@ -246,6 +246,26 @@ function drawDesktopLambs(){
 }
 
 let desktopResidentCacheKey='',desktopResidentLayout=null;
+let residentDrag=null,residentDragHover=false;
+function residentPositionKey(){return 'budao-pasture-resident-pos:'+String(resident?.id||'guest')}
+function residentScaleForY(y){
+  const t=Math.max(0,Math.min(1,(Number(y)-168)/(286-168)));
+  return .25+t*.60;
+}
+function loadResidentPosition(){
+  if(!resident?.id)return null;
+  try{
+    const raw=localStorage.getItem(residentPositionKey());
+    if(!raw)return null;
+    const p=JSON.parse(raw);
+    if(!Number.isFinite(+p.x)||!Number.isFinite(+p.y))return null;
+    return{x:Math.max(6,Math.min(465,+p.x)),y:Math.max(168,Math.min(286,+p.y)),flip:!!p.flip};
+  }catch(e){return null}
+}
+function saveResidentPosition(o){
+  if(!resident?.id||!o)return;
+  try{localStorage.setItem(residentPositionKey(),JSON.stringify({x:+o.x.toFixed(2),y:+o.y.toFixed(2),flip:!!o.flip}))}catch(e){}
+}
 function residentAppearance(){
   const s=resident&&resident.sheep;
   if(!s)return null;
@@ -268,6 +288,12 @@ function buildDesktopResidentSheep(){
     ...adultLayout.map(o=>desktopCreatureBox(o,false)),
     ...lambs.map(o=>desktopCreatureBox(o,true))
   ];
+  const saved=loadResidentPosition();
+  if(saved){
+    desktopResidentLayout={...saved,s:residentScaleForY(saved.y),...appearance};
+    desktopResidentCacheKey=signature;
+    return desktopResidentLayout;
+  }
   const rand=flockRand(flockHash(signature));
   const zones=[
     {y0:171,y1:194,s0:.25,s1:.34},
@@ -326,6 +352,57 @@ function drawDesktopResidentSheep(){
   rect(o.x-2*o.s,o.y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,'+shadowAlpha+')');
   drawResidentLamb(x,y,o);
 }
+function canvasPoint(clientX,clientY){
+  const r=canvas.getBoundingClientRect();
+  return{x:(clientX-r.left)/r.width*480,y:(clientY-r.top)/r.height*300};
+}
+function residentHit(clientX,clientY){
+  const o=buildDesktopResidentSheep();
+  if(!o||residentArrivalStarted)return false;
+  const p=canvasPoint(clientX,clientY);
+  const b=desktopCreatureBox(o,true);
+  return p.x>=b.l-5&&p.x<=b.r+5&&p.y>=b.t-6&&p.y<=b.b+6;
+}
+function residentGroundPoint(clientX,clientY){
+  const p=canvasPoint(clientX,clientY);
+  return{x:Math.max(6,Math.min(465,p.x)),y:Math.max(168,Math.min(286,p.y))};
+}
+canvas.addEventListener('pointerdown',e=>{
+  if(!residentHit(e.clientX,e.clientY))return;
+  const o=buildDesktopResidentSheep();
+  const p=canvasPoint(e.clientX,e.clientY);
+  residentDrag={pointerId:e.pointerId,dx:p.x-o.x,dy:p.y-o.y};
+  canvas.setPointerCapture?.(e.pointerId);
+  canvas.style.cursor='grabbing';
+  e.preventDefault();
+});
+canvas.addEventListener('pointermove',e=>{
+  if(residentDrag&&residentDrag.pointerId===e.pointerId){
+    const p=canvasPoint(e.clientX,e.clientY);
+    const o=buildDesktopResidentSheep();
+    o.x=Math.max(6,Math.min(465,p.x-residentDrag.dx));
+    o.y=Math.max(168,Math.min(286,p.y-residentDrag.dy));
+    o.s=residentScaleForY(o.y);
+    window.__tongluResidentLayout={x:o.x,y:o.y,s:o.s,flip:o.flip};
+    canvas.style.cursor='grabbing';
+    draw();
+    e.preventDefault();
+    return;
+  }
+  residentDragHover=residentHit(e.clientX,e.clientY);
+  if(residentDragHover)canvas.style.cursor='grab';
+});
+function finishResidentDrag(e){
+  if(!residentDrag||residentDrag.pointerId!==e.pointerId)return;
+  const o=buildDesktopResidentSheep();
+  saveResidentPosition(o);
+  residentDrag=null;
+  try{canvas.releasePointerCapture?.(e.pointerId)}catch(_){}
+  canvas.style.cursor=residentHit(e.clientX,e.clientY)?'grab':'default';
+  draw();
+}
+canvas.addEventListener('pointerup',finishResidentDrag);
+canvas.addEventListener('pointercancel',finishResidentDrag);
 
 let returnTwigHover=false;
 function drawReturnTwig(){
@@ -354,19 +431,24 @@ function returnTwigHit(clientX,clientY){
   return x>=8&&x<=39&&y>=254&&y<=297;
 }
 canvas.addEventListener('pointermove',e=>{
+  if(residentDrag)return;
   const hover=returnTwigHit(e.clientX,e.clientY);
   if(hover!==returnTwigHover){
     returnTwigHover=hover;
-    canvas.style.cursor=hover?'pointer':'default';
+    canvas.style.cursor=residentDragHover?'grab':(hover?'pointer':'default');
     draw();
+  }else if(!hover){
+    canvas.style.cursor=residentDragHover?'grab':'default';
   }
 });
 canvas.addEventListener('pointerleave',()=>{
+  if(residentDrag)return;
+  residentDragHover=false;
   if(returnTwigHover){
     returnTwigHover=false;
-    canvas.style.cursor='default';
     draw();
   }
+  canvas.style.cursor='default';
 });
 canvas.addEventListener('click',e=>{
   if(returnTwigHit(e.clientX,e.clientY)) location.assign('/home.html');
