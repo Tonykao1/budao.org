@@ -385,8 +385,23 @@ function residentHit(clientX,clientY){
   const o=buildDesktopResidentSheep();
   if(!o||residentArrivalStarted)return false;
   const p=canvasPoint(clientX,clientY);
-  const b=desktopCreatureBox(o,true);
-  return p.x>=b.l-5&&p.x<=b.r+5&&p.y>=b.t-6&&p.y<=b.b+6;
+  const s=Math.max(.0001,o.s);
+  const ux=(p.x-o.x)/s;
+  const uy=(p.y-o.y)/s;
+  // Pixel-accurate hit testing: mirror the exact rectangles used by drawResidentLamb().
+  // No padded bounding box is allowed; transparent gaps must remain unclickable.
+  const lx=o.flip?21-ux:ux;
+  const ly=uy;
+  const hitRect=(x,y,w,h)=>lx>=x&&lx<=x+w&&ly>=y&&ly<=y+h;
+  return hitRect(0,0,16,8)       || // body
+         hitRect(3,-4,11,13)     || // wool mass
+         hitRect(6,-6,7,15)      || // upper wool
+         hitRect(13,2,7,7)       || // head
+         hitRect(19,4,2,3)       || // muzzle
+         hitRect(12,3,2,2)       || // head overlap
+         hitRect(17,4,1,1)       || // eye pixel
+         hitRect(4,8,2,6)        || // front leg
+         hitRect(11,8,2,6);         // rear leg
 }
 function residentGroundPoint(clientX,clientY){
   const p=canvasPoint(clientX,clientY);
