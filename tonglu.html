@@ -247,6 +247,31 @@ function drawDesktopLambs(){
 
 let desktopResidentCacheKey='',desktopResidentLayout=null;
 let residentDrag=null,residentDragHover=false;
+const PIXEL_HAND_OPEN='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M18 4h8v16h4V8h8v16h4v-8h6v18h-4v6h-4v4H18v-4h-4v-4h-4V22h8z%22/%3E%3Cpath fill=%22%23f4d4a7%22 d=%22M20 8h4v18h8V12h4v16h8v-8h2v12h-4v6h-4v4H20v-4h-4v-4h-4V24h6v6h2z%22/%3E%3C/svg%3E") 18 6, grab';
+const PIXEL_HAND_CLOSED='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M14 10h26v4h4v20h-4v6h-4v4H16v-4h-4v-6H8V18h6z%22/%3E%3Cpath fill=%22%23f4d4a7%22 d=%22M16 14h20v4h4v14h-4v6h-4v2H18v-4h-4v-4h-2V22h6v8h4V18h14v-4H16z%22/%3E%3C/svg%3E") 18 10, grabbing';
+let residentAudioCtx=null;
+function playResidentBleat(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    residentAudioCtx=residentAudioCtx||new AC();
+    const ac=residentAudioCtx,t=ac.currentTime;
+    const gain=ac.createGain(),osc=ac.createOscillator(),osc2=ac.createOscillator();
+    const wob=ac.createOscillator(),wobGain=ac.createGain();
+    osc.type='sawtooth';osc2.type='triangle';wob.type='sine';
+    osc.frequency.setValueAtTime(390,t);osc.frequency.exponentialRampToValueAtTime(245,t+.42);
+    osc2.frequency.setValueAtTime(520,t);osc2.frequency.exponentialRampToValueAtTime(310,t+.38);
+    wob.frequency.setValueAtTime(13,t);wobGain.gain.setValueAtTime(28,t);
+    wob.connect(wobGain);wobGain.connect(osc.frequency);
+    gain.gain.setValueAtTime(.0001,t);
+    gain.gain.exponentialRampToValueAtTime(.10,t+.035);
+    gain.gain.exponentialRampToValueAtTime(.055,t+.20);
+    gain.gain.exponentialRampToValueAtTime(.0001,t+.52);
+    osc.connect(gain);osc2.connect(gain);gain.connect(ac.destination);
+    wob.start(t);osc.start(t);osc2.start(t);
+    wob.stop(t+.52);osc.stop(t+.52);osc2.stop(t+.52);
+  }catch(e){}
+}
 function residentPositionKey(){return 'budao-pasture-resident-pos:'+String(resident?.id||'guest')}
 function residentScaleForY(y){
   const t=Math.max(0,Math.min(1,(Number(y)-168)/(286-168)));
@@ -373,7 +398,7 @@ canvas.addEventListener('pointerdown',e=>{
   const p=canvasPoint(e.clientX,e.clientY);
   residentDrag={pointerId:e.pointerId,dx:p.x-o.x,dy:p.y-o.y};
   canvas.setPointerCapture?.(e.pointerId);
-  canvas.style.cursor='grabbing';
+  canvas.style.cursor=PIXEL_HAND_CLOSED;
   e.preventDefault();
 });
 canvas.addEventListener('pointermove',e=>{
@@ -384,13 +409,13 @@ canvas.addEventListener('pointermove',e=>{
     o.y=Math.max(168,Math.min(286,p.y-residentDrag.dy));
     o.s=residentScaleForY(o.y);
     window.__tongluResidentLayout={x:o.x,y:o.y,s:o.s,flip:o.flip};
-    canvas.style.cursor='grabbing';
+    canvas.style.cursor=PIXEL_HAND_CLOSED;
     draw();
     e.preventDefault();
     return;
   }
   residentDragHover=residentHit(e.clientX,e.clientY);
-  if(residentDragHover)canvas.style.cursor='grab';
+  if(residentDragHover)canvas.style.cursor=PIXEL_HAND_OPEN;
 });
 function finishResidentDrag(e){
   if(!residentDrag||residentDrag.pointerId!==e.pointerId)return;
@@ -398,7 +423,8 @@ function finishResidentDrag(e){
   saveResidentPosition(o);
   residentDrag=null;
   try{canvas.releasePointerCapture?.(e.pointerId)}catch(_){}
-  canvas.style.cursor=residentHit(e.clientX,e.clientY)?'grab':'default';
+  canvas.style.cursor=residentHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default';
+  playResidentBleat();
   draw();
 }
 canvas.addEventListener('pointerup',finishResidentDrag);
@@ -435,10 +461,10 @@ canvas.addEventListener('pointermove',e=>{
   const hover=returnTwigHit(e.clientX,e.clientY);
   if(hover!==returnTwigHover){
     returnTwigHover=hover;
-    canvas.style.cursor=residentDragHover?'grab':(hover?'pointer':'default');
+    canvas.style.cursor=residentDragHover?PIXEL_HAND_OPEN:(hover?'pointer':'default');
     draw();
   }else if(!hover){
-    canvas.style.cursor=residentDragHover?'grab':'default';
+    canvas.style.cursor=residentDragHover?PIXEL_HAND_OPEN:'default';
   }
 });
 canvas.addEventListener('pointerleave',()=>{
