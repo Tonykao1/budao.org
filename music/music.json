@@ -184,6 +184,36 @@
       "result_lufs_est": -20.0,
       "result_tp_est": -7.63,
       "peak_limited": false
+    },
+    "music/09 Heal The World.mp3": {
+      "integrated_lufs": -12.92,
+      "true_peak_dbtp": 0.02,
+      "lra_lu": 2.6,
+      "threshold_lufs": -23.08,
+      "gain_db": -7.08,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -7.06,
+      "peak_limited": false
+    },
+    "music/09 Four To The Floor.mp3": {
+      "integrated_lufs": -7.95,
+      "true_peak_dbtp": 1.31,
+      "lra_lu": 3.4,
+      "threshold_lufs": -18.0,
+      "gain_db": -12.05,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -10.74,
+      "peak_limited": false
+    },
+    "music/05 Satellite.mp3": {
+      "integrated_lufs": -7.36,
+      "true_peak_dbtp": 0.92,
+      "lra_lu": 5.8,
+      "threshold_lufs": -17.44,
+      "gain_db": -12.64,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -11.72,
+      "peak_limited": false
     }
   }
 }
