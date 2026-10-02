@@ -6,6 +6,7 @@ on:
       - "test/calendar-strip.test.js"
       - "test/calendar-step-size.test.js"
       - "test/calendar-data-sync.test.js"
+      - "test/mobile-route-order.test.js"
       - "budao-calendar.js"
       - "budao-calendar.css"
       - "test.html"
@@ -20,4 +21,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run calendar contract
-        run: node --test test/calendar-strip.test.js test/calendar-step-size.test.js test/calendar-data-sync.test.js
+        run: node --test test/calendar-strip.test.js test/calendar-step-size.test.js test/calendar-data-sync.test.js test/mobile-route-order.test.js
