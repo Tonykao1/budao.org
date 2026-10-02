@@ -14,6 +14,11 @@
         api.centerToday(host);
       });
     }
+
+    const routeGrid = root.document.getElementById("routeGrid");
+    if (routeGrid) {
+      api.mountMobileRouteOrdering(routeGrid, root);
+    }
   }
 }(typeof window !== "undefined" ? window : null, function () {
   const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -307,12 +312,132 @@
     return model;
   }
 
+  function prioritizeRouteStatesForMobile(states) {
+    return (Array.isArray(states) ? states : [])
+      .map(function (state, index) {
+        return {
+          index,
+          completed: state === "ended"
+        };
+      })
+      .sort(function (left, right) {
+        if (left.completed !== right.completed) {
+          return left.completed ? 1 : -1;
+        }
+        return left.index - right.index;
+      })
+      .map(function (item) {
+        return item.index;
+      });
+  }
+
+  function routeStateFromCard(card) {
+    const countdown = card && card.querySelector ? card.querySelector(".route-countdown") : null;
+    const text = countdown ? String(countdown.textContent || "").trim() : "";
+
+    if (text === "已完成此程") return "ended";
+    if (text === "正在同行") return "started";
+    if (text === "等待安放") return "pending";
+    return "countdown";
+  }
+
+  function isMobilePortrait(root) {
+    if (!root) return false;
+
+    if (typeof root.matchMedia === "function") {
+      return root.matchMedia("(max-width: 760px) and (orientation: portrait)").matches;
+    }
+
+    return Number(root.innerWidth || 0) <= 760 && Number(root.innerHeight || 0) >= Number(root.innerWidth || 0);
+  }
+
+  function rememberRouteCardOrder(cards) {
+    cards.forEach(function (card, index) {
+      if (!card || !card.dataset) return;
+      if (card.dataset.budaoBaseOrder === undefined) {
+        card.dataset.budaoBaseOrder = String(index);
+      }
+    });
+  }
+
+  function applyMobileRouteOrder(grid, root) {
+    if (!grid || !grid.children) return;
+
+    const cards = Array.prototype.slice.call(grid.children).filter(function (card) {
+      return card && card.classList && card.classList.contains("route-card");
+    });
+
+    if (!cards.length) return;
+
+    rememberRouteCardOrder(cards);
+
+    let orderedCards;
+
+    if (isMobilePortrait(root)) {
+      const states = cards.map(routeStateFromCard);
+      const positions = prioritizeRouteStatesForMobile(states);
+      orderedCards = positions.map(function (position) {
+        return cards[position];
+      });
+    } else {
+      orderedCards = cards.slice().sort(function (left, right) {
+        return Number(left.dataset.budaoBaseOrder || 0) - Number(right.dataset.budaoBaseOrder || 0);
+      });
+    }
+
+    const changed = orderedCards.some(function (card, index) {
+      return grid.children[index] !== card;
+    });
+
+    if (!changed) return;
+
+    orderedCards.forEach(function (card) {
+      grid.appendChild(card);
+    });
+  }
+
+  function mountMobileRouteOrdering(grid, root) {
+    if (!grid || !root) return null;
+
+    let scheduled = false;
+    const schedule = function () {
+      if (scheduled) return;
+      scheduled = true;
+      Promise.resolve().then(function () {
+        scheduled = false;
+        applyMobileRouteOrder(grid, root);
+      });
+    };
+
+    const Observer = root.MutationObserver;
+    const observer = typeof Observer === "function" ? new Observer(schedule) : null;
+
+    if (observer) {
+      observer.observe(grid, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    }
+
+    if (typeof root.addEventListener === "function") {
+      root.addEventListener("resize", schedule);
+      root.addEventListener("orientationchange", schedule);
+    }
+
+    schedule();
+    return observer;
+  }
+
   return {
     buildCalendarModel,
     mergeStepSchedule,
     centeredScrollPosition,
     centerToday,
     refreshPublishedSteps,
-    mount
+    mount,
+    prioritizeRouteStatesForMobile,
+    applyMobileRouteOrder,
+    mountMobileRouteOrdering
   };
 }));
