@@ -11,6 +11,10 @@
       "destination": "/api/eebee?service=pasture"
     },
     {
+      "source": "/api/pasture-admin",
+      "destination": "/api/auth/session?view=pasture-residents"
+    },
+    {
       "source": "/admin/pasture",
       "destination": "/admin/pasture.html"
     },
