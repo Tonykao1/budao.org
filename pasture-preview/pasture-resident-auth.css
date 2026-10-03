@@ -1,6 +1,7 @@
 #pastureResidentLayer{position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(12,32,29,.38);backdrop-filter:blur(2px)}
 #pastureResidentLayer[hidden]{display:none!important}
 .pasture-resident-card{width:min(430px,94vw);background:#fff7df;border:4px solid #31596a;box-shadow:8px 9px 0 rgba(22,54,56,.28);padding:24px 24px 20px;color:#315366}
+.pasture-resident-card.pasture-sheep-maker-card{width:min(560px,94vw)}
 .pasture-resident-card h1{font:900 25px/1.2 "PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.12em;margin:0 0 7px}
 .pasture-resident-card p{font-size:13px;line-height:1.75;margin:8px 0 16px;color:#526b69}
 .pasture-resident-card label{display:block;font-size:12px;font-weight:850;margin:12px 0 5px}
@@ -12,10 +13,24 @@
 .pasture-resident-actions button:disabled{opacity:.48;cursor:not-allowed}
 .pasture-resident-message{min-height:20px;margin-top:10px;font-size:12px;font-weight:800;color:#725b3d}
 .pasture-resident-meta{font-size:11px;color:#6a817e;margin-top:10px}
-#pastureSheepPreview{display:block;width:100%;height:auto;aspect-ratio:2/1;background:#bfe7cd;border:3px solid #426b60;image-rendering:pixelated;margin:12px 0}
-.pasture-choice{margin:10px 0}.pasture-choice strong{display:block;font-size:12px;margin-bottom:6px}.pasture-choice .row{display:flex;gap:7px;flex-wrap:wrap}
-.pasture-choice button{min-width:40px;padding:6px 9px;background:#efe1bb;border-width:2px}.pasture-choice button[aria-pressed=true]{outline:3px solid #4d7f62;outline-offset:1px}
-.pasture-swatch{width:22px;height:22px;display:block;border:1px solid rgba(40,52,50,.35)}
+#pastureSheepPreview{display:block;width:100%;height:auto;aspect-ratio:2.18/1;background:#bfe7cd;border:3px solid #426b60;image-rendering:pixelated;margin:12px 0 14px}
+.pasture-choice{margin:12px 0}.pasture-choice strong{display:block;font-size:12px;margin-bottom:7px;letter-spacing:.12em}.pasture-choice .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.pasture-choice button{min-width:0;padding:7px 6px;background:#efe1bb;border-width:2px;display:flex;align-items:center;justify-content:flex-start;gap:7px;font-size:11px;line-height:1.1;box-shadow:none;transition:transform .08s steps(2,end),background .08s steps(2,end)}
+.pasture-choice button:hover{background:#f7e9c1}.pasture-choice button:active{transform:translate(1px,1px)}
+.pasture-choice button[aria-pressed=true]{outline:3px solid #4d7f62;outline-offset:1px;background:#dce9bd}
+.pasture-choice button:focus-visible{outline:3px solid #31596a;outline-offset:2px}
+.pasture-sheep-chip{position:relative;flex:0 0 31px;width:31px;height:25px;display:block;background:transparent}
+.pasture-sheep-chip:before{content:"";position:absolute;left:2px;top:5px;width:21px;height:14px;background:var(--chip);box-shadow:4px -3px 0 var(--chip),8px 2px 0 var(--chip),0 7px 0 var(--chip);image-rendering:pixelated}
+.pasture-sheep-chip:after{content:"";position:absolute;right:1px;top:9px;width:8px;height:8px;background:#766f64;box-shadow:5px 2px 0 #766f64}
+.pasture-sheep-chip i{position:absolute;left:7px;bottom:0;width:3px;height:6px;background:#596260;box-shadow:11px 0 0 #596260}
+.pasture-mark-row button{justify-content:center;flex-direction:column;min-height:58px;gap:4px;text-align:center}
+.pasture-mark-icon{position:relative;width:30px;height:21px;display:block;background:#f0e7d4;box-shadow:5px -3px 0 #f0e7d4,10px 1px 0 #f0e7d4}
+.pasture-mark-icon:after{content:"";position:absolute;right:-7px;top:5px;width:9px;height:10px;background:#7f7569;box-shadow:5px 2px 0 #7f7569}
+.pasture-mark-icon i{position:absolute;left:5px;bottom:-6px;width:3px;height:7px;background:#596260;box-shadow:12px 0 0 #596260}
+.pasture-mark-icon.mark-face:before{content:"";position:absolute;right:-5px;top:7px;width:5px;height:4px;background:#fff7df;z-index:2}
+.pasture-mark-icon.mark-back:before{content:"";position:absolute;left:10px;top:0;width:10px;height:5px;background:#fff7df;z-index:2}
+.pasture-mark-icon.mark-socks i{background:#fff7df;box-shadow:12px 0 0 #fff7df}
+.pasture-sheep-finish{justify-content:center;margin-top:18px}.pasture-sheep-finish button{min-width:230px;background:#d4e6ad}
 #pastureResidentToast{position:fixed;z-index:230;left:50%;bottom:28px;transform:translateX(-50%);background:#fff6dd;border:3px solid #31596a;color:#315366;padding:9px 15px;font-size:12px;font-weight:900;box-shadow:4px 4px 0 rgba(22,54,56,.25);opacity:0;pointer-events:none;transition:opacity .12s steps(2,end)}
 #pastureResidentToast.show{opacity:1}
-@media(max-width:600px){#pastureResidentLayer{align-items:flex-end;padding:12px}.pasture-resident-card{width:100%;max-height:92dvh;overflow:auto;padding:20px 18px}.pasture-resident-card h1{font-size:22px}}
+@media(max-width:600px){#pastureResidentLayer{align-items:flex-end;padding:12px}.pasture-resident-card{width:100%;max-height:92dvh;overflow:auto;padding:20px 18px}.pasture-resident-card h1{font-size:22px}.pasture-choice .row{grid-template-columns:repeat(2,minmax(0,1fr))}.pasture-choice button{font-size:12px}.pasture-mark-row{grid-template-columns:repeat(4,minmax(0,1fr))!important}.pasture-mark-row button{font-size:10px;padding:6px 3px}}
