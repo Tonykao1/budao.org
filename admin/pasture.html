@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>数字牧场居民</title>
+<style>
+:root{color-scheme:light dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{margin:0;background:#f3f0e8;color:#25251f}.wrap{max-width:1180px;margin:0 auto;padding:36px 20px 60px}h1{font-size:28px;margin:0 0 8px}.sub{color:#6a685f;margin:0 0 26px}.panel{background:#fff;border:1px solid #d8d3c6;border-radius:18px;overflow:hidden;box-shadow:0 10px 28px rgba(40,35,20,.06)}.bar{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #ebe7dc}.count{font-weight:700}.status{font-size:14px;color:#77736b}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:900px}th,td{text-align:left;padding:13px 16px;border-bottom:1px solid #eee9df;font-size:14px}th{font-size:12px;letter-spacing:.04em;color:#77736b;background:#faf8f3;position:sticky;top:0}tr:last-child td{border-bottom:0}.email{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.badge{display:inline-block;padding:3px 8px;border-radius:999px;background:#ece9df;font-size:12px}.ok{background:#e5f2e4}.warn{background:#f7e8cf}.empty,.error{padding:40px 18px;text-align:center;color:#6e6a62}.error{color:#8f3b2e}button{border:1px solid #c8c2b4;background:#fff;color:#25251f;border-radius:10px;padding:8px 12px;cursor:pointer}@media(prefers-color-scheme:dark){body{background:#191a17;color:#f1eee4}.panel,.bar,button{background:#24251f;color:#f1eee4;border-color:#3b3c34}.sub,.status{color:#b3b0a7}th{background:#20211d;color:#bbb7ad}th,td{border-color:#34352f}.badge{background:#35362f}.ok{background:#28442c}.warn{background:#4b3b25}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>数字牧场居民</h1>
+  <p class="sub">仅限授权管理员查看。完整邮箱只在此页解密显示，不会返回给牧场前端。</p>
+  <section class="panel">
+    <div class="bar"><div><span class="count" id="count">—</span> 位居民</div><div><button id="refresh" type="button">刷新</button> <span class="status" id="status"></span></div></div>
+    <div class="table-wrap" id="body"><div class="empty">正在读取居民名单……</div></div>
+  </section>
+</div>
+<script>
+const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(v)=>v?new Date(v).toLocaleString('zh-CN',{hour12:false}):'—';
+async function load(){
+ document.getElementById('status').textContent='读取中…';
+ try{
+  const r=await fetch('/api/pasture-admin',{credentials:'include',cache:'no-store'});
+  const d=await r.json().catch(()=>({ok:false}));
+  if(r.status===401)throw new Error('请先使用步道管理员账号登录。');
+  if(r.status===403)throw new Error('当前管理员账号没有牧场居民名单权限。');
+  if(!r.ok||!d.ok)throw new Error('暂时无法读取居民名单。');
+  document.getElementById('count').textContent=d.count;
+  document.getElementById('status').textContent='刚刚更新';
+  if(!d.residents.length){document.getElementById('body').innerHTML='<div class="empty">还没有注册居民。</div>';return}
+  document.getElementById('body').innerHTML='<table><thead><tr><th>邮箱</th><th>注册时间</th><th>最近登录</th><th>羊</th><th>状态</th><th>居民 ID</th></tr></thead><tbody>'+d.residents.map(x=>'<tr><td class="email">'+esc(x.email)+(x.emailAvailable?'':' <span class="badge warn">待补齐</span>')+'</td><td>'+fmt(x.createdAt)+'</td><td>'+fmt(x.lastSeenAt)+'</td><td><span class="badge '+(x.hasSheep?'ok':'')+'">'+(x.hasSheep?'已捏羊':'未捏羊')+'</span></td><td><span class="badge">'+esc(x.status)+'</span></td><td class="email">'+esc(x.id)+'</td></tr>').join('')+'</tbody></table>';
+ }catch(e){document.getElementById('status').textContent='';document.getElementById('body').innerHTML='<div class="error">'+esc(e.message)+'</div>'}
+}
+document.getElementById('refresh').onclick=load;load();
+</script>
+</body>
+</html>
