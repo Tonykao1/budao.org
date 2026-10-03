@@ -4,6 +4,8 @@ const test = require("node:test");
 
 process.env.NODE_ENV = "test";
 process.env.BUDAO_SESSION_SECRET = "leader-route-test-secret-at-least-32-bytes";
+process.env.GITHUB_TOKEN = "leader-route-test-token";
+process.env.GITHUB_PUBLISH_BRANCH = "main";
 
 function passwordHash(password, saltText) {
   const salt = Buffer.from(saltText);
@@ -16,6 +18,43 @@ function freshAuth(users) {
   const modulePath = require.resolve("../api/_security/auth");
   delete require.cache[modulePath];
   return require(modulePath);
+}
+
+function signedCookie(id, username) {
+  const payload = Buffer.from(JSON.stringify({
+    iss: "budao.org",
+    aud: "budao-admin",
+    sub: id,
+    username,
+    role: "publisher",
+    slot: "IMS",
+    exp: Math.floor(Date.now() / 1000) + 600
+  })).toString("base64url");
+  const signature = crypto.createHmac("sha256", process.env.BUDAO_SESSION_SECRET).update(payload).digest("base64url");
+  return "budao_admin_session=" + payload + "." + signature;
+}
+
+function request(body, cookie) {
+  return {
+    method: "POST",
+    body,
+    headers: {
+      "content-type": "application/json",
+      origin: "https://budao.test",
+      host: "budao.test",
+      cookie,
+      "x-forwarded-for": "192.0.2.44"
+    }
+  };
+}
+
+function response() {
+  return {
+    headers: {}, statusCode: 0, body: null,
+    setHeader(name, value) { this.headers[name.toLowerCase()] = value; },
+    status(code) { this.statusCode = code; return this; },
+    json(body) { this.body = body; return this; }
+  };
 }
 
 test("leader usernames authenticate case-insensitively and session identity is leader-based", () => {
@@ -51,4 +90,34 @@ test("public route projection chooses the next three events and assigns presenta
   const projected = routesApi.projectPublicRoutes(routes, new Date("2026-10-03T00:00:00Z"));
   assert.deepEqual(projected.map((route) => route.routeId), ["first", "second", "third"]);
   assert.deepEqual(projected.map((route) => route.slot), ["IMS", "BACBC", "HD"]);
+});
+
+test("different leaders publish separate routes instead of overwriting a fixed slot", async () => {
+  const rateLimit = require("../api/_security/rate-limit");
+  rateLimit.resetForTests();
+  const modulePath = require.resolve("../api/publish-route-v2");
+  delete require.cache[modulePath];
+  const publish = require(modulePath);
+
+  let stored = Buffer.from("[]").toString("base64");
+  global.fetch = async (_url, options) => {
+    if (!options || options.method === "GET") {
+      return { ok: true, status: 200, json: async () => ({ sha: "routes-sha", content: stored }) };
+    }
+    stored = JSON.parse(options.body).content;
+    return { ok: true, status: 200, json: async () => ({ commit: { sha: "commit-sha" } }) };
+  };
+
+  const tony = response();
+  await publish(request({ title: "Tony Route", date: "2026-10-04", time: "09:00", timezone: "Asia/Shanghai" }, signedCookie("leader-tony", "tony")), tony);
+  assert.equal(tony.statusCode, 200);
+
+  const moses = response();
+  await publish(request({ title: "Moses Route", date: "2026-10-05", time: "09:00", timezone: "Asia/Shanghai" }, signedCookie("leader-moses", "moses")), moses);
+  assert.equal(moses.statusCode, 200);
+
+  const routes = JSON.parse(Buffer.from(stored, "base64").toString("utf8"));
+  assert.equal(routes.length, 2);
+  assert.deepEqual(routes.map((route) => route.leaderId).sort(), ["leader-moses", "leader-tony"]);
+  assert.deepEqual(routes.map((route) => route.leader).sort(), ["moses", "tony"]);
 });
