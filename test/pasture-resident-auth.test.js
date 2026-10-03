@@ -57,3 +57,25 @@ test('landscape and portrait both implement resident 44+1 and sky arrival',()=>{
  assert.match(portrait,/residentArrivalStarted/);
  assert.match(portrait,/drawResidentLamb/);
 });
+test('sheep maker is visual-first with live preview and no dropdown customization',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const maker=fs.readFileSync(path.join(__dirname,'..','pasture-preview/pasture-sheep-maker.js'),'utf8');
+ assert.doesNotMatch(maker,/<select/i);
+ assert.match(maker,/pastureSheepPreview/);
+ assert.match(maker,/data-sheep-body/);
+ assert.match(maker,/data-sheep-head/);
+ assert.match(maker,/data-sheep-mark/);
+ assert.match(maker,/aria-pressed/);
+ assert.match(maker,/saveSheep/);
+});
+test('resident sheep hand uses relaxed, ready, and grabbing states without the five-finger fork cursor',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const landscape=fs.readFileSync(path.join(__dirname,'..','tonglu.html'),'utf8');
+ assert.match(landscape,/PIXEL_HAND_RELAXED/);
+ assert.match(landscape,/PIXEL_HAND_READY/);
+ assert.match(landscape,/PIXEL_HAND_CLOSED/);
+ assert.match(landscape,/residentHandState/);
+ assert.doesNotMatch(landscape,/PIXEL_HAND_OPEN=/);
+ assert.match(landscape,/residentHit\(e\.clientX,e\.clientY\)/);
+ assert.match(landscape,/baaa01\.mp3/);
+});
