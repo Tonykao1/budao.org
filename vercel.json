@@ -11,6 +11,10 @@
       "destination": "/api/eebee?service=pasture"
     },
     {
+      "source": "/admin/pasture",
+      "destination": "/admin/pasture.html"
+    },
+    {
       "source": "/i/:id",
       "destination": "/invitation.html?id=:id"
     },
