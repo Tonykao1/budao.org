@@ -1,0 +1,23 @@
+name: Leader Route Architecture
+
+on:
+  push:
+    paths:
+      - "test/leader-route-architecture.test.js"
+      - "api/_security/auth.js"
+      - "api/auth/login.js"
+      - "api/auth/session.js"
+      - "api/routes.js"
+      - "api/publish-route-v2.js"
+      - "api/upload-route-image.js"
+      - "api/_security/route-image.js"
+      - "tent.html"
+      - ".github/workflows/leader-route-architecture.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run leader route architecture tests
+        run: node --test test/leader-route-architecture.test.js
