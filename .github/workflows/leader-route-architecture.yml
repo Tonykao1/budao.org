@@ -21,3 +21,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run leader route architecture tests
         run: node --test test/leader-route-architecture.test.js
+      - name: Lint
+        run: npm run lint
+      - name: Run full test suite
+        run: npm test
+      - name: Build
+        run: npm run build
