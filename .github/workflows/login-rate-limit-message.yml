@@ -1,0 +1,20 @@
+name: Login Rate Limit Message
+
+on:
+  push:
+    branches:
+      - "feat/leader-accounts-time-slots"
+    paths:
+      - "test/login-rate-limit-message.test.js"
+      - "tent-app.js"
+      - ".github/workflows/login-rate-limit-message.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --test test/login-rate-limit-message.test.js
