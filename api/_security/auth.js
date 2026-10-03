@@ -32,8 +32,9 @@ function getAuthenticatedPublisher(request) {
     return null;
   }
 
-  const username = normalizeUsername(claims && claims.username || claims && claims.sub);
   const slot = normalizeLegacySlot(claims && claims.slot) || "IMS";
+  const legacySlotIdentity = !(claims && claims.username);
+  const username = legacySlotIdentity ? normalizeUsername(slot) : normalizeUsername(claims.username);
 
   if (!claims || claims.iss !== "budao.org" || claims.aud !== "budao-admin" ||
       claims.role !== "publisher" || typeof claims.sub !== "string" || claims.sub.length > 160 ||
@@ -41,7 +42,7 @@ function getAuthenticatedPublisher(request) {
     return null;
   }
 
-  return { id: claims.sub, username, role: claims.role, slot };
+  return { id: claims.sub, username, role: claims.role, slot, legacySlotIdentity };
 }
 
 function authenticateCredentials(identifier, password) {
