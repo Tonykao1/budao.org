@@ -25,9 +25,10 @@ test('pasture user schema has encrypted email columns without replacing lookup h
 });
 
 test('pasture admin endpoint and page require a dedicated resident-admin allowlist without adding a serverless function',()=>{
-  const api=fs.readFileSync(path.join(__dirname,'..','api/_security/pasture-admin-handler.js'),'utf8');
-  const page=fs.readFileSync(path.join(__dirname,'..','admin/pasture.html'),'utf8');
-  const config=JSON.parse(fs.readFileSync(path.join(__dirname,'..','vercel.json'),'utf8'));
+  const root=path.join(__dirname,'..');
+  const api=fs.readFileSync(path.join(root,'api/_security/pasture-admin-handler.js'),'utf8');
+  const page=fs.readFileSync(path.join(root,'admin/pasture.html'),'utf8');
+  const config=JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));
   const rewrites=new Map(config.rewrites.map((x)=>[x.source,x.destination]));
   assert.match(api,/PASTURE_ADMIN_USER_IDS/);
   assert.match(api,/getAuthenticatedPublisher/);
@@ -35,5 +36,9 @@ test('pasture admin endpoint and page require a dedicated resident-admin allowli
   assert.match(page,/数字牧场居民/);
   assert.match(page,/\/api\/pasture-admin/);
   assert.equal(rewrites.get('/api/pasture-admin'),'/api/auth/session?view=pasture-residents');
-  assert.equal(fs.existsSync(path.join(__dirname,'..','api/pasture-admin.js')),false);
+  assert.equal(fs.existsSync(path.join(root,'api/pasture-admin.js')),false);
+  const functions=[];
+  const walk=(dir)=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){if(entry.name.startsWith('_'))continue;const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(/\.(js|ts)$/.test(entry.name))functions.push(path.relative(path.join(root,'api'),full));}};
+  walk(path.join(root,'api'));
+  assert.ok(functions.length<=12,`expected <= 12 functions, found ${functions.length}: ${functions.join(', ')}`);
 });
