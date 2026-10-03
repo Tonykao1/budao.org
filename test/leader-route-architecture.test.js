@@ -17,6 +17,15 @@ function passwordHash(password, saltText) {
 
 function freshAuth(users) {
   process.env.BUDAO_ADMIN_USERS_JSON = JSON.stringify(users);
+  delete process.env.BUDAO_LEADER_USERS_JSON;
+  const modulePath = require.resolve("../api/_security/auth");
+  delete require.cache[modulePath];
+  return require(modulePath);
+}
+
+function freshAuthSources(adminUsers, leaderUsers) {
+  process.env.BUDAO_ADMIN_USERS_JSON = JSON.stringify(adminUsers);
+  process.env.BUDAO_LEADER_USERS_JSON = JSON.stringify(leaderUsers);
   const modulePath = require.resolve("../api/_security/auth");
   delete require.cache[modulePath];
   return require(modulePath);
@@ -73,6 +82,22 @@ test("leader usernames authenticate case-insensitively and session identity is l
   assert.equal(lower.role, "publisher");
   assert.equal(mixed.id, "leader-tony");
   assert.equal(wrong, null);
+});
+
+test("legacy publisher accounts and leader accounts can live in separate environment variables", () => {
+  const auth = freshAuthSources([
+    { id: "publisher-hd", email: "hd@example.test", passwordHash: passwordHash("legacy-password", "legacy-salt"), slot: "HD" }
+  ], [
+    { id: "leader-tony", username: "tony", passwordHash: passwordHash("leader-password", "leader-salt") }
+  ]);
+
+  const legacy = auth.authenticateCredentials("hd@example.test", "legacy-password");
+  const leader = auth.authenticateCredentials("TONY", "leader-password");
+
+  assert.equal(legacy.id, "publisher-hd");
+  assert.equal(legacy.slot, "HD");
+  assert.equal(leader.id, "leader-tony");
+  assert.equal(leader.username, "tony");
 });
 
 test("public route projection chooses the next three events and assigns presentation slots by time", () => {
