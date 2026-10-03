@@ -82,7 +82,7 @@ async function verifyCode(request, response, body) {
   }
 
   await store.consumeVerification(verification.id);
-  const user = await store.findOrCreateUser(emailHash, domain.maskEmail(email));
+  const user = await store.findOrCreateUser(emailHash, domain.maskEmail(email), domain.encryptEmail(email));
   if (!user || user.status !== "ACTIVE") {
     return sendJson(response, 403, { ok: false, reason: "account_unavailable" });
   }
