@@ -24,13 +24,14 @@ module.exports = async function handler(request, response) {
   const validated = validateRouteImageUpload(parsed.body);
   if (validated.error) return sendJson(response, validated.error === "image_too_large" ? 413 : 400, { ok: false, reason: validated.error });
 
-  const assetPath = managedImagePath(publisher.slot, crypto.randomBytes(16).toString("hex"), validated.value.extension);
+  const leaderNamespace = publisher.username || publisher.id;
+  const assetPath = managedImagePath(leaderNamespace, crypto.randomBytes(16).toString("hex"), validated.value.extension);
   let result;
   try {
     result = await githubFetch(contentsUrl(assetPath), {
       method: "PUT",
       body: JSON.stringify({
-        message: "Upload route image for " + publisher.slot,
+        message: "Upload route image for " + leaderNamespace,
         content: validated.value.bytes.toString("base64"),
         branch
       })
