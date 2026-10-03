@@ -1,0 +1,38 @@
+{
+  "id": "uDtHdC3x",
+  "sourceRoute": {
+    "routeId": "budao-leader-tony"
+  },
+  "facts": {
+    "title": "蟒山环线",
+    "location": "中国·北京·昌平",
+    "date": "2026-10-10",
+    "time": "08:30",
+    "timezone": "Asia/Shanghai",
+    "duration": "4小时",
+    "distance": "7千米",
+    "elevation": "600米",
+    "surface": "土石野路、石阶、铺装路",
+    "difficulty": "中高",
+    "suitableFor": "10岁以上或体能良好的长者",
+    "equipmentMinimum": "徒步鞋、登山杖、饮用水大于2升",
+    "participantRequirements": "",
+    "meetingPlace": "蟒山森林公园停车场",
+    "description": "你要起来，往山中去。看哪，石阶向上，林木在两旁静默，风从高处吹来。你以为所行的是脚下的路，其实山也在问你的心：你为何匆忙？你所倚靠的是什么？不要惧怕坡陡，也不要贪恋平坦；当你一步一步登高，愿你听见那在喧嚣之外的声音。蟒山不替人回答，却要叫沉睡的心苏醒，叫摇动的重新站立；因为真正的路，不只通向山顶，也通向你必须面对的那一位。"
+  },
+  "visual": {
+    "mode": "original",
+    "source": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/tony/eb4ebe3712a3a1587419ddc3ecd2fabe.jpg"
+  },
+  "participation": {
+    "type": "legacy_qr",
+    "artifact": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/2067bc46d85de5cd81b7111bca4c6cda.png"
+  },
+  "presentation": {
+    "collection": "daily",
+    "template": "journey"
+  },
+  "revision": 1,
+  "createdAt": "2026-10-03T11:12:10.949Z",
+  "createdBy": "leader-tony"
+}
