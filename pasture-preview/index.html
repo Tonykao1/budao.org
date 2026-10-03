@@ -51,7 +51,7 @@
  html=html.replace('同路原野 · 整合审看版','同路原野 · 完整预览站');
  // Resident layer: public landscape first, authenticated controls second.
  html=html.replace('</head>','<link rel="stylesheet" href="/pasture-preview/pasture-resident-auth.css"></head>');
- html=html.replace('</body>','<script src="/pasture-preview/pasture-resident-auth.js"><'+'/script><script src="/pasture-preview/pasture-sheep-maker.js"><'+'/script></body>');
+ html=html.replace('</body>','<script src="/pasture-preview/pasture-resident-auth.js"><'+'/script><script src="/pasture-preview/pasture-sheep-maker.js"><'+'/script><script src="/pasture-preview/pasture-hand-cursor.js"><'+'/script></body>');
  // The original card, store and private drawer remain unchanged; demo data cannot trigger payments.
  document.open();document.write(html);document.close();
 })().catch(e=>{
