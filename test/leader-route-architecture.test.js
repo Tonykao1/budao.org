@@ -1,5 +1,7 @@
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 
 process.env.NODE_ENV = "test";
@@ -120,4 +122,28 @@ test("different leaders publish separate routes instead of overwriting a fixed s
   assert.equal(routes.length, 2);
   assert.deepEqual(routes.map((route) => route.leaderId).sort(), ["leader-moses", "leader-tony"]);
   assert.deepEqual(routes.map((route) => route.leader).sort(), ["moses", "tony"]);
+});
+
+test("route image uploads are namespaced by leader username", async () => {
+  const rateLimit = require("../api/_security/rate-limit");
+  rateLimit.resetForTests();
+  const modulePath = require.resolve("../api/upload-route-image");
+  delete require.cache[modulePath];
+  const upload = require(modulePath);
+  let putUrl = "";
+  global.fetch = async (url) => {
+    putUrl = String(url);
+    return { ok: true, status: 200, json: async () => ({ content: { sha: "image" } }) };
+  };
+  const png = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+  const res = response();
+  await upload(request({ mimeType: "image/png", data: png }, signedCookie("leader-tony", "tony")), res);
+  assert.equal(res.statusCode, 200);
+  assert.match(putUrl, /\/route-assets\/tony\//);
+});
+
+test("Tent login is a username field and private route reads use scope=mine", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "tent.html"), "utf8");
+  assert.match(source, /<span>Username<\/span>\s*<input name="email" type="text"/);
+  assert.match(source, /scope=mine/);
 });
