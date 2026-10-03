@@ -17,6 +17,20 @@ function configurationSecret(env = process.env) {
   return value;
 }
 
+function emailEncryptionSecret(env = process.env) {
+  const value = env.PASTURE_EMAIL_ENCRYPTION_SECRET || env.PASTURE_SESSION_SECRET || env.BUDAO_SESSION_SECRET;
+  if (!value || value.length < 32) {
+    const error = new Error("pasture_email_encryption_not_configured");
+    error.code = "PASTURE_AUTH_NOT_CONFIGURED";
+    throw error;
+  }
+  return value;
+}
+
+function emailEncryptionKey(env = process.env) {
+  return crypto.createHash("sha256").update("budao-pasture-email:v1:" + emailEncryptionSecret(env)).digest();
+}
+
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -33,6 +47,33 @@ function maskEmail(value) {
   if (!local || !domain) return "";
   const prefix = local.length <= 2 ? local.slice(0, 1) : local.slice(0, 2);
   return prefix + "***@" + domain;
+}
+
+function encryptEmail(value, env = process.env) {
+  const email = normalizeEmail(value);
+  if (!validEmail(email)) throw new Error("invalid_email");
+  const nonce = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", emailEncryptionKey(env), nonce);
+  const ciphertext = Buffer.concat([cipher.update(email, "utf8"), cipher.final()]);
+  return {
+    emailCiphertext: ciphertext.toString("base64url"),
+    emailNonce: nonce.toString("base64url"),
+    emailTag: cipher.getAuthTag().toString("base64url")
+  };
+}
+
+function decryptEmail(record, env = process.env) {
+  if (!record || !record.emailCiphertext || !record.emailNonce || !record.emailTag) return null;
+  const decipher = crypto.createDecipheriv(
+    "aes-256-gcm",
+    emailEncryptionKey(env),
+    Buffer.from(record.emailNonce, "base64url")
+  );
+  decipher.setAuthTag(Buffer.from(record.emailTag, "base64url"));
+  return Buffer.concat([
+    decipher.update(Buffer.from(record.emailCiphertext, "base64url")),
+    decipher.final()
+  ]).toString("utf8");
 }
 
 function hmac(label, value, env = process.env) {
@@ -133,9 +174,12 @@ module.exports = {
   HEAD_COLORS,
   MARKINGS,
   configurationSecret,
+  emailEncryptionSecret,
   normalizeEmail,
   validEmail,
   maskEmail,
+  encryptEmail,
+  decryptEmail,
   emailHash,
   codeHash,
   tokenHash,
