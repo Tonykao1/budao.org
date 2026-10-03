@@ -3,6 +3,7 @@ const crypto = require("node:crypto");
 const COOKIE_NAME = "budao_admin_session";
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
 const LEGACY_SLOTS = ["IMS", "BACBC", "HD"];
+const USER_ENV_KEYS = ["BUDAO_ADMIN_USERS_JSON", "BUDAO_LEADER_USERS_JSON"];
 const LOGIN_ALIASES = {
   "hd@budao.org": {
     sourceEmail: "ims@budao.org",
@@ -78,17 +79,9 @@ function authenticateCredentials(identifier, password) {
 }
 
 function authConfigurationStatus() {
-  const rawUsers = process.env.BUDAO_ADMIN_USERS_JSON;
-  let usersValid = false;
-
-  if (rawUsers) {
-    try {
-      const parsed = JSON.parse(rawUsers);
-      usersValid = Array.isArray(parsed) && parsed.length > 0 && configuredUsers().length === parsed.length;
-    } catch (error) {
-      usersValid = false;
-    }
-  }
+  const sources = USER_ENV_KEYS.map(readConfiguredUserSource);
+  const provided = sources.filter((source) => source.provided);
+  const usersValid = provided.length > 0 && provided.every((source) => source.valid) && configuredUsers().length > 0;
 
   const secret = process.env.BUDAO_SESSION_SECRET;
   return {
@@ -98,15 +91,26 @@ function authConfigurationStatus() {
 }
 
 function configuredUsers() {
+  return USER_ENV_KEYS.flatMap((key) => readConfiguredUserSource(key).users);
+}
+
+function readConfiguredUserSource(key) {
+  const raw = process.env[key];
+  if (!raw) return { provided: false, valid: true, users: [] };
+
   let parsed;
   try {
-    parsed = JSON.parse(process.env.BUDAO_ADMIN_USERS_JSON || "[]");
+    parsed = JSON.parse(raw);
   } catch (error) {
-    return [];
+    return { provided: true, valid: false, users: [] };
   }
 
-  if (!Array.isArray(parsed)) return [];
-  return parsed.map(normalizeConfiguredUser).filter(Boolean);
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    return { provided: true, valid: false, users: [] };
+  }
+
+  const users = parsed.map(normalizeConfiguredUser).filter(Boolean);
+  return { provided: true, valid: users.length === parsed.length, users };
 }
 
 function normalizeConfiguredUser(user) {
