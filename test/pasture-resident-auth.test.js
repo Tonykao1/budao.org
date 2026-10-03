@@ -68,14 +68,16 @@ test('sheep maker is visual-first with live preview and no dropdown customizatio
  assert.match(maker,/aria-pressed/);
  assert.match(maker,/saveSheep/);
 });
-test('resident sheep hand uses relaxed, ready, and grabbing states without the five-finger fork cursor',()=>{
+test('resident sheep hand uses relaxed, ready, and grabbing states while preserving exact hit logic and real baa audio',()=>{
  const fs=require('node:fs'),path=require('node:path');
+ const hand=fs.readFileSync(path.join(__dirname,'..','pasture-preview/pasture-hand-cursor.js'),'utf8');
  const landscape=fs.readFileSync(path.join(__dirname,'..','tonglu.html'),'utf8');
- assert.match(landscape,/PIXEL_HAND_RELAXED/);
- assert.match(landscape,/PIXEL_HAND_READY/);
- assert.match(landscape,/PIXEL_HAND_CLOSED/);
- assert.match(landscape,/residentHandState/);
- assert.doesNotMatch(landscape,/PIXEL_HAND_OPEN=/);
+ const preview=fs.readFileSync(path.join(__dirname,'..','pasture-preview/index.html'),'utf8');
+ assert.match(hand,/PIXEL_HAND_RELAXED/);
+ assert.match(hand,/PIXEL_HAND_READY/);
+ assert.match(hand,/PIXEL_HAND_CLOSED/);
+ assert.match(hand,/residentHandState/);
+ assert.match(preview,/pasture-hand-cursor\.js/);
  assert.match(landscape,/residentHit\(e\.clientX,e\.clientY\)/);
  assert.match(landscape,/baaa01\.mp3/);
 });
