@@ -18,10 +18,16 @@ async function ensurePastureSchema(env = process.env) {
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     email_hash text NOT NULL,
     email_masked text NOT NULL,
+    email_ciphertext text,
+    email_nonce text,
+    email_tag text,
     status text NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','SUSPENDED','DELETED')),
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_ciphertext text`;
+  await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_nonce text`;
+  await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_tag text`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_users_email_hash_uq ON pasture_users(email_hash)`;
   await query`CREATE TABLE IF NOT EXISTS pasture_email_verifications (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -90,18 +96,25 @@ async function consumeVerification(id, when = new Date()) {
     .where(eq(pastureEmailVerifications.id, id));
 }
 
-async function findOrCreateUser(emailHash, emailMasked) {
+async function findOrCreateUser(emailHash, emailMasked, sealedEmail = {}) {
   const db = getDb();
+  const emailFields = {
+    emailMasked,
+    emailCiphertext: sealedEmail.emailCiphertext || null,
+    emailNonce: sealedEmail.emailNonce || null,
+    emailTag: sealedEmail.emailTag || null,
+    updatedAt: new Date()
+  };
   let rows = await db.select().from(pastureUsers)
     .where(eq(pastureUsers.emailHash, emailHash)).limit(1);
   const current = rows[0] || null;
   if (current) {
     rows = await db.update(pastureUsers)
-      .set({ emailMasked, updatedAt: new Date() })
+      .set(emailFields)
       .where(eq(pastureUsers.id, current.id)).returning();
     return rows[0] || current;
   }
-  rows = await db.insert(pastureUsers).values({ emailHash, emailMasked }).returning();
+  rows = await db.insert(pastureUsers).values({ emailHash, ...emailFields }).returning();
   return rows[0];
 }
 
@@ -156,6 +169,18 @@ async function saveSheep(userId, appearance) {
   return { sheep: rows[0], created: true };
 }
 
+async function listResidentsForAdmin(env = process.env) {
+  const query = neon(getDatabaseUrl(env));
+  return await query`
+    SELECT u.id, u.email_masked, u.email_ciphertext, u.email_nonce, u.email_tag,
+           u.status, u.created_at, u.updated_at,
+           EXISTS(SELECT 1 FROM pasture_sheep sh WHERE sh.user_id = u.id) AS has_sheep,
+           (SELECT MAX(s.last_seen_at) FROM pasture_sessions s WHERE s.user_id = u.id) AS last_seen_at
+      FROM pasture_users u
+     ORDER BY u.created_at DESC
+  `;
+}
+
 function resetPastureSchemaForTests() { ensured = false; }
 
 module.exports = {
@@ -170,5 +195,6 @@ module.exports = {
   revokeSession,
   sheepForUser,
   saveSheep,
+  listResidentsForAdmin,
   resetPastureSchemaForTests
 };
