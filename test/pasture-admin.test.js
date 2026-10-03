@@ -24,12 +24,16 @@ test('pasture user schema has encrypted email columns without replacing lookup h
   assert.match(schema,/emailTag: text\("email_tag"\)/);
 });
 
-test('pasture admin endpoint and page require a dedicated resident-admin allowlist',()=>{
-  const api=fs.readFileSync(path.join(__dirname,'..','api/pasture-admin.js'),'utf8');
+test('pasture admin endpoint and page require a dedicated resident-admin allowlist without adding a serverless function',()=>{
+  const api=fs.readFileSync(path.join(__dirname,'..','api/_security/pasture-admin-handler.js'),'utf8');
   const page=fs.readFileSync(path.join(__dirname,'..','admin/pasture.html'),'utf8');
+  const config=JSON.parse(fs.readFileSync(path.join(__dirname,'..','vercel.json'),'utf8'));
+  const rewrites=new Map(config.rewrites.map((x)=>[x.source,x.destination]));
   assert.match(api,/PASTURE_ADMIN_USER_IDS/);
   assert.match(api,/getAuthenticatedPublisher/);
   assert.match(api,/decryptEmail/);
   assert.match(page,/数字牧场居民/);
   assert.match(page,/\/api\/pasture-admin/);
+  assert.equal(rewrites.get('/api/pasture-admin'),'/api/auth/session?view=pasture-residents');
+  assert.equal(fs.existsSync(path.join(__dirname,'..','api/pasture-admin.js')),false);
 });
