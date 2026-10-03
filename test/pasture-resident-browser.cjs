@@ -41,12 +41,21 @@ const assert=require('node:assert/strict');
    await page.locator('#pastureSendCode').click();
    await page.locator('#pastureCode').fill('123456');
    await page.locator('#pastureVerify').click();
-   await page.waitForSelector('#pastureSheepBody',{timeout:10000});
-   await page.selectOption('#pastureSheepBody','#bfd8da');
-   await page.selectOption('#pastureSheepHead','#776d66');
-   await page.selectOption('#pastureSheepMark','FACE');
+   await page.waitForSelector('#pastureSheepPreview',{timeout:10000});
+   assert.equal(await page.locator('#pastureResidentLayer select').count(),0,'sheep maker must not fall back to dropdowns');
+   assert.equal(await page.locator('[data-sheep-body]').count(),8);
+   assert.equal(await page.locator('[data-sheep-head]').count(),8);
+   assert.equal(await page.locator('[data-sheep-mark]').count(),4);
+   await page.locator('[data-sheep-body="#bfd8da"]').click();
+   await page.locator('[data-sheep-head="#776d66"]').click();
+   await page.locator('[data-sheep-mark="FACE"]').click();
+   assert.equal(await page.locator('[data-sheep-body="#bfd8da"]').getAttribute('aria-pressed'),'true');
+   assert.ok((await page.locator('#pastureSheepPreview').evaluate(c=>({w:c.width,h:c.height}))).w>0,'live preview canvas must render');
    await page.locator('#pastureSaveSheep').click();
    await page.waitForSelector('#pastureResidentLayer',{state:'hidden',timeout:10000});
+   assert.equal(resident.sheep.bodyColor,'#bfd8da');
+   assert.equal(resident.sheep.headColor,'#776d66');
+   assert.equal(resident.sheep.marking,'FACE');
 
    await page.waitForFunction(()=>{
      const d=document.getElementById('liveArea')?.contentDocument;
@@ -73,7 +82,7 @@ const assert=require('node:assert/strict');
 
    const unexpected=pageErrors.filter(v=>!v.includes('catch(...) is not a function'));
    assert.deepEqual(unexpected,[],JSON.stringify(pageErrors));
-   console.log('PASTURE RESIDENT PASS: guest has 44/no buttons; verified resident gets locked buttons + guaranteed animated 45th sheep');
+   console.log('PASTURE RESIDENT PASS: visual sheep maker saves identity; guest has 44; resident gets locked buttons + animated 45th sheep');
  }catch(e){
    await page.screenshot({path:'/tmp/pasture-resident-failure.png',fullPage:true}).catch(()=>{});
    console.error('PASTURE RESIDENT FAIL',e,pageErrors);
