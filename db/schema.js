@@ -177,6 +177,9 @@ const pastureUsers = pgTable("pasture_users", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   emailHash: text("email_hash").notNull(),
   emailMasked: text("email_masked").notNull(),
+  emailCiphertext: text("email_ciphertext"),
+  emailNonce: text("email_nonce"),
+  emailTag: text("email_tag"),
   status: text("status").notNull().default("ACTIVE"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
