@@ -74,8 +74,8 @@
       <section class="inside" aria-label="帐篷内部">
         <form class="entry-form">
           <label>
-            <span>Email</span>
-            <input name="email" type="email" autocomplete="email">
+            <span>Username</span>
+            <input name="email" type="text" autocomplete="username" autocapitalize="none" spellcheck="false">
           </label>
           <label>
             <span>Password</span>
@@ -326,8 +326,14 @@
         window.fetch = function (input, init) {
           const requestUrl = typeof input === "string" ? input : input && input.url || "";
           const method = init && init.method || input && input.method || "GET";
+          const normalizedMethod = String(method).toUpperCase();
 
-          if (requestUrl.indexOf("/api/publish-route") >= 0 && String(method).toUpperCase() === "POST") {
+          if (normalizedMethod === "GET" && requestUrl.indexOf("/api/routes") >= 0 && requestUrl.indexOf("scope=mine") < 0) {
+            const separator = requestUrl.indexOf("?") >= 0 ? "&" : "?";
+            return originalFetch(requestUrl + separator + "scope=mine", init);
+          }
+
+          if (requestUrl.indexOf("/api/publish-route") >= 0 && normalizedMethod === "POST") {
             return preparePublishInit(init).then(function (nextInit) {
               const request = originalFetch(input, nextInit);
               watchPublishRequest(request);
