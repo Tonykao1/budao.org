@@ -3,19 +3,11 @@ const { sendJson } = require("./http");
 const domain = require("./pasture-auth-domain");
 const store = require("./pasture-auth-store");
 
-function allowedAdminIds(env = process.env) {
-  const explicit = String(env.PASTURE_ADMIN_USER_IDS || "")
-    .split(",").map((v) => v.trim()).filter(Boolean);
-  if (explicit.length) return new Set(explicit);
-  const legacyOperator = String(env.STEWARDSHIP_OPERATOR_USER_ID || "").trim();
-  return new Set(legacyOperator ? [legacyOperator] : []);
-}
-
 module.exports = async function handler(request, response) {
   if (request.method !== "GET") return sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
-  if (!allowedAdminIds().has(publisher.id)) return sendJson(response, 403, { ok: false, reason: "forbidden" });
+  if (publisher.username !== "tony") return sendJson(response, 403, { ok: false, reason: "forbidden" });
 
   try {
     await store.ensurePastureSchema();
@@ -48,5 +40,3 @@ module.exports = async function handler(request, response) {
     return sendJson(response, 500, { ok: false, reason: "service_unavailable" });
   }
 };
-
-module.exports._test = { allowedAdminIds };
