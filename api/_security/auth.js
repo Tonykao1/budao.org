@@ -2,11 +2,13 @@ const crypto = require("node:crypto");
 
 const COOKIE_NAME = "budao_admin_session";
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
-const PUBLISHER_SLOTS = ["IMS", "BACBC", "HD"];
+const LEGACY_SLOTS = ["IMS", "BACBC", "HD"];
+const USER_ENV_KEYS = ["BUDAO_ADMIN_USERS_JSON", "BUDAO_LEADER_USERS_JSON"];
 const LOGIN_ALIASES = {
   "hd@budao.org": {
     sourceEmail: "ims@budao.org",
     id: "publisher-hd",
+    username: "hd",
     slot: "HD"
   }
 };
@@ -31,22 +33,28 @@ function getAuthenticatedPublisher(request) {
     return null;
   }
 
+  const slot = normalizeLegacySlot(claims && claims.slot) || "IMS";
+  const legacySlotIdentity = !(claims && claims.username);
+  const username = legacySlotIdentity ? normalizeUsername(slot) : normalizeUsername(claims.username);
+
   if (!claims || claims.iss !== "budao.org" || claims.aud !== "budao-admin" ||
-      claims.role !== "publisher" || !PUBLISHER_SLOTS.includes(claims.slot) ||
-      typeof claims.sub !== "string" || claims.sub.length > 160 ||
-      !Number.isInteger(claims.exp) || claims.exp <= Math.floor(Date.now() / 1000)) {
+      claims.role !== "publisher" || typeof claims.sub !== "string" || claims.sub.length > 160 ||
+      !username || !Number.isInteger(claims.exp) || claims.exp <= Math.floor(Date.now() / 1000)) {
     return null;
   }
 
-  return { id: claims.sub, role: claims.role, slot: claims.slot };
+  return { id: claims.sub, username, role: claims.role, slot, legacySlotIdentity };
 }
 
-function authenticateCredentials(email, password) {
+function authenticateCredentials(identifier, password) {
   const users = configuredUsers();
-  const normalizedEmail = String(email || "").trim().toLowerCase();
-  const directUser = users.find((candidate) => candidate.email.toLowerCase() === normalizedEmail);
-  const alias = directUser ? null : LOGIN_ALIASES[normalizedEmail];
-  const user = directUser || (alias ? users.find((candidate) => candidate.email.toLowerCase() === alias.sourceEmail) : null);
+  const normalizedIdentifier = String(identifier || "").trim().toLowerCase();
+  const directUser = users.find((candidate) =>
+    candidate.username === normalizedIdentifier ||
+    (candidate.email && candidate.email.toLowerCase() === normalizedIdentifier)
+  );
+  const alias = directUser ? null : LOGIN_ALIASES[normalizedIdentifier];
+  const user = directUser || (alias ? users.find((candidate) => candidate.email && candidate.email.toLowerCase() === alias.sourceEmail) : null);
   if (!user || typeof password !== "string" || password.length > 256) return null;
 
   const pieces = user.passwordHash.split("$");
@@ -64,23 +72,16 @@ function authenticateCredentials(email, password) {
   if (expected.length !== actual.length || !crypto.timingSafeEqual(actual, expected)) return null;
   return {
     id: alias ? alias.id : user.id,
+    username: alias ? alias.username : user.username,
     role: "publisher",
-    slot: alias ? alias.slot : user.slot
+    slot: alias ? alias.slot : user.slot || "IMS"
   };
 }
 
 function authConfigurationStatus() {
-  const rawUsers = process.env.BUDAO_ADMIN_USERS_JSON;
-  let usersValid = false;
-
-  if (rawUsers) {
-    try {
-      const parsed = JSON.parse(rawUsers);
-      usersValid = Array.isArray(parsed) && parsed.length > 0 && configuredUsers().length === parsed.length;
-    } catch (error) {
-      usersValid = false;
-    }
-  }
+  const sources = USER_ENV_KEYS.map(readConfiguredUserSource);
+  const provided = sources.filter((source) => source.provided);
+  const usersValid = provided.length > 0 && provided.every((source) => source.valid) && configuredUsers().length > 0;
 
   const secret = process.env.BUDAO_SESSION_SECRET;
   return {
@@ -90,18 +91,49 @@ function authConfigurationStatus() {
 }
 
 function configuredUsers() {
+  return USER_ENV_KEYS.flatMap((key) => readConfiguredUserSource(key).users);
+}
+
+function readConfiguredUserSource(key) {
+  const raw = process.env[key];
+  if (!raw) return { provided: false, valid: true, users: [] };
+
   let parsed;
   try {
-    parsed = JSON.parse(process.env.BUDAO_ADMIN_USERS_JSON || "[]");
+    parsed = JSON.parse(raw);
   } catch (error) {
-    return [];
+    return { provided: true, valid: false, users: [] };
   }
 
-  if (!Array.isArray(parsed)) return [];
-  return parsed.filter((user) => user && typeof user.id === "string" && user.id.length <= 160 &&
-    typeof user.email === "string" && user.email.length <= 254 &&
-    validPasswordHash(user.passwordHash) &&
-    PUBLISHER_SLOTS.includes(user.slot));
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    return { provided: true, valid: false, users: [] };
+  }
+
+  const users = parsed.map(normalizeConfiguredUser).filter(Boolean);
+  return { provided: true, valid: users.length === parsed.length, users };
+}
+
+function normalizeConfiguredUser(user) {
+  if (!user || typeof user.id !== "string" || !user.id || user.id.length > 160 || !validPasswordHash(user.passwordHash)) {
+    return null;
+  }
+
+  const email = typeof user.email === "string" && user.email.length <= 254 ? user.email.trim() : "";
+  const username = normalizeUsername(user.username || (email ? email.split("@")[0] : ""));
+  if (!username) return null;
+
+  const slot = normalizeLegacySlot(user.slot) || "IMS";
+  return { id: user.id, username, email, passwordHash: user.passwordHash, slot };
+}
+
+function normalizeUsername(value) {
+  const username = String(value || "").trim().toLowerCase();
+  return /^[a-z][a-z0-9._-]{0,63}$/.test(username) ? username : "";
+}
+
+function normalizeLegacySlot(value) {
+  const slot = String(value || "").trim().toUpperCase();
+  return LEGACY_SLOTS.includes(slot) ? slot : "";
 }
 
 function validPasswordHash(value) {
@@ -122,8 +154,9 @@ function createSessionCookie(user, secure = true) {
     iss: "budao.org",
     aud: "budao-admin",
     sub: user.id,
+    username: normalizeUsername(user.username || user.id),
     role: "publisher",
-    slot: user.slot,
+    slot: normalizeLegacySlot(user.slot) || "IMS",
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS
   }), "utf8").toString("base64url");
   const value = payload + "." + sign(payload, secret);
@@ -167,5 +200,6 @@ module.exports = {
   authenticateCredentials,
   clearSessionCookie,
   createSessionCookie,
-  getAuthenticatedPublisher
+  getAuthenticatedPublisher,
+  normalizeUsername
 };
