@@ -33,5 +33,5 @@ module.exports = async function handler(request, response) {
   } catch (error) {
     return sendJson(response, 503, { ok: false, reason: "auth_unavailable" });
   }
-  return sendJson(response, 200, { ok: true, slot: user.slot });
+  return sendJson(response, 200, { ok: true, leader: user.username, slot: user.slot || "IMS" });
 };
