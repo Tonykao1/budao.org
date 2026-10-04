@@ -35,7 +35,7 @@ test('pasture admin accepts Tony personal leader identity and keeps other leader
   assert.match(auth,/BUDAO_LEADER_USERS_JSON/);
   assert.match(auth,/username/);
   assert.match(login,/leader:\s*user\.username/);
-  assert.match(api,/publisher\.username\s*===\s*["']tony["']/i);
+  assert.match(api,/publisher\.username\s*!==\s*["']tony["']/i);
   assert.match(api,/getAuthenticatedPublisher/);
   assert.match(api,/decryptEmail/);
   assert.match(page,/数字牧场居民/);
