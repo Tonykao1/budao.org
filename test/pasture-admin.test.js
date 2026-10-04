@@ -24,13 +24,18 @@ test('pasture user schema has encrypted email columns without replacing lookup h
   assert.match(schema,/emailTag: text\("email_tag"\)/);
 });
 
-test('pasture admin endpoint and page require a dedicated resident-admin allowlist without adding a serverless function',()=>{
+test('pasture admin accepts Tony personal leader identity and keeps other leaders out without adding a serverless function',()=>{
   const root=path.join(__dirname,'..');
   const api=fs.readFileSync(path.join(root,'api/_security/pasture-admin-handler.js'),'utf8');
+  const auth=fs.readFileSync(path.join(root,'api/_security/auth.js'),'utf8');
+  const login=fs.readFileSync(path.join(root,'api/auth/login.js'),'utf8');
   const page=fs.readFileSync(path.join(root,'admin/pasture.html'),'utf8');
   const config=JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));
   const rewrites=new Map(config.rewrites.map((x)=>[x.source,x.destination]));
-  assert.match(api,/PASTURE_ADMIN_USER_IDS/);
+  assert.match(auth,/BUDAO_LEADER_USERS_JSON/);
+  assert.match(auth,/username/);
+  assert.match(login,/leader:\s*user\.username/);
+  assert.match(api,/publisher\.username\s*===\s*["']tony["']/i);
   assert.match(api,/getAuthenticatedPublisher/);
   assert.match(api,/decryptEmail/);
   assert.match(page,/数字牧场居民/);
