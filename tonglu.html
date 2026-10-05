@@ -153,6 +153,19 @@ function drawDesktopLamb(x,y,s,flip=false,style='normal'){
   rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
   ctx.restore();
 }
+function drawDesktopRestingLamb(x,y,s,flip=false,style='normal',phase=0){
+  const bw=style==='blackwhite';
+  const f=bw?'#eeeae2':'#f6ead7',h=bw?'#302d2a':'#b98f79';
+  const breathe=Math.sin((tick+phase)/120)>.78?1*s:0;
+  ctx.save();
+  if(flip){ctx.translate(x+22*s,0);ctx.scale(-1,1);x=0}
+  rect(x,y+3*s-breathe,17*s,7*s,f);rect(x+3*s,y-breathe,12*s,10*s,f);rect(x+7*s,y-2*s-breathe,8*s,12*s,f);
+  if(bw){rect(x+3*s,y+2*s-breathe,5*s,4*s,'#4a4642');rect(x+10*s,y+5*s-breathe,4*s,3*s,'#4a4642')}
+  rect(x+14*s,y+3*s-breathe,7*s,7*s,h);rect(x+20*s,y+5*s-breathe,2*s,3*s,h);
+  rect(x+13*s,y+4*s-breathe,2*s,2*s,h);rect(x+18*s,y+5*s-breathe,1,1,'#564d47');
+  rect(x+3*s,y+9*s,6*s,2*s,'#5d5851');rect(x+10*s,y+9*s,5*s,2*s,'#5d5851');
+  ctx.restore();
+}
 function desktopCreatureBox(o,isLamb){
   const w=(isLamb?21:33)*o.s,h=(isLamb?20:27)*o.s;
   return{l:o.x-3*o.s,r:o.x+w,t:o.y-9*o.s,b:o.y+h};
@@ -211,6 +224,15 @@ function buildDesktopLambLayout(){
     if(chosen)placed.push(chosen);
   }
 
+  const restRand=flockRand(flockHash('budao-lamb-rest-'+key));
+  const restTarget=1+(restRand()<.5?0:1);
+  const restIds=[...Array(placed.length).keys()];
+  for(let i=restIds.length-1;i>0;i--){
+    const j=Math.floor(restRand()*(i+1));
+    [restIds[i],restIds[j]]=[restIds[j],restIds[i]];
+  }
+  restIds.slice(0,restTarget).forEach(i=>{if(placed[i])placed[i].rest=true});
+
   desktopLambLayout=placed;
   desktopLambCacheKey=cacheKey;
   return placed;
@@ -218,11 +240,11 @@ function buildDesktopLambLayout(){
 function drawDesktopLambs(){
   const lambs=buildDesktopLambLayout();
   lambs.forEach((o,i)=>{
-    const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
-    const bob=Math.sin((tick+i*41)/110)>.82?1:0;
+    const dx=!o.rest&&o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
+    const bob=!o.rest&&Math.sin((tick+i*41)/110)>.82?1:0;
     const x=o.x+dx,y=o.y-bob;
-    rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-    drawDesktopLamb(x,y,o.s,o.flip,o.style);
+    rect(x-1.5*o.s,y+(o.rest?10:13)*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+    o.rest?drawDesktopRestingLamb(x,y,o.s,o.flip,o.style,i*41):drawDesktopLamb(x,y,o.s,o.flip,o.style);
   });
 }
 let returnTwigHover=false;
