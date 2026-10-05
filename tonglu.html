@@ -16,7 +16,7 @@ body{touch-action:none}
 </style>
 </head>
 <body>
-<iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20260924flock1" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20261005freeflock" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
 <iframe id="portraitFrame" title="牧场竖屏" tabindex="-1" aria-hidden="true"></iframe>
 <canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script src="/pasture-stars.js"></script>
@@ -110,7 +110,7 @@ function revealPastureWhenReady(){
       clearInterval(pastureWatchTimer);
       frame.style.opacity='0';
       setTimeout(()=>{
-        frame.src='/tonglu-pasture-v20.html?v=20260924flock1-'+Date.now();
+        frame.src='/tonglu-pasture-v20.html?v=20261005freeflock-'+Date.now();
       },800);
     }
   },100);
@@ -136,6 +136,10 @@ function flockHash(str){
 }
 function flockRand(seed){
   return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}
+}
+function lambScaleAtY(y){
+  const t=Math.max(0,Math.min(1,(y-160)/126));
+  return(.32+t*.84)*.56;
 }
 function drawDesktopLamb(x,y,s,flip=false,style='normal'){
   const bw=style==='blackwhite';
@@ -167,7 +171,6 @@ function desktopRiverConflict(o){
 function desktopForbidden(o){
   const b=desktopCreatureBox(o,true);
   if(desktopRiverConflict(o))return true;
-  // tree trunk/crown edge on the right; the river rule already protects the log bridge.
   if(b.r>414&&b.l<448&&b.b>184&&b.t<220)return true;
   return false;
 }
@@ -177,48 +180,36 @@ function buildDesktopLambLayout(){
   const adultLayout=(()=>{
     try{return Array.isArray(frame.contentWindow.__tongluAdultLayout)?frame.contentWindow.__tongluAdultLayout:[]}catch(e){return[]}
   })();
-  const adultSig=adultLayout.map(o=>Math.round(o.x)+','+Math.round(o.y)).join('|');
+  const adultSig=adultLayout.map(o=>Math.round(o.x)+','+Math.round(o.y)+','+Math.round(o.s*100)).join('|');
   const cacheKey=key+'|'+adultSig;
   if(cacheKey===desktopLambCacheKey&&desktopLambLayout.length===18)return desktopLambLayout;
 
-  const rand=flockRand(flockHash('budao-lamb-landscape-'+key));
-  const bases=[
-    [62,176,.22,false],[126,182,.23,true],[242,184,.24,false],[446,183,.23,true],
-    [45,211,.34,true],[104,220,.37,false],[174,211,.35,true],[251,224,.40,false],
-    [315,211,.36,true],[407,205,.39,false],[404,253,.42,true],
-    [47,256,.50,false],[112,278,.58,true],[194,255,.53,false],
-    [286,278,.61,true],[428,267,.57,false],[450,289,.64,true]
-  ];
+  const rand=flockRand(flockHash('budao-free-lamb-'+key));
   const occupied=adultLayout.map(o=>desktopCreatureBox(o,false));
   const placed=[];
+  const styles=Array(17).fill('normal').concat('blackwhite');
 
-  function place(base,style='normal',minFromBlack=0){
-    const black=adultLayout.find(o=>o.black);
-    const offsets=[[0,0],[12,-4],[-12,4],[20,5],[-20,-5],[28,-8],[-28,8],[36,0],[-36,0],[44,-6],[-44,6]];
-    for(let t=0;t<70;t++){
-      const off=offsets[t%offsets.length];
-      const spread=t<offsets.length?0:(rand()-.5)*14;
-      let x=base[0]+off[0]+spread,y=base[1]+off[1]+(rand()-.5)*5;
-      x=Math.max(6,Math.min(465,x));y=Math.max(166,Math.min(291,y));
-      const o={x,y,s:base[2],flip:base[3],style};
+  for(let i=0;i<18;i++){
+    let chosen=null;
+    for(let t=0;t<180;t++){
+      const y=160+rand()*126;
+      const o={x:8+rand()*447,y,s:lambScaleAtY(y),flip:rand()<.5,style:styles[i]};
       if(desktopForbidden(o))continue;
-      if(black&&minFromBlack>0&&Math.hypot((x+10*o.s)-black.x,(y+8*o.s)-black.y)<minFromBlack)continue;
       const box=desktopCreatureBox(o,true);
-      if(occupied.some(b=>desktopBoxesOverlap(box,b,4)))continue;
-      occupied.push(box);return o;
+      if(occupied.some(b=>desktopBoxesOverlap(box,b,3)))continue;
+      occupied.push(box);chosen=o;break;
     }
-    const o={x:Math.max(6,Math.min(465,base[0])),y:base[1],s:base[2],flip:base[3],style};
-    occupied.push(desktopCreatureBox(o,true));return o;
+    if(!chosen){
+      outer:for(let y=162;y<=284;y+=5){for(let x=10;x<=455;x+=9){
+        const o={x,y,s:lambScaleAtY(y),flip:rand()<.5,style:styles[i]};
+        const box=desktopCreatureBox(o,true);
+        if(!desktopForbidden(o)&&!occupied.some(b=>desktopBoxesOverlap(box,b,2))){
+          occupied.push(box);chosen=o;break outer;
+        }
+      }}
+    }
+    if(chosen)placed.push(chosen);
   }
-
-  bases.forEach(b=>{
-    const jittered=[b[0]+(rand()-.5)*18,b[1]+(rand()-.5)*8,b[2],rand()<.5];
-    placed.push(place(jittered));
-  });
-
-  const black=adultLayout.find(o=>o.black);
-  const specialBase=black&&black.x<240?[446,258,.57,true]:[52,258,.57,false];
-  placed.push(place(specialBase,'blackwhite',135));
 
   desktopLambLayout=placed;
   desktopLambCacheKey=cacheKey;
