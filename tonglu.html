@@ -19,6 +19,8 @@ body{touch-action:none}
 <iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20260924flock1" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
 <iframe id="portraitFrame" title="牧场竖屏" tabindex="-1" aria-hidden="true"></iframe>
 <canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
+<script src="/pasture-stars.js"></script>
+<script src="/pasture-sky-engine.js"></script>
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
@@ -29,7 +31,7 @@ let portraitMode=false;
 
 function sendPortraitEnvironment(){
   if(state&&portraitFrame.contentWindow){
-    portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state},location.origin);
+    portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state:{...state,skyState}},location.origin);
   }
 }
 function flockDateKeyFromState(s){
@@ -119,7 +121,8 @@ revealPastureWhenReady();
 const canvas=document.getElementById('environmentLayer');
 const ctx=canvas.getContext('2d');
 ctx.imageSmoothingEnabled=false;
-let state=null,tick=0;
+let state=null,skyState=null,tick=0;
+const LANDSCAPE_SKY_BOTTOM=96;
 
 function rect(x,y,w,h,color){
   ctx.fillStyle=color;
@@ -301,46 +304,6 @@ function sunAlpha(code,cloud){
   if(code===1||cloud>=40)return .58;
   return 1;
 }
-function moonEphemeris(time,latitude,longitude){
-  const DEG=Math.PI/180,DAY=86400000;
-  const d=(Number(time)-Date.UTC(2000,0,1,12))/DAY;
-  const e=23.4397*DEG,phi=Number(latitude||0)*DEG;
-  const ra=(l,b)=>Math.atan2(Math.sin(l)*Math.cos(e)-Math.tan(b)*Math.sin(e),Math.cos(l));
-  const dec=(l,b)=>Math.asin(Math.sin(b)*Math.cos(e)+Math.cos(b)*Math.sin(e)*Math.sin(l));
-  const L=(218.316+13.176396*d)*DEG;
-  const Mm=(134.963+13.064993*d)*DEG;
-  const F=(93.272+13.229350*d)*DEG;
-  const lm=L+6.289*DEG*Math.sin(Mm),bm=5.128*DEG*Math.sin(F);
-  const moonRa=ra(lm,bm),moonDec=dec(lm,bm);
-  const theta=(280.16+360.9856235*d+Number(longitude||0))*DEG;
-  let H=theta-moonRa;
-  H=Math.atan2(Math.sin(H),Math.cos(H));
-  const altitude=Math.asin(Math.sin(phi)*Math.sin(moonDec)+Math.cos(phi)*Math.cos(moonDec)*Math.cos(H));
-  const azimuth=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(moonDec)*Math.cos(phi))+Math.PI;
-
-  const Ms=(357.5291+0.98560028*d)*DEG;
-  const ls=Ms+(1.9148*Math.sin(Ms)+0.02*Math.sin(2*Ms)+0.0003*Math.sin(3*Ms))*DEG+102.9372*DEG+Math.PI;
-  const sunRa=ra(ls,0),sunDec=dec(ls,0);
-  const v=(r,q)=>[Math.cos(q)*Math.cos(r),Math.cos(q)*Math.sin(r),Math.sin(q)];
-  const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
-  const norm=a=>{const n=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/n,a[1]/n,a[2]/n]};
-  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
-  const subProj=(a,b)=>{const k=dot(a,b);return[a[0]-k*b[0],a[1]-k*b[1],a[2]-k*b[2]]};
-  const moonVec=v(moonRa,moonDec),sunVec=v(sunRa,sunDec);
-  const zenith=[Math.cos(phi)*Math.cos(theta),Math.cos(phi)*Math.sin(theta),Math.sin(phi)];
-  const bright=norm(subProj(sunVec,moonVec)),up=norm(subProj(zenith,moonVec)),right=norm(cross(moonVec,up));
-  const lightX=dot(bright,right),lightY=-dot(bright,up);
-  return Number.isFinite(altitude)&&Number.isFinite(azimuth)&&Number.isFinite(lightX)&&Number.isFinite(lightY)
-    ?{altitude,azimuth,hourAngle:H,lightX,lightY}:null;
-}
-function moonScreenPosition(p,width,skyBand){
-  if(!p||p.altitude<=0)return null;
-  const margin=width*.05;
-  const x=margin+((p.hourAngle+Math.PI)/(Math.PI*2))*(width-margin*2);
-  const horizonY=skyBand*.72,arcHeight=skyBand*.48;
-  const y=horizonY-Math.sin(Math.min(Math.PI/2,p.altitude))*arcHeight;
-  return{x,y};
-}
 function moon(cx,cy,phase,p){
   const r=8,a=phase*Math.PI*2,side=Math.abs(Math.sin(a)),lz=-Math.cos(a);
   const lx=side*(p?.lightX||0),ly=side*(p?.lightY||0);
@@ -351,11 +314,52 @@ function moon(cx,cy,phase,p){
     rect(cx+x,cy+y,1,1,(nx*lx+ny*ly+nz*lz)>0?'#fff1b8':'#52617b');
   }
 }
-function stars(darkness,cloud){
-  if(darkness<.35||cloud>72)return;
-  [[35,33],[91,57],[129,26],[174,48],[215,31],[258,61],[300,25],[344,47],[389,29],[433,58],[458,24],[112,78],[273,82]].forEach((p,i)=>{
-    if(((tick>>3)+i)%5!==0||darkness>.7)rect(p[0],p[1],1,1,i%3===0?'#fff4be':'#eaf6ff');
+function drawCelestial(now,cloud,c){
+  const sky=window.BudaoPastureSky;
+  if(!skyState||!sky)return;
+  const project=o=>sky.projectHorizontal({
+    altitudeDeg:o.altitudeDeg,azimuthDeg:o.azimuthDeg,centerAzimuthDeg:skyState.centerAzimuthDeg,
+    width:480,skyTop:0,skyBottom:LANDSCAPE_SKY_BOTTOM
   });
+  ctx.save();
+  ctx.beginPath();ctx.rect(0,0,480,LANDSCAPE_SKY_BOTTOM);ctx.clip();
+
+  const sunXY=project(skyState.sun),sa=sunAlpha(c.weatherCode,cloud);
+  if(sunXY&&sa>0){
+    ctx.save();ctx.globalAlpha=sa;
+    rect(sunXY.x-13,sunXY.y-13,26,26,'rgba(255,248,199,.72)');
+    rect(sunXY.x-9,sunXY.y-9,18,18,'#fff1a0');
+    ctx.restore();
+  }
+
+  for(const star of skyState.stars){
+    if(!(star.visibility>0.015))continue;
+    const p=project(star);if(!p)continue;
+    const twinkle=sky.starTwinkle({visibility:star.visibility,altitudeDeg:star.altitudeDeg,visualMagnitude:star.visualMagnitude,timeMs:now,seed:star.twinkleSeed});
+    const alpha=Math.max(0,Math.min(1,star.visibility*twinkle));
+    if(alpha<=0.015)continue;
+    const warm=Number(star.colorIndex)>0.65,cool=Number(star.colorIndex)<0.05;
+    const col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';
+    ctx.save();ctx.globalAlpha=alpha;
+    const size=star.magnitudeClass===0?2:1;
+    rect(Math.round(p.x)-(size>1?1:0),Math.round(p.y),size,size,col);
+    if(star.magnitudeClass===0&&alpha>.55){ctx.globalAlpha=alpha*.18;rect(Math.round(p.x)-2,Math.round(p.y),5,1,col)}
+    ctx.restore();
+  }
+
+  const moonXY=project(skyState.moon);
+  if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(skyState.moon.phase)||0,skyState.moon);
+  ctx.restore();
+}
+function refreshSkyState(){
+  const sky=window.BudaoPastureSky,stars=window.BudaoPastureStars;
+  if(!state||!sky||!Array.isArray(stars)||!state.location)return;
+  skyState=sky.computeSkyState({
+    timeMs:Date.now(),latitude:Number(state.location.latitude),longitude:Number(state.location.longitude),
+    cloudCover:Number(state.current?.cloudCover)||0,weatherCode:Number(state.current?.weatherCode)||0,stars
+  });
+  sendPortraitEnvironment();
+  draw();
 }
 function weatherFx(type,cloud){
   if(type==='fog'){
@@ -400,21 +404,7 @@ function draw(){
     ctx.fillStyle='rgba(18,34,70,'+darkness+')';ctx.fillRect(0,0,480,300);
   }
   const cloud=effectiveCloudCover();
-  if(day){
-    const x=22+progress*436,y=78-Math.sin(Math.PI*progress)*56;
-    const sa=sunAlpha(c.weatherCode,cloud);
-    if(sa>0){
-      ctx.save();ctx.globalAlpha=sa;
-      rect(x-13,y-13,26,26,'rgba(255,248,199,.72)');
-      rect(x-9,y-9,18,18,'#fff1a0');
-      ctx.restore();
-    }
-  }else{
-    stars(darkness,cloud);
-  }
-  const moonPos=moonEphemeris(now,state.location.latitude,state.location.longitude);
-  const moonXY=moonScreenPosition(moonPos,480,103);
-  if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(a.moonPhase)||0,moonPos);
+  drawCelestial(now,cloud,c);
   weatherFx(kind(c.weatherCode),cloud);
 }
 function build(raw,lat,lon,source){
@@ -440,8 +430,7 @@ async function weatherAt(lat,lon,source){
   const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');
   state=build(await r.json(),lat,lon,source);
   sendLandscapeEnvironment();
-  sendPortraitEnvironment();
-  draw();
+  refreshSkyState();
 }
 const LOCATION_KEY='budao:pasture-location:v1';
 const LOCATION_MAX_AGE=24*60*60*1000;
@@ -497,6 +486,7 @@ async function refresh(){
 syncComposition();
 refresh();
 setInterval(refresh,600000);
+setInterval(refreshSkyState,45000);
 setInterval(()=>{if(!portraitMode)draw()},120);
 })();
 </script>
