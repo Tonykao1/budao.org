@@ -173,6 +173,65 @@ const prayerRateLimits = pgTable("prayer_rate_limits", {
   count: integer("count").notNull().default(1)
 });
 
+const pastureUsers = pgTable("pasture_users", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  emailHash: text("email_hash").notNull(),
+  emailMasked: text("email_masked").notNull(),
+  emailCiphertext: text("email_ciphertext"),
+  emailNonce: text("email_nonce"),
+  emailTag: text("email_tag"),
+  status: text("status").notNull().default("ACTIVE"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  emailHashUnique: uniqueIndex("pasture_users_email_hash_uq").on(table.emailHash),
+  statusIndex: index("pasture_users_status_idx").on(table.status)
+}));
+
+const pastureEmailVerifications = pgTable("pasture_email_verifications", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  emailHash: text("email_hash").notNull(),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  attempts: integer("attempts").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  lookupIndex: index("pasture_email_verifications_lookup_idx").on(table.emailHash, table.createdAt)
+}));
+
+const pastureSessions = pgTable("pasture_sessions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => pastureUsers.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  userAgentSummary: text("user_agent_summary")
+}, (table) => ({
+  tokenHashUnique: uniqueIndex("pasture_sessions_token_hash_uq").on(table.tokenHash),
+  userIndex: index("pasture_sessions_user_id_idx").on(table.userId)
+}));
+
+const pastureSheep = pgTable("pasture_sheep", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => pastureUsers.id, { onDelete: "cascade" }),
+  bodyColor: text("body_color").notNull(),
+  headColor: text("head_color").notNull(),
+  marking: text("marking").notNull().default("NONE"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  userUnique: uniqueIndex("pasture_sheep_user_id_uq").on(table.userId)
+}));
+
+const pastureRateLimits = pgTable("pasture_rate_limits", {
+  keyHash: text("key_hash").primaryKey(),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull(),
+  count: integer("count").notNull().default(1)
+});
+
 module.exports = {
   stewardshipUsers,
   passkeyCredentials,
@@ -184,5 +243,10 @@ module.exports = {
   stewardshipAuditEvents,
   prayerRequests,
   prayerAuditEvents,
-  prayerRateLimits
+  prayerRateLimits,
+  pastureUsers,
+  pastureEmailVerifications,
+  pastureSessions,
+  pastureSheep,
+  pastureRateLimits
 };
