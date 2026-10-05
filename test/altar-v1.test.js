@@ -66,18 +66,18 @@ test("Tent creates a humble altar cornerstone from steward capability, not usern
   assert.match(source, /window\.location\.href\s*=\s*["']\/altar\.html["']/);
 });
 
-test("altar page and protected API surface exist", () => {
+test("altar page uses the protected consolidated routes function", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "altar.html"), "utf8");
   const js = fs.readFileSync(path.join(__dirname, "..", "altar-app.js"), "utf8");
-  const routesApi = fs.readFileSync(path.join(__dirname, "..", "api", "altar", "routes.js"), "utf8");
-  const actionApi = fs.readFileSync(path.join(__dirname, "..", "api", "altar", "action.js"), "utf8");
+  const routesApi = fs.readFileSync(path.join(__dirname, "..", "api", "routes.js"), "utf8");
   assert.match(html, /祭坛/);
-  assert.match(js, /\/api\/altar\/routes/);
-  assert.match(js, /\/api\/altar\/action/);
+  assert.match(js, /\/api\/routes\?scope=altar/);
+  assert.match(routesApi, /scope\s*===\s*["']altar["']/);
   assert.match(routesApi, /isSteward/);
-  assert.match(actionApi, /isSteward/);
-  assert.match(actionApi, /needs_changes/);
-  assert.match(actionApi, /pause/);
-  assert.match(actionApi, /lock/);
-  assert.match(actionApi, /restore/);
+  assert.match(routesApi, /needs_changes/);
+  assert.match(routesApi, /pause/);
+  assert.match(routesApi, /lock/);
+  assert.match(routesApi, /restore/);
+  assert.equal(fs.existsSync(path.join(__dirname, "..", "api", "altar", "routes.js")), false);
+  assert.equal(fs.existsSync(path.join(__dirname, "..", "api", "altar", "action.js")), false);
 });
