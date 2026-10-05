@@ -102,14 +102,14 @@ test('pasture rate limiting uses the database as the durable authority', () => {
   assert.match(handler, /4\s*,\s*15\s*\*\s*60_000/);
 });
 
-test('public pasture auth route reuses eebee function budget and dispatches before eebee logic', () => {
+test('public pasture auth route reuses the small publish-route dispatcher without adding a function', () => {
   const config = JSON.parse(read('vercel.json'));
   const rewrites = new Map(config.rewrites.map((entry) => [entry.source, entry.destination]));
-  assert.equal(rewrites.get('/api/pasture-auth'), '/api/eebee');
+  assert.equal(rewrites.get('/api/pasture-auth'), '/api/publish-route');
 
-  const eebee = read('api/eebee.js');
-  assert.match(eebee, /pasture-auth-handler/);
-  assert.match(eebee, /\/api\/pasture-auth/);
+  const router = read('api/publish-route.js');
+  assert.match(router, /pasture-auth-handler/);
+  assert.match(router, /\/api\/pasture-auth/);
 });
 
 test('registration email describes the resident as the sheep, never as property', () => {
