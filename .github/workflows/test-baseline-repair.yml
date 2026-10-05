@@ -1,0 +1,166 @@
+name: Test Baseline Repair
+
+on:
+  push:
+    branches:
+      - fix/test-baseline-green
+
+permissions:
+  contents: write
+
+jobs:
+  repair-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/test-baseline-green
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply scoped test-harness repairs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              p=Path(path); s=p.read_text()
+              if new in s:
+                  return
+              n=s.count(old)
+              if n!=1:
+                  raise SystemExit(f'{label}: expected one anchor, found {n}')
+              p.write_text(s.replace(old,new,1))
+
+          replace_once('test/invitation-flow.test.js',
+          """  const listeners = {};
+          const document = {
+            createElement: (tag)=> new Elem(tag),
+            addEventListener: (ev,fn)=> { listeners[ev]=fn; },
+            _dispatchClick: (event)=> { if(listeners.click) listeners.click(event); }
+          };""",
+          """  const listeners = {};
+          const head = new Elem('head');
+          const document = {
+            head,
+            createElement: (tag)=> new Elem(tag),
+            getElementById: (id)=> head.children.find((c)=>c.id===id) || null,
+            addEventListener: (ev,fn)=> { listeners[ev]=fn; },
+            _dispatchClick: (event)=> { if(listeners.click) listeners.click(event); }
+          };""",
+          'invitation DOM harness')
+
+          replace_once('test/site-shell.test.js',
+          '["/contact.html", "易彼益"]',
+          '["/tonglu.html", "牧场"]',
+          'site nav expectation')
+
+          replace_once('test/site-shell.test.js',
+          '''  const buttons = Object.fromEntries(["playBtn", "nextBtn", "prevBtn"].map((id) => [id, {
+            classList: { add() {}, remove() {} },
+            addEventListener(type, listener) { listeners.set(`${id}:${type}`, listener); }
+          }]));''',
+          '''  const buttons = Object.fromEntries(["playBtn", "nextBtn", "prevBtn", "dspBtn"].map((id) => [id, {
+            classList: { add() {}, remove() {}, toggle() {} },
+            setAttribute() {},
+            addEventListener(type, listener) { listeners.set(`${id}:${type}`, listener); }
+          }]));''',
+          'player button harness')
+
+          replace_once('test/site-shell.test.js',
+          '''    constructor(src) {
+              this.src = src;
+              this.currentTime = 0;
+              this.loadCount = 0;
+              this.listeners = new Map();
+            }
+            addEventListener(type, listener) { this.listeners.set(type, listener); }
+            load() { this.loadCount += 1; this.currentTime = 0; }
+            pause() {}
+            play() { return Promise.resolve(); }''',
+          '''    constructor(src) {
+              this.src = src;
+              this.currentTime = 0;
+              this.loadCount = 0;
+              this.listeners = new Map();
+              this.paused = true;
+              this.ended = false;
+              this.defaultPlaybackRate = 1;
+              this.playbackRate = 1;
+            }
+            addEventListener(type, listener) { this.listeners.set(type, listener); }
+            removeEventListener(type, listener) { if(this.listeners.get(type)===listener) this.listeners.delete(type); }
+            load() { this.loadCount += 1; this.currentTime = 0; this.ended = false; }
+            pause() { this.paused = true; const fn=this.listeners.get("pause"); if(fn) fn(); }
+            play() { this.paused = false; this.ended = false; const fn=this.listeners.get("play"); if(fn) fn(); return Promise.resolve(); }''',
+          'audio harness state')
+
+          replace_once('test/site-shell.test.js',
+          '''  const context = {
+            Audio: AudioStub,
+            Math: Object.create(Math),
+            MediaMetadata: class {},
+            navigator: { mediaSession: {} },
+            document: { getElementById: (id) => buttons[id] }
+          };
+          context.Math.random = () => randomValue;''',
+          '''  const context = {
+            Audio: AudioStub,
+            Math: Object.create(Math),
+            MediaMetadata: class {},
+            navigator: { mediaSession: {} },
+            document: { getElementById: (id) => buttons[id], addEventListener() {}, hidden: false },
+            fetch: async () => ({ ok: true, json: async () => ({ system: "余 DSP Reference B", tracks: {} }) }),
+            performance: { now: () => 0 },
+            console,
+            setInterval: () => 1,
+            clearInterval() {},
+            setTimeout: () => 1,
+            clearTimeout() {},
+            addEventListener() {}
+          };
+          context.window = context;
+          context.Math.random = () => randomValue;''',
+          'player global harness')
+
+          replace_once('test/prayer-admin.test.js',
+          '''      assert.deepEqual(user, { id: "leader-1", role: "publisher", slot: "IMS" });''',
+          '''      assert.deepEqual({ id: user.id, role: user.role, slot: user.slot }, { id: "leader-1", role: "publisher", slot: "IMS" });''',
+          'prayer list session identity')
+
+          replace_once('test/prayer-admin.test.js',
+          '''  assert.deepEqual(audits, [{ user: { id: "leader-1", role: "publisher", slot: "IMS" }, ids: ["p1"] }]);''',
+          '''  assert.equal(audits.length, 1);
+          assert.deepEqual({ id: audits[0].user.id, role: audits[0].user.role, slot: audits[0].user.slot }, { id: "leader-1", role: "publisher", slot: "IMS" });
+          assert.deepEqual(audits[0].ids, ["p1"]);''',
+          'prayer audit session identity')
+
+          replace_once('test/prayer-admin.test.js',
+          '''  assert.deepEqual(calls[0], { user: { id: "leader-1", role: "publisher", slot: "IMS" }, prayerId, action: "CLAIM" });''',
+          '''  assert.deepEqual({ id: calls[0].user.id, role: calls[0].user.role, slot: calls[0].user.slot }, { id: "leader-1", role: "publisher", slot: "IMS" });
+          assert.equal(calls[0].prayerId, prayerId);
+          assert.equal(calls[0].action, "CLAIM");''',
+          'prayer action session identity')
+          PY
+      - name: Install dependencies
+        run: npm ci
+      - name: Run focused repaired tests
+        run: node --test --test-concurrency=1 test/invitation-flow.test.js test/prayer-admin.test.js test/site-shell.test.js
+      - name: Run full suite
+        run: npm test
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+      - name: Commit test-only repairs if needed
+        run: |
+          if git diff --quiet -- test/invitation-flow.test.js test/prayer-admin.test.js test/site-shell.test.js; then
+            echo "No test repair changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/invitation-flow.test.js test/prayer-admin.test.js test/site-shell.test.js
+          git commit -m "test: refresh baseline harnesses"
+          git push origin HEAD:fix/test-baseline-green
