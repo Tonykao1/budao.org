@@ -22,9 +22,17 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          old="const warm=Number(star.colorIndex)>0.65,cool=Number(star.colorIndex)<0.05;"
-          new="const ci=Number(star.colorIndex),warm=Number.isFinite(ci)&&ci>0.65,cool=Number.isFinite(ci)&&ci<-.05;"
-          for name in ['tonglu.html','tonglu-pasture-portrait.html']:
+          replacements={
+            'tonglu.html':(
+              "const warm=Number(star.colorIndex)>0.65,cool=Number(star.colorIndex)<0.05;",
+              "const ci=Number(star.colorIndex),warm=Number.isFinite(ci)&&ci>0.65,cool=Number.isFinite(ci)&&ci<-.05;"
+            ),
+            'tonglu-pasture-portrait.html':(
+              "const warm=Number(star.colorIndex)>0.65,cool=Number(star.colorIndex)<0.05,col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';",
+              "const ci=Number(star.colorIndex),warm=Number.isFinite(ci)&&ci>0.65,cool=Number.isFinite(ci)&&ci<-.05,col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';"
+            )
+          }
+          for name,(old,new) in replacements.items():
               p=Path(name); s=p.read_text()
               if s.count(old)!=1:
                   raise SystemExit(f'{name}: expected one color fallback anchor, got {s.count(old)}')
