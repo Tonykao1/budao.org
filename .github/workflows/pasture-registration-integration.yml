@@ -18,6 +18,7 @@ jobs:
       - name: Install dependencies
         run: npm install --ignore-scripts
       - name: Verify pasture registration backend and function budget
+        # Keep this branch-only gate red until each registration slice is implemented.
         run: >-
           node --test --test-concurrency=1
           test/pasture-registration-backend.test.js
