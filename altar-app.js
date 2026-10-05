@@ -20,7 +20,7 @@
 
   function loadRoutes() {
     message.textContent = "正在读取托付…";
-    fetch("/api/altar/routes", { credentials: "same-origin" })
+    fetch("/api/routes?scope=altar", { credentials: "same-origin" })
       .then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (body) {
           if (!response.ok) throw new Error(body.reason || "unavailable");
@@ -146,7 +146,7 @@
   function performAction(action) {
     if (!selectedRouteId) return;
     const reason = action === "needs_changes" || action === "pause" ? (window.prompt("留下一句简短说明（可留空）") || "") : "";
-    fetch("/api/altar/action", {
+    fetch("/api/routes?scope=altar", {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
