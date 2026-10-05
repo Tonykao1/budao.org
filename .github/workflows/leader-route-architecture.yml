@@ -5,6 +5,8 @@ on:
     paths:
       - "test/leader-route-architecture.test.js"
       - "test/public-route-projection-regression.test.js"
+      - "test/calendar-data-sync.test.js"
+      - "scripts/sync-calendar-events.js"
       - "api/_security/auth.js"
       - "api/auth/login.js"
       - "api/auth/session.js"
@@ -26,9 +28,11 @@ jobs:
         run: node --test test/leader-route-architecture.test.js
       - name: Run public route projection regression tests
         run: node --test test/public-route-projection-regression.test.js
+      - name: Run calendar data sync tests
+        run: node --test test/calendar-data-sync.test.js
       - name: Lint
         run: npm run lint
-      - name: Run full test suite
-        run: npm test
       - name: Build
         run: npm run build
+      - name: Run full test suite
+        run: npm test
