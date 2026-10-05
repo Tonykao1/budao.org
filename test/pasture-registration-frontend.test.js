@@ -6,16 +6,23 @@ function read(path) {
   return fs.readFileSync(path, 'utf8');
 }
 
+function runtimeSource() {
+  return read('pasture-resident-runtime-core.js');
+}
+
 test('stable pasture loads resident runtime without rewriting tonglu composition', () => {
   const sky = read('pasture-sky-engine.js');
+  const loader = read('pasture-resident-runtime.js');
   assert.match(sky, /pasture-resident-runtime\.js/);
   assert.match(sky, /window\.top!==window/);
   assert.match(sky, /environmentLayer/);
-  assert.equal(fs.existsSync('pasture-resident-runtime.js'), true, 'resident runtime is missing');
+  assert.match(loader, /pasture-resident-runtime-core\.js/);
+  assert.match(loader, /pasture-resident-hit-layer\.js/);
+  assert.equal(fs.existsSync('pasture-resident-runtime-core.js'), true, 'resident runtime core is missing');
 });
 
 test('guest sees no feature controls; authenticated resident sees seven locked controls', () => {
-  const runtime = read('pasture-resident-runtime.js');
+  const runtime = runtimeSource();
   assert.match(runtime, /pastureResidentControls/);
   assert.match(runtime, /hidden\s*=\s*!authenticated|hidden=!authenticated/);
   for (const label of ['归回自己','我的牧草','风闻有你','同路伙伴','信箱','步道卡','小匣']) {
@@ -27,7 +34,7 @@ test('guest sees no feature controls; authenticated resident sees seven locked c
 });
 
 test('resident auth covers email code, session boot, logout and sheep creation', () => {
-  const runtime = read('pasture-resident-runtime.js');
+  const runtime = runtimeSource();
   assert.match(runtime, /\/api\/pasture-auth/);
   assert.match(runtime, /requestCode/);
   assert.match(runtime, /verifyCode/);
@@ -39,7 +46,7 @@ test('resident auth covers email code, session boot, logout and sheep creation',
 });
 
 test('resident is the 44+1 sheep, falls from the sky once, and remains deterministically findable', () => {
-  const runtime = read('pasture-resident-runtime.js');
+  const runtime = runtimeSource();
   assert.match(runtime, /__tongluFlockCount\s*=\s*resident\?45:44/);
   assert.match(runtime, /1750/);
   assert.match(runtime, /-26/);
@@ -52,7 +59,7 @@ test('resident is the 44+1 sheep, falls from the sky once, and remains determini
 });
 
 test('find-sheep interaction uses visible pixels, a five-finger pixel hand, and only the supplied baa audio', () => {
-  const runtime = read('pasture-resident-runtime.js');
+  const runtime = runtimeSource();
   assert.match(runtime, /function residentHit/);
   assert.match(runtime, /hitRect/);
   assert.match(runtime, /transparent gaps|visible pixels/i);
@@ -64,14 +71,14 @@ test('find-sheep interaction uses visible pixels, a five-finger pixel hand, and 
 });
 
 test('portrait interaction crosses the iframe safely using an exact-pixel SVG hit layer', () => {
-  const runtime = read('pasture-resident-runtime.js');
-  assert.match(runtime, /pastureResidentHitSvg/);
-  assert.match(runtime, /createElementNS\([^\n]*svg/);
-  assert.match(runtime, /pointer-events:\s*none/);
-  assert.match(runtime, /pointerEvents\s*=\s*['"]all['"]/);
-  assert.match(runtime, /setPointerCapture/);
-  assert.match(runtime, /releasePointerCapture/);
-  assert.match(runtime, /updateHitLayer/);
-  assert.match(runtime, /hitRects/);
-  assert.match(runtime, /portraitFrame/);
+  const hit = read('pasture-resident-hit-layer.js');
+  assert.match(hit, /pastureResidentHitSvg/);
+  assert.match(hit, /createElementNS\([^\n]*['"]svg['"]/);
+  assert.match(hit, /pointerEvents:\s*['"]none['"]/);
+  assert.match(hit, /pointerEvents\s*=\s*['"]all['"]/);
+  assert.match(hit, /setPointerCapture/);
+  assert.match(hit, /releasePointerCapture/);
+  assert.match(hit, /updateHitLayer/);
+  assert.match(hit, /hitRects/);
+  assert.match(hit, /portraitFrame/);
 });
