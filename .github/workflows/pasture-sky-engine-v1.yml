@@ -6,7 +6,27 @@ on:
       - feature/pasture-sky-engine-v1
 
 jobs:
-  verify:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Full test suite
+        run: npm test
+      - name: Build checks
+        if: always()
+        run: npm run build
+
+  feature:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,6 +35,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
       - name: Sky engine tests
         run: node --test test/pasture-sky-engine.test.js test/pasture-sky-integration.test.js
       - name: Lint
@@ -22,4 +45,5 @@ jobs:
       - name: Full test suite
         run: npm test
       - name: Build checks
+        if: always()
         run: npm run build
