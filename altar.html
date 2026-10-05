@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>祭坛 - Budao</title>
+  <link rel="stylesheet" href="altar-style.css">
+</head>
+<body>
+  <main class="altar" aria-label="祭坛">
+    <section class="stone-table">
+      <header class="altar-head">
+        <div>
+          <p class="altar-kicker">祭坛</p>
+          <h1>守望这一程</h1>
+        </div>
+        <button class="return-tent" type="button">返回帐篷</button>
+      </header>
+
+      <nav class="filters" aria-label="路线筛选">
+        <button data-filter="all" aria-current="true">全部</button>
+        <button data-filter="future">未来</button>
+        <button data-filter="past">已结束</button>
+        <button data-filter="needs_changes">待处理</button>
+        <button data-filter="paused">已撤下</button>
+      </nav>
+
+      <p class="altar-message" aria-live="polite">正在读取托付…</p>
+      <div class="route-ledger" aria-live="polite"></div>
+      <section class="route-detail" hidden></section>
+    </section>
+  </main>
+  <script src="altar-app.js"></script>
+</body>
+</html>
