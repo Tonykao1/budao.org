@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 jobs:
-  backend-red-green:
+  registration-red-green:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -17,9 +17,9 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --ignore-scripts
-      - name: Verify pasture registration backend and function budget
-        # Branch-only gate: backend implementation is now expected to turn this green.
+      - name: Verify pasture registration backend, frontend and function budget
         run: >-
           node --test --test-concurrency=1
           test/pasture-registration-backend.test.js
+          test/pasture-registration-frontend.test.js
           test/vercel-function-budget.test.js
