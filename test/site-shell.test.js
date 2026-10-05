@@ -18,7 +18,7 @@ test("campfire page reuses the standard site navigation", () => {
     ["/tongxing.html", "童行"],
     ["/tongdao.html", "同道"],
     ["/what.html", "同工"],
-    ["/contact.html", "易彼益"]
+    ["/tonglu.html", "牧场"]
   ];
 
   let previousIndex = -1;
@@ -35,8 +35,9 @@ function createPlaybackHarness(randomValue = 0) {
   const tracks = [...playlistSource.matchAll(/"([^"]+\.mp3)"/g)].map((match) => match[1]);
   const script = home.match(/<script>([\s\S]*?)<\/script>/i)?.[1] || "";
   const listeners = new Map();
-  const buttons = Object.fromEntries(["playBtn", "nextBtn", "prevBtn"].map((id) => [id, {
-    classList: { add() {}, remove() {} },
+  const buttons = Object.fromEntries(["playBtn", "nextBtn", "prevBtn", "dspBtn"].map((id) => [id, {
+    classList: { add() {}, remove() {}, toggle() {} },
+    setAttribute() {},
     addEventListener(type, listener) { listeners.set(`${id}:${type}`, listener); }
   }]));
 
@@ -46,11 +47,16 @@ function createPlaybackHarness(randomValue = 0) {
       this.currentTime = 0;
       this.loadCount = 0;
       this.listeners = new Map();
+      this.paused = true;
+      this.ended = false;
+      this.defaultPlaybackRate = 1;
+      this.playbackRate = 1;
     }
     addEventListener(type, listener) { this.listeners.set(type, listener); }
-    load() { this.loadCount += 1; this.currentTime = 0; }
-    pause() {}
-    play() { return Promise.resolve(); }
+    removeEventListener(type, listener) { if(this.listeners.get(type)===listener) this.listeners.delete(type); }
+    load() { this.loadCount += 1; this.currentTime = 0; this.ended = false; }
+    pause() { this.paused = true; const fn=this.listeners.get("pause"); if(fn) fn(); }
+    play() { this.paused = false; this.ended = false; const fn=this.listeners.get("play"); if(fn) fn(); return Promise.resolve(); }
   }
 
   const context = {
@@ -58,8 +64,17 @@ function createPlaybackHarness(randomValue = 0) {
     Math: Object.create(Math),
     MediaMetadata: class {},
     navigator: { mediaSession: {} },
-    document: { getElementById: (id) => buttons[id] }
+    document: { getElementById: (id) => buttons[id], addEventListener() {}, hidden: false },
+    fetch: async () => ({ ok: true, json: async () => ({ system: "余 DSP Reference B", tracks: {} }) }),
+    performance: { now: () => 0 },
+    console,
+    setInterval: () => 1,
+    clearInterval() {},
+    setTimeout: () => 1,
+    clearTimeout() {},
+    addEventListener() {}
   };
+  context.window = context;
   context.Math.random = () => randomValue;
   vm.runInNewContext(`${script}\n;globalThis.playback = {\n` +
     "  audio, playlist, get currentTrack() { return currentTrack; }\n};", context);

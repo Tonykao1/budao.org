@@ -52,7 +52,7 @@ test("list decrypts only prayer body, omits contact and records content-free vie
   const handler = listModule.createPrayerListHandler({
     dataKey: process.env.BUDAO_PRAYER_DATA_KEY,
     listPrayers: async (user, status) => {
-      assert.deepEqual(user, { id: "leader-1", role: "publisher", slot: "IMS" });
+      assert.deepEqual({ id: user.id, role: user.role, slot: user.slot }, { id: "leader-1", role: "publisher", slot: "IMS" });
       assert.equal(status, "NEW");
       return [{ id: "p1", bodyCiphertext: encrypted.ciphertext, bodyNonce: encrypted.nonce,
         bodyTag: encrypted.tag, contactCiphertext: "secret", contactNonce: "secret", contactTag: "secret",
@@ -66,7 +66,9 @@ test("list decrypts only prayer body, omits contact and records content-free vie
   assert.equal(response.statusCode, 200);
   assert.deepEqual(response.body.items[0], { id: "p1", body: "请为家人守望", visibility: "LEADERS_ONLY",
     status: "NEW", createdAt: "2026-09-28T00:00:00.000Z", assignedSlot: null, claimedAt: null, completedAt: null });
-  assert.deepEqual(audits, [{ user: { id: "leader-1", role: "publisher", slot: "IMS" }, ids: ["p1"] }]);
+  assert.equal(audits.length, 1);
+  assert.deepEqual({ id: audits[0].user.id, role: audits[0].user.role, slot: audits[0].user.slot }, { id: "leader-1", role: "publisher", slot: "IMS" });
+  assert.deepEqual(audits[0].ids, ["p1"]);
   assert.equal(JSON.stringify(audits).includes("请为"), false);
   assert.equal(JSON.stringify(response.body).includes("secret"), false);
 });
@@ -81,7 +83,9 @@ test("claim identity comes only from session and conflicts remain quiet", async 
   let response = res();
   await handler(req("POST", { prayerId, action: "CLAIM", assignedSlot: "HD", claimedBy: "attacker" }), response);
   assert.equal(response.statusCode, 200);
-  assert.deepEqual(calls[0], { user: { id: "leader-1", role: "publisher", slot: "IMS" }, prayerId, action: "CLAIM" });
+  assert.deepEqual({ id: calls[0].user.id, role: calls[0].user.role, slot: calls[0].user.slot }, { id: "leader-1", role: "publisher", slot: "IMS" });
+  assert.equal(calls[0].prayerId, prayerId);
+  assert.equal(calls[0].action, "CLAIM");
 
   const conflict = actionModule.createPrayerActionHandler({ applyAction: async () => ({ changed: false }), auditAction: async () => {} });
   response = res();

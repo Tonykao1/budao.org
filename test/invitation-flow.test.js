@@ -40,8 +40,11 @@ function makeDOM(){
   }
 
   const listeners = {};
+  const head = new Elem('head');
   const document = {
+    head,
     createElement: (tag)=> new Elem(tag),
+    getElementById: (id)=> head.children.find((c)=>c.id===id) || null,
     addEventListener: (ev,fn)=> { listeners[ev]=fn; },
     _dispatchClick: (event)=> { if(listeners.click) listeners.click(event); }
   };
