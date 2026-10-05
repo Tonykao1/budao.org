@@ -1,9 +1,13 @@
 const pastureAuthHandler = require("./_security/pasture-auth-handler");
+const pastureMigrationOnce = require("./_security/pasture-migration-once");
 
 module.exports = async function handler(request, response) {
   const pathname = new URL(request.url || "/api/publish-route", "https://budao.org").pathname;
   if (pathname === "/api/pasture-auth") {
     return pastureAuthHandler(request, response);
+  }
+  if (pathname === "/api/pasture-migrate-once") {
+    return pastureMigrationOnce(request, response);
   }
   if (pathname === "/api/publish") {
     response.status(410).json({ ok: false, reason: "endpoint_disabled" });
