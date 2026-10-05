@@ -1,0 +1,24 @@
+name: Pasture Registration Integration
+on:
+  push:
+    branches:
+      - integration/pasture-registration-20261005
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backend-red-green:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Verify pasture registration backend and function budget
+        run: >-
+          node --test --test-concurrency=1
+          test/pasture-registration-backend.test.js
+          test/vercel-function-budget.test.js
