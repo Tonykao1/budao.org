@@ -72,6 +72,7 @@ test('pasture identity migrations are additive, private, one-resident-one-sheep,
 
   const identity = read('db/migrations/0004_pasture_identity.sql');
   assert.match(identity, /CREATE TABLE IF NOT EXISTS pasture_users/);
+  assert.match(identity, /email_masked text NOT NULL/);
   assert.match(identity, /CREATE TABLE IF NOT EXISTS pasture_email_verifications/);
   assert.match(identity, /CREATE TABLE IF NOT EXISTS pasture_sessions/);
   assert.match(identity, /CREATE TABLE IF NOT EXISTS pasture_sheep/);
@@ -80,7 +81,8 @@ test('pasture identity migrations are additive, private, one-resident-one-sheep,
 
   const encryptedEmail = read('db/migrations/0005_pasture_encrypted_email.sql');
   assert.match(encryptedEmail, /email_ciphertext/);
-  assert.match(encryptedEmail, /email_masked/);
+  assert.match(encryptedEmail, /email_nonce/);
+  assert.match(encryptedEmail, /email_tag/);
 
   const rateLimit = read('db/migrations/0006_pasture_rate_limits.sql');
   assert.match(rateLimit, /CREATE TABLE IF NOT EXISTS pasture_rate_limits/);
