@@ -59,7 +59,7 @@
     "date": "2026-09-26",
     "type": "budao",
     "source": "tent",
-    "slot": "BACBC",
+    "slot": "",
     "routeId": "budao-bacbc",
     "title": "舞彩浅山·揽胜采摘线"
   },
@@ -67,23 +67,23 @@
     "date": "2026-10-03",
     "type": "budao",
     "source": "tent",
-    "slot": "BACBC",
-    "routeId": "budao-ims",
-    "title": "于家堼·麦浪之约"
+    "slot": "",
+    "routeId": "budao-hd",
+    "title": "假日骑行·百望山徒步"
   },
   {
     "date": "2026-10-03",
     "type": "budao",
     "source": "tent",
-    "slot": "HD",
-    "routeId": "budao-hd",
-    "title": "假日骑行·百望山徒步"
+    "slot": "",
+    "routeId": "budao-ims",
+    "title": "于家堼·麦浪之约"
   },
   {
     "date": "2026-10-10",
     "type": "budao",
     "source": "tent",
-    "slot": "IMS",
+    "slot": "",
     "routeId": "budao-leader-tony",
     "title": "蟒山环线"
   }
