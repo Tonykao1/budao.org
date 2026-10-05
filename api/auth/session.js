@@ -1,9 +1,14 @@
-const { getAuthenticatedPublisher } = require("../_security/auth");
+const { getAuthenticatedPublisher, isSteward } = require("../_security/auth");
 const { sendJson } = require("../_security/http");
 
 module.exports = async function handler(request, response) {
   if (request.method !== "GET") return sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
   const user = getAuthenticatedPublisher(request);
   if (!user) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
-  return sendJson(response, 200, { ok: true, leader: user.username, slot: user.slot || "IMS" });
+  return sendJson(response, 200, {
+    ok: true,
+    leader: user.username,
+    slot: user.slot || "IMS",
+    capabilities: { steward: isSteward(user) }
+  });
 };
