@@ -18,12 +18,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Align patcher with current page timer anchor
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('.github/scripts/apply_pasture_sky_integration.py')
+          s=p.read_text()
+          old="'refresh();\\nsetInterval(refresh,600000);\\ntickLoop();',\n    'refresh();\\nsetInterval(refresh,600000);\\nsetInterval(refreshSkyState,45000);\\ntickLoop();',"
+          new="'syncComposition();\\nrefresh();\\nsetInterval(refresh,600000);\\nsetInterval(()=>{if(!portraitMode)draw()},120);',\n    'syncComposition();\\nrefresh();\\nsetInterval(refresh,600000);\\nsetInterval(refreshSkyState,45000);\\nsetInterval(()=>{if(!portraitMode)draw()},120);',"
+          if s.count(old)!=1:
+              raise SystemExit('timer patcher anchor mismatch')
+          p.write_text(s.replace(old,new,1))
+          PY
       - name: Apply scoped sky integration
         run: python .github/scripts/apply_pasture_sky_integration.py
       - name: Run sky engine tests
         run: node --test test/pasture-sky-engine.test.js test/pasture-sky-integration.test.js
       - name: Commit green integration
         run: |
+          git checkout -- .github/scripts/apply_pasture_sky_integration.py
           if git diff --quiet; then
             echo "No generated integration changes"
             exit 0
