@@ -5,6 +5,7 @@ const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const presentationSlots = ["IMS", "BACBC", "HD"];
 const { getAuthenticatedPublisher } = require("./_security/auth");
+const { readAltarState, routeSupervision } = require("./_altar/store");
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -31,7 +32,15 @@ module.exports = async function handler(request, response) {
       return sendJson(response, 200, privateRoutesForLeader(routes, publisher));
     }
 
-    sendJson(response, 200, projectPublicRoutes(routes, new Date()));
+    let supervisionRoutes = {};
+    try {
+      const altar = await readAltarState();
+      supervisionRoutes = altar.routes || {};
+    } catch (error) {
+      supervisionRoutes = {};
+    }
+
+    sendJson(response, 200, projectPublicRoutes(routes, new Date(), supervisionRoutes));
   } catch (error) {
     response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     sendJson(response, 200, []);
@@ -53,12 +62,13 @@ async function readRoutes() {
   return Array.isArray(routes) ? routes : [];
 }
 
-function projectPublicRoutes(routes, now = new Date()) {
+function projectPublicRoutes(routes, now = new Date(), supervisionRoutes = {}) {
   const nowMs = now instanceof Date ? now.getTime() : new Date(now).getTime();
   const candidates = (Array.isArray(routes) ? routes : []).map(function (route, index) {
     return { route, index, eventMs: eventTimeMs(route) };
   }).filter(function (item) {
-    return Number.isFinite(item.eventMs);
+    const supervision = routeSupervision({ routes: supervisionRoutes, audit: [] }, item.route && (item.route.routeId || item.route.id));
+    return Number.isFinite(item.eventMs) && supervision.status === "active";
   });
 
   const upcoming = candidates.filter((item) => item.eventMs >= nowMs)
