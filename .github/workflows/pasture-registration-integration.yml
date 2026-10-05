@@ -17,9 +17,10 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --ignore-scripts
-      - name: Verify pasture registration backend, frontend and function budget
+      - name: Verify pasture registration and protected pasture regressions
         run: >-
           node --test --test-concurrency=1
           test/pasture-registration-backend.test.js
           test/pasture-registration-frontend.test.js
+          test/pasture-sky-engine.test.js
           test/vercel-function-budget.test.js
