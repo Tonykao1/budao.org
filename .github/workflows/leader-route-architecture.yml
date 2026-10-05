@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "test/leader-route-architecture.test.js"
+      - "test/public-route-projection-regression.test.js"
       - "api/_security/auth.js"
       - "api/auth/login.js"
       - "api/auth/session.js"
