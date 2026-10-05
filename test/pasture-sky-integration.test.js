@@ -64,6 +64,6 @@ test('portrait derives celestial bottom from the same top sky band geometry', ()
 test('neutral catalog colorIndex zero is rendered neutral, not falsely cool', () => {
   for (const source of [main, portrait]) {
     assert.match(source, /cool=Number\.isFinite\(ci\)&&ci<-\.05/);
-    assert.match(source, /warm=Number\.isFinite\(ci\)&&ci>\.65/);
+    assert.match(source, /warm=Number\.isFinite\(ci\)&&ci>0?\.65/);
   }
 });
