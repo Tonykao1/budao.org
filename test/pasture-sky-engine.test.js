@@ -65,10 +65,68 @@ test('0-3 magnitude local catalog is finite and keeps true magnitude', () => {
 
 test('catalog star horizontal position is deterministic and changes with time', () => {
   const stars=require('../pasture-stars.js');
-  const s=stars[0];
   const a=sky.computeStarHorizontals({timeMs:Date.UTC(2026,9,5,12),latitude:39.9042,longitude:116.4074,stars})[0];
   const b=sky.computeStarHorizontals({timeMs:Date.UTC(2026,9,5,13),latitude:39.9042,longitude:116.4074,stars})[0];
   const a2=sky.computeStarHorizontals({timeMs:Date.UTC(2026,9,5,12),latitude:39.9042,longitude:116.4074,stars})[0];
   assert.deepEqual(a,a2);
   assert.ok(Math.abs(a.azimuthDeg-b.azimuthDeg)>0.01||Math.abs(a.altitudeDeg-b.altitudeDeg)>0.01);
+});
+
+test('twilight reveals magnitude layers progressively', () => {
+  assert.equal(sky.twilightFactor(-3.9,0),0);
+  assert.ok(sky.twilightFactor(-5,0)>0 && sky.twilightFactor(-5,0)<1);
+  assert.equal(sky.twilightFactor(-5,1.5),0);
+  assert.ok(sky.twilightFactor(-7.5,1)>0);
+  assert.equal(sky.twilightFactor(-8,2.5),0);
+  assert.ok(sky.twilightFactor(-10.5,2)>0);
+  assert.equal(sky.twilightFactor(-11.5,3),0);
+  assert.ok(sky.twilightFactor(-13.5,3)>0);
+  assert.equal(sky.twilightFactor(-15.1,3),1);
+});
+
+test('atmospheric extinction strongly dims the horizon but not high sky', () => {
+  assert.equal(sky.atmosphericFactor(0),0);
+  const low=sky.atmosphericFactor(3),mid=sky.atmosphericFactor(15),high=sky.atmosphericFactor(30);
+  assert.ok(low<mid && mid<high);
+  assert.ok(low<0.4);
+  assert.equal(high,1);
+});
+
+test('full high moon suppresses faint nearby stars locally but preserves bright stars', () => {
+  const moon={altitudeDeg:55,azimuthDeg:180,illumination:.98};
+  const faintNear=sky.moonlightFactor({visualMagnitude:3,starAltitudeDeg:52,starAzimuthDeg:182,moon});
+  const faintFar=sky.moonlightFactor({visualMagnitude:3,starAltitudeDeg:52,starAzimuthDeg:20,moon});
+  const brightNear=sky.moonlightFactor({visualMagnitude:0,starAltitudeDeg:52,starAzimuthDeg:182,moon});
+  assert.ok(faintNear<faintFar);
+  assert.ok(brightNear>faintNear);
+  assert.ok(brightNear>0.6);
+  assert.ok(sky.moonlightFactor({visualMagnitude:3,starAltitudeDeg:40,starAzimuthDeg:180,moon:{...moon,altitudeDeg:-2}})>.98);
+  assert.ok(sky.moonlightFactor({visualMagnitude:3,starAltitudeDeg:40,starAzimuthDeg:180,moon:{...moon,illumination:.01}})>.98);
+});
+
+test('cloud opacity is local deterministic mobile and grows with cloud cover', () => {
+  const args={weatherCode:0,timeMs:Date.UTC(2026,9,5,12)};
+  const a=sky.cloudOpacityAt({xNorm:.1,yNorm:.2,cloudCover:55,...args});
+  const a2=sky.cloudOpacityAt({xNorm:.1,yNorm:.2,cloudCover:55,...args});
+  const b=sky.cloudOpacityAt({xNorm:.8,yNorm:.7,cloudCover:55,...args});
+  const moved=sky.cloudOpacityAt({xNorm:.1,yNorm:.2,cloudCover:55,...args,timeMs:args.timeMs+60000});
+  assert.equal(a,a2);
+  assert.notEqual(a,b);
+  assert.notEqual(a,moved);
+  function avg(cover,weatherCode=0){let s=0,n=0;for(let y=0;y<=8;y++)for(let x=0;x<=16;x++){s+=sky.cloudOpacityAt({xNorm:x/16,yNorm:y/8,cloudCover:cover,weatherCode,timeMs:args.timeMs});n++;}return s/n;}
+  assert.ok(avg(80)>avg(20));
+  assert.ok(avg(10,61)>avg(10,0));
+  assert.ok(avg(10,71)>avg(10,0));
+  assert.ok(avg(10,45)>avg(10,0));
+});
+
+test('star visibility stays continuous and twinkle changes brightness only', () => {
+  const common={visualMagnitude:2,altitudeDeg:35,azimuthDeg:120,sunAltitudeDeg:-18,moon:{altitudeDeg:-5,azimuthDeg:0,illumination:0},cloudOpacity:0};
+  const clear=sky.starVisibility(common);
+  const cloudy=sky.starVisibility({...common,cloudOpacity:.7});
+  assert.ok(clear>cloudy && cloudy>=0);
+  const t1=sky.starTwinkle({visibility:clear,altitudeDeg:5,visualMagnitude:1,timeMs:100000,seed:7});
+  const t2=sky.starTwinkle({visibility:clear,altitudeDeg:60,visualMagnitude:1,timeMs:100000,seed:7});
+  assert.ok(Number.isFinite(t1)&&Number.isFinite(t2));
+  assert.ok(Math.abs(t1-1)>Math.abs(t2-1));
 });
