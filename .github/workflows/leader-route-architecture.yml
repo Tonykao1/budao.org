@@ -7,6 +7,7 @@ on:
       - "test/public-route-projection-regression.test.js"
       - "test/calendar-data-sync.test.js"
       - "test/altar-v1.test.js"
+      - "test/vercel-function-budget.test.js"
       - "scripts/sync-calendar-events.js"
       - "api/_security/auth.js"
       - "api/auth/login.js"
@@ -16,11 +17,10 @@ on:
       - "api/upload-route-image.js"
       - "api/_security/route-image.js"
       - "api/_altar/store.js"
-      - "api/altar/routes.js"
-      - "api/altar/action.js"
       - "tent.html"
       - "tent-style.css"
       - "tent-app.js"
+      - "tent-word.js"
       - "altar.html"
       - "altar-style.css"
       - "altar-app.js"
@@ -41,6 +41,10 @@ jobs:
         run: node --test test/calendar-data-sync.test.js
       - name: Run altar v1 tests
         run: node --test test/altar-v1.test.js
+      - name: Verify Vercel function budget
+        run: node --test test/vercel-function-budget.test.js
+      - name: Check altar syntax
+        run: node --check api/_altar/store.js && node --check api/routes.js && node --check altar-app.js && node --check tent-word.js
       - name: Lint
         run: npm run lint
       - name: Build
