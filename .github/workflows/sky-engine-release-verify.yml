@@ -1,0 +1,25 @@
+name: Sky Engine Release Verify
+
+on:
+  push:
+    branches:
+      - feature/pasture-sky-engine-v1
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Sky engine focused tests
+        run: node --test --test-concurrency=1 test/pasture-sky-engine.test.js test/pasture-sky-integration.test.js
+      - name: Full test suite
+        run: npm test
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
