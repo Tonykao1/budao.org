@@ -82,6 +82,11 @@
     return{...h,ra:moon.ra,dec:moon.dec,phase,illumination,lightX:dot(bright,right),lightY:-dot(bright,up)};
   }
 
+  function computeStarHorizontals({timeMs,latitude,longitude,stars}){
+    if(!Array.isArray(stars))return[];
+    return stars.map(star=>Object.assign({},star,equatorialToHorizontal({ra:star.ra,dec:star.dec,timeMs,latitude,longitude})));
+  }
+
   function projectHorizontal({altitudeDeg,azimuthDeg,centerAzimuthDeg,width,skyTop,skyBottom}){
     if(![altitudeDeg,azimuthDeg,centerAzimuthDeg,width,skyTop,skyBottom].every(Number.isFinite)||width<=0||skyBottom<=skyTop||altitudeDeg<=0||altitudeDeg>90)return null;
     const rel=wrapDeg(azimuthDeg-centerAzimuthDeg);
@@ -95,5 +100,5 @@
     return{x,y,relativeAzimuthDeg:rel};
   }
 
-  return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,projectHorizontal,wrapDeg,normDeg};
+  return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,projectHorizontal,wrapDeg,normDeg};
 });
