@@ -486,7 +486,7 @@ function drawSharedCelestial(now,cloud,c){
   const p=project(star);if(!p)continue;
   const alpha=Math.max(0,Math.min(1,star.visibility*sky.starTwinkle({visibility:star.visibility,altitudeDeg:star.altitudeDeg,visualMagnitude:star.visualMagnitude,timeMs:now,seed:star.twinkleSeed})));
   if(alpha<=0.015)continue;
-  const warm=Number(star.colorIndex)>0.65,cool=Number(star.colorIndex)<0.05,col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';
+  const ci=Number(star.colorIndex),warm=Number.isFinite(ci)&&ci>0.65,cool=Number.isFinite(ci)&&ci<-.05,col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';
   ctx.save();ctx.globalAlpha=alpha;const size=star.magnitudeClass===0?2:1;rect(Math.round(p.x)-(size>1?1:0),Math.round(p.y),size,size,col);if(star.magnitudeClass===0&&alpha>.55){ctx.globalAlpha=alpha*.18;rect(Math.round(p.x)-2,Math.round(p.y),5,1,col)}ctx.restore();
  }
  const moonXY=project(shared.moon);if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon);

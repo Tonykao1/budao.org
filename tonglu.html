@@ -338,7 +338,7 @@ function drawCelestial(now,cloud,c){
     const twinkle=sky.starTwinkle({visibility:star.visibility,altitudeDeg:star.altitudeDeg,visualMagnitude:star.visualMagnitude,timeMs:now,seed:star.twinkleSeed});
     const alpha=Math.max(0,Math.min(1,star.visibility*twinkle));
     if(alpha<=0.015)continue;
-    const warm=Number(star.colorIndex)>0.65,cool=Number(star.colorIndex)<0.05;
+    const ci=Number(star.colorIndex),warm=Number.isFinite(ci)&&ci>0.65,cool=Number.isFinite(ci)&&ci<-.05;
     const col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';
     ctx.save();ctx.globalAlpha=alpha;
     const size=star.magnitudeClass===0?2:1;
