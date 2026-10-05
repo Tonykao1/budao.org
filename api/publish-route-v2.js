@@ -8,7 +8,6 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/ht
 const { clientIp, consume } = require("./_security/rate-limit");
 const { validateRoute } = require("./_security/route-schema");
 const { isManagedRouteImageUrl } = require("./_security/route-image");
-const { projectPublicRoutes } = require("./routes");
 
 module.exports = async function handler(request, response) {
   const parsed = requireJsonPost(request);
@@ -49,7 +48,7 @@ module.exports = async function handler(request, response) {
 
     const share = sharePayload(routeToSave);
 
-    if (existing && sameRoute(normalizeRoute(existing), routeToSave)) {
+    if (existing && sameRoute(normalizeRoute(existing), routeToSave) && !hasPersistedPresentationSlots(current.routes)) {
       return sendJson(response, 200, {
         ok: true,
         idempotent: true,
@@ -65,11 +64,7 @@ module.exports = async function handler(request, response) {
       .map(function (item) { return normalizeRoute(item); });
     routes.push(routeToSave);
 
-    const projected = projectPublicRoutes(routes, new Date());
-    const slotByRouteId = new Map(projected.map((route) => [route.routeId || route.id, route.slot]));
-    const persisted = routes.map(function (route) {
-      return { ...route, slot: slotByRouteId.get(route.routeId || route.id) || "" };
-    });
+    const persisted = routes.map(stripPresentationSlot);
 
     if (!persisted.length) throw knownError("empty_routes_blocked", 409);
 
@@ -83,7 +78,7 @@ module.exports = async function handler(request, response) {
     return sendJson(response, 200, {
       ok: true,
       idempotent: false,
-      route: routeToSave,
+      route: stripPresentationSlot(routeToSave),
       shareImageUrl: share.shareImageUrl,
       emailShare: share.emailShare,
       commit: commit.commit && commit.commit.sha ? commit.commit.sha : null
@@ -200,6 +195,16 @@ function normalizeRoute(route) {
   };
 }
 
+function stripPresentationSlot(route) {
+  return { ...route, slot: "" };
+}
+
+function hasPersistedPresentationSlots(routes) {
+  return (Array.isArray(routes) ? routes : []).some(function (route) {
+    return Boolean(route && route.slot);
+  });
+}
+
 function resolveImage(image) {
   const value = String(image || "");
   if (value.indexOf("data:image/") === 0 && value.length > 240000) return "";
@@ -258,3 +263,5 @@ function knownError(reason, status) {
 
 module.exports.belongsToLeader = belongsToLeader;
 module.exports.leaderRouteId = leaderRouteId;
+module.exports.stripPresentationSlot = stripPresentationSlot;
+module.exports.hasPersistedPresentationSlots = hasPersistedPresentationSlots;
