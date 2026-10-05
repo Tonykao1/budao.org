@@ -16,12 +16,25 @@ function normalizeType(value) {
   return allowedTypes.has(type) ? type : "budao";
 }
 
+function routeIdentity(value) {
+  return String(value || "").trim();
+}
+
 function eventKey(event) {
   if (event.source === "tent") {
-    return ["tent", event.slot || "", event.date, event.type].join("|");
+    const routeId = routeIdentity(event.routeId);
+    if (routeId) return ["tent", "route", routeId, event.date, event.type].join("|");
+    return ["tent", "slot", event.slot || "", event.date, event.type].join("|");
   }
 
   return [event.source || "legacy", event.date, event.type].join("|");
+}
+
+function sameTentRoute(event, routeId, slot) {
+  if (!event || event.source !== "tent") return false;
+  const eventRouteId = routeIdentity(event.routeId);
+  if (routeId) return eventRouteId === routeId;
+  return !eventRouteId && Boolean(slot) && normalizeSlot(event.slot) === slot;
 }
 
 function syncCalendarEvents(routes, events, today) {
@@ -35,18 +48,16 @@ function syncCalendarEvents(routes, events, today) {
 
   (Array.isArray(routes) ? routes : []).forEach(function (route) {
     const slot = normalizeSlot(route && route.slot);
+    const routeId = routeIdentity(route && (route.routeId || route.id));
     const date = String(route && route.date || "");
     const type = normalizeType(route && route.calendarType);
 
-    if (!slot || !validDate(date)) {
+    if ((!routeId && !slot) || !validDate(date)) {
       return;
     }
 
     next = next.filter(function (event) {
-      return !(event.source === "tent" &&
-        event.slot === slot &&
-        validDate(event.date) &&
-        event.date >= today);
+      return !(sameTentRoute(event, routeId, slot) && validDate(event.date) && event.date >= today);
     });
 
     if (type === "none") {
@@ -58,7 +69,7 @@ function syncCalendarEvents(routes, events, today) {
       type,
       source: "tent",
       slot,
-      routeId: String(route.routeId || route.id || ""),
+      routeId,
       title: String(route.title || "")
     });
   });
@@ -71,6 +82,7 @@ function syncCalendarEvents(routes, events, today) {
   return Array.from(unique.values()).sort(function (left, right) {
     return left.date.localeCompare(right.date) ||
       String(left.type).localeCompare(String(right.type)) ||
+      String(left.routeId || "").localeCompare(String(right.routeId || "")) ||
       String(left.slot || "").localeCompare(String(right.slot || ""));
   });
 }
