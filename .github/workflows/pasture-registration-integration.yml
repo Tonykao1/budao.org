@@ -17,10 +17,11 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --ignore-scripts
-      - name: Verify pasture registration and protected pasture regressions
-        run: >-
-          node --test --test-concurrency=1
-          test/pasture-registration-backend.test.js
-          test/pasture-registration-frontend.test.js
-          test/pasture-sky-engine.test.js
-          test/vercel-function-budget.test.js
+      - name: Verify registration backend
+        run: node --test --test-concurrency=1 test/pasture-registration-backend.test.js
+      - name: Verify registration frontend
+        run: node --test --test-concurrency=1 test/pasture-registration-frontend.test.js
+      - name: Verify protected sky engine
+        run: node --test --test-concurrency=1 test/pasture-sky-engine.test.js
+      - name: Verify Vercel function budget
+        run: node --test --test-concurrency=1 test/vercel-function-budget.test.js
