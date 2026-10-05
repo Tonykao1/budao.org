@@ -9,7 +9,7 @@ function read(path) {
 test('stable pasture loads resident runtime without rewriting tonglu composition', () => {
   const sky = read('pasture-sky-engine.js');
   assert.match(sky, /pasture-resident-runtime\.js/);
-  assert.match(sky, /window\.top===window/);
+  assert.match(sky, /window\.top!==window/);
   assert.match(sky, /environmentLayer/);
   assert.equal(fs.existsSync('pasture-resident-runtime.js'), true, 'resident runtime is missing');
 });
