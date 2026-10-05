@@ -489,6 +489,8 @@ function drawSharedCelestial(now,cloud,c){
   const ci=Number(star.colorIndex),warm=Number.isFinite(ci)&&ci>0.65,cool=Number.isFinite(ci)&&ci<-.05,col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';
   ctx.save();ctx.globalAlpha=alpha;const size=star.magnitudeClass===0?2:1;rect(Math.round(p.x)-(size>1?1:0),Math.round(p.y),size,size,col);if(star.magnitudeClass===0&&alpha>.55){ctx.globalAlpha=alpha*.18;rect(Math.round(p.x)-2,Math.round(p.y),5,1,col)}ctx.restore();
  }
+ const mf=sky.meteorFrame(state?.meteorEvent,now);
+ if(mf){const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});const visibility=sky.meteorVisibility({sunAltitudeDeg:shared.sun.altitudeDeg,cloudOpacity,moon:shared.moon});const alpha=mf.alpha*visibility;if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*W,mf.tailY*skyBottom);ctx.lineTo(mf.x*W,mf.y*skyBottom);ctx.stroke();rect(mf.x*W,mf.y*skyBottom,1,1,'#ffffff');ctx.restore()}}
  const moonXY=project(shared.moon);if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon);
  ctx.restore();
 }

@@ -122,6 +122,7 @@ const canvas=document.getElementById('environmentLayer');
 const ctx=canvas.getContext('2d');
 ctx.imageSmoothingEnabled=false;
 let state=null,skyState=null,tick=0;
+let meteorNextAt=0,meteorEvent=null;
 const LANDSCAPE_SKY_BOTTOM=96;
 
 function rect(x,y,w,h,color){
@@ -347,9 +348,33 @@ function drawCelestial(now,cloud,c){
     ctx.restore();
   }
 
+  const mf=sky.meteorFrame(meteorEvent,now);
+  if(mf){
+    const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});
+    const visibility=sky.meteorVisibility({sunAltitudeDeg:skyState.sun.altitudeDeg,cloudOpacity,moon:skyState.moon});
+    const alpha=mf.alpha*visibility;
+    if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*480,mf.tailY*LANDSCAPE_SKY_BOTTOM);ctx.lineTo(mf.x*480,mf.y*LANDSCAPE_SKY_BOTTOM);ctx.stroke();rect(mf.x*480,mf.y*LANDSCAPE_SKY_BOTTOM,1,1,'#ffffff');ctx.restore()}
+  }
+
   const moonXY=project(skyState.moon);
   if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(skyState.moon.phase)||0,skyState.moon);
   ctx.restore();
+}
+function updateMeteor(now){
+  const sky=window.BudaoPastureSky;
+  if(!sky||!skyState)return;
+  if(!meteorNextAt)meteorNextAt=now+sky.meteorDelayMs(Math.random());
+  if(!meteorEvent&&now>=meteorNextAt){
+    if(Number(skyState.sun?.altitudeDeg)<=-9){
+      meteorEvent=sky.createMeteorEvent({triggerMs:now,random:Math.random});
+      if(state){state.meteorEvent=meteorEvent;sendPortraitEnvironment()}
+    }
+    meteorNextAt=now+sky.meteorDelayMs(Math.random());
+  }
+  if(meteorEvent&&now>meteorEvent.triggerMs+meteorEvent.durationMs){
+    meteorEvent=null;
+    if(state&&state.meteorEvent){delete state.meteorEvent;sendPortraitEnvironment()}
+  }
 }
 function refreshSkyState(){
   const sky=window.BudaoPastureSky,stars=window.BudaoPastureStars;
@@ -404,6 +429,7 @@ function draw(){
     ctx.fillStyle='rgba(18,34,70,'+darkness+')';ctx.fillRect(0,0,480,300);
   }
   const cloud=effectiveCloudCover();
+  updateMeteor(now);
   drawCelestial(now,cloud,c);
   weatherFx(kind(c.weatherCode),cloud);
 }
