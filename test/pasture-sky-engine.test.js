@@ -47,3 +47,28 @@ test('sun moon and equatorial conversion return finite shared horizontal coordin
   finiteObject(moon,['altitudeDeg','azimuthDeg','ra','dec','phase','illumination','lightX','lightY']);
   finiteObject(star,['altitudeDeg','azimuthDeg']);
 });
+
+test('0-3 magnitude local catalog is finite and keeps true magnitude', () => {
+  const stars=require('../pasture-stars.js');
+  assert.ok(Array.isArray(stars)&&stars.length>80,'catalog should contain the bright naked-eye layer');
+  for(const s of stars){
+    assert.ok(typeof s.id==='string'&&s.id.length>0);
+    assert.ok(Number.isFinite(s.ra)&&Number.isFinite(s.dec));
+    assert.ok(Number.isFinite(s.visualMagnitude)&&s.visualMagnitude<=3.0);
+    assert.ok(Number.isFinite(s.colorIndex));
+    assert.equal(Object.prototype.hasOwnProperty.call(s,'name'),false);
+    assert.equal(Object.prototype.hasOwnProperty.call(s,'constellation'),false);
+  }
+  assert.ok(stars.some(s=>s.visualMagnitude<0),'negative magnitudes must remain continuous');
+  assert.ok(stars.some(s=>s.visualMagnitude===3.0),'3.00 boundary must be retained');
+});
+
+test('catalog star horizontal position is deterministic and changes with time', () => {
+  const stars=require('../pasture-stars.js');
+  const s=stars[0];
+  const a=sky.computeStarHorizontals({timeMs:Date.UTC(2026,9,5,12),latitude:39.9042,longitude:116.4074,stars})[0];
+  const b=sky.computeStarHorizontals({timeMs:Date.UTC(2026,9,5,13),latitude:39.9042,longitude:116.4074,stars})[0];
+  const a2=sky.computeStarHorizontals({timeMs:Date.UTC(2026,9,5,12),latitude:39.9042,longitude:116.4074,stars})[0];
+  assert.deepEqual(a,a2);
+  assert.ok(Math.abs(a.azimuthDeg-b.azimuthDeg)>0.01||Math.abs(a.altitudeDeg-b.altitudeDeg)>0.01);
+});
