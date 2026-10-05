@@ -33,6 +33,22 @@ test("calendar ledger keeps past Tent events and replaces future plans for the s
   assert.ok(synced.some((event) => event.date === "2026-09-05" && event.type === "pioneer"));
 });
 
+test("leader routes without persisted presentation slots still sync into calendar by route identity", () => {
+  const existing = [
+    { date: "2026-10-10", type: "budao", source: "tent", slot: "IMS", routeId: "budao-leader-tony", title: "Old title" }
+  ];
+  const routes = [
+    { date: "2026-10-11", slot: "", routeId: "budao-leader-tony", leader: "tony", title: "Leader route" },
+    { date: "2026-10-12", slot: "", routeId: "budao-leader-moses", leader: "moses", title: "Second leader route" }
+  ];
+
+  const synced = syncCalendarEvents(routes, existing, "2026-10-05");
+
+  assert.equal(synced.some((event) => event.date === "2026-10-10" && event.routeId === "budao-leader-tony"), false);
+  assert.ok(synced.some((event) => event.date === "2026-10-11" && event.routeId === "budao-leader-tony" && event.slot === ""));
+  assert.ok(synced.some((event) => event.date === "2026-10-12" && event.routeId === "budao-leader-moses" && event.slot === ""));
+});
+
 test("calendar integration stays outside the stable Tent publishing path", () => {
   const root = path.join(__dirname, "..");
   const tent = fs.readFileSync(path.join(root, "tent-app.js"), "utf8");
