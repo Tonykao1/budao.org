@@ -5,7 +5,6 @@
     { "source": "/api/create-invitation", "destination": "/api/invitation" },
     { "source": "/api/publish", "destination": "/api/publish-route" },
     { "source": "/api/pasture-auth", "destination": "/api/publish-route" },
-    { "source": "/api/pasture-migrate-once", "destination": "/api/publish-route" },
     { "source": "/api/prayer-submit", "destination": "/api/prayer/submit" },
     { "source": "/api/prayer-list", "destination": "/api/prayer/list" },
     { "source": "/api/prayer-action", "destination": "/api/prayer/action" },
