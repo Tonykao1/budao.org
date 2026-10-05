@@ -5,13 +5,31 @@ on:
     branches:
       - feature/pasture-sky-engine-v1
 
+permissions:
+  contents: write
+
 jobs:
   sky-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/pasture-sky-engine-v1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Apply scoped sky integration
+        run: python .github/scripts/apply_pasture_sky_integration.py
       - name: Run sky engine tests
         run: node --test test/pasture-sky-engine.test.js test/pasture-sky-integration.test.js
+      - name: Commit green integration
+        run: |
+          if git diff --quiet; then
+            echo "No generated integration changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tonglu.html tonglu-pasture-portrait.html
+          git commit -m "feat: integrate pasture sky engine"
+          git push origin HEAD:feature/pasture-sky-engine-v1
