@@ -41,5 +41,22 @@
   function starVisibility({visualMagnitude,altitudeDeg,azimuthDeg,sunAltitudeDeg,moon,cloudOpacity}){if(!Number.isFinite(visualMagnitude)||visualMagnitude>3||altitudeDeg<=0)return 0;const intrinsic=clamp((3.6-visualMagnitude)/4.1,.12,1);const tw=twilightFactor(sunAltitudeDeg,visualMagnitude);const atm=atmosphericFactor(altitudeDeg);const ml=moonlightFactor({visualMagnitude,starAltitudeDeg:altitudeDeg,starAzimuthDeg:azimuthDeg,moon});const cloud=1-clamp(Number(cloudOpacity)||0,0,1);return clamp(intrinsic*tw*atm*ml*cloud,0,1);}
   function starTwinkle({visibility,altitudeDeg,visualMagnitude,timeMs,seed}){if(!(visibility>0))return 1;const nearHorizon=1-clamp((altitudeDeg-5)/55,0,1);const bright=1-clamp((visualMagnitude+1.5)/4.5,0,1);const amp=.008+.07*nearHorizon*(.45+.55*bright);const phase=(Number(seed)||0)*1.618+(Number(timeMs)||0)/530;return 1+Math.sin(phase)*amp;}
   function projectHorizontal({altitudeDeg,azimuthDeg,centerAzimuthDeg,width,skyTop,skyBottom}){if(![altitudeDeg,azimuthDeg,centerAzimuthDeg,width,skyTop,skyBottom].every(Number.isFinite)||width<=0||skyBottom<=skyTop||altitudeDeg<=0||altitudeDeg>90)return null;const rel=wrapDeg(azimuthDeg-centerAzimuthDeg);if(Math.abs(rel)>90)return null;const u=rel/90;const k=.45;const compressed=Math.tanh(k*u)/Math.tanh(k);const x=width*(.5+.5*compressed);const y=skyBottom-(altitudeDeg/90)*(skyBottom-skyTop);if(!Number.isFinite(x)||!Number.isFinite(y)||y>=skyBottom||y<skyTop-1e-9)return null;return{x,y,relativeAzimuthDeg:rel};}
-  return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,twilightFactor,atmosphericFactor,moonlightFactor,cloudOpacityAt,starVisibility,starTwinkle,projectHorizontal,wrapDeg,normDeg};
+  function computeSkyState({timeMs,latitude,longitude,cloudCover=0,weatherCode=0,stars=[]}){
+    if(!Number.isFinite(timeMs)||!validLatLon(latitude,longitude))return null;
+    const centerAzimuthDeg=initialBearingDegrees(latitude,longitude,JERUSALEM.latitude,JERUSALEM.longitude);
+    if(!Number.isFinite(centerAzimuthDeg))return null;
+    const sun=sunEphemeris({timeMs,latitude,longitude});
+    const moon=moonEphemeris({timeMs,latitude,longitude});
+    const starStates=computeStarHorizontals({timeMs,latitude,longitude,stars}).map((star,index)=>{
+      const relativeAzimuthDeg=wrapDeg(star.azimuthDeg-centerAzimuthDeg);
+      const xNorm=clamp((relativeAzimuthDeg+90)/180,0,1);
+      const yNorm=clamp(1-star.altitudeDeg/90,0,1);
+      const cloudOpacity=cloudOpacityAt({xNorm,yNorm,cloudCover,weatherCode,timeMs});
+      const visibility=starVisibility({visualMagnitude:star.visualMagnitude,altitudeDeg:star.altitudeDeg,azimuthDeg:star.azimuthDeg,sunAltitudeDeg:sun.altitudeDeg,moon,cloudOpacity});
+      const magnitudeClass=star.visualMagnitude<=0?0:star.visualMagnitude<=1?1:star.visualMagnitude<=2?2:3;
+      return Object.assign({},star,{relativeAzimuthDeg,cloudOpacity,visibility,magnitudeClass,twinkleSeed:index+1});
+    });
+    return{timeMs,centerAzimuthDeg,sun,moon,stars:starStates};
+  }
+  return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,computeSkyState,twilightFactor,atmosphericFactor,moonlightFactor,cloudOpacityAt,starVisibility,starTwinkle,projectHorizontal,wrapDeg,normDeg};
 });
