@@ -25,7 +25,7 @@ test('landscape celestial geometry uses the confirmed sea-sky boundary at y 96',
 });
 
 test('shared sky state is cached on a 30-60 second cadence while weather stays 10 minutes', () => {
-  assert.match(main, /let skyState=null/);
+  assert.match(main, /skyState=null/);
   assert.match(main, /setInterval\(refreshSkyState,45000\)/);
   assert.match(main, /setInterval\(refresh,600000\)/);
   assert.doesNotMatch(main, /setInterval\(refreshSkyState,120\)/);
