@@ -84,7 +84,7 @@ function privateRoutesForLeader(routes, publisher) {
   });
 
   if (!owned.length) return [];
-  return [{ ...owned[0], slot: "IMS", owner: "IMS@budao.org" }];
+  return [{ ...owned[0], slot: "" }];
 }
 
 function compareAscending(left, right) {
