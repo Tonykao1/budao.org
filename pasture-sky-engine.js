@@ -21,7 +21,7 @@
   function siderealTime(d,longitude){return (280.16+360.9856235*d+longitude)*DEG;}
 
   function equatorialToHorizontal({ra,dec,timeMs,latitude,longitude}){if(!Number.isFinite(ra)||!Number.isFinite(dec)||!Number.isFinite(timeMs)||!validLatLon(latitude,longitude))return{altitudeDeg:NaN,azimuthDeg:NaN};const d=daysSinceJ2000(timeMs),phi=latitude*DEG,theta=siderealTime(d,longitude);const H=normRad(theta-ra);const altitude=Math.asin(Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H));const azimuth=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(dec)*Math.cos(phi))+Math.PI;return{altitudeDeg:altitude*RAD,azimuthDeg:normDeg(azimuth*RAD),hourAngle:H};}
-  function sunEquatorial(timeMs){const d=daysSinceJ2000(timeMs),e=obliquity(d);const M=(357.5291+0.98560028*d)*DEG;const L=M+(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*M))*DEG+102.9372*DEG+Math.PI;return{ra:rightAscension(L,0,e),dec:declination(L,0,e),longitude:L};}
+  function sunEquatorial(timeMs){const d=daysSinceJ2000(timeMs),e=obliquity(d);const M=(357.5291+0.98560028*d)*DEG;const L=M+(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*Ms))*DEG+102.9372*DEG+Math.PI;return{ra:rightAscension(L,0,e),dec:declination(L,0,e),longitude:L};}
   function sunEphemeris({timeMs,latitude,longitude}){const eq=sunEquatorial(timeMs),h=equatorialToHorizontal({ra:eq.ra,dec:eq.dec,timeMs,latitude,longitude});return{...h,ra:eq.ra,dec:eq.dec};}
   function moonEquatorial(timeMs){const d=daysSinceJ2000(timeMs),e=obliquity(d);const L=(218.316+13.176396*d)*DEG;const M=(134.963+13.064993*d)*DEG;const F=(93.272+13.229350*d)*DEG;const lon=L+6.289*DEG*Math.sin(M),lat=5.128*DEG*Math.sin(F);return{ra:rightAscension(lon,lat,e),dec:declination(lon,lat,e),longitude:lon,latitude:lat};}
   function unitVector(ra,dec){return[Math.cos(dec)*Math.cos(ra),Math.cos(dec)*Math.sin(ra),Math.sin(dec)];}
@@ -64,3 +64,14 @@
   }
   return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,computeSkyState,twilightFactor,atmosphericFactor,moonlightFactor,cloudOpacityAt,starVisibility,starTwinkle,projectHorizontal,meteorDelayMs,createMeteorEvent,meteorFrame,meteorVisibility,wrapDeg,normDeg};
 });
+
+;(function(){
+  if(typeof window==='undefined'||typeof document==='undefined'||window.top!==window)return;
+  if(!document.getElementById('environmentLayer'))return;
+  if(document.querySelector('script[data-pasture-resident-runtime]'))return;
+  const script=document.createElement('script');
+  script.src='/pasture-resident-runtime.js?v=20261005reg1';
+  script.dataset.pastureResidentRuntime='1';
+  script.defer=true;
+  document.head.appendChild(script);
+})();
