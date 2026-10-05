@@ -16,101 +16,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Apply scoped meteor implementation
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(path, old, new, label):
-              p=Path(path); s=p.read_text()
-              if new in s:
-                  return
-              n=s.count(old)
-              if n!=1:
-                  raise SystemExit(f'{label}: expected one anchor, found {n}')
-              p.write_text(s.replace(old,new,1))
-
-          # Sky engine: rare scheduling + event geometry + frame + environment visibility.
-          path='pasture-sky-engine.js'
-          p=Path(path); s=p.read_text()
-          marker='  function computeSkyState({timeMs,latitude,longitude,cloudCover=0,weatherCode=0,stars=[]}){'
-          insert="""  function meteorDelayMs(randomValue){const n=Number(randomValue),r=Number.isFinite(n)?clamp(n,0,1):.5;return(20+30*r)*60000;}
-          function createMeteorEvent({triggerMs,random=Math.random}){const r=()=>clamp(Number(random())||0,0,1);const x0=.15+r()*.7,y0=.10+r()*.45,sign=r()<.5?-1:1,dx=.08+r()*.10,dy=.08+r()*.10,durationMs=400+r()*400;const x1=clamp(x0+sign*dx,.03,.97),y1=clamp(y0+dy,.05,.82);return{triggerMs:Number(triggerMs)||0,durationMs,x0,y0,x1,y1};}
-          function meteorFrame(event,timeMs){if(!event)return null;const duration=Number(event.durationMs),start=Number(event.triggerMs),now=Number(timeMs);if(!(duration>0)||!Number.isFinite(start)||!Number.isFinite(now))return null;const t=(now-start)/duration;if(t<0||t>1)return null;const ease=t,alpha=Math.sin(Math.PI*t);const x=event.x0+(event.x1-event.x0)*ease,y=event.y0+(event.y1-event.y0)*ease,tailT=Math.max(0,t-.24),tailX=event.x0+(event.x1-event.x0)*tailT,tailY=event.y0+(event.y1-event.y0)*tailT;return{x,y,tailX,tailY,alpha:clamp(alpha,0,1),progress:t};}
-          function meteorVisibility({sunAltitudeDeg,cloudOpacity,moon}){if(!Number.isFinite(sunAltitudeDeg)||sunAltitudeDeg>-9)return 0;const cloud=1-.92*clamp(Number(cloudOpacity)||0,0,1);const moonHeight=moon&&Number.isFinite(moon.altitudeDeg)?smoothstep(0,25,moon.altitudeDeg):0;const illum=moon&&Number.isFinite(moon.illumination)?clamp(moon.illumination,0,1):0;const moonFactor=1-.25*moonHeight*illum;return clamp(cloud*moonFactor,0,1);}
-"""
-          if 'function meteorDelayMs(' not in s:
-              if marker not in s: raise SystemExit('sky engine marker missing')
-              s=s.replace(marker,insert+marker,1)
-          old="return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,computeSkyState,twilightFactor,atmosphericFactor,moonlightFactor,cloudOpacityAt,starVisibility,starTwinkle,projectHorizontal,wrapDeg,normDeg};"
-          new="return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,computeSkyState,twilightFactor,atmosphericFactor,moonlightFactor,cloudOpacityAt,starVisibility,starTwinkle,projectHorizontal,meteorDelayMs,createMeteorEvent,meteorFrame,meteorVisibility,wrapDeg,normDeg};"
-          if new not in s:
-              if old not in s: raise SystemExit('sky export anchor missing')
-              s=s.replace(old,new,1)
-          p.write_text(s)
-
-          # Landscape session owns the single shared random schedule.
-          replace_once('tonglu.html',
-          "let state=null,skyState=null,tick=0;\nconst LANDSCAPE_SKY_BOTTOM=96;",
-          "let state=null,skyState=null,tick=0;\nlet meteorNextAt=0,meteorEvent=null;\nconst LANDSCAPE_SKY_BOTTOM=96;",
-          'landscape meteor state')
-
-          replace_once('tonglu.html',
-          "function refreshSkyState(){",
-          """function updateMeteor(now){
-  const sky=window.BudaoPastureSky;
-  if(!sky||!skyState)return;
-  if(!meteorNextAt)meteorNextAt=now+sky.meteorDelayMs(Math.random());
-  if(!meteorEvent&&now>=meteorNextAt){
-    if(Number(skyState.sun?.altitudeDeg)<=-9){
-      meteorEvent=sky.createMeteorEvent({triggerMs:now,random:Math.random});
-      if(state){state.meteorEvent=meteorEvent;sendPortraitEnvironment()}
-    }
-    meteorNextAt=now+sky.meteorDelayMs(Math.random());
-  }
-  if(meteorEvent&&now>meteorEvent.triggerMs+meteorEvent.durationMs){
-    meteorEvent=null;
-    if(state&&state.meteorEvent){delete state.meteorEvent;sendPortraitEnvironment()}
-  }
-}
-function refreshSkyState(){""",
-          'landscape meteor scheduler')
-
-          replace_once('tonglu.html',
-          "  const moonXY=project(skyState.moon);",
-          """  const mf=sky.meteorFrame(meteorEvent,now);
-  if(mf){
-    const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});
-    const visibility=sky.meteorVisibility({sunAltitudeDeg:skyState.sun.altitudeDeg,cloudOpacity,moon:skyState.moon});
-    const alpha=mf.alpha*visibility;
-    if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*480,mf.tailY*LANDSCAPE_SKY_BOTTOM);ctx.lineTo(mf.x*480,mf.y*LANDSCAPE_SKY_BOTTOM);ctx.stroke();rect(mf.x*480,mf.y*LANDSCAPE_SKY_BOTTOM,1,1,'#ffffff');ctx.restore()}
-  }
-
-  const moonXY=project(skyState.moon);""",
-          'landscape meteor draw')
-
-          replace_once('tonglu.html',
-          "  const cloud=effectiveCloudCover();\n  drawCelestial(now,cloud,c);",
-          "  const cloud=effectiveCloudCover();\n  updateMeteor(now);\n  drawCelestial(now,cloud,c);",
-          'landscape meteor tick')
-
-          # Portrait consumes only the parent's shared event; no independent random schedule.
-          replace_once('tonglu-pasture-portrait.html',
-          " const moonXY=project(shared.moon);if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon);",
-          """ const mf=sky.meteorFrame(state?.meteorEvent,now);
- if(mf){const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});const visibility=sky.meteorVisibility({sunAltitudeDeg:shared.sun.altitudeDeg,cloudOpacity,moon:shared.moon});const alpha=mf.alpha*visibility;if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*W,mf.tailY*skyBottom);ctx.lineTo(mf.x*W,mf.y*skyBottom);ctx.stroke();rect(mf.x*W,mf.y*skyBottom,1,1,'#ffffff');ctx.restore()}}
- const moonXY=project(shared.moon);if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon);""",
-          'portrait meteor draw')
-          PY
+      - run: node scripts/apply_meteor_patch.js
       - run: npm ci
       - name: Meteor focused tests
         run: node --test --test-concurrency=1 test/pasture-meteor.test.js test/pasture-meteor-integration.test.js test/pasture-sky-engine.test.js test/pasture-sky-integration.test.js
-      - name: Full suite
-        run: npm test
-      - name: Lint
-        run: npm run lint
-      - name: Build
-        run: npm run build
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build
       - name: Commit implementation
         run: |
           git config user.name "github-actions[bot]"
