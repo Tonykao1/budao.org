@@ -62,3 +62,16 @@ test('find-sheep interaction uses visible pixels, a five-finger pixel hand, and 
   assert.doesNotMatch(runtime, /AudioContext|webkitAudioContext|createOscillator|OscillatorNode/);
   assert.equal(fs.existsSync('pasture-preview/assets/baaa01.mp3'), true, 'approved baa audio is missing');
 });
+
+test('portrait interaction crosses the iframe safely using an exact-pixel SVG hit layer', () => {
+  const runtime = read('pasture-resident-runtime.js');
+  assert.match(runtime, /pastureResidentHitSvg/);
+  assert.match(runtime, /createElementNS\([^\n]*svg/);
+  assert.match(runtime, /pointer-events:\s*none/);
+  assert.match(runtime, /pointerEvents\s*=\s*['"]all['"]/);
+  assert.match(runtime, /setPointerCapture/);
+  assert.match(runtime, /releasePointerCapture/);
+  assert.match(runtime, /updateHitLayer/);
+  assert.match(runtime, /hitRects/);
+  assert.match(runtime, /portraitFrame/);
+});
