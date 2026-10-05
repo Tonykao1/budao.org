@@ -24,6 +24,8 @@ jobs:
         run: npm ci
       - name: Run leader route architecture tests
         run: node --test test/leader-route-architecture.test.js
+      - name: Run public route projection regression tests
+        run: node --test test/public-route-projection-regression.test.js
       - name: Lint
         run: npm run lint
       - name: Run full test suite
