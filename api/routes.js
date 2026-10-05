@@ -4,8 +4,10 @@ const branch = "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const presentationSlots = ["IMS", "BACBC", "HD"];
-const { getAuthenticatedPublisher } = require("./_security/auth");
-const { readAltarState, routeSupervision } = require("./_altar/store");
+const { getAuthenticatedPublisher, isSteward } = require("./_security/auth");
+const { requireJsonPost, requireSameOrigin, sendJson: sendProtectedJson } = require("./_security/http");
+const { clientIp, consume } = require("./_security/rate-limit");
+const { readAltarState, writeAltarState, applySupervisionAction, routeSupervision } = require("./_altar/store");
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -13,6 +15,10 @@ module.exports = async function handler(request, response) {
   if (request.method === "OPTIONS") {
     response.status(204).end();
     return;
+  }
+
+  if (request.method === "POST") {
+    return handleAltarAction(request, response);
   }
 
   if (request.method !== "GET") {
@@ -32,6 +38,13 @@ module.exports = async function handler(request, response) {
       return sendJson(response, 200, privateRoutesForLeader(routes, publisher));
     }
 
+    if (scope === "altar") {
+      const publisher = getAuthenticatedPublisher(request);
+      if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
+      if (!isSteward(publisher)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
+      return handleAltarRead(response, routes);
+    }
+
     let supervisionRoutes = {};
     try {
       const altar = await readAltarState();
@@ -46,6 +59,74 @@ module.exports = async function handler(request, response) {
     sendJson(response, 200, []);
   }
 };
+
+async function handleAltarRead(response, routes) {
+  let state = { routes: {}, audit: [] };
+  let supervisionAvailable = true;
+  try {
+    state = await readAltarState();
+  } catch (error) {
+    supervisionAvailable = false;
+  }
+  const nowMs = Date.now();
+  const combined = (Array.isArray(routes) ? routes : []).map(function (route) {
+    const supervision = routeSupervision(state, route.routeId || route.id);
+    const eventMs = eventTimeMs(route);
+    return {
+      ...route,
+      supervision,
+      phase: Number.isFinite(eventMs) && eventMs < nowMs ? "past" : "future"
+    };
+  });
+  return sendProtectedJson(response, 200, { ok: true, supervisionAvailable, routes: combined });
+}
+
+async function handleAltarAction(request, response) {
+  const scope = requestScope(request);
+  if (scope !== "altar") return sendProtectedJson(response, 405, { ok: false, reason: "method_not_allowed" });
+
+  const parsed = requireJsonPost(request);
+  if (parsed.error) return sendProtectedJson(response, parsed.status, { ok: false, reason: parsed.error });
+  if (!requireSameOrigin(request)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
+
+  const publisher = getAuthenticatedPublisher(request);
+  if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
+  if (!isSteward(publisher)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
+  if (!consume("altar:" + publisher.id + ":" + clientIp(request), 30, 60_000)) {
+    return sendProtectedJson(response, 429, { ok: false, reason: "rate_limited" });
+  }
+  if (!token) return sendProtectedJson(response, 503, { ok: false, reason: "supervision_unavailable" });
+
+  const routeId = String(parsed.body.routeId || "").trim();
+  const action = String(parsed.body.action || "").trim();
+  const reason = String(parsed.body.reason || "").trim().slice(0, 500);
+  if (!routeId || !["needs_changes", "pause", "lock", "restore"].includes(action)) {
+    return sendProtectedJson(response, 400, { ok: false, reason: "invalid_action" });
+  }
+
+  try {
+    const routes = await readRoutes();
+    if (!routes.some(function (route) { return (route.routeId || route.id) === routeId; })) {
+      return sendProtectedJson(response, 404, { ok: false, reason: "route_not_found" });
+    }
+    const state = await readAltarState();
+    const next = applySupervisionAction(state, {
+      routeId,
+      action,
+      actor: publisher.username,
+      timestamp: new Date().toISOString(),
+      reason
+    });
+    await writeAltarState(next, "Altar " + action + ": " + routeId, state.sha);
+    return sendProtectedJson(response, 200, {
+      ok: true,
+      routeId,
+      supervision: routeSupervision(next, routeId)
+    });
+  } catch (error) {
+    return sendProtectedJson(response, 503, { ok: false, reason: "supervision_unavailable" });
+  }
+}
 
 async function readRoutes() {
   const result = await fetch(contentsUrl(), {
@@ -202,3 +283,5 @@ function sendJson(response, status, body) {
 module.exports.projectPublicRoutes = projectPublicRoutes;
 module.exports.eventTimeMs = eventTimeMs;
 module.exports.privateRoutesForLeader = privateRoutesForLeader;
+module.exports.handleAltarRead = handleAltarRead;
+module.exports.handleAltarAction = handleAltarAction;
