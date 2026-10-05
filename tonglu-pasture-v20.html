@@ -5,19 +5,19 @@
 <script>
 (async()=>{
   // v20 is based directly on the approved v19 preview.
-  // The ONLY change is the distant waterfall: exactly 2x width and 2x height.
-  // Sheep, river perspective, water sparkle motion and log bridge remain untouched.
+  // The distant waterfall remains 2x width and 2x height.
+  // Sheep now also receive a deterministic daily resting pose while keeping
+  // the free-depth roaming rules introduced in v18.
   const r=await fetch('./tonglu-pasture-v19.html',{cache:'no-store'});
   let src=await r.text();
   src=src.replaceAll('同路 · 数字牧场 v19','同路 · 数字牧场 v20');
 
   const oldFalls="rect(357,145,5,2,'#eefcff');rect(358,147,4,3,C.riverLight);rect(357,150,5,4,'#dff8ff');rect(356,154,7,2,'#f4ffff');";
-  const newFalls="rect(355,134,10,4,'#eefcff');rect(357,138,8,6,C.riverLight);rect(355,144,10,8,'#dff8ff');rect(353,152,14,4,'#f4ffff');const wf=Math.floor(tick/8)%6;if(wf<3){rect(358,139+wf*2,2,2,'#f7ffff');rect(362,145+wf,1,3,'#eefcff')}else{rect(360,139+(wf-3)*2,2,2,'#f7ffff');rect(356,146+(wf-3),1,2,'#eefcff')}if((Math.floor(tick/12)%2)===0){rect(354,153,4,1,'#ffffff');rect(362,152,4,1,'#ffffff')}";
+  const newFalls="rect(355,134,10,4,'#eefcff');rect(357,138,8,6,C.riverLight);rect(355,144,10,8,'#dff8ff');rect(353,152,14,4,'#f4ffff');const wf=Math.floor(tick/8)%6;if(wf<3){rect(358,139+wf*2,2,2,'#f7ffff');rect(362,145+wf,1,3,C.riverLight)}else{rect(360,139+(wf-3)*2,2,2,'#f7ffff');rect(356,146+(wf-3),1,2,'#eefcff')}if((Math.floor(tick/12)%2)===0){rect(354,153,4,1,'#ffffff');rect(362,152,4,1,'#ffffff')}";
   src=src.replace(oldFalls,newFalls);
 
-  // v20 interaction lock:
-  // Keep the user's foreground sheep clickable. Remove every legacy invisible
-  // pasture/focus hotspot without changing any visual or motion code.
+  // v20 final-stage patch. It keeps interaction locks and adds resting sheep
+  // only after v18 has produced the actual final pasture HTML.
   const interactionLock=String.raw`
   html=html.replace('</style>','#worldNeed,#worldGive,.focus-ui .hotspot,.focus-ui .back,.life-slip{display:none!important;pointer-events:none!important}</style>');
   html=html.replace('<button id="worldNeed"','<button disabled tabindex="-1" id="worldNeed"');
@@ -28,6 +28,17 @@
   html=html.replace('<button id="askHit"','<button disabled tabindex="-1" id="askHit"');
   html=html.replace('<button id="offerHit"','<button disabled tabindex="-1" id="offerHit"');
   html=html.replace('<button class="back" id="back"','<button disabled tabindex="-1" class="back" id="back"');
+
+  // Add a compact, natural lying pose. The head stays raised and the legs tuck
+  // beneath the body; only a tiny breathing motion remains.
+  html=html.replace('\nconst sheep=[','\nfunction sheepRestBody(px,py,s,f,h){const rb=Math.sin((tick+sheepPhase)/118)>.84?1:0;rect(px,py+5*s-rb,25*s,10*s,f);rect(px+4*s,py+2*s-rb,16*s,13*s,f);rect(px+18*s,py+3*s-rb,10*s,9*s,h);rect(px+26*s,py+5*s-rb,3*s,3*s,h);rect(px+17*s,py+4*s-rb,3*s,3*s,h);rect(px+24*s,py+5*s-rb,1.5*s,1.5*s,C.ink);rect(px+5*s,py+13*s,7*s,2*s,\'#5d5851\');rect(px+14*s,py+13*s,6*s,2*s,\'#5d5851\')}\nconst sheep=[');
+
+  // Exactly five or six adults rest each day. Selection is date-seeded, so
+  // refreshing the same day does not make sheep repeatedly stand up or lie down.
+  html=html.replace(' window.__tongluAdultLayout=sheep.map(o=>({x:o.x,y:o.y,s:o.s,flip:!!o.flip,self:!!o.self,black:!!o.black,f:o.f,h:o.h}));'," const restRand=flockRand(flockHash('budao-rest-adult-'+key));const restRank=sheep.map((_,i)=>({i,r:restRand()})).sort((a,b)=>a.r-b.r);const restCount=5+(flockHash('budao-rest-count-'+key)%2);const restSet=new Set(restRank.slice(0,restCount).map(v=>v.i));sheep.forEach((o,i)=>{o.rest=restSet.has(i)}); window.__tongluAdultLayout=sheep.map(o=>({x:o.x,y:o.y,s:o.s,flip:!!o.flip,self:!!o.self,black:!!o.black,rest:!!o.rest,f:o.f,h:o.h}));");
+
+  // Resting sheep do not wander. They keep only the subtle body-breath motion.
+  html=html.replace(/function drawWorldSheep\(o,i\)\{[\s\S]*?\}\nfunction drawWorld\(\)/,"function drawWorldSheep(o,i){const phase=o.p||i*29,amp=o.a||0;let dx=0,dy=0;if(!o.rest){if(o.m==='wander'){dx=Math.sin((tick+phase)/220)*amp;dy=Math.sin((tick+phase)/310)*Math.min(.55,amp*.35)}else if(o.m==='idle'){dx=Math.sin((tick+phase)/300)*Math.min(.45,amp)}else if(o.m==='graze'){dx=Math.sin((tick+phase)/340)*Math.min(.35,amp)}}const breath=o.rest?0:(Math.sin((tick+phase)/95)>.78?1:0),px=Math.round(o.x+dx),py=Math.round(o.y+dy-breath);sheepPhase=phase;ctx.save();ctx.globalAlpha=Math.min(1,.72+o.s*.26);if(o.rest){rect(px-2*o.s,py+15*o.s,30*o.s,2*o.s,'rgba(56,93,54,.16)');if(o.flip&&!o.self){ctx.translate(px+30*o.s,0);ctx.scale(-1,1);sheepRestBody(0,py,o.s,o.f,o.h)}else{sheepRestBody(px,py,o.s,o.f,o.h)}}else{rect(px-2*o.s,py+18*o.s,28*o.s,2*o.s,'rgba(56,93,54,.18)');if(o.flip&&!o.self){ctx.translate(px+30*o.s,0);ctx.scale(-1,1);sheepBody(0,py,o.s,o.f,o.h,o.m==='graze')}else{sheepBody(px,py,o.s,o.f,o.h,o.m==='graze')}}ctx.restore();if(o.self){rect(px-4*o.s,py+(o.rest?17:22)*o.s,23*o.s,3*o.s,'rgba(255,248,195,.30)');if(selfNeed)needWave(px+32*o.s,py+6*o.s,true);if(selfOffer)cloth(px-3,py+(o.rest?16:20),.72,true)}}\nfunction drawWorld()");
   `;
   src=src.replace(
     '  "}\\nfunction tree");\n  `;',
