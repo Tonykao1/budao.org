@@ -1,0 +1,17 @@
+name: Pasture Sky Engine v1
+
+on:
+  push:
+    branches:
+      - feature/pasture-sky-engine-v1
+
+jobs:
+  sky-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run sky engine tests
+        run: node --test test/pasture-sky-engine.test.js test/pasture-sky-integration.test.js
