@@ -46,6 +46,10 @@ function getAuthenticatedPublisher(request) {
   return { id: claims.sub, username, role: claims.role, slot, legacySlotIdentity };
 }
 
+function isSteward(publisher) {
+  return Boolean(publisher && normalizeUsername(publisher.username) === "tony" && publisher.role === "publisher");
+}
+
 function authenticateCredentials(identifier, password) {
   const users = configuredUsers();
   const normalizedIdentifier = String(identifier || "").trim().toLowerCase();
@@ -201,5 +205,6 @@ module.exports = {
   clearSessionCookie,
   createSessionCookie,
   getAuthenticatedPublisher,
+  isSteward,
   normalizeUsername
 };
