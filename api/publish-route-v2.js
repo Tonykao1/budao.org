@@ -8,6 +8,7 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/ht
 const { clientIp, consume } = require("./_security/rate-limit");
 const { validateRoute } = require("./_security/route-schema");
 const { isManagedRouteImageUrl } = require("./_security/route-image");
+const { readAltarState, routeSupervision } = require("./_altar/store");
 
 module.exports = async function handler(request, response) {
   const parsed = requireJsonPost(request);
@@ -27,6 +28,17 @@ module.exports = async function handler(request, response) {
   try {
     const current = await readRoutesFile();
     const existing = findExistingRoute(current.routes, publisher);
+
+    if (existing) {
+      try {
+        const altar = await readAltarState();
+        const supervision = routeSupervision(altar, existing.routeId || existing.id);
+        if (supervision.locked) return sendJson(response, 423, { ok: false, reason: "route_locked" });
+      } catch (error) {
+        // Fail open for ordinary publication: the altar must never become a single point of failure.
+      }
+    }
+
     const routeToSave = normalizeRoute({
       ...validated.value,
       id: existing && (existing.id || existing.routeId) || leaderRouteId(publisher),
