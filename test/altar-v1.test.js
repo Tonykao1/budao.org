@@ -55,17 +55,15 @@ test("public route projection can exclude supervised routes without mutating can
   assert.equal(canonical[0].slot, undefined);
 });
 
-test("Tent contains a humble altar cornerstone controlled by steward capability, not username", () => {
-  const html = fs.readFileSync(path.join(__dirname, "..", "tent.html"), "utf8");
-  const js = fs.readFileSync(path.join(__dirname, "..", "tent-app.js"), "utf8");
-  const css = fs.readFileSync(path.join(__dirname, "..", "tent-style.css"), "utf8");
-  assert.match(html, /altar-cornerstone/);
-  assert.match(html, />\s*祭坛\s*</);
-  assert.match(js, /capabilities\.steward|capabilities\s*&&\s*[^\n]*steward/);
-  assert.doesNotMatch(js, /username\s*===\s*["']tony["']/i);
-  assert.match(css, /\.altar-cornerstone/);
-  assert.match(css, /right:\s*(?:50px|clamp\()/);
-  assert.match(css, /bottom:\s*(?:40px|clamp\()/);
+test("Tent creates a humble altar cornerstone from steward capability, not username", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "tent-word.js"), "utf8");
+  assert.match(source, /altar-cornerstone/);
+  assert.match(source, /label\.textContent\s*=\s*["']祭坛["']/);
+  assert.match(source, /capabilities\s*&&\s*session\.capabilities\.steward\s*===\s*true/);
+  assert.doesNotMatch(source, /username\s*===\s*["']tony["']/i);
+  assert.match(source, /right:50px/);
+  assert.match(source, /bottom:40px/);
+  assert.match(source, /window\.location\.href\s*=\s*["']\/altar\.html["']/);
 });
 
 test("altar page and protected API surface exist", () => {
