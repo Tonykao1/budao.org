@@ -10,10 +10,10 @@ test('approved mother UI owns the visible pasture controls before login runtime 
   assert.match(loader,/pasture-approved-ui-shell\.js/);
   assert.ok(loader.indexOf('pasture-approved-ui-shell.js')<loader.indexOf('pasture-resident-runtime-core.js'),'mother UI must load before resident runtime');
   const shell=read('pasture-approved-ui-shell.js');
-  assert.match(shell,/className=['"]sky-zone['"]/);
-  assert.match(shell,/className=['"]sky-ui['"]/);
-  assert.match(shell,/className=['"]identity pixel['"]/);
-  assert.match(shell,/className=['"]actions['"]/);
+  assert.match(shell,/(?:className=['"]sky-zone['"]|class=\\?['"]sky-zone\\?['"])/);
+  assert.match(shell,/(?:className=['"]sky-ui['"]|class=\\?['"]sky-ui\\?['"])/);
+  assert.match(shell,/(?:className=['"]identity pixel['"]|class=\\?['"]identity pixel\\?['"])/);
+  assert.match(shell,/(?:className=['"]actions['"]|class=\\?['"]actions\\?['"])/);
   assert.match(shell,/public-screen/);
   for(const label of ['归回自己','我的牧草','风闻有你','同路伙伴','信箱','步道卡','小匣']) assert.match(shell,new RegExp(label));
 });
