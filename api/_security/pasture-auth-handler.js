@@ -1,6 +1,7 @@
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./http");
 const { clientIp } = require("./rate-limit");
 const domain = require("./pasture-auth-domain");
+const positionDomain = require("./pasture-position-domain");
 const store = require("./pasture-auth-store");
 
 module.exports = async function handler(request, response) {
@@ -25,6 +26,8 @@ module.exports = async function handler(request, response) {
     if (action === "requestCode") return await requestCode(request, response, parsed.body);
     if (action === "verifyCode") return await verifyCode(request, response, parsed.body);
     if (action === "saveSheep") return await saveSheep(request, response, parsed.body);
+    if (action === "getDailySheepPosition") return await getDailySheepPosition(request, response, parsed.body);
+    if (action === "saveDailySheepPosition") return await saveDailySheepPosition(request, response, parsed.body);
     if (action === "logout") return await logout(request, response);
     return sendJson(response, 400, { ok: false, reason: "unknown_action" });
   } catch (error) {
@@ -42,6 +45,9 @@ module.exports = async function handler(request, response) {
     }
     if (error && error.code === "INVALID_SHEEP") {
       return sendJson(response, 400, { ok: false, reason: "invalid_sheep" });
+    }
+    if (error && ["INVALID_MODE", "INVALID_DATE", "INVALID_POSITION"].includes(error.code)) {
+      return sendJson(response, 400, { ok: false, reason: String(error.message || "invalid_position") });
     }
     console.error("pasture-auth", String(error && error.message || error));
     return sendJson(response, 500, { ok: false, reason: "service_unavailable" });
@@ -135,6 +141,39 @@ async function saveSheep(request, response, body) {
   });
 }
 
+function publicPosition(row, dateKey, mode) {
+  return {
+    dateKey,
+    mode,
+    x: Number(row.x),
+    y: Number(row.y),
+    flip: Boolean(row.flip)
+  };
+}
+
+async function getDailySheepPosition(request, response, body) {
+  const resident = await authenticatedResident(request, true);
+  if (!resident) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  const dateKey = positionDomain.validateDateKey(body.dateKey);
+  const mode = positionDomain.normalizeMode(body.mode);
+  let row = await store.dailyPositionForUser(resident.id, dateKey, mode);
+  if (!row) {
+    const position = positionDomain.generateDailyPosition(resident.id, dateKey, mode);
+    row = await store.upsertDailyPosition(resident.id, dateKey, mode, position);
+  }
+  return sendJson(response, 200, { ok: true, position: publicPosition(row, dateKey, mode) });
+}
+
+async function saveDailySheepPosition(request, response, body) {
+  const resident = await authenticatedResident(request, true);
+  if (!resident) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  const dateKey = positionDomain.validateDateKey(body.dateKey);
+  const mode = positionDomain.normalizeMode(body.mode);
+  const position = positionDomain.validatePosition(mode, body);
+  const row = await store.upsertDailyPosition(resident.id, dateKey, mode, position);
+  return sendJson(response, 200, { ok: true, position: publicPosition(row, dateKey, mode) });
+}
+
 async function logout(request, response) {
   const token = domain.readCookie(request);
   if (token) await store.revokeSession(domain.tokenHash(token));
@@ -193,6 +232,8 @@ module.exports._test = {
   requestCode,
   verifyCode,
   saveSheep,
+  getDailySheepPosition,
+  saveDailySheepPosition,
   logout,
   authenticatedResident,
   sendVerificationEmail
