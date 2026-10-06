@@ -19,6 +19,8 @@ jobs:
         run: npm install --ignore-scripts
       - name: Verify registration backend
         run: node --test --test-concurrency=1 test/pasture-registration-backend.test.js
+      - name: Verify deterministic daily sheep placement
+        run: node --test --test-concurrency=1 test/pasture-position-domain.test.js
       - name: Verify registration frontend
         run: node --test --test-concurrency=1 test/pasture-registration-frontend.test.js
       - name: Verify additive pasture UI contract
