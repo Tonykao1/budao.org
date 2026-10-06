@@ -21,6 +21,8 @@ jobs:
         run: node --test --test-concurrency=1 test/pasture-registration-backend.test.js
       - name: Verify registration frontend
         run: node --test --test-concurrency=1 test/pasture-registration-frontend.test.js
+      - name: Verify additive pasture UI contract
+        run: node --test --test-concurrency=1 test/pasture-ui-restore.test.js test/pasture-login-additive-regression.test.js
       - name: Verify protected sky engine
         run: node --test --test-concurrency=1 test/pasture-sky-engine.test.js
       - name: Verify Vercel function budget
