@@ -2,35 +2,30 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-function read(path) {
-  return fs.readFileSync(path, 'utf8');
-}
+function read(path) { return fs.readFileSync(path, 'utf8'); }
+function runtimeSource() { return read('pasture-resident-runtime-core.js'); }
 
-function runtimeSource() {
-  return read('pasture-resident-runtime-core.js');
-}
-
-test('stable pasture loads resident runtime without rewriting tonglu composition', () => {
+test('stable pasture loads approved mother UI before resident runtime without rewriting tonglu composition', () => {
   const sky = read('pasture-sky-engine.js');
   const loader = read('pasture-resident-runtime.js');
   assert.match(sky, /pasture-resident-runtime\.js/);
   assert.match(sky, /window\.top!==window/);
   assert.match(sky, /environmentLayer/);
-  assert.match(loader, /pasture-resident-runtime-core\.js/);
+  assert.match(loader, /pasture-approved-ui-shell\.js/);
+  assert.ok(loader.indexOf('pasture-approved-ui-shell.js') < loader.indexOf('pasture-resident-runtime-core.js'));
   assert.match(loader, /pasture-resident-hit-layer\.js/);
-  assert.equal(fs.existsSync('pasture-resident-runtime-core.js'), true, 'resident runtime core is missing');
 });
 
-test('guest sees no feature controls; authenticated resident sees seven locked controls', () => {
+test('guest/authenticated visibility belongs to approved mother UI while runtime emits state only', () => {
   const runtime = runtimeSource();
-  assert.match(runtime, /pastureResidentControls/);
-  assert.match(runtime, /hidden\s*=\s*!authenticated|hidden=!authenticated/);
-  for (const label of ['归回自己','我的牧草','风闻有你','同路伙伴','信箱','步道卡','小匣']) {
-    assert.match(runtime, new RegExp(label));
-  }
-  assert.match(runtime, /aria-disabled/);
-  assert.match(runtime, /pasture-feature-locked/);
-  assert.doesNotMatch(runtime, /我的羊|你的羊|拥有一只属于自己的羊/);
+  const shell = read('pasture-approved-ui-shell.js');
+  assert.doesNotMatch(runtime, /pastureResidentControls|FEATURE_LABELS|data-feature/);
+  assert.match(runtime, /pasture-auth-state/);
+  assert.match(runtime, /pasture-resident-updated/);
+  assert.match(shell, /root\.hidden=!authenticated|root\.hidden = !authenticated/);
+  for (const label of ['归回自己','我的牧草','风闻有你','同路伙伴','信箱','步道卡','小匣']) assert.match(shell, new RegExp(label));
+  assert.match(shell, /aria-disabled/);
+  assert.match(shell, /pasture-feature-locked/);
 });
 
 test('resident auth covers email code, session boot, logout and sheep creation', () => {
@@ -76,11 +71,12 @@ test('daily resident position sync is server-first and local storage is cache fa
 
 test('find-sheep interaction uses visible pixels, a five-finger pixel hand, and only the supplied baa audio', () => {
   const runtime = runtimeSource();
+  const hand = read('pasture-resident-ui-restore.js');
   assert.match(runtime, /function residentHit/);
   assert.match(runtime, /hitRect/);
   assert.match(runtime, /transparent gaps|visible pixels/i);
-  assert.match(runtime, /PIXEL_HAND_OPEN/);
-  for (const x of ['10','17','24','31','38']) assert.match(runtime, new RegExp(`x=%22${x}%22`));
+  assert.match(hand, /PIXEL_HAND_OPEN/);
+  for (const x of ['10','17','24','31','38']) assert.match(hand, new RegExp(`x=%22${x}%22`));
   assert.match(runtime, /baaa01\.mp3/);
   assert.doesNotMatch(runtime, /AudioContext|webkitAudioContext|createOscillator|OscillatorNode/);
   assert.equal(fs.existsSync('pasture-preview/assets/baaa01.mp3'), true, 'approved baa audio is missing');
