@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 
 const COOKIE_NAME = "budao_pasture_session";
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 365;
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const BODY_COLORS = Object.freeze(["#f4ecdc", "#f2e3b3", "#bfd8da", "#dec9c8", "#c7d5b5", "#d8d7ce", "#f1d7bf", "#eee8dc"]);
 const HEAD_COLORS = Object.freeze(["#8d836e", "#917d62", "#776d66", "#866f70", "#727a66", "#716a64", "#907461", "#746d65"]);
