@@ -1,0 +1,21 @@
+name: Test moon horizon projection
+
+on:
+  push:
+    branches: ['fix/moon-horizon-sprite']
+    paths:
+      - '.github/workflows/test-moon-horizon.yml'
+      - 'test/pasture-moon-horizon.test.js'
+      - 'pasture-sky-engine.js'
+      - 'tonglu.html'
+      - 'tonglu-pasture-portrait.html'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run focused moon horizon test
+        run: node --test test/pasture-moon-horizon.test.js
+      - name: Run sky regression tests
+        run: node --test test/pasture-sky-engine.test.js test/pasture-moon-visibility.test.js
