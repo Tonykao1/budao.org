@@ -27,6 +27,8 @@ jobs:
         run: node --test --test-concurrency=1 test/pasture-resident-findability.test.js
       - name: Verify additive pasture UI contract
         run: node --test --test-concurrency=1 test/pasture-ui-restore.test.js test/pasture-login-additive-regression.test.js
+      - name: Verify approved shop drawer and close system
+        run: node --test --test-concurrency=1 test/pasture-approved-overlays.test.js
       - name: Verify protected sky engine
         run: node --test --test-concurrency=1 test/pasture-sky-engine.test.js
       - name: Verify Vercel function budget
