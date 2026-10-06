@@ -64,7 +64,7 @@ test('daily resident position sync is server-first and local storage is cache fa
   const sync=read('pasture-resident-position-sync.js');
   assert.match(sync,/async function loadDailyResidentPosition\(dateKey,mode\)/);
   assert.match(sync,/action:'getDailySheepPosition'/);
-  assert.match(sync,/runtime\.call/);
+  assert.match(sync,/(?:runtime\(\)|rt)\.call/);
   assert.match(sync,/localStorage\.getItem/);
   assert.match(sync,/catch[\s\S]*loadCachedPosition/);
   assert.match(sync,/async function saveDailyResidentPosition\(dateKey,mode,layout\)/);
