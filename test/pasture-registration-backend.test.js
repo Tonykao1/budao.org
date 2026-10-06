@@ -94,6 +94,27 @@ test('pasture identity migrations are additive, private, one-resident-one-sheep,
   assert.match(rateLimit, /count INTEGER/);
 });
 
+test('pasture daily sheep positions are additive and unique per user date and mode', () => {
+  const migrationPath='db/migrations/0007_pasture_sheep_daily_positions.sql';
+  assert.equal(fs.existsSync(path.join(root,migrationPath)),true,`${migrationPath} is missing`);
+  const migration=read(migrationPath);
+  assert.match(migration,/CREATE TABLE IF NOT EXISTS pasture_sheep_daily_positions/);
+  for(const field of ['user_id','date_key','mode','x','y','flip','created_at','updated_at']) assert.match(migration,new RegExp(field));
+  assert.match(migration,/CHECK \(mode IN \('landscape','portrait'\)\)/);
+  assert.match(migration,/UNIQUE INDEX IF NOT EXISTS pasture_sheep_daily_positions_user_date_mode_uq[\s\S]*\(user_id, date_key, mode\)/);
+
+  const schema=read('db/schema.js');
+  assert.match(schema,/const pastureSheepDailyPositions = pgTable/);
+  assert.match(schema,/pasture_sheep_daily_positions_user_date_mode_uq/);
+
+  const store=read('api/_security/pasture-auth-store.js');
+  assert.match(store,/async function dailyPositionForUser\(userId, dateKey, mode\)/);
+  assert.match(store,/async function upsertDailyPosition\(userId, dateKey, mode, position\)/);
+  assert.match(store,/onConflictDoUpdate/);
+  assert.match(store,/dailyPositionForUser,/);
+  assert.match(store,/upsertDailyPosition/);
+});
+
 test('pasture rate limiting uses the database as the durable authority', () => {
   const store = read('api/_security/pasture-auth-store.js');
   assert.match(store, /async function consumePastureRateLimit/);
