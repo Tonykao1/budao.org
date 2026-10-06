@@ -16,10 +16,12 @@ function load(src,marker,onload){
   document.head.appendChild(script);
 }
 
-load('/pasture-resident-runtime-core.js?v=20261006reg4','pastureResidentCore',()=>{
-  load('/pasture-resident-findability-guard.js?v=20261006reg4','pastureResidentFindability',()=>{
-    load('/pasture-resident-saved-bridge.js?v=20261006reg4','pastureResidentSavedBridge',()=>{
-      load('/pasture-resident-hit-layer.js?v=20261006reg4','pastureResidentHitLayer');
+load('/pasture-resident-runtime-core.js?v=20261006reg5','pastureResidentCore',()=>{
+  load('/pasture-resident-findability-guard.js?v=20261006reg5','pastureResidentFindability',()=>{
+    load('/pasture-resident-saved-bridge.js?v=20261006reg5','pastureResidentSavedBridge',()=>{
+      load('/pasture-resident-hit-layer.js?v=20261006reg5','pastureResidentHitLayer',()=>{
+        load('/pasture-resident-ui-restore.js?v=20261006reg5','pastureResidentUiRestore');
+      });
     });
   });
 });
