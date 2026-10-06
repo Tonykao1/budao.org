@@ -16,12 +16,14 @@ function load(src,marker,onload){
   document.head.appendChild(script);
 }
 
-load('/pasture-resident-runtime-core.js?v=20261006reg6','pastureResidentCore',()=>{
-  load('/pasture-resident-position-sync.js?v=20261006reg6','pastureResidentPositionSync',()=>{
-    load('/pasture-resident-findability-guard.js?v=20261006reg6','pastureResidentFindability',()=>{
-      load('/pasture-resident-saved-bridge.js?v=20261006reg6','pastureResidentSavedBridge',()=>{
-        load('/pasture-resident-hit-layer.js?v=20261006reg6','pastureResidentHitLayer',()=>{
-          load('/pasture-resident-ui-restore.js?v=20261006reg6','pastureResidentUiRestore');
+load('/pasture-approved-ui-shell.js?v=20261006reg7','pastureApprovedUiShell',()=>{
+  load('/pasture-resident-runtime-core.js?v=20261006reg7','pastureResidentCore',()=>{
+    load('/pasture-resident-position-sync.js?v=20261006reg7','pastureResidentPositionSync',()=>{
+      load('/pasture-resident-findability-guard.js?v=20261006reg7','pastureResidentFindability',()=>{
+        load('/pasture-resident-saved-bridge.js?v=20261006reg7','pastureResidentSavedBridge',()=>{
+          load('/pasture-resident-hit-layer.js?v=20261006reg7','pastureResidentHitLayer',()=>{
+            load('/pasture-resident-ui-restore.js?v=20261006reg7','pastureResidentUiRestore');
+          });
         });
       });
     });
