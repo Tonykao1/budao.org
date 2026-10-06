@@ -22,6 +22,10 @@ let attempts=0;
 function mode(){return innerHeight>innerWidth*1.08?'portrait':'landscape';}
 function dateKey(){
   try{
+    const requested=document.getElementById('pastureFrame')?.contentWindow?.__tongluFlockDateRequested;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(String(requested||'')))return requested;
+  }catch(_){}
+  try{
     const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
     const o=Object.fromEntries(p.map(x=>[x.type,x.value]));
     return o.year+'-'+o.month+'-'+o.day;
@@ -95,6 +99,7 @@ function persist(resident,layout,m){
     const key='pasture-resident-position-v2:'+resident.id+':'+m+':'+dateKey();
     localStorage.setItem(key,JSON.stringify({x:+layout.x.toFixed(2),y:+layout.y.toFixed(2),flip:!!layout.flip}));
   }catch(_){}
+  try{window.PastureResidentPositionSync?.persistCurrent?.();}catch(_){}
 }
 function ensureFindable(){
   const runtime=window.PastureResidentRuntime;
