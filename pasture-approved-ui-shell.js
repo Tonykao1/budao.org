@@ -1,0 +1,79 @@
+(()=>{
+'use strict';
+if(window.top!==window||!document.getElementById('environmentLayer'))return;
+if(document.querySelector('[data-pasture-mother-ui="approved"]'))return;
+
+const style=document.createElement('style');
+style.dataset.pastureMotherUi='approved';
+style.textContent=`
+:root{--ink:#173f73;--cream:#fffaf0;--green:#c8f09a;--green2:#aee77c}
+.sky-zone{position:fixed;z-index:20;left:0;right:0;top:0;height:43vh;min-height:310px;pointer-events:auto}
+.sky-zone[hidden]{display:none!important}
+.sky-ui{position:absolute;inset:0;padding:30px 46px 20px;opacity:0;transform:translateY(-8px);transition:opacity .15s steps(3,end),transform .15s steps(3,end);pointer-events:none}
+.sky-zone:hover .sky-ui,.sky-zone:focus-within .sky-ui,.sky-zone.book-open .sky-ui{opacity:1;transform:translateY(0)}
+.pixel{background:var(--cream);border:3px solid var(--ink);box-shadow:0 3px 0 rgba(14,42,81,.14);position:relative}
+.pixel:before,.pixel:after{content:"";position:absolute;width:8px;height:8px;background:inherit;border-color:var(--ink);border-style:solid}
+.pixel:before{left:-7px;top:-7px;border-width:3px 0 0 3px}.pixel:after{right:-7px;bottom:-7px;border-width:0 3px 3px 0}
+.topline{display:grid;grid-template-columns:230px 310px minmax(600px,1fr) 260px;gap:26px;align-items:start;max-width:1500px;margin:0 auto}
+.brand{padding:10px 4px;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.55)}
+.brand .zh{font-weight:900;font-size:42px;line-height:1;letter-spacing:.07em}.brand .en{margin-top:6px;font:800 12px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.24em;color:#4c75a2}.brand .sub{margin-top:8px;font-size:14px;letter-spacing:.08em;color:#527ca9}
+.identity{height:140px;padding:17px 18px;display:flex;gap:18px;align-items:center}
+.avatar{width:78px;height:92px;flex:0 0 auto;border:3px solid #9ab7d3;background:#dff2fb;image-rendering:pixelated}.avatar svg{width:100%;height:100%;display:block;shape-rendering:crispEdges}
+.idtext{min-width:0;color:var(--ink)}.idtext .name{font-size:24px;font-weight:900;margin-bottom:5px}.idtext .bid{font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;color:#4d6f95;margin-bottom:8px}.idtext .state{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:900;color:#2a9837;margin-bottom:8px}.state-dot{width:10px;height:10px;background:#25b53b;border-radius:50%}.idtext .days{font-size:15px;font-weight:800;color:#234c7a}
+.actions{display:grid;grid-template-columns:repeat(4,minmax(132px,1fr));gap:14px 16px;align-content:start;padding-top:1px}
+.pbtn{height:60px;display:flex;align-items:center;justify-content:center;gap:11px;color:var(--ink);font-size:17px;font-weight:900;letter-spacing:.02em;cursor:default;pointer-events:auto;user-select:none;transition:transform .08s steps(2,end)}.pbtn.clickable{cursor:pointer}.pbtn:hover{transform:translate(-1px,-1px)}
+.pbtn.primary{background:linear-gradient(180deg,var(--green) 0%,var(--green2) 100%);height:62px;width:calc(100% + 2px);margin:-1px}.pbtn.primary:before,.pbtn.primary:after{background:var(--green2)}
+.pbtn.pasture-feature-locked{cursor:not-allowed;opacity:.88}.icon{width:31px;height:31px;display:block;image-rendering:pixelated}.icon svg{width:100%;height:100%;display:block;shape-rendering:crispEdges}
+.badge{position:absolute;right:5px;top:-10px;min-width:22px;height:22px;padding:0 5px;border:2px solid #9e2b26;background:#f05249;color:white;font:900 12px/18px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:center}
+.public-screen{min-height:140px;padding:14px 16px 16px;background:rgba(255,250,240,.96);color:var(--ink);display:flex;flex-direction:column}.public-screen .head{display:flex;align-items:center;justify-content:space-between;padding-bottom:9px;border-bottom:2px solid #d8e2ec}.public-screen .head strong{font-size:17px;font-weight:900}.public-screen .kind{font:800 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:#597b9f;border:2px solid #7795b3;padding:4px 6px;background:#edf6ff}.public-screen .message{flex:1;display:flex;align-items:center;font-size:15px;line-height:1.75;letter-spacing:.03em;color:#31547e;padding:12px 1px 8px}.public-screen .foot{font-size:11px;color:#738da8;text-align:right}
+.card-dot{position:absolute;right:8px;top:8px;width:8px;height:8px;background:#b99b65;border:1px solid #745f3f}.card-dot.active{background:#2cb64a;border-color:#1d7631}
+@media(max-width:1180px){.sky-zone{height:52vh}.sky-ui{padding:22px 24px}.topline{grid-template-columns:190px 290px 1fr;gap:18px}.public-screen{grid-column:2/-1;min-height:106px}.brand .zh{font-size:32px}.actions{grid-template-columns:repeat(3,minmax(135px,1fr))}}
+@media(max-width:820px){.sky-zone{height:68vh;min-height:520px}.topline{grid-template-columns:1fr 1fr}.brand{display:none}.identity{height:126px}.actions{grid-column:1/-1;grid-template-columns:1fr 1fr;gap:10px}.pbtn{height:54px;font-size:15px}.public-screen{grid-column:1/-1;min-height:100px}}
+`;
+document.head.appendChild(style);
+
+const root=document.createElement('div');
+root.className='sky-zone';
+root.dataset.pastureMotherUi='approved';
+root.setAttribute('aria-label','天空交互区');
+root.hidden=true;
+root.innerHTML=`<div class="sky-ui"><div class="topline">
+<div class="brand"><div class="zh">同路原野</div><div class="en">TONGLU FIELD</div><div class="sub">与同伴·在路上</div></div>
+<section class="identity pixel" aria-label="身份信息"><div class="avatar" aria-hidden="true"><svg viewBox="0 0 16 19"><rect width="16" height="19" fill="#dff2fb"/><rect x="4" y="2" width="8" height="2" fill="#6b4937"/><rect x="3" y="4" width="10" height="3" fill="#80583d"/><rect x="4" y="7" width="8" height="6" fill="#efc690"/><rect x="5" y="9" width="2" height="1" fill="#3c332c"/><rect x="9" y="9" width="2" height="1" fill="#3c332c"/><rect x="7" y="11" width="2" height="1" fill="#b96f5f"/><rect x="3" y="13" width="10" height="5" fill="#77a95e"/><rect x="1" y="15" width="2" height="3" fill="#527b43"/><rect x="13" y="15" width="2" height="3" fill="#527b43"/></svg></div><div class="idtext"><div class="name">同行者</div><div class="bid">Budao ID</div><div class="state"><span class="state-dot"></span>已归来</div><div class="days">▣&nbsp;&nbsp;同行</div></div></section>
+<nav class="actions" aria-label="功能入口">
+<div class="pbtn pixel primary clickable" id="returnNow"><span class="icon"><svg viewBox="0 0 16 16"><rect x="3" y="5" width="8" height="6" fill="#f3eee0"/><rect x="5" y="3" width="5" height="9" fill="#f3eee0"/><rect x="10" y="6" width="4" height="4" fill="#776c61"/><rect x="12" y="7" width="2" height="1" fill="#37322e"/><rect x="4" y="11" width="2" height="3" fill="#655d55"/><rect x="8" y="11" width="2" height="3" fill="#655d55"/></svg></span>归回自己</div>
+<div class="pbtn pixel clickable" id="grassBookBtn"><span class="icon"><svg viewBox="0 0 16 16"><path d="M2 3h5c1 0 2 .6 2 1.5V14c0-1-.8-1.5-2-1.5H2z" fill="#fff1d5" stroke="#234e7a" stroke-width="1.2"/><path d="M14 3H9c-1 0-2 .6-2 1.5V14c0-1 .8-1.5 2-1.5h5z" fill="#fff6e3" stroke="#234e7a" stroke-width="1.2"/></svg></span>我的牧草</div>
+<div class="pbtn pixel clickable" id="windNewsBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" fill="#fff6df" stroke="#1f4f7d" stroke-width="1.5"/><rect x="5" y="5" width="6" height="1" fill="#7da4c6"/><rect x="5" y="8" width="6" height="1" fill="#7da4c6"/><rect x="5" y="11" width="4" height="1" fill="#7da4c6"/></svg></span>风闻有你</div>
+<div class="pbtn pixel clickable" id="partnersBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="7" width="5" height="4" fill="#e9eee5"/><rect x="3" y="5" width="3" height="3" fill="#e9eee5"/><rect x="9" y="7" width="5" height="4" fill="#cbd9c7"/><rect x="10" y="5" width="3" height="3" fill="#cbd9c7"/><rect x="6" y="9" width="4" height="3" fill="#7a766c"/></svg></span>同路伙伴</div>
+<div class="pbtn pixel clickable" id="mailBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="9" fill="#dceafb" stroke="#214d7b" stroke-width="1.3"/><path d="M3 5l5 4 5-4" fill="none" stroke="#214d7b" stroke-width="1.3"/></svg></span>信箱</div>
+<div class="pbtn pixel clickable" id="budaoCardBtn"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="#d9ebb4" stroke="#315a83" stroke-width="1.3"/><path d="M5 4v8M10 4v8" stroke="#6d9258" stroke-width="1.2"/><path d="M2 9l4-3 4 2 4-3" fill="none" stroke="#4879a6" stroke-width="1.2"/></svg></span>步道卡<span class="card-dot" id="budaoCardDot" aria-hidden="true"></span></div>
+<div class="pbtn pixel" id="pastureBoxBtn"><span class="icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="#a9bed0" stroke="#224f7a" stroke-width="1.2"/><circle cx="8" cy="8" r="1.5" fill="#fff8e8"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3 3l2 2M11 11l2 2M13 3l-2 2M5 11l-2 2" stroke="#224f7a" stroke-width="1.3"/></svg></span>小匣</div>
+</nav>
+<aside class="public-screen pixel" aria-label="公共信息"><div class="head"><strong>今日</strong><span class="kind">QUOTE</span></div><div class="message">路不能让已经走过的路消失；<br>它只能让人继续往前。</div><div class="foot">同路原野</div></aside>
+</div></div>`;
+document.body.appendChild(root);
+
+const buttons=[...root.querySelectorAll('.pbtn')];
+buttons.forEach(button=>{button.setAttribute('aria-disabled','true');button.classList.add('pasture-feature-locked');button.title='功能正在生长，成熟后开放';});
+root.addEventListener('click',event=>{
+  const button=event.target.closest('.pbtn');
+  if(!button||button.getAttribute('aria-disabled')!=='true')return;
+  event.preventDefault();event.stopPropagation();
+  const label=button.textContent.trim();
+  window.dispatchEvent(new CustomEvent('pasture-feature-locked',{detail:{label}}));
+});
+function shortId(id){const raw=String(id||'').replace(/-/g,'').toUpperCase();return raw?`Budao ID ${raw.slice(0,4)} ${raw.slice(4,8)}`:'Budao ID';}
+function paint(detail){
+  const authenticated=!!detail?.authenticated;
+  root.hidden=!authenticated;
+  if(!authenticated)return;
+  const resident=detail.resident||detail.user||null;
+  const name=root.querySelector('.idtext .name');
+  const bid=root.querySelector('.idtext .bid');
+  if(name)name.textContent=resident?.emailMasked||'同行者';
+  if(bid)bid.textContent=shortId(resident?.id);
+}
+window.addEventListener('pasture-auth-state',event=>paint(event.detail));
+if(window.__pastureAuthState)paint(window.__pastureAuthState);
+window.PastureApprovedUiShell=Object.freeze({root,paint});
+})();
