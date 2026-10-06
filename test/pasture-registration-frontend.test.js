@@ -58,6 +58,22 @@ test('resident is the 44+1 sheep, falls from the sky once, and remains determini
   assert.match(runtime, /landscape/);
 });
 
+test('daily resident position sync is server-first and local storage is cache fallback only',()=>{
+  const loader=read('pasture-resident-runtime.js');
+  assert.match(loader,/pasture-resident-position-sync\.js/);
+  const sync=read('pasture-resident-position-sync.js');
+  assert.match(sync,/async function loadDailyResidentPosition\(dateKey,mode\)/);
+  assert.match(sync,/action:'getDailySheepPosition'/);
+  assert.match(sync,/runtime\.call/);
+  assert.match(sync,/localStorage\.getItem/);
+  assert.match(sync,/catch[\s\S]*loadCachedPosition/);
+  assert.match(sync,/async function saveDailyResidentPosition\(dateKey,mode,layout\)/);
+  assert.match(sync,/action:'saveDailySheepPosition'/);
+  assert.match(sync,/localStorage\.setItem/);
+  assert.match(sync,/pointerup/);
+  assert.match(sync,/PastureResidentPositionSync/);
+});
+
 test('find-sheep interaction uses visible pixels, a five-finger pixel hand, and only the supplied baa audio', () => {
   const runtime = runtimeSource();
   assert.match(runtime, /function residentHit/);
