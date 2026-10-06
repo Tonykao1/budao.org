@@ -9,7 +9,7 @@ permissions:
 jobs:
   registration-red-green:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,7 +31,17 @@ jobs:
         run: node --test --test-concurrency=1 test/pasture-ui-restore.test.js test/pasture-login-additive-regression.test.js
       - name: Verify approved shop drawer and close system
         run: node --test --test-concurrency=1 test/pasture-approved-overlays.test.js
-      - name: Verify protected sky engine
-        run: node --test --test-concurrency=1 test/pasture-sky-engine.test.js
+      - name: Verify sky and weather integrations
+        run: node --test --test-concurrency=1 test/pasture-sky-engine.test.js test/pasture-sky-integration.test.js test/pasture-meteor.test.js test/pasture-meteor-integration.test.js
+      - name: Verify pasture lamb behavior
+        run: node --test --test-concurrency=1 tests/pasture-lamb-rest.test.js
       - name: Verify Vercel function budget
         run: node --test --test-concurrency=1 test/vercel-function-budget.test.js
+      - name: Verify JavaScript syntax
+        run: npm run lint
+      - name: Verify schema module loading
+        run: npm run typecheck
+      - name: Verify security build
+        run: npm run build
+      - name: Verify Drizzle migrations
+        run: npm run db:check
