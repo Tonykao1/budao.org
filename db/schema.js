@@ -5,6 +5,7 @@ const {
   timestamp,
   integer,
   boolean,
+  numeric,
   jsonb,
   check,
   index,
@@ -226,6 +227,22 @@ const pastureSheep = pgTable("pasture_sheep", {
   userUnique: uniqueIndex("pasture_sheep_user_id_uq").on(table.userId)
 }));
 
+const pastureSheepDailyPositions = pgTable("pasture_sheep_daily_positions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => pastureUsers.id, { onDelete: "cascade" }),
+  dateKey: text("date_key").notNull(),
+  mode: text("mode").notNull(),
+  x: numeric("x").notNull(),
+  y: numeric("y").notNull(),
+  flip: boolean("flip").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  userDateModeUnique: uniqueIndex("pasture_sheep_daily_positions_user_date_mode_uq").on(table.userId, table.dateKey, table.mode),
+  userDateIndex: index("pasture_sheep_daily_positions_user_date_idx").on(table.userId, table.dateKey),
+  modeCheck: check("pasture_sheep_daily_positions_mode_check", sql`${table.mode} in ('landscape','portrait')`)
+}));
+
 const pastureRateLimits = pgTable("pasture_rate_limits", {
   keyHash: text("key_hash").primaryKey(),
   windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull(),
@@ -248,5 +265,6 @@ module.exports = {
   pastureEmailVerifications,
   pastureSessions,
   pastureSheep,
+  pastureSheepDailyPositions,
   pastureRateLimits
 };
