@@ -31,11 +31,14 @@ test('pasture auth domain protects email identity and validates the resident app
   assert.notEqual(encrypted, 'walker@example.com');
   assert.equal(domain.decryptEmail(encrypted), 'walker@example.com');
 
-  const cookie = domain.serializeSessionCookie('token', false);
+  assert.equal(domain.SESSION_TTL_SECONDS, 60 * 60 * 24 * 365);
+  const cookie = domain.serializeSessionCookie('token', true);
   assert.match(cookie, /budao_pasture_session=token/);
+  assert.match(cookie, /Path=\//);
   assert.match(cookie, /HttpOnly/);
+  assert.match(cookie, /Secure/);
   assert.match(cookie, /SameSite=Lax/);
-  assert.match(cookie, /Max-Age=15552000/);
+  assert.match(cookie, /Max-Age=31536000/);
 
   const sheep = domain.validateSheep({
     bodyColor: domain.BODY_COLORS[0],
