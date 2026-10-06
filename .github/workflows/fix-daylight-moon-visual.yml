@@ -2,14 +2,7 @@ name: Fix daylight moon visual
 
 on:
   push:
-    branches:
-      - 'fix/daylight-moon-visual'
-    paths:
-      - '.github/workflows/fix-daylight-moon-visual.yml'
-      - 'test/pasture-moon-visibility.test.js'
-      - 'pasture-sky-engine.js'
-      - 'tonglu.html'
-      - 'tonglu-pasture-portrait.html'
+    branches: ['fix/daylight-moon-visual']
 
 permissions:
   contents: write
@@ -22,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify red state or confirm already green
+      - name: Verify red state or confirm green
         id: state
         shell: bash
         run: |
@@ -32,75 +25,15 @@ jobs:
           set -e
           if [ "$status" -eq 0 ]; then
             echo "already_green=true" >> "$GITHUB_OUTPUT"
-            echo "Existing implementation is already green"
+            echo "Already green"
           else
             echo "already_green=false" >> "$GITHUB_OUTPUT"
             echo "RED confirmed"
           fi
 
-      - name: Apply daylight moon repair
-        if: steps.state.outputs.already_green == 'false'
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          engine = Path('pasture-sky-engine.js')
-          s = engine.read_text()
-          old = "  function smoothstep(a,b,x){if(a===b)return x>=b?1:0;const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);}\n  function twilightFactor"
-          new = "  function smoothstep(a,b,x){if(a===b)return x>=b?1:0;const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);}\n  function moonVisualProfile(sunAltitudeDeg){if(!Number.isFinite(sunAltitudeDeg))return{brightAlpha:1,darkAlpha:1};if(sunAltitudeDeg>=0)return{brightAlpha:.45,darkAlpha:0};if(sunAltitudeDeg<=-12)return{brightAlpha:1,darkAlpha:1};if(sunAltitudeDeg>-6){const t=smoothstep(0,-6,sunAltitudeDeg);return{brightAlpha:.45+.30*t,darkAlpha:.18*t};}const t=smoothstep(-6,-12,sunAltitudeDeg);return{brightAlpha:.75+.25*t,darkAlpha:.18+.82*t};}\n  function twilightFactor"
-          assert old in s, 'engine insertion point missing'
-          s = s.replace(old, new, 1)
-          old_export = "computeSkyState,twilightFactor,atmosphericFactor"
-          new_export = "computeSkyState,moonVisualProfile,twilightFactor,atmosphericFactor"
-          assert old_export in s, 'engine export point missing'
-          s = s.replace(old_export, new_export, 1)
-          engine.write_text(s)
-
-          moon_old = """function moon(cx,cy,phase,p){
-  const r=8,a=phase*Math.PI*2,side=Math.abs(Math.sin(a)),lz=-Math.cos(a);
-  const lx=side*(p?.lightX||0),ly=side*(p?.lightY||0);
-  for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){
-    const nx=x/(r+.2),ny=y/(r+.2),rr=nx*nx+ny*ny;
-    if(rr>1)continue;
-    const nz=Math.sqrt(Math.max(0,1-rr));
-    rect(cx+x,cy+y,1,1,(nx*lx+ny*ly+nz*lz)>0?'#fff1b8':'#52617b');
-  }
-}"""
-          moon_new = """function moon(cx,cy,phase,p,visual){
-  const r=8,a=phase*Math.PI*2,side=Math.abs(Math.sin(a)),lz=-Math.cos(a);
-  const lx=side*(p?.lightX||0),ly=side*(p?.lightY||0);
-  const brightAlpha=Math.max(0,Math.min(1,Number(visual?.brightAlpha)??1));
-  const darkAlpha=Math.max(0,Math.min(1,Number(visual?.darkAlpha)??1));
-  for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){
-    const nx=x/(r+.2),ny=y/(r+.2),rr=nx*nx+ny*ny;
-    if(rr>1)continue;
-    const nz=Math.sqrt(Math.max(0,1-rr));
-    const lit=(nx*lx+ny*ly+nz*lz)>0,alpha=lit?brightAlpha:darkAlpha;
-    if(alpha<=0)continue;
-    rect(cx+x,cy+y,1,1,lit?'rgba(255,241,184,'+alpha+')':'rgba(82,97,123,'+alpha+')');
-  }
-}"""
-
-          landscape = Path('tonglu.html')
-          s = landscape.read_text()
-          assert moon_old in s, 'landscape moon renderer missing'
-          s = s.replace(moon_old, moon_new, 1)
-          old_call = "  const moonXY=project(skyState.moon);\n  if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(skyState.moon.phase)||0,skyState.moon);"
-          new_call = "  const moonXY=project(skyState.moon);\n  if(moonXY){const mv=sky.moonVisualProfile(skyState.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(skyState.moon.phase)||0,skyState.moon,mv)}"
-          assert old_call in s, 'landscape moon call missing'
-          s = s.replace(old_call, new_call, 1)
-          landscape.write_text(s)
-
-          portrait = Path('tonglu-pasture-portrait.html')
-          s = portrait.read_text()
-          assert moon_old in s, 'portrait moon renderer missing'
-          s = s.replace(moon_old, moon_new, 1)
-          old_call = " const moonXY=project(shared.moon);if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon);"
-          new_call = " const moonXY=project(shared.moon);if(moonXY){const mv=sky.moonVisualProfile(shared.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon,mv)}"
-          assert old_call in s, 'portrait moon call missing'
-          s = s.replace(old_call, new_call, 1)
-          portrait.write_text(s)
-          PY
+      - name: Apply repair
+        if: ${{ steps.state.outputs.already_green == 'false' }}
+        run: python3 .github/scripts/fix_daylight_moon_visual.py
 
       - name: Verify green state
         run: |
@@ -121,7 +54,7 @@ jobs:
           git diff --check
 
       - name: Commit repair
-        if: steps.state.outputs.already_green == 'false'
+        if: ${{ steps.state.outputs.already_green == 'false' }}
         run: |
           git config user.name 'budao-bot'
           git config user.email 'actions@users.noreply.github.com'
