@@ -23,6 +23,8 @@ jobs:
         run: node --test --test-concurrency=1 test/pasture-position-domain.test.js
       - name: Verify registration frontend
         run: node --test --test-concurrency=1 test/pasture-registration-frontend.test.js
+      - name: Verify durable login lifecycle
+        run: node --test --test-concurrency=1 test/pasture-login-integration.test.js
       - name: Verify resident findability sync
         run: node --test --test-concurrency=1 test/pasture-resident-findability.test.js
       - name: Verify additive pasture UI contract
