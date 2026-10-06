@@ -84,16 +84,54 @@ test('history helpers survive broken storage and keep only the most recent 24 un
   const brokenStorage = { getItem(){ throw new Error('blocked'); }, setItem(){ throw new Error('blocked'); } };
   assert.deepEqual(editorial.safeReadHistory(brokenStorage, 'x'), []);
   assert.doesNotThrow(() => editorial.safeRemember(brokenStorage, 'x', 'a'));
-
   const store = new Map();
-  const storage = {
-    getItem(key){ return store.has(key) ? store.get(key) : null; },
-    setItem(key,value){ store.set(key,value); }
-  };
+  const storage = { getItem(key){ return store.has(key) ? store.get(key) : null; }, setItem(key,value){ store.set(key,value); } };
   for (let i=0;i<26;i++) editorial.safeRemember(storage, 'x', String(i));
   editorial.safeRemember(storage, 'x', '25');
   const history = editorial.safeReadHistory(storage, 'x');
   assert.equal(history.length, 24);
   assert.equal(history.at(-1), '25');
   assert.equal(history.filter(x => x === '25').length, 1);
+});
+
+test('V7 has one title, mobile single-column flow, and reduced-motion fallback', () => {
+  assert.equal((html.match(/<h1\b/g) || []).length, 1);
+  assert.match(css, /overflow-x:\s*hidden/);
+  assert.match(css, /@media\s*\(max-width:\s*980px\)[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.doesNotMatch(css, /@media\s*\(max-width:\s*980px\)[\s\S]*\.editorial-media[^}]*display\s*:\s*none/);
+});
+
+test('selectImages prioritizes unseen content before orientation preference', () => {
+  const pool = [
+    { id:'fresh-landscape', orientation:'landscape' },
+    { id:'old-portrait', orientation:'portrait' },
+    { id:'fresh-portrait', orientation:'portrait' }
+  ];
+  const picked = editorial.selectImages(pool, ['portrait','landscape'], ['old-portrait']);
+  assert.equal(picked[0].id, 'fresh-portrait');
+  assert.equal(picked[1].id, 'fresh-landscape');
+});
+
+test('selectImages does not reuse a recent preferred orientation while unseen fallback exists', () => {
+  const pool = [
+    { id:'fresh-landscape-a', orientation:'landscape' },
+    { id:'old-portrait', orientation:'portrait' },
+    { id:'fresh-landscape-b', orientation:'landscape' }
+  ];
+  const picked = editorial.selectImages(pool, ['portrait'], ['old-portrait']);
+  assert.equal(picked[0].id, 'fresh-landscape-a');
+});
+
+test('selectImages falls back safely when every image has the same orientation', () => {
+  const pool = ['a','b','c'].map(id => ({ id, orientation:'landscape' }));
+  const picked = editorial.selectImages(pool, ['portrait','portrait','portrait'], []);
+  assert.equal(picked.length, 3);
+  assert.equal(new Set(picked.map(x => x.id)).size, 3);
+});
+
+test('selectMessages never truncates an over-cap quote', () => {
+  const long = '这是一条非常非常长并且绝不能为了塞进版式而被截断的同行者完整原话';
+  const picked = editorial.selectMessages([long], [4], []);
+  assert.deepEqual(picked, [long]);
 });
