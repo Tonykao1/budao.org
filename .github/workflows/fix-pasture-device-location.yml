@@ -1,0 +1,52 @@
+name: Fix pasture device location
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-pasture-device-location.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify red state
+        run: |
+          set +e
+          python3 .github/scripts/fix_pasture_device_location.py verify
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected legacy IP location paths to fail the device-only policy"
+            exit 1
+          fi
+          echo "RED confirmed"
+      - name: Apply device-location repair
+        run: python3 .github/scripts/fix_pasture_device_location.py apply
+      - name: Verify green state
+        run: |
+          python3 .github/scripts/fix_pasture_device_location.py verify
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for fn in ['tonglu.html','tonglu-pasture-portrait.html']:
+              s=Path(fn).read_text()
+              scripts=re.findall(r'<script>(.*?)</script>',s,re.S)
+              assert scripts, fn
+              Path('/tmp/'+fn+'.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/tonglu.html.js
+          node --check /tmp/tonglu-pasture-portrait.html.js
+          git diff --check
+      - name: Commit repair
+        run: |
+          git config user.name 'budao-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add tonglu.html tonglu-pasture-portrait.html
+          git commit -m 'fix pasture to use device location only'
+          git push
