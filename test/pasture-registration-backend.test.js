@@ -115,6 +115,19 @@ test('pasture daily sheep positions are additive and unique per user date and mo
   assert.match(store,/upsertDailyPosition/);
 });
 
+test('pasture auth exposes session-bound daily position actions without trusting client user id', () => {
+  const handler=read('api/_security/pasture-auth-handler.js');
+  assert.match(handler,/action === "getDailySheepPosition"/);
+  assert.match(handler,/action === "saveDailySheepPosition"/);
+  assert.match(handler,/async function getDailySheepPosition\(request, response, body\)/);
+  assert.match(handler,/async function saveDailySheepPosition\(request, response, body\)/);
+  assert.match(handler,/dailyPositionForUser\(resident\.id, dateKey, mode\)/);
+  assert.match(handler,/upsertDailyPosition\(resident\.id, dateKey, mode, position\)/);
+  assert.doesNotMatch(handler,/upsertDailyPosition\(body\.userId/);
+  assert.doesNotMatch(handler,/dailyPositionForUser\(body\.userId/);
+  assert.match(handler,/generateDailyPosition\(resident\.id, dateKey, mode\)/);
+});
+
 test('pasture rate limiting uses the database as the durable authority', () => {
   const store = read('api/_security/pasture-auth-store.js');
   assert.match(store, /async function consumePastureRateLimit/);
