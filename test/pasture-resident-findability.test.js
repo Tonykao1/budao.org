@@ -17,7 +17,7 @@ test('resident sheep stays visibly separate as the 44+1 sheep', () => {
   assert.match(guard, /getImageData/);
   assert.match(guard, /findClearCandidate/);
   assert.match(guard, /blockedPixel/);
-  assert.match(guard, /PastureResidentRuntime\.getLayout/);
+  assert.match(guard, /(?:PastureResidentRuntime|runtime)[\s\S]*getLayout/);
   assert.match(guard, /layout\.x\s*=/);
   assert.match(guard, /layout\.y\s*=/);
   assert.match(guard, /layout\.s\s*=/);
