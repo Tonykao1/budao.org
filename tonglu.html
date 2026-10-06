@@ -514,13 +514,7 @@ async function refresh(){
   if(validLocation(saved)){
     try{await weatherAt(saved.latitude,saved.longitude,'saved');return}catch(e){}
   }
-  try{
-    const ip=await fetch('https://ipwho.is/',{cache:'no-store'}),g=await ip.json();
-    if(g&&g.success!==false&&Number.isFinite(+g.latitude)&&Number.isFinite(+g.longitude)){
-      await weatherAt(+g.latitude,+g.longitude,'ip');return;
-    }
-    throw new Error('geo');
-  }catch(e){try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}}
+  try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}
 }
 syncComposition();
 refresh();

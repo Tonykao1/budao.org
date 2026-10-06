@@ -542,9 +542,45 @@ async function weatherAt(lat,lon,source){
  const u=new URL('https://api.open-meteo.com/v1/forecast');u.searchParams.set('latitude',lat);u.searchParams.set('longitude',lon);u.searchParams.set('current','weather_code,cloud_cover,wind_speed_10m,is_day');u.searchParams.set('daily','sunrise,sunset');u.searchParams.set('timezone','auto');u.searchParams.set('past_days','1');u.searchParams.set('forecast_days','2');
  const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');state=build(await r.json(),lat,lon,source);draw();
 }
+const LOCATION_KEY='budao:pasture-location:v1';
+const LOCATION_MAX_AGE=24*60*60*1000;
+function validLocation(v){
+ return v&&Number.isFinite(+v.latitude)&&Number.isFinite(+v.longitude)&&Math.abs(+v.latitude)<=90&&Math.abs(+v.longitude)<=180;
+}
+function readSavedLocation(){
+ try{
+  const v=JSON.parse(localStorage.getItem(LOCATION_KEY)||'null');
+  if(!validLocation(v)||!Number.isFinite(+v.savedAt)||Date.now()-Number(v.savedAt)>LOCATION_MAX_AGE)return null;
+  return{latitude:+v.latitude,longitude:+v.longitude,accuracy:Number(v.accuracy)||null};
+ }catch(e){return null}
+}
+function saveLocation(pos){
+ try{localStorage.setItem(LOCATION_KEY,JSON.stringify({latitude:+pos.latitude,longitude:+pos.longitude,accuracy:Number(pos.accuracy)||null,savedAt:Date.now()}))}catch(e){}
+}
+async function getDeviceLocation(){
+ if(!navigator.geolocation)return null;
+ if(navigator.permissions){
+  try{const p=await navigator.permissions.query({name:'geolocation'});if(p.state==='denied')return null}catch(e){}
+ }
+ return await new Promise(resolve=>{
+  navigator.geolocation.getCurrentPosition(
+   pos=>resolve({latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy}),
+   ()=>resolve(null),
+   {maximumAge:300000,timeout:6000,enableHighAccuracy:true}
+  );
+ });
+}
 async function refresh(){
- try{const ip=await fetch('https://ipwho.is/',{cache:'no-store'}),g=await ip.json();if(g&&g.success!==false&&Number.isFinite(+g.latitude)&&Number.isFinite(+g.longitude))await weatherAt(+g.latitude,+g.longitude,'ip');else throw 0}catch(e){try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}}
- if(navigator.permissions&&navigator.geolocation)navigator.permissions.query({name:'geolocation'}).then(p=>{if(p.state==='granted')navigator.geolocation.getCurrentPosition(pos=>weatherAt(pos.coords.latitude,pos.coords.longitude,'browser'),()=>{},{maximumAge:900000,timeout:4500,enableHighAccuracy:false})}).catch(()=>{});
+ const device=await getDeviceLocation();
+ if(validLocation(device)){
+  saveLocation(device);
+  try{await weatherAt(device.latitude,device.longitude,'device');return}catch(e){}
+ }
+ const saved=readSavedLocation();
+ if(validLocation(saved)){
+  try{await weatherAt(saved.latitude,saved.longitude,'saved');return}catch(e){}
+ }
+ try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}
 }
 addEventListener('resize',resize,{passive:true});
 resize();
