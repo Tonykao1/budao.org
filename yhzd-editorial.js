@@ -66,9 +66,10 @@
       if (!available.length) break;
       const fresh = available.filter(image => !recent.has(image.id));
       const old = available.filter(image => recent.has(image.id));
-      const ordered = fresh.concat(old);
-      const preferred = ordered.find(image => image.orientation === pref);
-      const choice = preferred || ordered[0];
+      const choice = fresh.find(image => image.orientation === pref)
+        || fresh[0]
+        || old.find(image => image.orientation === pref)
+        || old[0];
       if (choice){ used.add(choice.id); result.push(choice); }
     }
     return result;
