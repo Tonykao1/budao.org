@@ -463,14 +463,18 @@ function sunAlpha(code,cloud){
  if(code===1||cloud>=40)return .58;
  return 1;
 }
-function moon(cx,cy,phase,p){
+function moon(cx,cy,phase,p,visual){
   const r=8,a=phase*Math.PI*2,side=Math.abs(Math.sin(a)),lz=-Math.cos(a);
   const lx=side*(p?.lightX||0),ly=side*(p?.lightY||0);
+  const brightAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(visual?.brightAlpha))?Number(visual.brightAlpha):1));
+  const darkAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(visual?.darkAlpha))?Number(visual.darkAlpha):1));
   for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){
     const nx=x/(r+.2),ny=y/(r+.2),rr=nx*nx+ny*ny;
     if(rr>1)continue;
     const nz=Math.sqrt(Math.max(0,1-rr));
-    rect(cx+x,cy+y,1,1,(nx*lx+ny*ly+nz*lz)>0?'#fff1b8':'#52617b');
+    const lit=(nx*lx+ny*ly+nz*lz)>0,alpha=lit?brightAlpha:darkAlpha;
+    if(alpha<=0)continue;
+    rect(cx+x,cy+y,1,1,lit?'rgba(255,241,184,'+alpha+')':'rgba(82,97,123,'+alpha+')');
   }
 }
 function drawSharedCelestial(now,cloud,c){
@@ -491,7 +495,7 @@ function drawSharedCelestial(now,cloud,c){
  }
  const mf=sky.meteorFrame(state?.meteorEvent,now);
  if(mf){const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});const visibility=sky.meteorVisibility({sunAltitudeDeg:shared.sun.altitudeDeg,cloudOpacity,moon:shared.moon});const alpha=mf.alpha*visibility;if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*W,mf.tailY*skyBottom);ctx.lineTo(mf.x*W,mf.y*skyBottom);ctx.stroke();rect(mf.x*W,mf.y*skyBottom,1,1,'#ffffff');ctx.restore()}}
- const moonXY=project(shared.moon);if(moonXY)moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon);
+ const moonXY=project(shared.moon);if(moonXY){const mv=sky.moonVisualProfile(shared.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon,mv)}
  ctx.restore();
 }
 function weatherOverlay(){
