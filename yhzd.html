@@ -1,112 +1,52 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>营火之地 | 步道</title>
+<title>萤火之地 | 步道</title>
 <link rel="stylesheet" href="style.css" />
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{background:#050505;color:#f5f1e8;font-family:"PingFang SC","Helvetica Neue",sans-serif;overflow-x:hidden}
-nav{position:relative;z-index:20}
-.stars{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.23;animation:twinkle 5s infinite ease-in-out}
-@keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.38}}
-.glow{position:fixed;width:min(880px,76vw);aspect-ratio:1;background:radial-gradient(circle,rgba(255,140,0,.09),transparent 70%);left:50%;top:160px;transform:translateX(-50%);z-index:0;pointer-events:none}
-.memory-viewport{position:relative;z-index:2;width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain;cursor:grab;touch-action:pan-x pan-y}
-.memory-viewport::-webkit-scrollbar{display:none}.memory-viewport.is-dragging{cursor:grabbing;user-select:none}
-.memory-world{position:relative;width:max(192vw,2160px);height:1900px;margin:0 auto}
-.top{position:absolute;left:50%;top:205px;width:min(660px,40vw);transform:translateX(-50%);text-align:center;z-index:8}
-.top h1{font-size:clamp(58px,5vw,76px);font-weight:200;margin:26px 0 34px;line-height:1.18;letter-spacing:.02em}
-.top p{color:#9f9f9f;line-height:2;font-size:18px}
-.spark-link{display:block;text-align:center;color:#666;text-decoration:none;letter-spacing:5px;font-size:14px;font-weight:300;transition:.4s;animation:sparkBreath 4s ease-in-out infinite}
-@keyframes sparkBreath{0%,100%{opacity:.44}50%{opacity:.86}}
-.bottom-spark{position:relative;z-index:3;margin:22px auto 80px}
-.messages-layer,.images-layer{position:absolute;inset:0;pointer-events:none}.images-layer{z-index:3;perspective:1600px;transform-style:preserve-3d}.messages-layer{z-index:5}
-.message{position:absolute;max-width:430px;line-height:1.78;font-size:clamp(24px,1.5vw,30px);font-weight:200;color:rgba(245,241,232,.96);opacity:0;transform:translateY(18px);word-break:keep-all;padding:0 8px;transition:opacity .48s ease;animation:fadeUp 1.3s forwards}
-.message small{display:block;margin-top:20px;font-size:11px;letter-spacing:4px;color:#515151}.message.is-renewing{opacity:0!important}
-@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
-/* V6: information first. One clear reading field before any sense of infinity.
-   First viewport: title + two readable quotes + one complete primary image + one complete secondary image.
-   Everything else lives beyond the first viewport or below the fold. */
-.message{z-index:2}
-.message-1{left:27.5%;top:168px;width:14%;max-width:330px}
-.message-2{left:66%;top:210px;width:14%;max-width:330px;text-align:left}
-.message-3{left:28%;top:1110px;width:17%;max-width:400px}
-.message-4{left:64.5%;top:1090px;width:17%;max-width:400px;text-align:right}
-.message-5{left:8.5%;top:545px;width:16%;max-width:360px}
-.message-6{left:84%;top:570px;width:16%;max-width:360px}
-.message-7{left:29%;top:1510px;width:18%;max-width:420px}
-.message-8{left:66%;top:1530px;width:18%;max-width:420px;text-align:right}
-
-.image-slot{position:absolute;z-index:1;--tz:0px;--rx:0deg;--ry:0deg;--scale:1;transform:translate3d(0,0,var(--tz)) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--scale));transform-style:preserve-3d;transform-origin:center center}
-.image-slot img{display:block;width:100%;height:auto;border-radius:6px;opacity:0;transition:opacity .58s ease;filter:inherit}
-.image-slot img.is-loaded{opacity:1}.image-slot img.is-renewing{opacity:0}
-/* The first viewport has only two complete images. Depth is subtle and never competes with readability. */
-.image-slot-1{left:26%;top:520px;width:clamp(535px,36vw,590px);z-index:5;--tz:58px;--ry:-1.6deg;--rx:.25deg;--scale:1}
-.image-slot-1 img{box-shadow:0 18px 46px rgba(0,0,0,.28),0 0 26px rgba(196,118,34,.025)}
-.image-slot-2{left:64.5%;top:605px;width:clamp(290px,21vw,325px);z-index:3;--tz:0px;--ry:1.2deg;--rx:.2deg;--scale:.985}
-.image-slot-2 img{box-shadow:0 12px 32px rgba(0,0,0,.22),0 0 20px rgba(196,118,34,.018)}
-/* Distant memories stay out of the first reading field. */
-.image-slot-3{left:86.5%;top:360px;width:clamp(145px,11vw,175px);z-index:1;--tz:-95px;--ry:4deg;--scale:.88;filter:brightness(.88) saturate(.9)}
-.image-slot-4{left:6%;top:900px;width:clamp(140px,10vw,165px);z-index:1;--tz:-110px;--ry:-5deg;--scale:.86;filter:brightness(.86) saturate(.9)}
-.image-slot-5{left:69%;top:1240px;width:clamp(230px,17vw,270px);z-index:2;--tz:-35px;--ry:1.8deg;--scale:.95;filter:brightness(.94)}
-.image-slot-6{left:28%;top:1370px;width:clamp(205px,15vw,235px);z-index:2;--tz:-55px;--ry:-1.8deg;--scale:.93;filter:brightness(.92)}
-@media(max-width:980px){.memory-viewport{overflow-x:hidden;cursor:default}.memory-world{width:90%;height:auto;margin:auto;padding:90px 0 130px}.top{position:relative;left:auto;top:auto;width:100%;transform:none;margin-bottom:150px}.top h1{font-size:48px}.messages-layer{position:relative;inset:auto}.message{position:relative;left:auto!important;right:auto!important;top:auto!important;width:auto!important;max-width:640px;font-size:24px;margin:100px 0;text-align:left!important;animation:fadeUp 1.2s forwards!important}.message:nth-child(even){margin-left:auto;text-align:right!important}.images-layer{display:none}.bottom-spark{margin-top:0}}
-@media(prefers-reduced-motion:reduce){.star,.spark-link,.message{animation:none!important}.message,.image-slot img{opacity:1!important;transform:none;transition:none}}
-</style>
+<link rel="stylesheet" href="/yhzd-editorial.css" />
 </head>
-<body>
+<body class="yhzd-body">
 <nav aria-label="主导航"><a href="/home.html">首页</a><a href="/test.html">步道</a><a href="/tongxing.html">童行</a><a href="/tongdao.html">同道</a><a href="/what.html">同工</a><a href="/contact.html">易彼益</a></nav>
-<div class="stars" aria-hidden="true"></div><div class="glow" aria-hidden="true"></div>
-<div class="memory-viewport" id="memory-viewport" aria-label="营火之地，可左右轻轻漫游"><main class="memory-world" id="memory-world">
-<section class="top"><a class="spark-link" href="lsxh.html">✦ 路上星火</a><h1>营火之地</h1><p>有些话，<br>只有走过的人才会说出来。</p></section>
-<div class="images-layer" aria-hidden="true"><div class="image-slot image-slot-1" data-prefer="landscape" data-sizes="520px"></div><div class="image-slot image-slot-2" data-prefer="landscape" data-sizes="330px"></div><div class="image-slot image-slot-3" data-prefer="portrait" data-sizes="185px"></div><div class="image-slot image-slot-4" data-prefer="portrait" data-sizes="160px"></div><div class="image-slot image-slot-5" data-prefer="landscape" data-sizes="280px"></div><div class="image-slot image-slot-6" data-prefer="landscape" data-sizes="235px"></div></div>
-<div class="messages-layer" id="messages-container"></div></main></div><a class="spark-link bottom-spark" href="lsxh.html">✦ 路上星火</a>
-<script>
-(function(){
-const IMAGE_KEY='budao:yhzd:imageHistory:v2',MESSAGE_KEY='budao:yhzd:messageHistory:v2',HISTORY_LIMIT=24;
-function history(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[]}catch(_){return[]}}
-function remember(key,id){if(!id)return;try{const prev=history(key).filter(x=>x!==id);prev.push(id);localStorage.setItem(key,JSON.stringify(prev.slice(-HISTORY_LIMIT)))}catch(_){}}
-function shuffle(items){const copy=items.slice();for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
-function pickFresh(items,count,seen,idOf,exclude=[]){const banned=new Set(exclude),recent=new Set(seen);const fresh=shuffle(items.filter(x=>!banned.has(idOf(x))&&!recent.has(idOf(x))));const old=shuffle(items.filter(x=>!banned.has(idOf(x))&&recent.has(idOf(x))));return fresh.concat(old).slice(0,count)}
-const stars=document.querySelector('.stars');for(let i=0;i<72;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDuration=(3+Math.random()*5)+'s';stars.appendChild(s)}
-const allMessages=["一路上都悬念不断......","如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！","还有整体节奏，何时走动何时休息都计划得很精准啊。","恩典多多，收获满满","今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！","7—88岁的徒步团太壮观了！","今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。","很巧妙的设计","一个老少咸宜，充满喜乐的身心灵快乐之旅！","有幸参加了这次活动，都是意外的惊喜。","感谢弟兄们搭建的信心之道。","经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。","可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！","认识和不认识人的都在认真听故事。","感恩遇见","用心带领，详尽的总结复盘，感恩。","感恩祂。","很棒的经历","今天的安排，很舒适又得着。","感恩弟兄姐妹们彼此敞开的分享和陪伴！","很棒的体验，很有趣的经历","当天去时候怕迟到，超速百分之十被罚。","强度一点都不大，感觉还没缓过来。","113层，2034个台阶，300米......","活动太有意义了，身心被滋养，还结识了更多同路人。","非常被安慰","大家建立了信任而且让这份关系延续。","我期待未来步道同赏京城。","顺利找到包了","我居然是第一个到的","我都期待好久了，哎！祷告我明天生龙活虎！","我相信人与人的每一次相遇都是奇迹。","感恩这段相遇与安排，拆掉心墙，看见光。","Grateful for this."];
-const messagesContainer=document.getElementById('messages-container');
-const MESSAGE_CAPS=[14,14,34,34,28,28,44,44];
-function pickForCaps(caps,seen,exclude=[]){
-  const recent=new Set(seen),used=new Set(exclude),result=[];
-  caps.forEach(cap=>{
-    const available=allMessages.filter(m=>!used.has(m));
-    const fresh=shuffle(available.filter(m=>!recent.has(m)));
-    const old=shuffle(available.filter(m=>recent.has(m)));
-    const ordered=fresh.concat(old);
-    const fitting=ordered.filter(m=>m.length<=cap);
-    const pool=fitting.length?fitting:ordered.slice().sort((a,b)=>a.length-b.length);
-    const choice=pool[0]; if(choice){result.push(choice);used.add(choice)}
-  });
-  return result;
-}
-let currentMessages=pickForCaps(MESSAGE_CAPS,history(MESSAGE_KEY));
-function setMessage(node,text){node.replaceChildren(document.createTextNode('“'+text+'”'));const small=document.createElement('small');small.textContent='一次同行之后';node.appendChild(small);node.dataset.message=text}
-currentMessages.forEach((m,i)=>{const n=document.createElement('div');n.className='message message-'+(i+1);n.dataset.cap=String(MESSAGE_CAPS[i]);setMessage(n,m);messagesContainer.appendChild(n)});
-const viewport=document.getElementById('memory-viewport'),world=document.getElementById('memory-world');function centerWorld(){if(innerWidth<=980)return;const max=world.scrollWidth-viewport.clientWidth;viewport.scrollLeft=Math.max(0,max/2)}requestAnimationFrame(centerWorld);
-let dragging=false,startX=0,startScroll=0;viewport.addEventListener('pointerdown',e=>{if(innerWidth<=980||e.target.closest('a'))return;dragging=true;startX=e.clientX;startScroll=viewport.scrollLeft;viewport.setPointerCapture(e.pointerId);viewport.classList.add('is-dragging')});viewport.addEventListener('pointermove',e=>{if(dragging)viewport.scrollLeft=startScroll-(e.clientX-startX)});function end(){dragging=false;viewport.classList.remove('is-dragging')}viewport.addEventListener('pointerup',end);viewport.addEventListener('pointercancel',end);viewport.addEventListener('dragstart',e=>e.preventDefault());
-const seenObserver=('IntersectionObserver'in window)?new IntersectionObserver(entries=>{entries.forEach(entry=>{if(!entry.isIntersecting||entry.intersectionRatio<.42)return;const node=entry.target;if(node.matches('.message'))remember(MESSAGE_KEY,node.dataset.message);else if(node.matches('.image-slot'))remember(IMAGE_KEY,node.dataset.imageId)})},{root:viewport,threshold:[.42]}):null;Array.from(messagesContainer.children).forEach(n=>seenObserver&&seenObserver.observe(n));
-if(matchMedia('(max-width:980px)').matches)return;
-let imagePool=[],edgeArmed=true,edgeTimer=0;function choose(prefer,exclude){const seen=history(IMAGE_KEY),candidates=pickFresh(imagePool,imagePool.length,seen,x=>x.id,exclude);return candidates.sort((a,b)=>(b.orientation===prefer?20:0)-(a.orientation===prefer?20:0)+Math.random()*2-1)[0]}
-function render(slot,item,index){if(!slot||!item||!item['480'])return;const small=item['480'],large=item['960'],source=large||small;if(!source||!source.src)return;const img=document.createElement('img');img.alt='';img.decoding='async';img.loading=index<2?'eager':'lazy';if(index===0)img.fetchPriority='high';img.src=source.src;if(small&&large){img.srcset=small.src+' 480w, '+large.src+' 960w';img.sizes=slot.dataset.sizes||'320px'}img.addEventListener('load',()=>img.classList.add('is-loaded'),{once:true});slot.dataset.imageId=item.id;slot.replaceChildren(img);if(seenObserver)seenObserver.observe(slot)}
-function initial(){const slots=[...document.querySelectorAll('.image-slot')],used=[];slots.forEach((s,i)=>{const item=choose(s.dataset.prefer,used);if(item){used.push(item.id);render(s,item,i)}})}
-function renewImages(indices){const slots=[...document.querySelectorAll('.image-slot')],occupied=slots.map(s=>s.dataset.imageId).filter(Boolean),newIds=[];indices.forEach(i=>{const s=slots[i],item=choose(s.dataset.prefer,occupied.concat(newIds));if(!item)return;const old=s.querySelector('img');if(old)old.classList.add('is-renewing');setTimeout(()=>render(s,item,i),520);newIds.push(item.id)})}
-function renewMessages(indices){
-  const occupied=[...messagesContainer.children].map(n=>n.dataset.message);
-  const caps=indices.map(i=>Number(messagesContainer.children[i]?.dataset.cap)||44);
-  const picks=pickForCaps(caps,history(MESSAGE_KEY),occupied);
-  indices.forEach((idx,i)=>{const n=messagesContainer.children[idx],next=picks[i];if(!n||!next)return;n.classList.add('is-renewing');setTimeout(()=>{setMessage(n,next);n.classList.remove('is-renewing')},500)})
-}
-function renewEdge(side){if(side==='left'){renewImages([0,3,5]);renewMessages([0,4,6])}else{renewImages([1,2,4]);renewMessages([1,5,7])}}
-function watchEdge(){clearTimeout(edgeTimer);edgeTimer=setTimeout(()=>{const max=viewport.scrollWidth-viewport.clientWidth;if(max<=0)return;const r=viewport.scrollLeft/max;if(r>.28&&r<.72){edgeArmed=true;return}if(!edgeArmed)return;if(r<.07){edgeArmed=false;renewEdge('left')}else if(r>.93){edgeArmed=false;renewEdge('right')}},420)}viewport.addEventListener('scroll',watchEdge,{passive:true});
-fetch('images/yhzd/manifest.json',{cache:'no-cache'}).then(r=>r.json()).then(m=>{imagePool=Array.isArray(m.images)?m.images:[];if(imagePool.length)initial()}).catch(()=>{});
-}());
-</script>
-</body></html>
+<div class="yhzd-stars" aria-hidden="true"></div>
+<div class="yhzd-glow" aria-hidden="true"></div>
+<main class="yhzd-page">
+  <section class="yhzd-hero">
+    <a class="spark-link" href="lsxh.html">✦ 路上星火</a>
+    <h1>萤火之地</h1>
+    <p>有些话，<br>只有走过的人才会说出来。</p>
+  </section>
+
+  <div class="editorial-flow" aria-live="polite">
+    <section class="editorial-scene editorial-scene--primary" data-scene="primary">
+      <figure class="editorial-media" data-media-slot></figure>
+      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
+    </section>
+
+    <section class="editorial-scene editorial-scene--reverse" data-scene="reverse">
+      <figure class="editorial-media" data-media-slot></figure>
+      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
+    </section>
+
+    <section class="editorial-scene editorial-scene--interlude" data-scene="interlude">
+      <figure class="editorial-media" data-media-slot></figure>
+      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
+    </section>
+
+    <section class="editorial-scene editorial-scene--standard-a" data-scene="standard-a">
+      <figure class="editorial-media" data-media-slot></figure>
+      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
+    </section>
+
+    <section class="editorial-scene editorial-scene--standard-b" data-scene="standard-b">
+      <figure class="editorial-media" data-media-slot></figure>
+      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
+    </section>
+  </div>
+
+  <a class="spark-link yhzd-ending" href="lsxh.html">✦ 路上星火</a>
+</main>
+<script src="/yhzd-editorial.js" defer></script>
+</body>
+</html>
