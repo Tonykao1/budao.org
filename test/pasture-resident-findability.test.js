@@ -22,3 +22,9 @@ test('resident sheep stays visibly separate as the 44+1 sheep', () => {
   assert.match(guard, /layout\.y\s*=/);
   assert.match(guard, /layout\.s\s*=/);
 });
+
+test('findability correction persists the corrected daily position to the server sync layer',()=>{
+  const guard=read('pasture-resident-findability-guard.js');
+  assert.match(guard,/PastureResidentPositionSync/);
+  assert.match(guard,/persistCurrent/);
+});
