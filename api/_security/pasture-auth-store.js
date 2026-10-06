@@ -4,7 +4,8 @@ const {
   pastureUsers,
   pastureEmailVerifications,
   pastureSessions,
-  pastureSheep
+  pastureSheep,
+  pastureSheepDailyPositions
 } = require("../../db/schema");
 
 async function consumePastureRateLimit(keyHash, limit, windowMs, now = new Date()) {
@@ -145,6 +146,49 @@ async function saveSheep(userId, appearance) {
   return { sheep: rows[0], created: true };
 }
 
+async function dailyPositionForUser(userId, dateKey, mode) {
+  const db = getDb();
+  const rows = await db.select().from(pastureSheepDailyPositions)
+    .where(and(
+      eq(pastureSheepDailyPositions.userId, userId),
+      eq(pastureSheepDailyPositions.dateKey, dateKey),
+      eq(pastureSheepDailyPositions.mode, mode)
+    ))
+    .limit(1);
+  return rows[0] || null;
+}
+
+async function upsertDailyPosition(userId, dateKey, mode, position) {
+  const db = getDb();
+  const now = new Date();
+  const values = {
+    userId,
+    dateKey,
+    mode,
+    x: String(position.x),
+    y: String(position.y),
+    flip: Boolean(position.flip),
+    updatedAt: now
+  };
+  const rows = await db.insert(pastureSheepDailyPositions)
+    .values(values)
+    .onConflictDoUpdate({
+      target: [
+        pastureSheepDailyPositions.userId,
+        pastureSheepDailyPositions.dateKey,
+        pastureSheepDailyPositions.mode
+      ],
+      set: {
+        x: values.x,
+        y: values.y,
+        flip: values.flip,
+        updatedAt: now
+      }
+    })
+    .returning();
+  return rows[0] || null;
+}
+
 module.exports = {
   consumePastureRateLimit,
   createVerification,
@@ -156,5 +200,7 @@ module.exports = {
   sessionByTokenHash,
   revokeSession,
   sheepForUser,
-  saveSheep
+  saveSheep,
+  dailyPositionForUser,
+  upsertDailyPosition
 };
