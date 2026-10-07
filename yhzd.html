@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>萤火之地 | 步道</title>
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="/editorial-journey/editorial-journey.css" />
 <link rel="stylesheet" href="/yhzd-editorial.css" />
 </head>
 <body class="yhzd-body">
@@ -17,33 +18,11 @@
     <h1>萤火之地</h1>
     <p>有些话，<br>只有走过的人才会说出来。</p>
   </section>
-
-  <div class="editorial-flow" aria-live="polite">
-    <section class="editorial-scene editorial-scene--primary" data-scene="primary">
-      <figure class="editorial-media" data-media-slot></figure>
-      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
-    </section>
-    <section class="editorial-scene editorial-scene--reverse" data-scene="reverse">
-      <figure class="editorial-media" data-media-slot></figure>
-      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
-    </section>
-    <section class="editorial-scene editorial-scene--interlude" data-scene="interlude">
-      <figure class="editorial-media" data-media-slot></figure>
-      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
-    </section>
-    <section class="editorial-scene editorial-scene--standard-a" data-scene="standard-a">
-      <figure class="editorial-media" data-media-slot></figure>
-      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
-    </section>
-    <section class="editorial-scene editorial-scene--standard-b" data-scene="standard-b">
-      <figure class="editorial-media" data-media-slot></figure>
-      <blockquote class="editorial-quote" data-quote-slot><p class="editorial-quote-text"></p><footer>— 一次同行之后</footer></blockquote>
-    </section>
-  </div>
-
-  <a class="spark-link yhzd-ending" href="lsxh.html">✦ 路上星火</a>
+  <div class="ej-journey yhzd-journey" data-yhzd-journey aria-live="polite"></div>
 </main>
-<script src="/yhzd-editorial.js"></script>
-<script>YHZDEditorial.initEditorialPage(document, window);</script>
+<script type="module">
+  import { initYhzdDepthReturn } from '/yhzd-depth-return.mjs';
+  initYhzdDepthReturn({ document, window });
+</script>
 </body>
 </html>
