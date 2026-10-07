@@ -103,7 +103,7 @@
     img.src = source.src;
     if (small && large && small.src && large.src){
       img.srcset = small.src + ' 480w, ' + large.src + ' 960w';
-      img.sizes = index === 0 ? '(max-width: 980px) 90vw, 62vw' : '(max-width: 980px) 90vw, 38vw';
+      img.sizes = index === 0 ? '(max-width: 980px) 90vw, 54vw' : '(max-width: 980px) 90vw, 48vw';
     }
     return img;
   }
@@ -133,7 +133,11 @@
       const message = selectedMessages[index];
       if (media && item){
         const img = createImage(doc, item, index);
-        if (img){ media.replaceChildren(img); media.dataset.imageId = item.id; }
+        if (img){
+          media.replaceChildren(img);
+          media.dataset.imageId = item.id;
+          media.dataset.orientation = item.orientation || ((item.height || 0) > (item.width || 0) ? 'portrait' : 'landscape');
+        }
       }
       if (quote && text && message){ text.textContent = message; quote.dataset.message = message; }
     });
