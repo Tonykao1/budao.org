@@ -105,11 +105,11 @@
     "location": "中国·北京·昌平",
     "title": "蟒山环线",
     "description": "你要起来，往山中去。看哪，石阶向上，林木在两旁静默，风从高处吹来。你以为所行的是脚下的路，其实山也在问你的心：你为何匆忙？你所倚靠的是什么？不要惧怕坡陡，也不要贪恋平坦；当你一步一步登高，愿你听见那在喧嚣之外的声音。蟒山不替人回答，却要叫沉睡的心苏醒，叫摇动的重新站立；因为真正的路，不只通向山顶，也通向你必须面对的那一位。",
-    "time": "08:30",
+    "time": "08:00",
     "duration": "4小时",
     "distance": "7千米",
     "surface": "土石野路、石阶、铺装路",
-    "elevation": "600米",
+    "elevation": "583米",
     "difficulty": "中高",
     "suitableFor": "10岁以上或体能良好的长者",
     "equipmentMinimum": "徒步鞋、登山杖、饮用水大于2升",
@@ -117,10 +117,10 @@
     "date": "2026-10-10",
     "meetingPlace": "蟒山森林公园停车场",
     "participantRequirements": "",
-    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/tony/eb4ebe3712a3a1587419ddc3ecd2fabe.jpg",
-    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/ims/2067bc46d85de5cd81b7111bca4c6cda.png",
+    "image": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/tony/b39b5f0806ebe3a866d76e126d6b9399.jpg",
+    "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/tony/13c93e75f7ee9ccffc54a5972607b58e.png",
     "imageAlt": "ms.jpg",
     "createdAt": "2026-10-03T11:11:52.932Z",
-    "updatedAt": "2026-10-03T11:11:52.932Z"
+    "updatedAt": "2026-10-07T05:34:09.346Z"
   }
 ]
