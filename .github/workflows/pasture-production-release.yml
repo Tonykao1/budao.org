@@ -1,0 +1,25 @@
+name: Pasture Production Release Gate
+on:
+  push:
+    branches:
+      - release/pasture-resident-20261010
+  pull_request:
+    paths:
+      - 'pasture-live*'
+      - 'pasture-assets/**'
+      - 'api/pasture-auth.js'
+      - 'api/_security/pasture-auth-*.js'
+      - 'vercel.json'
+      - 'test/pasture-live-release.test.js'
+
+jobs:
+  resident-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Verify production resident release contract
+        run: node --test test/pasture-live-release.test.js
