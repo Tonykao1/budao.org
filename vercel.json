@@ -1,6 +1,8 @@
 {
   "crons": [{ "path": "/api/prayer-purge", "schedule": "17 3 * * *" }],
   "rewrites": [
+    { "source": "/tonglu.html", "destination": "/pasture-live.html" },
+    { "source": "/tonglu-core.html", "destination": "https://budao-gjeeixja0-tony-kao-s-projects.vercel.app/tonglu.html" },
     { "source": "/i/:id", "destination": "/invitation.html?id=:id" },
     { "source": "/api/create-invitation", "destination": "/api/invitation" },
     { "source": "/api/publish", "destination": "/api/publish-route" },
