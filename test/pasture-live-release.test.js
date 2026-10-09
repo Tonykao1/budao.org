@@ -13,14 +13,15 @@ test('production pasture keeps stable core behind the resident shell', () => {
   assert.match(html, /tonglu-core\.html/);
 });
 
-test('pasture auth reuses eebee serverless function instead of creating a 13th function', () => {
+test('pasture auth reuses the small publish compatibility function instead of creating a 13th function', () => {
   const vercel = JSON.parse(read('vercel.json'));
   const rewrites = vercel.rewrites || [];
-  assert.ok(rewrites.some(r => r.source === '/api/pasture-auth' && r.destination === '/api/eebee?service=pasture'));
+  assert.ok(rewrites.some(r => r.source === '/api/pasture-auth' && r.destination === '/api/publish-route?service=pasture'));
   assert.equal(fs.existsSync('api/pasture-auth.js'), false);
-  const eebee = read('api/eebee.js');
-  assert.match(eebee, /pasture-auth-handler/);
-  assert.match(eebee, /service.*pasture/);
+  const bridge = read('api/publish-route.js');
+  assert.match(bridge, /pasture-auth-handler/);
+  assert.match(bridge, /service.*pasture/);
+  assert.match(bridge, /publisher_moved/);
 });
 
 test('production pasture exposes email auth and first-entry sheep identity flow', () => {
