@@ -172,3 +172,15 @@ test("Tent login is a username field and private route reads use scope=mine", ()
   assert.match(source, /<span>Username<\/span>\s*<input name="email" type="text"/);
   assert.match(source, /scope=mine/);
 });
+
+test("leo login alias reuses the shared leader credential but keeps Leo identity", () => {
+  const auth = freshAuth([
+    { id: "leader-tony", username: "tony", passwordHash: passwordHash("shared-leader-password", "tony-shared-salt") }
+  ]);
+
+  const leo = auth.authenticateCredentials("leo", "shared-leader-password");
+  assert.equal(leo.id, "leader-leo");
+  assert.equal(leo.username, "leo");
+  assert.equal(leo.role, "publisher");
+  assert.equal(auth.authenticateCredentials("leo", "wrong-password"), null);
+});
