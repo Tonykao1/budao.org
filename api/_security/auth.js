@@ -10,6 +10,11 @@ const LOGIN_ALIASES = {
     id: "publisher-hd",
     username: "hd",
     slot: "HD"
+  },
+  "leo": {
+    sourceUsername: "tony",
+    id: "leader-leo",
+    username: "leo"
   }
 };
 
@@ -58,7 +63,10 @@ function authenticateCredentials(identifier, password) {
     (candidate.email && candidate.email.toLowerCase() === normalizedIdentifier)
   );
   const alias = directUser ? null : LOGIN_ALIASES[normalizedIdentifier];
-  const user = directUser || (alias ? users.find((candidate) => candidate.email && candidate.email.toLowerCase() === alias.sourceEmail) : null);
+  const user = directUser || (alias ? users.find((candidate) =>
+    (alias.sourceEmail && candidate.email && candidate.email.toLowerCase() === alias.sourceEmail) ||
+    (alias.sourceUsername && candidate.username === alias.sourceUsername)
+  ) : null);
   if (!user || typeof password !== "string" || password.length > 256) return null;
 
   const pieces = user.passwordHash.split("$");
