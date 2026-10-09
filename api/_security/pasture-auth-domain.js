@@ -1,0 +1,42 @@
+const crypto = require('node:crypto');
+
+const COOKIE_NAME = 'budao_pasture_session';
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;
+const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
+const BODY_COLORS = Object.freeze(['#f4ecdc','#f2e3b3','#bfd8da','#dec9c8','#c7d5b5','#d8d7ce','#f1d7bf','#eee8dc']);
+const HEAD_COLORS = Object.freeze(['#8d836e','#917d62','#776d66','#866f70','#727a66','#716a64','#907461','#746d65']);
+const MARKINGS = Object.freeze(['NONE','FACE','BACK','SOCKS']);
+
+function configurationSecret(env=process.env){
+  const value=env.PASTURE_SESSION_SECRET||env.BUDAO_SESSION_SECRET;
+  if(!value||value.length<32){const e=new Error('pasture_auth_not_configured');e.code='PASTURE_AUTH_NOT_CONFIGURED';throw e}
+  return value;
+}
+function emailEncryptionSecret(env=process.env){
+  const value=env.PASTURE_EMAIL_ENCRYPTION_SECRET||env.PASTURE_SESSION_SECRET||env.BUDAO_SESSION_SECRET;
+  if(!value||value.length<32){const e=new Error('pasture_email_encryption_not_configured');e.code='PASTURE_AUTH_NOT_CONFIGURED';throw e}
+  return value;
+}
+function emailEncryptionKey(env=process.env){return crypto.createHash('sha256').update('budao-pasture-email:v1:'+emailEncryptionSecret(env)).digest()}
+function normalizeEmail(v){return String(v||'').trim().toLowerCase()}
+function validEmail(v){const e=normalizeEmail(v);return e.length>=5&&e.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
+function maskEmail(v){const [local,domain]=normalizeEmail(v).split('@');if(!local||!domain)return '';return (local.length<=2?local.slice(0,1):local.slice(0,2))+'***@'+domain}
+function encryptEmail(v,env=process.env){
+  const email=normalizeEmail(v);if(!validEmail(email))throw new Error('invalid_email');
+  const nonce=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',emailEncryptionKey(env),nonce);
+  const ciphertext=Buffer.concat([cipher.update(email,'utf8'),cipher.final()]);
+  return {emailCiphertext:ciphertext.toString('base64url'),emailNonce:nonce.toString('base64url'),emailTag:cipher.getAuthTag().toString('base64url')};
+}
+function hmac(label,value,env=process.env){return crypto.createHmac('sha256',configurationSecret(env)).update(label+':'+String(value)).digest('base64url')}
+function emailHash(email,env){return hmac('pasture-email',normalizeEmail(email),env)}
+function codeHash(email,code,env){return hmac('pasture-code',normalizeEmail(email)+':'+String(code),env)}
+function tokenHash(token,env){return hmac('pasture-session',token,env)}
+function createEmailCode(){return String(crypto.randomInt(0,1_000_000)).padStart(6,'0')}
+function createSessionToken(){return crypto.randomBytes(48).toString('base64url')}
+function safeEqual(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&crypto.timingSafeEqual(x,y)}
+function readCookie(req,name=COOKIE_NAME){const h=req?.headers?.cookie;if(typeof h!=='string')return '';const p=name+'=';const v=h.split(';').map(x=>x.trim()).find(x=>x.startsWith(p));return v?v.slice(p.length):''}
+function serializeSessionCookie(token,secure=true){return [COOKIE_NAME+'='+token,'Path=/','HttpOnly',secure?'Secure':'','SameSite=Lax','Max-Age='+SESSION_TTL_SECONDS].filter(Boolean).join('; ')}
+function clearSessionCookie(secure=true){return [COOKIE_NAME+'=','Path=/','HttpOnly',secure?'Secure':'','SameSite=Lax','Max-Age=0'].filter(Boolean).join('; ')}
+function validateSheep(input){const bodyColor=String(input?.bodyColor||''),headColor=String(input?.headColor||''),marking=String(input?.marking||'NONE').toUpperCase();if(!BODY_COLORS.includes(bodyColor)||!HEAD_COLORS.includes(headColor)||!MARKINGS.includes(marking)){const e=new Error('invalid_sheep');e.code='INVALID_SHEEP';throw e}return {bodyColor,headColor,marking}}
+function publicUser(user,sheep){if(!user)return null;return {id:user.id,emailMasked:user.emailMasked,createdAt:user.createdAt,sheep:sheep?{id:sheep.id,bodyColor:sheep.bodyColor,headColor:sheep.headColor,marking:sheep.marking,createdAt:sheep.createdAt}:null}}
+module.exports={COOKIE_NAME,SESSION_TTL_SECONDS,EMAIL_CODE_TTL_MS,BODY_COLORS,HEAD_COLORS,MARKINGS,normalizeEmail,validEmail,maskEmail,encryptEmail,emailHash,codeHash,tokenHash,createEmailCode,createSessionToken,safeEqual,readCookie,serializeSessionCookie,clearSessionCookie,validateSheep,publicUser};
