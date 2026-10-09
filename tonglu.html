@@ -11,9 +11,43 @@
 <iframe id="pastureCore" class="pasture-core" src="/tonglu-core.html" title="数字牧场"></iframe>
 <canvas id="residentCanvas" class="resident-canvas" aria-hidden="true"></canvas>
 
-<div id="residentToolbar" class="resident-toolbar" hidden aria-label="牧场功能">
-  <button disabled>归回自己</button><button disabled>我的牧草</button><button disabled>风闻有你</button><button disabled>同路伙伴</button>
-  <button disabled>信箱</button><button disabled>步道卡</button><button disabled>小匣</button>
+<div class="sky-zone" id="residentSkyZone" hidden aria-label="牧场功能区">
+  <div class="sky-ui">
+    <div class="topline">
+      <div class="brand">
+        <div class="zh">同路原野</div>
+        <div class="en">TONGLU FIELD</div>
+        <div class="sub">与同伴·在路上</div>
+      </div>
+      <section class="identity pixel" aria-label="身份信息">
+        <div class="avatar" aria-hidden="true">
+          <svg viewBox="0 0 16 19" shape-rendering="crispEdges">
+            <rect width="16" height="19" fill="#dff2fb"/><rect x="4" y="2" width="8" height="2" fill="#f4ecdc"/><rect x="3" y="4" width="10" height="5" fill="#f4ecdc"/><rect x="10" y="6" width="5" height="5" fill="#8d836e"/><rect x="12" y="8" width="1" height="1" fill="#342f2c"/><rect x="5" y="9" width="2" height="6" fill="#5d5851"/><rect x="9" y="9" width="2" height="6" fill="#5d5851"/>
+          </svg>
+        </div>
+        <div class="idtext">
+          <div class="name" id="residentName">牧场居民</div>
+          <div class="bid" id="residentId">已进入羊群</div>
+          <div class="state"><span class="state-dot"></span><span id="residentState">已归来</span></div>
+          <div class="days">▣&nbsp;&nbsp;你在羊群中</div>
+        </div>
+      </section>
+      <nav class="actions" aria-label="功能入口">
+        <div class="pbtn pixel primary pasture-feature-locked" id="returnNow" aria-disabled="true"><span class="icon"><svg viewBox="0 0 16 16"><rect x="3" y="5" width="8" height="6" fill="#f3eee0"/><rect x="5" y="3" width="5" height="9" fill="#f3eee0"/><rect x="10" y="6" width="4" height="4" fill="#776c61"/><rect x="12" y="7" width="2" height="1" fill="#37322e"/><rect x="4" y="11" width="2" height="3" fill="#655d55"/><rect x="8" y="11" width="2" height="3" fill="#655d55"/></svg></span>归回自己</div>
+        <div class="pbtn pixel pasture-feature-locked" id="grassBookBtn" aria-disabled="true"><span class="icon"><svg viewBox="0 0 16 16"><path d="M2 3h5c1 0 2 .6 2 1.5V14c0-1-.8-1.5-2-1.5H2z" fill="#fff1d5" stroke="#234e7a" stroke-width="1.2"/><path d="M14 3H9c-1 0-2 .6-2 1.5V14c0-1 .8-1.5 2-1.5h5z" fill="#fff6e3" stroke="#234e7a" stroke-width="1.2"/></svg></span>我的牧草</div>
+        <div class="pbtn pixel pasture-feature-locked" id="windNewsBtn" aria-disabled="true"><span class="icon"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" fill="#fff6df" stroke="#1f4f7d" stroke-width="1.5"/><rect x="5" y="5" width="6" height="1" fill="#7da4c6"/><rect x="5" y="8" width="6" height="1" fill="#7da4c6"/><rect x="5" y="11" width="4" height="1" fill="#7da4c6"/></svg></span>风闻有你</div>
+        <div class="pbtn pixel pasture-feature-locked" id="partnersBtn" aria-disabled="true"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="7" width="5" height="4" fill="#e9eee5"/><rect x="3" y="5" width="3" height="3" fill="#e9eee5"/><rect x="9" y="7" width="5" height="4" fill="#cbd9c7"/><rect x="10" y="5" width="3" height="3" fill="#cbd9c7"/><rect x="6" y="9" width="4" height="3" fill="#7a766c"/></svg></span>同路伙伴</div>
+        <div class="pbtn pixel pasture-feature-locked" id="mailBtn" aria-disabled="true"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="4" width="12" height="9" fill="#dceafb" stroke="#214d7b" stroke-width="1.3"/><path d="M3 5l5 4 5-4" fill="none" stroke="#214d7b" stroke-width="1.3"/></svg></span>信箱</div>
+        <div class="pbtn pixel pasture-feature-locked" id="budaoCardBtn" aria-disabled="true"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" fill="#d9ebb4" stroke="#315a83" stroke-width="1.3"/><path d="M5 4v8M10 4v8" stroke="#6d9258" stroke-width="1.2"/><path d="M2 9l4-3 4 2 4-3" fill="none" stroke="#4879a6" stroke-width="1.2"/></svg></span>步道卡</div>
+        <div class="pbtn pixel pasture-feature-locked" id="boxEntryBtn" aria-disabled="true"><span class="icon"><svg viewBox="0 0 16 16"><rect x="2" y="5" width="12" height="9" fill="#d7bd8b" stroke="#224f7a" stroke-width="1.2"/><path d="M3 5V3h10v2M6 8h4M8 7v4" fill="none" stroke="#224f7a" stroke-width="1.2"/></svg></span>小匣</div>
+      </nav>
+      <aside class="public-screen pixel" aria-label="公共信息">
+        <div class="head"><strong>今日</strong><span class="kind">QUOTE</span></div>
+        <div class="message">路不能让已经走过的路消失；<br>它只能让人继续往前。</div>
+        <div class="foot">同路原野</div>
+      </aside>
+    </div>
+  </div>
 </div>
 
 <div id="residentLayer" class="resident-layer" hidden>

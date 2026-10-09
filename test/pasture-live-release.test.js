@@ -19,6 +19,45 @@ test('formal tonglu entry is the resident shell and preserves the prior pasture 
   assert.equal(rewrites.some(r => r.source === '/tonglu-core.html'), false);
 });
 
+test('authenticated pasture restores the agreed pixel function-zone design instead of generic buttons', () => {
+  const html = read('tonglu.html');
+  const css = read('pasture-live.css');
+  assert.match(html, /class="sky-zone"/);
+  assert.match(html, /class="topline"/);
+  assert.match(html, /class="identity pixel"/);
+  assert.match(html, /class="actions"/);
+  assert.match(html, /id="returnNow"/);
+  assert.match(html, /id="grassBookBtn"/);
+  assert.match(html, /id="windNewsBtn"/);
+  assert.match(html, /id="partnersBtn"/);
+  assert.match(html, /id="mailBtn"/);
+  assert.match(html, /id="budaoCardBtn"/);
+  assert.match(html, /id="boxEntryBtn"/);
+  assert.match(html, /class="public-screen pixel"/);
+  assert.match(css, /\.pixel\{/);
+  assert.match(css, /\.topline\{/);
+  assert.match(css, /\.pbtn\{/);
+  assert.doesNotMatch(html, /resident-toolbar/);
+});
+
+test('first-time resident gets the agreed visual sheep-making process, not select dropdowns', () => {
+  const app = read('pasture-live.js');
+  const css = read('pasture-live.css');
+  assert.match(app, /pastureSheepPreview/);
+  assert.match(app, /pasture-visual-choice/);
+  assert.match(app, /data-sheep-body/);
+  assert.match(app, /data-sheep-head/);
+  assert.match(app, /data-sheep-mark/);
+  assert.match(app, /这就是我 · 进入牧场/);
+  assert.doesNotMatch(app, /<select id="bodyColor"/);
+  assert.doesNotMatch(app, /<select id="headColor"/);
+  assert.doesNotMatch(app, /<select id="marking"/);
+  assert.match(css, /#pastureSheepPreview/);
+  assert.match(css, /\.pasture-choice/);
+  assert.match(css, /\.pasture-sheep-chip/);
+  assert.match(css, /\.pasture-mark-icon/);
+});
+
 test('pasture auth reuses the small publish compatibility function instead of creating a 13th function', () => {
   const vercel = JSON.parse(read('vercel.json'));
   const rewrites = vercel.rewrites || [];
