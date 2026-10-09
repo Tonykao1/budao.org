@@ -4,13 +4,19 @@ const fs = require('node:fs');
 
 function read(path){ return fs.readFileSync(path,'utf8'); }
 
-test('production pasture keeps stable core behind the resident shell', () => {
+test('formal tonglu entry is the resident shell and preserves the prior pasture as local core', () => {
+  const entry = read('tonglu.html');
+  const core = read('tonglu-core.html');
+  assert.match(entry, /pasture-live\.js/);
+  assert.match(entry, /tonglu-core\.html/);
+  assert.match(entry, /数字牧场/);
+  assert.match(core, /tonglu-pasture-v20\.html\?v=20261005freeflock/);
+  assert.match(core, /pasture-sky-engine\.js/);
+  assert.doesNotMatch(core, /pasture-live\.js/);
   const vercel = JSON.parse(read('vercel.json'));
   const rewrites = vercel.rewrites || [];
-  assert.ok(rewrites.some(r => r.source === '/tonglu.html' && r.destination === '/pasture-live.html'));
-  assert.ok(rewrites.some(r => r.source === '/tonglu-core.html' && /^https:\/\//.test(r.destination)));
-  const html = read('pasture-live.html');
-  assert.match(html, /tonglu-core\.html/);
+  assert.equal(rewrites.some(r => r.source === '/tonglu.html'), false);
+  assert.equal(rewrites.some(r => r.source === '/tonglu-core.html'), false);
 });
 
 test('pasture auth reuses the small publish compatibility function instead of creating a 13th function', () => {
