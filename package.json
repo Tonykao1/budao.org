@@ -15,7 +15,7 @@
     "@simplewebauthn/browser": "^13.3.0",
     "@simplewebauthn/server": "^13.3.2",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.39.3"
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.4"
