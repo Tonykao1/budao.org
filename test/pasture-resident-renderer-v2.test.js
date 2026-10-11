@@ -4,14 +4,16 @@ const fs = require('node:fs');
 const DNA = require('../pasture-sheep-dna.js');
 const Renderer = require('../pasture-sheep-renderer.js');
 
-const coreHtml=fs.readFileSync('tonglu-core.html','utf8');
+const shell=fs.readFileSync('pasture-live.js','utf8');
 const engine=fs.readFileSync('pasture-resident-core.js','utf8');
 
-test('core loads DNA and renderer before resident engine can run', () => {
-  const dnaIndex=coreHtml.indexOf('/pasture-sheep-dna.js');
-  const rendererIndex=coreHtml.indexOf('/pasture-sheep-renderer.js');
+test('shell injects DNA and renderer before resident engine can run', () => {
+  const dnaIndex=shell.indexOf('/pasture-sheep-dna.js');
+  const rendererIndex=shell.indexOf('/pasture-sheep-renderer.js');
+  const residentIndex=shell.indexOf('/pasture-resident-core.js');
   assert.ok(dnaIndex>=0);
   assert.ok(rendererIndex>dnaIndex);
+  assert.ok(residentIndex>rendererIndex);
 });
 
 test('legacy sheep can be rendered through the shared renderer without losing its exact colors', () => {
