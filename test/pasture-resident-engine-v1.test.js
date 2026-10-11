@@ -24,6 +24,22 @@ test('resident sheep is rendered and interacted with inside the pasture core can
   assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'resident engine must not synthesize audio');
 });
 
+test('resident sheep is painted by the pasture core draw pass so it cannot flicker between clears',()=>{
+  const core=read('tonglu-core.html');
+  const engine=read('pasture-resident-core.js');
+  assert.match(core,/__tongluResidentPaintV1/, 'core draw pass must invoke resident paint hook');
+  assert.match(core,/__tongluCoreRedrawV1/, 'core must expose one redraw entry point for arrival and dragging');
+  assert.match(engine,/__tongluResidentPaintV1/, 'resident engine must register a paint hook with the core');
+  assert.doesNotMatch(engine,/requestAnimationFrame\(render\)/, 'resident engine must not race the core with its own permanent render loop');
+});
+
+test('approved mp3 bleat is cut off after the natural call body so no trailing tail can play',()=>{
+  const engine=read('pasture-resident-core.js');
+  assert.match(engine,/BLEAT_STOP_MS/, 'bleat must have an explicit stop point');
+  assert.match(engine,/setTimeout\([^\n]*bleat\.pause/, 'bleat playback must pause at the stop point');
+  assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'no synthetic tail is allowed');
+});
+
 test('first-entry sheep identity remains a real visual maker before entering the flock',()=>{
   const liveJs=read('pasture-live.js');
   assert.match(liveJs,/id=\"pastureSheepPreview\"/, 'maker must include a live sheep preview');
