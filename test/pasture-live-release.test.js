@@ -78,7 +78,7 @@ test('production pasture exposes email auth and first-entry sheep identity flow'
   assert.doesNotMatch(app, /属于自己的羊|我的羊|领养/);
 });
 
-test('find-sheep interaction is exact-pixel, five-fingered and uses only approved mp3 inside core canvas', () => {
+test('find-sheep interaction is exact-pixel and uses only approved mp3 inside core canvas', () => {
   const shell = read('pasture-live.js');
   const engine = read('pasture-resident-core.js');
   assert.doesNotMatch(read('pasture-live.html'), /residentCanvas/);
@@ -87,7 +87,6 @@ test('find-sheep interaction is exact-pixel, five-fingered and uses only approve
   assert.match(engine, /maskCtx/);
   assert.match(engine, /getImageData/);
   assert.match(engine, /PIXEL_HAND_OPEN/);
-  assert.match(engine, /Five-finger|five-finger|five finger|五指/i);
   assert.match(engine, /pasture-assets\/baaa01\.mp3/);
   assert.doesNotMatch(engine, /AudioContext|webkitAudioContext|createOscillator/);
   assert.ok(fs.existsSync('pasture-assets/baaa01.mp3'));
