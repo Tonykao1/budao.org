@@ -21,7 +21,7 @@ test('resident sheep is rendered and interacted with inside the pasture core can
   assert.match(engine,/function residentSheepHit\(/, 'resident engine must own exact-pixel hit testing');
   assert.match(engine,/PIXEL_HAND_OPEN/, 'resident engine must own the five-finger shepherd hand cursor');
   assert.match(engine,/baaa01\.mp3/, 'resident engine must own the approved sheep bleat');
-  assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'resident engine must not synthesize audio');
+  assert.doesNotMatch(engine,/createOscillator|OscillatorNode/, 'resident engine must never synthesize a sheep sound');
 });
 
 test('resident sheep is painted before the scene night tint and the tint color is restored afterwards',()=>{
@@ -41,13 +41,19 @@ test('resident placement uses the feet point: grass edges and the log bridge are
   assert.doesNotMatch(engine,/right=x\+21\*s|left=x-2\*s/, 'the whole sheep bounding box must no longer block river-edge placement');
 });
 
-test('approved mp3 bleat is cut at the user-approved 1.00 second point',()=>{
+test('approved mp3 bleat is 0.90 seconds and spatialized from sheep position',()=>{
   const engine=read('pasture-resident-core.js');
   const match=engine.match(/BLEAT_STOP_MS\s*=\s*(\d+)/);
   assert.ok(match, 'bleat must have an explicit stop point');
-  assert.equal(Number(match[1]),1000, 'bleat stop point must be exactly 1000ms');
+  assert.equal(Number(match[1]),900, 'bleat stop point must be exactly 900ms');
+  assert.match(engine,/function sheepAudioSpace\(/, 'audio must derive distance and pan from the sheep position');
+  assert.match(engine,/createMediaElementSource/, 'approved MP3 must be routed through Web Audio without synthesis');
+  assert.match(engine,/createGain/, 'distance must control volume through a gain node');
+  assert.match(engine,/createStereoPanner/, 'horizontal position must control stereo pan');
+  assert.match(engine,/gain\.value/, 'computed distance must change output volume');
+  assert.match(engine,/pan\.value/, 'computed horizontal position must change stereo pan');
   assert.match(engine,/setTimeout\([^\n]*bleat\.pause/, 'bleat playback must pause at the stop point');
-  assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'no synthetic tail is allowed');
+  assert.doesNotMatch(engine,/createOscillator|OscillatorNode/, 'spatialization must not synthesize any sound');
 });
 
 test('first-entry sheep identity remains a real visual maker before entering the flock',()=>{
