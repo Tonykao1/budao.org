@@ -58,11 +58,14 @@ test('approved mp3 bleat is 0.90 seconds and spatialized from sheep position',()
   assert.doesNotMatch(engine,/createOscillator|OscillatorNode/, 'spatialization must not synthesize any sound');
 });
 
-test('first-entry sheep identity remains a real visual maker before entering the flock',()=>{
+test('first-entry sheep identity remains a visual maker before entering the flock',()=>{
   const liveJs=read('pasture-live.js');
   assert.match(liveJs,/id=\"pastureSheepPreview\"/, 'maker must include a live sheep preview');
-  assert.match(liveJs,/data-sheep-body/, 'maker must expose visual wool choices');
-  assert.match(liveJs,/data-sheep-head/, 'maker must expose visual face choices');
-  assert.match(liveJs,/data-sheep-mark/, 'maker must expose visual marking choices');
-  assert.match(liveJs,/这就是我 · 进入牧场/, 'maker must end with identity confirmation');
+  assert.match(liveJs,/data-maker-dimension/, 'maker must expose visual identity dimensions');
+  assert.match(liveJs,/data-maker-option/, 'maker must expose visual options');
+  assert.match(liveJs,/PastureSheepRenderer/, 'maker preview must share the flock renderer');
+  assert.match(liveJs,/appearanceVersion:2/, 'maker must save the V2 sheep identity');
+  assert.match(liveJs,/maker-you">你/, 'first maker screen must be the minimal identity cue');
+  assert.match(liveJs,/maker-confirm','✓'/, 'maker must end with the minimal checkmark confirmation');
+  assert.doesNotMatch(liveJs,/这就是我 · 进入牧场|捏一只羊/, 'legacy explanatory maker copy must not return');
 });
