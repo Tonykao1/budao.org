@@ -18,7 +18,7 @@ let DNA=null,Renderer=null,I18n=null;
 const BASE_DIMS=['woolColor','faceColor','woolShape','bodyShape'];
 const FEATURE_DIMS=['ears','expression','marking','forelock'];
 
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]))}
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function showLayer(){layer.hidden=false;error.textContent=''}
 function hideLayer(){layer.hidden=true;error.textContent=''}
 function setBusy(button,busy){if(button){button.disabled=!!busy;button.dataset.oldText=button.dataset.oldText||button.textContent;button.textContent=busy?'请稍候…':button.dataset.oldText}}
