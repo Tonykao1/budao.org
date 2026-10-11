@@ -77,6 +77,6 @@ core.addEventListener('load',()=>{coreEngineReady=false;ensureCoreEngine()});
 window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='tonglu-resident-ready-v1'){coreEngineReady=true;sendResidentToCore(pendingArrival)}});
 window.addEventListener('resize',()=>{if(makerState)requestAnimationFrame(drawMakerCanvases)});
 window.PastureSheepMaker=Object.freeze({openReview:()=>{if(resident?.sheep)showMaker(true)}});
-async function boot(){try{await ensureMakerModules();const data=await request(null,'GET');resident=data.user;ensureCoreEngine();if(!resident)return showEmail();if(!resident.sheep)return showMaker(false);applyResident(false)}catch(err){showEmail();showError(err.reason)}}
+async function boot(){try{await ensureMakerModules();const data=await request(null,'GET');resident=data.user;ensureCoreEngine();if(!resident)return showEmail();if(!resident.sheep)return showMaker(false);const params=new URLSearchParams(location.search);if(params.get('sheepMakerReview')==='1')return showMaker(true);applyResident(false)}catch(err){showEmail();showError(err.reason)}}
 boot();
 })();
