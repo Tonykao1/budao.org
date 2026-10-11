@@ -17,7 +17,9 @@ test('resident sheep is rendered and interacted with inside the pasture core can
 
   assert.match(engine,/environmentLayer/, 'resident engine must use the pasture core canvas');
   assert.match(engine,/tonglu-resident-v1/, 'resident engine must receive resident identity');
-  assert.match(engine,/function drawResidentSheep\(/, 'resident engine must render the resident sheep');
+  assert.match(engine,/PastureSheepRenderer/, 'resident engine must use the shared sheep renderer');
+  assert.match(engine,/Renderer\.draw\(/, 'resident engine must render the resident sheep through shared geometry');
+  assert.match(engine,/Renderer\.drawMask\(/, 'exact-pixel mask must come from the same shared geometry');
   assert.match(engine,/function residentSheepHit\(/, 'resident engine must own exact-pixel hit testing');
   assert.match(engine,/PIXEL_HAND_OPEN/, 'resident engine must own the five-finger shepherd hand cursor');
   assert.match(engine,/baaa01\.mp3/, 'resident engine must own the approved sheep bleat');
@@ -56,11 +58,14 @@ test('approved mp3 bleat is 0.90 seconds and spatialized from sheep position',()
   assert.doesNotMatch(engine,/createOscillator|OscillatorNode/, 'spatialization must not synthesize any sound');
 });
 
-test('first-entry sheep identity remains a real visual maker before entering the flock',()=>{
+test('first-entry sheep identity remains a visual maker before entering the flock',()=>{
   const liveJs=read('pasture-live.js');
   assert.match(liveJs,/id=\"pastureSheepPreview\"/, 'maker must include a live sheep preview');
-  assert.match(liveJs,/data-sheep-body/, 'maker must expose visual wool choices');
-  assert.match(liveJs,/data-sheep-head/, 'maker must expose visual face choices');
-  assert.match(liveJs,/data-sheep-mark/, 'maker must expose visual marking choices');
-  assert.match(liveJs,/这就是我 · 进入牧场/, 'maker must end with identity confirmation');
+  assert.match(liveJs,/data-maker-dimension/, 'maker must expose visual identity dimensions');
+  assert.match(liveJs,/data-maker-option/, 'maker must expose visual options');
+  assert.match(liveJs,/PastureSheepRenderer/, 'maker preview must share the flock renderer');
+  assert.match(liveJs,/appearanceVersion:2/, 'maker must save the V2 sheep identity');
+  assert.match(liveJs,/maker-you">你/, 'first maker screen must be the minimal identity cue');
+  assert.match(liveJs,/maker-confirm','✓'/, 'maker must end with the minimal checkmark confirmation');
+  assert.doesNotMatch(liveJs,/这就是我 · 进入牧场|捏一只羊/, 'legacy explanatory maker copy must not return');
 });

@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const SheepDNA = require('../../pasture-sheep-dna.js');
 
 const COOKIE_NAME = 'budao_pasture_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;
@@ -37,6 +38,23 @@ function safeEqual(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));
 function readCookie(req,name=COOKIE_NAME){const h=req?.headers?.cookie;if(typeof h!=='string')return '';const p=name+'=';const v=h.split(';').map(x=>x.trim()).find(x=>x.startsWith(p));return v?v.slice(p.length):''}
 function serializeSessionCookie(token,secure=true){return [COOKIE_NAME+'='+token,'Path=/','HttpOnly',secure?'Secure':'','SameSite=Lax','Max-Age='+SESSION_TTL_SECONDS].filter(Boolean).join('; ')}
 function clearSessionCookie(secure=true){return [COOKIE_NAME+'=','Path=/','HttpOnly',secure?'Secure':'','SameSite=Lax','Max-Age=0'].filter(Boolean).join('; ')}
-function validateSheep(input){const bodyColor=String(input?.bodyColor||''),headColor=String(input?.headColor||''),marking=String(input?.marking||'NONE').toUpperCase();if(!BODY_COLORS.includes(bodyColor)||!HEAD_COLORS.includes(headColor)||!MARKINGS.includes(marking)){const e=new Error('invalid_sheep');e.code='INVALID_SHEEP';throw e}return {bodyColor,headColor,marking}}
-function publicUser(user,sheep){if(!user)return null;return {id:user.id,emailMasked:user.emailMasked,createdAt:user.createdAt,sheep:sheep?{id:sheep.id,bodyColor:sheep.bodyColor,headColor:sheep.headColor,marking:sheep.marking,createdAt:sheep.createdAt}:null}}
+function invalidSheep(){const e=new Error('invalid_sheep');e.code='INVALID_SHEEP';throw e}
+function validateSheep(input){
+  if(Number(input?.appearanceVersion)===2||input?.appearance?.version===2){
+    const candidate=input?.appearance;
+    if(!SheepDNA.validateV2(candidate))invalidSheep();
+    const v2={...candidate};
+    return {appearanceVersion:2,v2,legacy:SheepDNA.toLegacy(v2)};
+  }
+  const bodyColor=String(input?.bodyColor||''),headColor=String(input?.headColor||''),marking=String(input?.marking||'NONE').toUpperCase();
+  if(!BODY_COLORS.includes(bodyColor)||!HEAD_COLORS.includes(headColor)||!MARKINGS.includes(marking))invalidSheep();
+  return {appearanceVersion:1,v2:null,legacy:{bodyColor,headColor,marking}};
+}
+function publicUser(user,sheep){
+  if(!user)return null;
+  return {id:user.id,emailMasked:user.emailMasked,createdAt:user.createdAt,sheep:sheep?{
+    id:sheep.id,bodyColor:sheep.bodyColor,headColor:sheep.headColor,marking:sheep.marking,
+    appearanceVersion:Number(sheep.appearanceVersion||1),appearance:sheep.appearanceV2||null,createdAt:sheep.createdAt
+  }:null};
+}
 module.exports={COOKIE_NAME,SESSION_TTL_SECONDS,EMAIL_CODE_TTL_MS,BODY_COLORS,HEAD_COLORS,MARKINGS,normalizeEmail,validEmail,maskEmail,encryptEmail,emailHash,codeHash,tokenHash,createEmailCode,createSessionToken,safeEqual,readCookie,serializeSessionCookie,clearSessionCookie,validateSheep,publicUser};

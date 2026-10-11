@@ -40,22 +40,20 @@ test('authenticated pasture restores the agreed pixel function-zone design inste
   assert.doesNotMatch(html, /resident-toolbar/);
 });
 
-test('first-time resident gets the agreed visual sheep-making process, not select dropdowns', () => {
+test('first-time resident gets the V2 visual identity maker, not a form configurator', () => {
   const app = read('pasture-live.js');
-  const css = read('pasture-live.css');
+  const css = read('pasture-sheep-maker-v2.css');
   assert.match(app, /pastureSheepPreview/);
-  assert.match(app, /pasture-visual-choice/);
-  assert.match(app, /data-sheep-body/);
-  assert.match(app, /data-sheep-head/);
-  assert.match(app, /data-sheep-mark/);
-  assert.match(app, /这就是我 · 进入牧场/);
-  assert.doesNotMatch(app, /<select id="bodyColor"/);
-  assert.doesNotMatch(app, /<select id="headColor"/);
-  assert.doesNotMatch(app, /<select id="marking"/);
-  assert.match(css, /#pastureSheepPreview/);
-  assert.match(css, /\.pasture-choice/);
-  assert.match(css, /\.pasture-sheep-chip/);
-  assert.match(css, /\.pasture-mark-icon/);
+  assert.match(app, /maker-screen-one/);
+  assert.match(app, /maker-screen-four/);
+  assert.match(app, /data-maker-dimension/);
+  assert.match(app, /data-maker-option/);
+  assert.match(app, /PastureSheepRenderer/);
+  assert.match(app, /appearanceVersion:2/);
+  assert.doesNotMatch(app, /<select\b/i);
+  assert.doesNotMatch(app, /makerRects|drawMakerSheep/);
+  assert.match(css, /\.maker-dimension\{/);
+  assert.match(css, /\.maker-options-panel\{/);
 });
 
 test('pasture auth reuses the small publish compatibility function instead of creating a 13th function', () => {
@@ -69,13 +67,14 @@ test('pasture auth reuses the small publish compatibility function instead of cr
   assert.match(bridge, /publisher_moved/);
 });
 
-test('production pasture exposes email auth and first-entry sheep identity flow', () => {
+test('production pasture exposes email auth and the V2 first-entry identity flow', () => {
   const app = read('pasture-live.js');
   assert.match(app, /requestCode/);
   assert.match(app, /verifyCode/);
   assert.match(app, /saveSheep/);
-  assert.match(app, /这只羊就是你/);
-  assert.doesNotMatch(app, /属于自己的羊|我的羊|领养/);
+  assert.match(app, /maker-you">你/);
+  assert.match(app, /appearanceVersion:2/);
+  assert.doesNotMatch(app, /属于自己的羊|我的羊|领养|宠物/);
 });
 
 test('find-sheep interaction is exact-pixel and uses only approved mp3 inside core canvas', () => {
@@ -97,5 +96,6 @@ test('production API stores residents without requiring main schema replacement'
   assert.match(store, /CREATE TABLE IF NOT EXISTS pasture_users/);
   assert.match(store, /CREATE TABLE IF NOT EXISTS pasture_sessions/);
   assert.match(store, /CREATE TABLE IF NOT EXISTS pasture_sheep/);
+  assert.match(store, /appearance_v2/);
   assert.match(store, /neon\(/);
 });
