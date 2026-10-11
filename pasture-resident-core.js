@@ -4,7 +4,7 @@ const canvas=document.getElementById('environmentLayer');
 if(!canvas)return;
 const ctx=canvas.getContext('2d');
 const BLEAT_URL='/pasture-assets/baaa01.mp3';
-const BLEAT_STOP_MS=850;
+const BLEAT_STOP_MS=1000;
 const PIXEL_HAND_OPEN='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M9 11h5V5h5v16h2V3h5v18h2V1h5v20h2V6h5v19h4v12h-4v5H17v-4h-5v-6H8V20h5v8h3V13H9z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M11 12h2V7h3v16h7V5h2v18h5V3h2v20h5V8h2v17h3v10h-4v4H19v-3h-5v-6h-4v-8h3v8h5V14h-7z%22/%3E%3C/svg%3E") 24 8, grab';
 const PIXEL_HAND_CLOSED='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M12 11h26v4h5v19h-4v6h-5v4H17v-4h-5v-5H8V20h4z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M14 15h22v4h4v13h-4v5h-4v3H19v-4h-4v-4h-3V22h5v8h4V19h15v-4z%22/%3E%3C/svg%3E") 23 12, grabbing';
 const RIVER_POLYGON=[[355,147],[361,149],[367,152],[372,157],[375,163],[373,170],[369,177],[366,184],[368,192],[374,200],[382,208],[390,216],[396,225],[399,235],[398,247],[394,261],[390,279],[388,300],[354,300],[357,281],[360,264],[363,250],[363,238],[360,228],[354,219],[347,210],[343,202],[343,194],[346,185],[351,177],[354,169],[353,162],[350,156],[351,151]];
