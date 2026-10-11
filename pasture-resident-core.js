@@ -4,7 +4,7 @@ const canvas=document.getElementById('environmentLayer');
 if(!canvas)return;
 const ctx=canvas.getContext('2d');
 const BLEAT_URL='/pasture-assets/baaa01.mp3';
-const BLEAT_STOP_MS=1000;
+const BLEAT_STOP_MS=900;
 const PIXEL_HAND_OPEN='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M9 11h5V5h5v16h2V3h5v18h2V1h5v20h2V6h5v19h4v12h-4v5H17v-4h-5v-6H8V20h5v8h3V13H9z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M11 12h2V7h3v16h7V5h2v18h5V3h2v20h5V8h2v17h3v10h-4v4H19v-3h-5v-6h-4v-8h3v8h5V14h-7z%22/%3E%3C/svg%3E") 24 8, grab';
 const PIXEL_HAND_CLOSED='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M12 11h26v4h5v19h-4v6h-5v4H17v-4h-5v-5H8V20h4z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M14 15h22v4h4v13h-4v5h-4v3H19v-4h-4v-4h-3V22h5v8h4V19h15v-4z%22/%3E%3C/svg%3E") 23 12, grabbing';
 const RIVER_POLYGON=[[355,147],[361,149],[367,152],[372,157],[375,163],[373,170],[369,177],[366,184],[368,192],[374,200],[382,208],[390,216],[396,225],[399,235],[398,247],[394,261],[390,279],[388,300],[354,300],[357,281],[360,264],[363,250],[363,238],[360,228],[354,219],[347,210],[343,202],[343,194],[346,185],[351,177],[354,169],[353,162],[350,156],[351,151]];
@@ -15,6 +15,10 @@ let arrivalStart=0;
 let drag=null;
 let bleat=null;
 let bleatStopTimer=0;
+let audioCtx=null;
+let bleatSource=null;
+let bleatGain=null;
+let bleatPan=null;
 let paintQueued=false;
 let scenePassPainted=false;
 const mask=document.createElement('canvas');mask.width=32;mask.height=28;
@@ -34,7 +38,45 @@ function pointInPolygon(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i
 function bridgeContains(x,y){return x>=BRIDGE_RECT.left&&x<=BRIDGE_RECT.right&&y>=BRIDGE_RECT.top&&y<=BRIDGE_RECT.bottom}
 function walkableFootPoint(x,y){const s=scaleAtY(y),footX=x+10.5*s,footY=y+14*s;if(footX<0||footX>480||footY<145||footY>299)return false;if(bridgeContains(footX,footY))return true;return !pointInPolygon(footX,footY,RIVER_POLYGON)}
 function candidatePosition(x,y){x=Math.max(-4,Math.min(466,x));y=Math.max(150,Math.min(286,y));return walkableFootPoint(x,y)?{x,y}:null}
-function playBleat(){try{if(!bleat){bleat=new Audio(BLEAT_URL);bleat.preload='auto'}clearTimeout(bleatStopTimer);bleat.pause();bleat.currentTime=0;const p=bleat.play();if(p?.catch)p.catch(()=>{});bleatStopTimer=setTimeout(()=>{if(!bleat)return;bleat.pause();bleat.currentTime=0},BLEAT_STOP_MS)}catch(_){}}
+function sheepAudioSpace(){
+  const depth=Math.max(0,Math.min(1,(pos.y-160)/126));
+  const s=scaleAtY(pos.y);
+  const centerX=pos.x+10.5*s;
+  const volume=.28+.72*depth;
+  const pan=Math.max(-.9,Math.min(.9,(centerX-240)/240));
+  return{volume,pan};
+}
+function ensureBleatGraph(){
+  if(!bleat){bleat=new Audio(BLEAT_URL);bleat.preload='auto'}
+  if(audioCtx&&bleatSource&&bleatGain&&bleatPan)return true;
+  const AudioCtor=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtor)return false;
+  audioCtx=new AudioCtor();
+  bleatSource=audioCtx.createMediaElementSource(bleat);
+  bleatGain=audioCtx.createGain();
+  bleatPan=audioCtx.createStereoPanner();
+  bleatSource.connect(bleatGain).connect(bleatPan).connect(audioCtx.destination);
+  return true;
+}
+function playBleat(){
+  try{
+    if(!bleat){bleat=new Audio(BLEAT_URL);bleat.preload='auto'}
+    const space=sheepAudioSpace();
+    const spatial=ensureBleatGraph();
+    if(spatial){
+      if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
+      bleatGain.gain.value=space.volume;
+      bleatPan.pan.value=space.pan;
+      bleat.volume=1;
+    }else{
+      bleat.volume=space.volume;
+    }
+    clearTimeout(bleatStopTimer);
+    bleat.pause();bleat.currentTime=0;
+    const p=bleat.play();if(p?.catch)p.catch(()=>{});
+    bleatStopTimer=setTimeout(()=>{if(!bleat)return;bleat.pause();bleat.currentTime=0},BLEAT_STOP_MS);
+  }catch(_){ }
+}
 function paintResident(now=performance.now()){
   if(!resident?.sheep||canvas.style.display==='none')return;
   let x=pos.x,y=pos.y;
