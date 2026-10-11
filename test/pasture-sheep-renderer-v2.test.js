@@ -31,6 +31,13 @@ test('shared geometry rects stay finite and drawable', () => {
   }
 });
 
+test('every marking keeps shared geometry finite', () => {
+  for(const marking of DNA.enums.marking){
+    const rects=Renderer.rectsFor({...DNA.defaultV2(),marking});
+    for(const rect of rects) assert.ok(rect.slice(0,4).every(Number.isFinite),`marking:${marking}`);
+  }
+});
+
 test('draw and drawMask both consume rectsFor as the one geometry source', () => {
   const source=fs.readFileSync('pasture-sheep-renderer.js','utf8');
   assert.match(source,/function draw\([^)]*\)[\s\S]*rectsFor\(/);
