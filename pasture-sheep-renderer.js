@@ -11,9 +11,11 @@
 
   function rect(x,y,w,h,color,role){return [x,y,w,h,color,role||'shape']}
   function rectsFor(input){
-    const dna=DNA.validateV2(input)?input:DNA.normalizeV2(input);
-    const wool=DNA.palettes.woolColor[dna.woolColor];
-    const face=DNA.palettes.faceColor[dna.faceColor];
+    const isV2=DNA.validateV2(input);
+    const legacy=!isV2&&input&&typeof input==='object'&&typeof input.bodyColor==='string'&&typeof input.headColor==='string';
+    const dna=isV2?input:(legacy?DNA.fromLegacy(input):DNA.normalizeV2(input));
+    const wool=legacy?input.bodyColor:DNA.palettes.woolColor[dna.woolColor];
+    const face=legacy?input.headColor:DNA.palettes.faceColor[dna.faceColor];
     const out=[];
 
     const body={
