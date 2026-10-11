@@ -47,9 +47,13 @@ async function ensurePastureSchema(){
         body_color text NOT NULL,
         head_color text NOT NULL,
         marking text NOT NULL DEFAULT 'NONE',
+        appearance_version integer NOT NULL DEFAULT 1,
+        appearance_v2 jsonb,
         created_at timestamptz NOT NULL DEFAULT now(),
         updated_at timestamptz NOT NULL DEFAULT now()
       )`;
+      await q`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_version integer NOT NULL DEFAULT 1`;
+      await q`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_v2 jsonb`;
     })().catch(e=>{ensurePromise=null;throw e});
   }
   return ensurePromise;
@@ -88,14 +92,18 @@ async function sessionByTokenHash(tokenHash){
 }
 async function revokeSession(tokenHash){await sql()`UPDATE pasture_sessions SET revoked_at=now() WHERE token_hash=${tokenHash}`}
 async function sheepForUser(userId){
-  const rows=await sql()`SELECT id,user_id AS "userId",body_color AS "bodyColor",head_color AS "headColor",marking,created_at AS "createdAt" FROM pasture_sheep WHERE user_id=${userId} LIMIT 1`;
+  const rows=await sql()`SELECT id,user_id AS "userId",body_color AS "bodyColor",head_color AS "headColor",marking,appearance_version AS "appearanceVersion",appearance_v2 AS "appearanceV2",created_at AS "createdAt" FROM pasture_sheep WHERE user_id=${userId} LIMIT 1`;
   return rows[0]||null;
 }
 async function saveSheep(userId,appearance){
   const before=await sheepForUser(userId);
-  const rows=await sql()`INSERT INTO pasture_sheep(user_id,body_color,head_color,marking) VALUES(${userId},${appearance.bodyColor},${appearance.headColor},${appearance.marking})
-    ON CONFLICT(user_id) DO UPDATE SET body_color=EXCLUDED.body_color,head_color=EXCLUDED.head_color,marking=EXCLUDED.marking,updated_at=now()
-    RETURNING id,user_id AS "userId",body_color AS "bodyColor",head_color AS "headColor",marking,created_at AS "createdAt"`;
+  const legacy=appearance.legacy;
+  const appearanceVersion=Number(appearance.appearanceVersion||1);
+  const appearanceV2=appearance.v2?JSON.stringify(appearance.v2):null;
+  const rows=await sql()`INSERT INTO pasture_sheep(user_id,body_color,head_color,marking,appearance_version,appearance_v2)
+    VALUES(${userId},${legacy.bodyColor},${legacy.headColor},${legacy.marking},${appearanceVersion},CAST(${appearanceV2} AS jsonb))
+    ON CONFLICT(user_id) DO UPDATE SET body_color=EXCLUDED.body_color,head_color=EXCLUDED.head_color,marking=EXCLUDED.marking,appearance_version=EXCLUDED.appearance_version,appearance_v2=EXCLUDED.appearance_v2,updated_at=now()
+    RETURNING id,user_id AS "userId",body_color AS "bodyColor",head_color AS "headColor",marking,appearance_version AS "appearanceVersion",appearance_v2 AS "appearanceV2",created_at AS "createdAt"`;
   return {created:!before,sheep:rows[0]};
 }
 module.exports={ensurePastureSchema,createVerification,latestVerification,incrementVerificationAttempts,consumeVerification,findOrCreateUser,createSession,sessionByTokenHash,revokeSession,sheepForUser,saveSheep};
