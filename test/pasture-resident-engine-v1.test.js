@@ -41,11 +41,11 @@ test('resident placement uses the feet point: grass edges and the log bridge are
   assert.doesNotMatch(engine,/right=x\+21\*s|left=x-2\*s/, 'the whole sheep bounding box must no longer block river-edge placement');
 });
 
-test('approved mp3 bleat is cut at the user-approved 0.85 second point',()=>{
+test('approved mp3 bleat is cut at the user-approved 1.00 second point',()=>{
   const engine=read('pasture-resident-core.js');
   const match=engine.match(/BLEAT_STOP_MS\s*=\s*(\d+)/);
   assert.ok(match, 'bleat must have an explicit stop point');
-  assert.equal(Number(match[1]),850, 'bleat stop point must be exactly 850ms');
+  assert.equal(Number(match[1]),1000, 'bleat stop point must be exactly 1000ms');
   assert.match(engine,/setTimeout\([^\n]*bleat\.pause/, 'bleat playback must pause at the stop point');
   assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'no synthetic tail is allowed');
 });
