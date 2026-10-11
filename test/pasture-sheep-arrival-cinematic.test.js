@@ -21,14 +21,20 @@ test('arrival uses a temporary full-screen cinematic layer and the shared sheep 
   assert.match(core,/function destroyArrivalCanvas\(/);
 });
 
-test('arrival is deliberately oversized, multi-phase and ends by revealing the real flock sheep',()=>{
-  assert.match(core,/const ARRIVAL_DURATION_MS=3800/);
-  assert.match(core,/const ARRIVAL_IMPACT_AT=\.68/);
-  assert.match(core,/const ARRIVAL_CLOSEUP_UNIT=11/);
+test('arrival is deliberately three-times wilder and still resolves into the real flock sheep',()=>{
+  assert.match(core,/const ARRIVAL_DURATION_MS=4200/);
+  assert.match(core,/const ARRIVAL_IMPACT_AT=\.72/);
+  assert.match(core,/const ARRIVAL_CLOSEUP_UNIT=28/);
+  assert.match(core,/const ARRIVAL_SPEED_LINE_COUNT=60/);
+  assert.match(core,/const ARRIVAL_PARTICLE_COUNT=100/);
+  assert.match(core,/const ARRIVAL_SHAKE_PEAK=21/);
+  assert.match(core,/Array\.from\(\{length:ARRIVAL_PARTICLE_COUNT\}/);
+  assert.match(core,/for\(let i=0;i<ARRIVAL_SPEED_LINE_COUNT;i\+\+\)/);
+  assert.match(core,/function drawImpactFlash\(/);
+  assert.match(core,/function arrivalShakeAmount\(/);
+  assert.match(core,/squash/);
+  assert.match(core,/bounce/);
   assert.match(core,/requestAnimationFrame\(arrivalFrame\)/);
-  assert.match(core,/function arrivalFrame\(/);
-  assert.match(core,/impactParticles/);
-  assert.match(core,/arrivalShake/);
   assert.match(core,/arrivalStart=0/);
   assert.match(core,/queueResidentPaint\(\)/);
 });
