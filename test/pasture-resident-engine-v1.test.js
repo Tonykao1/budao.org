@@ -24,10 +24,10 @@ test('resident sheep is rendered and interacted with inside the pasture core can
   assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'resident engine must not synthesize audio');
 });
 
-test('resident sheep is painted before the scene night tint so it blends with the flock',()=>{
+test('resident sheep is painted before the scene night tint and the tint color is restored afterwards',()=>{
   const engine=read('pasture-resident-core.js');
   assert.match(engine,/isSceneTintFill/, 'resident engine must recognize the pasture full-scene tint pass');
-  assert.match(engine,/paintResident\([^)]*\)[\s\S]{0,180}originalFillRect/, 'resident must be painted before the core night/twilight tint is applied');
+  assert.match(engine,/const sceneTint=ctx\.fillStyle;paintResident\([^)]*\);scenePassPainted=true;ctx\.fillStyle=sceneTint/, 'resident paint must restore the original night/twilight tint before the full-scene fill');
   assert.doesNotMatch(engine,/requestAnimationFrame\(render\)/, 'resident engine must not race the core with its own permanent render loop');
 });
 
@@ -40,11 +40,11 @@ test('resident placement uses the feet point: grass edges and the log bridge are
   assert.doesNotMatch(engine,/right=x\+21\*s|left=x-2\*s/, 'the whole sheep bounding box must no longer block river-edge placement');
 });
 
-test('approved mp3 bleat uses a short body-only clip so the embedded trailing tone cannot play',()=>{
+test('approved mp3 bleat is cut at the user-approved 0.85 second point',()=>{
   const engine=read('pasture-resident-core.js');
   const match=engine.match(/BLEAT_STOP_MS\s*=\s*(\d+)/);
   assert.ok(match, 'bleat must have an explicit stop point');
-  assert.ok(Number(match[1])<800, 'body-only diagnostic clip must end before 800ms');
+  assert.equal(Number(match[1]),850, 'bleat stop point must be exactly 850ms');
   assert.match(engine,/setTimeout\([^\n]*bleat\.pause/, 'bleat playback must pause at the stop point');
   assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'no synthetic tail is allowed');
 });
