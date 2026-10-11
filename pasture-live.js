@@ -12,6 +12,7 @@ const error=document.getElementById('residentError');
 const skyZone=document.getElementById('residentSkyZone');
 const residentName=document.getElementById('residentName');
 const residentId=document.getElementById('residentId');
+const residentAvatar=document.getElementById('residentAvatar');
 const toast=document.getElementById('residentToast');
 let resident=null,emailDraft='',pendingArrival=false,coreEngineReady=false,makerState=null;
 let DNA=null,Renderer=null,I18n=null;
@@ -26,7 +27,9 @@ function showError(reason){const map={invalid_email:'请输入有效邮箱。',e
 async function request(payload,method='POST'){const opts={method,credentials:'same-origin',headers:{'Content-Type':'application/json'}};if(method!=='GET')opts.body=JSON.stringify(payload||{});const r=await fetch(API,opts);let data={};try{data=await r.json()}catch(_){ }if(!r.ok||data.ok===false){const e=new Error(data.reason||'service_unavailable');e.reason=data.reason||'service_unavailable';throw e}return data}
 function resetCard(){card.classList.remove('maker-card','maker-v2-card')}
 function showToast(message){toast.textContent=message;toast.hidden=false;setTimeout(()=>toast.hidden=true,2200)}
-function updateResidentUi(){if(residentName)residentName.textContent='牧场居民';if(residentId)residentId.textContent=resident?.emailMasked||resident?.email_masked||'已进入羊群';document.querySelectorAll('.pasture-feature-locked').forEach(el=>{el.title='功能正在生长，成熟后开放';el.onclick=e=>{e.preventDefault();showToast('功能正在生长，成熟后开放')}})}
+function residentAvatarDna(){const sheep=resident?.sheep;if(!sheep||!DNA||!Renderer)return null;if(Number(sheep.appearanceVersion)===2&&DNA.validateV2(sheep.appearance))return sheep.appearance;return{bodyColor:sheep.bodyColor,headColor:sheep.headColor,marking:sheep.marking||'NONE'}}
+function drawResidentAvatar(){if(!residentAvatar||!Renderer)return;const ctx=residentAvatar.getContext('2d');ctx.clearRect(0,0,residentAvatar.width,residentAvatar.height);ctx.imageSmoothingEnabled=false;const dna=residentAvatarDna();if(!dna)return;Renderer.draw(residentAvatar.getContext('2d'),7,34,2.8,false,dna)}
+function updateResidentUi(){if(residentName)residentName.textContent='牧场居民';if(residentId)residentId.textContent=resident?.emailMasked||resident?.email_masked||'已进入羊群';drawResidentAvatar();document.querySelectorAll('.pasture-feature-locked').forEach(el=>{el.title='功能正在生长，成熟后开放';el.onclick=e=>{e.preventDefault();showToast('功能正在生长，成熟后开放')}})}
 function sendResidentToCore(arrival=false){if(!coreEngineReady||!resident?.sheep||!core.contentWindow)return;core.contentWindow.postMessage({type:'tonglu-resident-v1',resident:{id:resident.id,sheep:resident.sheep},arrival:!!arrival},location.origin);pendingArrival=false}
 function wantsMakerReview(){return new URLSearchParams(location.search).get('sheepMakerReview')==='1'}
 function wantsArrivalReview(){return location.hostname.endsWith('.vercel.app')&&new URLSearchParams(location.search).get('sheepArrivalReview')==='1'}
