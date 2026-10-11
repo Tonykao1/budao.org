@@ -15,6 +15,7 @@ on:
       - 'test/pasture-live-release.test.js'
       - 'test/pasture-resident-engine-v1.test.js'
       - 'test/pasture-sheep-*.test.js'
+      - 'test/pasture-resident-renderer-v2.test.js'
 
 jobs:
   resident-release:
@@ -26,4 +27,4 @@ jobs:
           node-version: 22
       - run: npm ci
       - name: Verify production resident release contract
-        run: node --test test/pasture-live-release.test.js test/pasture-resident-engine-v1.test.js test/pasture-sheep-dna-v2.test.js
+        run: node --test test/pasture-live-release.test.js test/pasture-resident-engine-v1.test.js test/pasture-sheep-*.test.js test/pasture-resident-renderer-v2.test.js
