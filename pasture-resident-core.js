@@ -4,9 +4,11 @@ const canvas=document.getElementById('environmentLayer');
 if(!canvas)return;
 const ctx=canvas.getContext('2d');
 const BLEAT_URL='/pasture-assets/baaa01.mp3';
-const BLEAT_STOP_MS=1050;
+const BLEAT_STOP_MS=650;
 const PIXEL_HAND_OPEN='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M9 11h5V5h5v16h2V3h5v18h2V1h5v20h2V6h5v19h4v12h-4v5H17v-4h-5v-6H8V20h5v8h3V13H9z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M11 12h2V7h3v16h7V5h2v18h5V3h2v20h5V8h2v17h3v10h-4v4H19v-3h-5v-6h-4v-8h3v8h5V14h-7z%22/%3E%3C/svg%3E") 24 8, grab';
 const PIXEL_HAND_CLOSED='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M12 11h26v4h5v19h-4v6h-5v4H17v-4h-5v-5H8V20h4z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M14 15h22v4h4v13h-4v5h-4v3H19v-4h-4v-4h-3V22h5v8h4V19h15v-4z%22/%3E%3C/svg%3E") 23 12, grabbing';
+const RIVER_POLYGON=[[355,147],[361,149],[367,152],[372,157],[375,163],[373,170],[369,177],[366,184],[368,192],[374,200],[382,208],[390,216],[396,225],[399,235],[398,247],[394,261],[390,279],[388,300],[354,300],[357,281],[360,264],[363,250],[363,238],[360,228],[354,219],[347,210],[343,202],[343,194],[346,185],[351,177],[354,169],[353,162],[350,156],[351,151]];
+const BRIDGE_RECT={left:347,top:217,right:400,bottom:226};
 let resident=null;
 let pos={x:160,y:225,flip:false};
 let arrivalStart=0;
@@ -14,6 +16,7 @@ let drag=null;
 let bleat=null;
 let bleatStopTimer=0;
 let paintQueued=false;
+let scenePassPainted=false;
 const mask=document.createElement('canvas');mask.width=32;mask.height=28;
 const maskCtx=mask.getContext('2d',{willReadFrequently:true});
 
@@ -27,8 +30,10 @@ function initialPosition(){try{const v=JSON.parse(localStorage.getItem(key())||'
 function savePosition(){try{localStorage.setItem(key(),JSON.stringify(pos))}catch(_){}}
 function point(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*480,y:(e.clientY-r.top)/r.height*300}}
 function residentSheepHit(clientX,clientY){if(!resident?.sheep||arrivalStart)return false;const r=canvas.getBoundingClientRect(),px=(clientX-r.left)/r.width*480,py=(clientY-r.top)/r.height*300,s=scaleAtY(pos.y);let lx=Math.floor((px-pos.x)/s)+2,ly=Math.floor((py-pos.y)/s)+8;if(pos.flip)lx=23-lx;if(lx<0||ly<0||lx>=32||ly>=28)return false;return maskCtx.getImageData(lx,ly,1,1).data[3]>0}
-function forbidden(x,y){let l=340,r=390;if(y>=190&&y<232){l=336;r=410}else if(y>=232){l=344;r=416}const s=scaleAtY(y),right=x+21*s,left=x-2*s;if(y>=145&&right>l&&left<r)return true;if(right>414&&left<448&&y+20*s>184&&y-9*s<220)return true;return false}
-function clampPosition(x,y){x=Math.max(8,Math.min(455,x));y=Math.max(160,Math.min(286,y));if(!forbidden(x,y))return{x,y};for(let d=4;d<=100;d+=4){if(x-d>=8&&!forbidden(x-d,y))return{x:x-d,y};if(x+d<=455&&!forbidden(x+d,y))return{x:x+d,y}}return{x:120,y:230}}
+function pointInPolygon(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];const crosses=((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/((yj-yi)||1e-9)+xi);if(crosses)inside=!inside}return inside}
+function bridgeContains(x,y){return x>=BRIDGE_RECT.left&&x<=BRIDGE_RECT.right&&y>=BRIDGE_RECT.top&&y<=BRIDGE_RECT.bottom}
+function walkableFootPoint(x,y){const s=scaleAtY(y),footX=x+10.5*s,footY=y+14*s;if(footX<0||footX>480||footY<145||footY>299)return false;if(bridgeContains(footX,footY))return true;return !pointInPolygon(footX,footY,RIVER_POLYGON)}
+function candidatePosition(x,y){x=Math.max(-4,Math.min(466,x));y=Math.max(150,Math.min(286,y));return walkableFootPoint(x,y)?{x,y}:null}
 function playBleat(){try{if(!bleat){bleat=new Audio(BLEAT_URL);bleat.preload='auto'}clearTimeout(bleatStopTimer);bleat.pause();bleat.currentTime=0;const p=bleat.play();if(p?.catch)p.catch(()=>{});bleatStopTimer=setTimeout(()=>{if(!bleat)return;bleat.pause();bleat.currentTime=0},BLEAT_STOP_MS)}catch(_){}}
 function paintResident(now=performance.now()){
   if(!resident?.sheep||canvas.style.display==='none')return;
@@ -39,11 +44,14 @@ function paintResident(now=performance.now()){
   drawResidentSheep(ctx,x,y,s,pos.flip,resident.sheep);
   window.__tongluFlockCount=45;
 }
-function queueResidentPaint(){if(paintQueued)return;paintQueued=true;queueMicrotask(()=>{paintQueued=false;paintResident(performance.now())})}
+function queueResidentPaint(){if(paintQueued)return;paintQueued=true;queueMicrotask(()=>{paintQueued=false;if(!scenePassPainted)paintResident(performance.now())})}
+function isSceneTintFill(x,y,w,h){if(x!==0||y!==0||w!==480||h!==300)return false;const fill=String(ctx.fillStyle||'');return fill.startsWith('rgba(18, 34, 70')||fill.startsWith('rgba(18,34,70')||fill.startsWith('rgba(244, 177, 112')||fill.startsWith('rgba(244,177,112')}
 const originalClearRect=ctx.clearRect.bind(ctx);
-ctx.clearRect=function(...args){originalClearRect(...args);queueResidentPaint()};
+const originalFillRect=ctx.fillRect.bind(ctx);
+ctx.clearRect=function(...args){scenePassPainted=false;originalClearRect(...args);queueResidentPaint()};
+ctx.fillRect=function(x,y,w,h){if(!scenePassPainted&&isSceneTintFill(x,y,w,h)){paintResident(performance.now());scenePassPainted=true}return originalFillRect(x,y,w,h)};
 
-canvas.addEventListener('pointermove',e=>{if(drag){const p=point(e),next=clampPosition(p.x-drag.dx,p.y-drag.dy);pos.x=next.x;pos.y=next.y;canvas.style.cursor=PIXEL_HAND_CLOSED;paintResident(performance.now());e.preventDefault();return}canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default'});
+canvas.addEventListener('pointermove',e=>{if(drag){const p=point(e),next=candidatePosition(p.x-drag.dx,p.y-drag.dy);if(next){pos.x=next.x;pos.y=next.y}canvas.style.cursor=PIXEL_HAND_CLOSED;paintResident(performance.now());e.preventDefault();return}canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default'});
 canvas.addEventListener('pointerdown',e=>{if(!residentSheepHit(e.clientX,e.clientY))return;const p=point(e);drag={id:e.pointerId,dx:p.x-pos.x,dy:p.y-pos.y,moved:false};canvas.setPointerCapture?.(e.pointerId);canvas.style.cursor=PIXEL_HAND_CLOSED;e.preventDefault()});
 canvas.addEventListener('pointermove',e=>{if(drag&&drag.id===e.pointerId)drag.moved=true},{passive:true});
 function release(e){if(!drag||drag.id!==e.pointerId)return;const moved=drag.moved;drag=null;try{canvas.releasePointerCapture?.(e.pointerId)}catch(_){ }savePosition();canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default';queueResidentPaint();if(moved)playBleat()}
