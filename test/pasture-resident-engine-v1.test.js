@@ -17,7 +17,9 @@ test('resident sheep is rendered and interacted with inside the pasture core can
 
   assert.match(engine,/environmentLayer/, 'resident engine must use the pasture core canvas');
   assert.match(engine,/tonglu-resident-v1/, 'resident engine must receive resident identity');
-  assert.match(engine,/function drawResidentSheep\(/, 'resident engine must render the resident sheep');
+  assert.match(engine,/PastureSheepRenderer/, 'resident engine must use the shared sheep renderer');
+  assert.match(engine,/Renderer\.draw\(/, 'resident engine must render the resident sheep through shared geometry');
+  assert.match(engine,/Renderer\.drawMask\(/, 'exact-pixel mask must come from the same shared geometry');
   assert.match(engine,/function residentSheepHit\(/, 'resident engine must own exact-pixel hit testing');
   assert.match(engine,/PIXEL_HAND_OPEN/, 'resident engine must own the five-finger shepherd hand cursor');
   assert.match(engine,/baaa01\.mp3/, 'resident engine must own the approved sheep bleat');
