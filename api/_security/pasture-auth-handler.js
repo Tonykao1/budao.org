@@ -62,7 +62,7 @@ async function saveSheep(request,response,body){
   const resident=await authenticatedResident(request,true);
   if(!resident)return sendJson(response,401,{ok:false,reason:'unauthorized'});
   const result=await store.saveSheep(resident.id,domain.validateSheep(body));
-  return sendJson(response,200,{ok:true,created:result.created,user:{...resident,sheep:{id:result.sheep.id,bodyColor:result.sheep.bodyColor,headColor:result.sheep.headColor,marking:result.sheep.marking,createdAt:result.sheep.createdAt}}});
+  return sendJson(response,200,{ok:true,created:result.created,user:domain.publicUser(resident,result.sheep)});
 }
 async function logout(request,response){
   const token=domain.readCookie(request);if(token)await store.revokeSession(domain.tokenHash(token));
@@ -80,7 +80,7 @@ async function sendVerificationEmail(email,code){
   const key=process.env.RESEND_API_KEY;
   const from=process.env.PASTURE_EMAIL_FROM||process.env.EEBEE_EMAIL_FROM||process.env.STEWARDSHIP_EMAIL_FROM||process.env.EMAIL_FROM;
   if(!key||!from){const e=new Error('pasture_email_unavailable');e.code='PASTURE_EMAIL_UNAVAILABLE';throw e}
-  const result=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({from,to:email,subject:'你的数字牧场验证码',text:'你的数字牧场验证码是：'+code+'\n\n10 分钟内有效。验证以后，你会进入羊群，并在数字牧场里认出自己。那只羊不是宠物；它就是你在牧场中的样子。\n\n若不是你本人操作，可以忽略这封邮件。'})});
+  const result=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({from,to:email,subject:'你的数字牧场验证码',text:'你的数字牧场验证码是：'+code+'\n\n10 分钟内有效。验证以后，你会进入羊群，并在数字牧场里认出自己。\n\n若不是你本人操作，可以忽略这封邮件。'})});
   if(!result.ok){const e=new Error('pasture_email_unavailable');e.code='PASTURE_EMAIL_UNAVAILABLE';throw e}
 }
 module.exports._test={requestCode,verifyCode,saveSheep,logout,authenticatedResident,sendVerificationEmail};
