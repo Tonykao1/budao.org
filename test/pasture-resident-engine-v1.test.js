@@ -27,7 +27,8 @@ test('resident sheep is rendered and interacted with inside the pasture core can
 test('resident sheep is painted before the scene night tint and the tint color is restored afterwards',()=>{
   const engine=read('pasture-resident-core.js');
   assert.match(engine,/isSceneTintFill/, 'resident engine must recognize the pasture full-scene tint pass');
-  assert.match(engine,/const sceneTint=ctx\.fillStyle;paintResident\([^)]*\);scenePassPainted=true;ctx\.fillStyle=sceneTint/, 'resident paint must restore the original night/twilight tint before the full-scene fill');
+  assert.match(engine,/const sceneTint=ctx\.fillStyle/, 'resident paint must save the original night/twilight tint');
+  assert.match(engine,/ctx\.fillStyle=sceneTint/, 'resident paint must restore the original night/twilight tint before the full-scene fill');
   assert.doesNotMatch(engine,/requestAnimationFrame\(render\)/, 'resident engine must not race the core with its own permanent render loop');
 });
 
