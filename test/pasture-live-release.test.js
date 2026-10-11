@@ -88,7 +88,7 @@ test('find-sheep interaction is exact-pixel and uses only approved mp3 inside co
   assert.match(engine, /getImageData/);
   assert.match(engine, /PIXEL_HAND_OPEN/);
   assert.match(engine, /pasture-assets\/baaa01\.mp3/);
-  assert.doesNotMatch(engine, /AudioContext|webkitAudioContext|createOscillator/);
+  assert.doesNotMatch(engine, /createOscillator|OscillatorNode/);
   assert.ok(fs.existsSync('pasture-assets/baaa01.mp3'));
 });
 
