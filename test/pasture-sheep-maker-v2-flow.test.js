@@ -31,13 +31,25 @@ test('review mode returns to pasture without saving or replacing identity',()=>{
 });
 
 test('existing resident can open non-destructive maker review from the preview query flag',()=>{
+  assert.match(app,/function wantsMakerReview\(/);
   assert.match(app,/sheepMakerReview/);
   assert.match(app,/URLSearchParams/);
   assert.match(app,/showMaker\(true\)/);
 });
 
+test('review intent survives email verification on a fresh preview hostname',()=>{
+  const start=app.indexOf('function showCode');
+  const end=app.indexOf('function t(',start);
+  const codeFlow=app.slice(start,end);
+  assert.match(codeFlow,/resident=data\.user/);
+  assert.match(codeFlow,/if\(data\.needsSheep\|\|!resident\?\.sheep\)showMaker\(false\)/);
+  assert.match(codeFlow,/else if\(wantsMakerReview\(\)\)showMaker\(true\)/);
+  assert.match(codeFlow,/else applyResident\(false\)/);
+});
+
 test('normal existing resident still enters the pasture without replaying maker or arrival',()=>{
   const boot=app.slice(app.indexOf('async function boot'));
   assert.match(boot,/if\(!resident\.sheep\)return showMaker\(false\)/);
+  assert.match(boot,/if\(wantsMakerReview\(\)\)return showMaker\(true\)/);
   assert.match(boot,/applyResident\(false\)/);
 });
