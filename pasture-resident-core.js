@@ -7,9 +7,12 @@ if(!canvas||!DNA||!Renderer)return;
 const ctx=canvas.getContext('2d');
 const BLEAT_URL='/pasture-assets/baaa01.mp3';
 const BLEAT_STOP_MS=900;
-const ARRIVAL_DURATION_MS=3800;
-const ARRIVAL_IMPACT_AT=.68;
-const ARRIVAL_CLOSEUP_UNIT=11;
+const ARRIVAL_DURATION_MS=4200;
+const ARRIVAL_IMPACT_AT=.72;
+const ARRIVAL_CLOSEUP_UNIT=28;
+const ARRIVAL_SPEED_LINE_COUNT=60;
+const ARRIVAL_PARTICLE_COUNT=100;
+const ARRIVAL_SHAKE_PEAK=21;
 const PIXEL_HAND_OPEN='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M9 11h5V5h5v16h2V3h5v18h2V1h5v20h2V6h5v19h4v12h-4v5H17v-4h-5v-6H8V20h5v8h3V13H9z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M11 12h2V7h3v16h7V5h2v18h5V3h2v20h5V8h2v17h3v10h-4v4H19v-3h-5v-6h-4v-8h3v8h5V14h-7z%22/%3E%3C/svg%3E") 24 8, grab';
 const PIXEL_HAND_CLOSED='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22 viewBox=%220 0 48 48%22 shape-rendering=%22crispEdges%22%3E%3Cpath fill=%22%231f3140%22 d=%22M12 11h26v4h5v19h-4v6h-5v4H17v-4h-5v-5H8V20h4z%22/%3E%3Cpath fill=%22%23f2d0a2%22 d=%22M14 15h22v4h4v13h-4v5h-4v3H19v-4h-4v-4h-3V22h5v8h4V19h15v-4z%22/%3E%3C/svg%3E") 23 12, grabbing';
 const RIVER_POLYGON=[[355,147],[361,149],[367,152],[372,157],[375,163],[373,170],[369,177],[366,184],[368,192],[374,200],[382,208],[390,216],[396,225],[399,235],[398,247],[394,261],[390,279],[388,300],[354,300],[357,281],[360,264],[363,250],[363,238],[360,228],[354,219],[347,210],[343,202],[343,194],[346,185],[351,177],[354,169],[353,162],[350,156],[351,151]];
@@ -121,80 +124,108 @@ function destroyArrivalCanvas(){
 }
 function seedImpactParticles(){
   const h=flockHash(String(resident?.id||'resident'));
-  impactParticles=Array.from({length:34},(_,i)=>{
+  impactParticles=Array.from({length:ARRIVAL_PARTICLE_COUNT},(_,i)=>{
     const side=i%2?-1:1;
     const spread=((h>>>(i%16))&7)/7;
-    return{x:240+(i%5-2)*5,y:224,vx:side*(18+spread*56),vy:-(20+(i%7)*7),size:1+(i%3),tone:i%3};
+    const fan=.35+(i%13)/12;
+    return{x:240+(i%9-4)*4,y:224,vx:side*(42+spread*110)*fan,vy:-(34+(i%11)*8),size:1+(i%4===0?2:i%3===0?1:0),tone:i%3};
   });
 }
 function drawArrivalBackdrop(progress){
   const c=arrivalCtx;
-  const dark=progress<ARRIVAL_IMPACT_AT?.56:.38*(1-Math.min(1,(progress-ARRIVAL_IMPACT_AT)/.32));
-  c.fillStyle=`rgba(4,10,14,${Math.max(0,dark)})`;c.fillRect(0,0,480,300);
-  c.fillStyle='rgba(255,248,214,.10)';
-  for(let i=0;i<9;i++)c.fillRect(18+i*55,0,2,300);
+  const dark=progress<ARRIVAL_IMPACT_AT?.72:.54*(1-Math.min(1,(progress-ARRIVAL_IMPACT_AT)/.28));
+  c.fillStyle=`rgba(3,7,12,${Math.max(0,dark)})`;c.fillRect(0,0,480,300);
+  c.fillStyle='rgba(255,248,214,.14)';
+  for(let i=0;i<13;i++)c.fillRect(6+i*39,0,i%3===0?3:2,300);
 }
 function drawSpeedLines(progress){
-  if(progress<.20||progress>=ARRIVAL_IMPACT_AT)return;
-  const c=arrivalCtx,intensity=Math.min(1,(progress-.20)/.25);
-  c.fillStyle=`rgba(236,248,255,${.18+.34*intensity})`;
-  for(let i=0;i<20;i++){
-    const x=(i*41+Math.floor(progress*900))%480;
-    const y=(i*67+Math.floor(progress*1900))%250;
-    const h=10+(i%5)*9+Math.floor(24*intensity);
-    c.fillRect(x,y,1+(i%3===0?1:0),h);
+  if(progress<.18||progress>=ARRIVAL_IMPACT_AT)return;
+  const c=arrivalCtx,intensity=Math.min(1,(progress-.18)/.18);
+  c.fillStyle=`rgba(236,248,255,${.24+.58*intensity})`;
+  for(let i=0;i<ARRIVAL_SPEED_LINE_COUNT;i++){
+    const x=(i*29+Math.floor(progress*2600))%480;
+    const y=(i*47+Math.floor(progress*6200))%270;
+    const h=18+(i%7)*12+Math.floor(70*intensity);
+    c.fillRect(x,y,1+(i%4===0?2:i%3===0?1:0),h);
   }
 }
 function drawImpact(progress){
   if(progress<ARRIVAL_IMPACT_AT)return;
   const c=arrivalCtx;
-  const after=Math.min(1,(progress-ARRIVAL_IMPACT_AT)/.32);
+  const after=Math.min(1,(progress-ARRIVAL_IMPACT_AT)/.28);
   const centerX=pos.x+10.5*scaleAtY(pos.y),groundY=pos.y+14*scaleAtY(pos.y);
-  const ring=8+after*92;
-  c.fillStyle=`rgba(255,244,196,${.58*(1-after)})`;
-  c.fillRect(Math.round(centerX-ring),Math.round(groundY-1),Math.round(ring*2),2);
-  const elapsed=after*1.3;
+  const ring=12+after*190;
+  c.fillStyle=`rgba(255,244,196,${.86*(1-after)})`;
+  c.fillRect(Math.round(centerX-ring),Math.round(groundY-2),Math.round(ring*2),4);
+  const elapsed=after*1.65;
   for(const p of impactParticles){
     const px=centerX+(p.x-240)+p.vx*elapsed;
-    const py=groundY+(p.y-224)+p.vy*elapsed+44*elapsed*elapsed;
+    const py=groundY+(p.y-224)+p.vy*elapsed+58*elapsed*elapsed;
     c.fillStyle=p.tone===0?'#d7e6a8':p.tone===1?'#9dbb78':'#f1dfaa';
     c.fillRect(Math.round(px),Math.round(py),p.size,p.size);
+  }
+}
+function drawImpactFlash(progress){
+  if(progress<ARRIVAL_IMPACT_AT||progress>ARRIVAL_IMPACT_AT+.12)return;
+  const t=(progress-ARRIVAL_IMPACT_AT)/.12;
+  const alpha=Math.max(0,.94*(1-t));
+  const c=arrivalCtx;
+  c.fillStyle=`rgba(255,252,230,${alpha})`;c.fillRect(0,0,480,300);
+  if(t<.42){
+    c.fillStyle=`rgba(255,255,255,${.9*(1-t/.42)})`;
+    c.fillRect(0,143,480,14);c.fillRect(232,0,16,300);
   }
 }
 function drawArrivalSheep(progress){
   const c=arrivalCtx;
   const finalUnit=scaleAtY(pos.y);
-  let unit,x,y;
-  if(progress<.18){
-    const t=progress/.18;
-    unit=ARRIVAL_CLOSEUP_UNIT*(.88+.12*Math.sin(t*Math.PI));
-    x=240-10.5*unit;
-    y=128-4*unit-t*245;
+  let unit,x,y,squash=0,bounce=0;
+  if(progress<.22){
+    const t=progress/.22;
+    const hold=Math.min(1,t/.48);
+    const exit=Math.max(0,(t-.48)/.52);
+    unit=ARRIVAL_CLOSEUP_UNIT*(.92+.08*Math.sin(hold*Math.PI));
+    x=240-10.5*unit+Math.sin(t*Math.PI*2)*3;
+    y=128-4*unit-exit*360;
   }else if(progress<ARRIVAL_IMPACT_AT){
-    const t=(progress-.18)/(ARRIVAL_IMPACT_AT-.18);
-    const fall=t*t*t;
-    unit=8.6-(8.6-4.8)*t;
-    x=240-10.5*unit+Math.sin(t*Math.PI*8)*(1-t)*4;
-    y=-88+(222+88)*fall;
+    const t=(progress-.22)/(ARRIVAL_IMPACT_AT-.22);
+    const fall=Math.pow(t,5.2);
+    unit=13.5-(13.5-5.9)*Math.pow(t,.72);
+    x=240-10.5*unit+Math.sin(t*Math.PI*12)*(1-t)*8;
+    y=-150+(224+150)*fall;
   }else{
-    const t=Math.min(1,(progress-ARRIVAL_IMPACT_AT)/.32);
-    const settle=1-Math.pow(1-t,3);
-    const bounce=Math.sin(t*Math.PI*3)*(1-t)*10;
-    unit=4.8+(finalUnit-4.8)*settle;
-    x=(240-10.5*4.8)+(pos.x-(240-10.5*4.8))*settle;
-    y=222+(pos.y-222)*settle-bounce;
+    const t=Math.min(1,(progress-ARRIVAL_IMPACT_AT)/.28);
+    const settle=1-Math.pow(1-t,4);
+    squash=t<.18?1-t/.18:0;
+    bounce=Math.sin(Math.min(1,t/.72)*Math.PI*4)*(1-t)*22;
+    unit=5.9+(finalUnit-5.9)*settle;
+    x=(240-10.5*5.9)+(pos.x-(240-10.5*5.9))*settle;
+    y=224+(pos.y-224)*settle-bounce;
+  }
+  c.save();
+  if(squash){
+    const cx=x+10.5*unit,cy=y+7*unit;
+    c.translate(cx,cy);c.scale(1+.34*squash,1-.34*squash);c.translate(-cx,-cy);
   }
   Renderer.draw(c,x,y,unit,pos.flip,resident.appearance);
+  c.restore();
+}
+function arrivalShakeAmount(progress){
+  const d=progress-ARRIVAL_IMPACT_AT;
+  if(d<0||d>.24)return 0;
+  if(d<.055)return ARRIVAL_SHAKE_PEAK*(1-d/.055);
+  if(d<.13)return 12*(1-(d-.055)/.075);
+  return 6*(1-(d-.13)/.11);
 }
 function arrivalFrame(now){
   if(!arrivalStart||!arrivalCtx||!resident?.appearance)return;
   const progress=Math.min(1,(now-arrivalStart)/ARRIVAL_DURATION_MS);
   if(!arrivalImpactPlayed&&progress>=ARRIVAL_IMPACT_AT){arrivalImpactPlayed=true;seedImpactParticles();playBleat()}
-  arrivalShake=progress>=ARRIVAL_IMPACT_AT&&progress<.82?Math.sin((progress-ARRIVAL_IMPACT_AT)*180)*7*(1-(progress-ARRIVAL_IMPACT_AT)/.14):0;
+  arrivalShake=arrivalShakeAmount(progress)*Math.sin((progress-ARRIVAL_IMPACT_AT)*520);
   const c=arrivalCtx;
   c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,480,300);
-  if(arrivalShake)c.translate(Math.round(arrivalShake),Math.round(Math.sin(progress*310)*arrivalShake*.55));
-  drawArrivalBackdrop(progress);drawSpeedLines(progress);drawArrivalSheep(progress);drawImpact(progress);
+  if(arrivalShake)c.translate(Math.round(arrivalShake),Math.round(Math.sin(progress*430)*arrivalShake*.68));
+  drawArrivalBackdrop(progress);drawSpeedLines(progress);drawArrivalSheep(progress);drawImpact(progress);drawImpactFlash(progress);
   if(progress<1){arrivalRaf=requestAnimationFrame(arrivalFrame);return}
   arrivalStart=0;window.__tongluFlockCount=45;destroyArrivalCanvas();queueResidentPaint();
 }
