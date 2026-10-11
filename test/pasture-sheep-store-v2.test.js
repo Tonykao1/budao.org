@@ -25,9 +25,10 @@ test('public V1 sheep remains intact after V2 schema migration', () => {
 test('store selects V2 aliases and V2 save backfills legacy fields server-side', () => {
   assert.match(storeSource, /appearance_version AS "appearanceVersion"/);
   assert.match(storeSource, /appearance_v2 AS "appearanceV2"/);
-  assert.match(storeSource, /appearance\.legacy\.bodyColor/);
-  assert.match(storeSource, /appearance\.legacy\.headColor/);
-  assert.match(storeSource, /appearance\.legacy\.marking/);
+  assert.match(storeSource, /const legacy=appearance\.legacy/);
+  assert.match(storeSource, /legacy\.bodyColor/);
+  assert.match(storeSource, /legacy\.headColor/);
+  assert.match(storeSource, /legacy\.marking/);
   assert.match(storeSource, /appearance\.v2/);
 });
 
