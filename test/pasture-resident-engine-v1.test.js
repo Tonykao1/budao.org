@@ -24,12 +24,11 @@ test('resident sheep is rendered and interacted with inside the pasture core can
   assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'resident engine must not synthesize audio');
 });
 
-test('resident sheep is painted by the pasture core draw pass so it cannot flicker between clears',()=>{
-  const core=read('tonglu-core.html');
+test('resident sheep is repainted after each core clear without racing it with a permanent render loop',()=>{
   const engine=read('pasture-resident-core.js');
-  assert.match(core,/__tongluResidentPaintV1/, 'core draw pass must invoke resident paint hook');
-  assert.match(core,/__tongluCoreRedrawV1/, 'core must expose one redraw entry point for arrival and dragging');
-  assert.match(engine,/__tongluResidentPaintV1/, 'resident engine must register a paint hook with the core');
+  assert.match(engine,/originalClearRect/, 'resident engine must hook the existing core clear pass');
+  assert.match(engine,/queueMicrotask/, 'resident paint must happen in the same browser task before the next screen paint');
+  assert.match(engine,/paintResident/, 'resident engine must expose one resident paint function');
   assert.doesNotMatch(engine,/requestAnimationFrame\(render\)/, 'resident engine must not race the core with its own permanent render loop');
 });
 
