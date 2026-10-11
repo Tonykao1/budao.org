@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - 'pasture-live*'
+      - 'pasture-sheep-*'
       - 'pasture-assets/**'
       - 'tonglu-core.html'
       - 'api/pasture-auth.js'
@@ -13,6 +14,7 @@ on:
       - 'vercel.json'
       - 'test/pasture-live-release.test.js'
       - 'test/pasture-resident-engine-v1.test.js'
+      - 'test/pasture-sheep-*.test.js'
 
 jobs:
   resident-release:
@@ -24,4 +26,4 @@ jobs:
           node-version: 22
       - run: npm ci
       - name: Verify production resident release contract
-        run: node --test test/pasture-live-release.test.js test/pasture-resident-engine-v1.test.js
+        run: node --test test/pasture-live-release.test.js test/pasture-resident-engine-v1.test.js test/pasture-sheep-dna-v2.test.js
