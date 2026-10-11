@@ -8,14 +8,16 @@ const live=fs.readFileSync('pasture-live.js','utf8');
 test('first-created resident is the only path that requests the cinematic arrival',()=>{
   assert.match(live,/applyResident\(!!data\.created\)/);
   assert.match(core,/if\(e\.data\.arrival\)startArrivalCinematic\(\)/);
-  assert.equal((core.match(/startArrivalCinematic\(\)/g)||[]).length,2); // declaration + arrival trigger
+  assert.equal((core.match(/startArrivalCinematic\(\)/g)||[]).length,2);
 });
 
 test('arrival uses a temporary full-screen cinematic layer and the shared sheep renderer',()=>{
   assert.match(core,/function ensureArrivalCanvas\(/);
   assert.match(core,/arrivalCanvas\.style\.position='fixed'/);
   assert.match(core,/arrivalCanvas\.style\.pointerEvents='none'/);
-  assert.match(core,/Renderer\.draw\(arrivalCtx/);
+  const arrivalDraw=core.slice(core.indexOf('function drawArrivalSheep'),core.indexOf('function arrivalFrame'));
+  assert.match(arrivalDraw,/const c=arrivalCtx/);
+  assert.match(arrivalDraw,/Renderer\.draw\(c,/);
   assert.match(core,/function destroyArrivalCanvas\(/);
 });
 
