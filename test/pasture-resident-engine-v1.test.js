@@ -24,17 +24,27 @@ test('resident sheep is rendered and interacted with inside the pasture core can
   assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'resident engine must not synthesize audio');
 });
 
-test('resident sheep is repainted after each core clear without racing it with a permanent render loop',()=>{
+test('resident sheep is painted before the scene night tint so it blends with the flock',()=>{
   const engine=read('pasture-resident-core.js');
-  assert.match(engine,/originalClearRect/, 'resident engine must hook the existing core clear pass');
-  assert.match(engine,/queueMicrotask/, 'resident paint must happen in the same browser task before the next screen paint');
-  assert.match(engine,/paintResident/, 'resident engine must expose one resident paint function');
+  assert.match(engine,/isSceneTintFill/, 'resident engine must recognize the pasture full-scene tint pass');
+  assert.match(engine,/paintResident\([^)]*\)[\s\S]{0,180}originalFillRect/, 'resident must be painted before the core night/twilight tint is applied');
   assert.doesNotMatch(engine,/requestAnimationFrame\(render\)/, 'resident engine must not race the core with its own permanent render loop');
 });
 
-test('approved mp3 bleat is cut off after the natural call body so no trailing tail can play',()=>{
+test('resident placement uses the feet point: grass edges and the log bridge are valid, river water is not',()=>{
   const engine=read('pasture-resident-core.js');
-  assert.match(engine,/BLEAT_STOP_MS/, 'bleat must have an explicit stop point');
+  assert.match(engine,/RIVER_POLYGON/, 'river water must be represented by the actual river polygon');
+  assert.match(engine,/BRIDGE_RECT/, 'log bridge must be an explicit walkable surface');
+  assert.match(engine,/function pointInPolygon\(/, 'terrain decision must use point-in-polygon geometry');
+  assert.match(engine,/function walkableFootPoint\(/, 'placement must test the sheep feet point');
+  assert.doesNotMatch(engine,/right=x\+21\*s|left=x-2\*s/, 'the whole sheep bounding box must no longer block river-edge placement');
+});
+
+test('approved mp3 bleat uses a short body-only clip so the embedded trailing tone cannot play',()=>{
+  const engine=read('pasture-resident-core.js');
+  const match=engine.match(/BLEAT_STOP_MS\s*=\s*(\d+)/);
+  assert.ok(match, 'bleat must have an explicit stop point');
+  assert.ok(Number(match[1])<800, 'body-only diagnostic clip must end before 800ms');
   assert.match(engine,/setTimeout\([^\n]*bleat\.pause/, 'bleat playback must pause at the stop point');
   assert.doesNotMatch(engine,/AudioContext|createOscillator|webkitAudioContext/, 'no synthetic tail is allowed');
 });
