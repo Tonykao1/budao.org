@@ -28,7 +28,24 @@ function resetCard(){card.classList.remove('maker-card')}
 function showToast(message){toast.textContent=message;toast.hidden=false;setTimeout(()=>toast.hidden=true,2200)}
 function updateResidentUi(){if(residentName)residentName.textContent='牧场居民';if(residentId)residentId.textContent=resident?.emailMasked||resident?.email_masked||'已进入羊群';document.querySelectorAll('.pasture-feature-locked').forEach(el=>{el.title='功能正在生长，成熟后开放';el.onclick=e=>{e.preventDefault();showToast('功能正在生长，成熟后开放')}})}
 function sendResidentToCore(arrival=false){if(!coreEngineReady||!resident?.sheep||!core.contentWindow)return;core.contentWindow.postMessage({type:'tonglu-resident-v1',resident:{id:resident.id,sheep:resident.sheep},arrival:!!arrival},location.origin);pendingArrival=false}
-function ensureCoreEngine(){try{const d=core.contentDocument;if(!d)return;coreEngineReady=!!core.contentWindow.__tongluResidentEngineV1;if(coreEngineReady){sendResidentToCore(pendingArrival);return}if(d.getElementById('pastureResidentCoreScript'))return;const s=d.createElement('script');s.id='pastureResidentCoreScript';s.src='/pasture-resident-core.js';s.onload=()=>{coreEngineReady=true;sendResidentToCore(pendingArrival)};d.body.appendChild(s)}catch(_){}}
+function loadCoreScript(d,id,src,ready,next){
+  if(ready()){next();return}
+  const existing=d.getElementById(id);
+  if(existing){existing.addEventListener('load',next,{once:true});return}
+  const s=d.createElement('script');s.id=id;s.src=src;s.onload=next;d.body.appendChild(s);
+}
+function ensureCoreEngine(){
+  try{
+    const d=core.contentDocument;if(!d)return;
+    coreEngineReady=!!core.contentWindow.__tongluResidentEngineV1;
+    if(coreEngineReady){sendResidentToCore(pendingArrival);return}
+    loadCoreScript(d,'pastureSheepDnaScript','/pasture-sheep-dna.js',()=>!!core.contentWindow.PastureSheepDNA,()=>{
+      loadCoreScript(d,'pastureSheepRendererScript','/pasture-sheep-renderer.js',()=>!!core.contentWindow.PastureSheepRenderer,()=>{
+        loadCoreScript(d,'pastureResidentCoreScript','/pasture-resident-core.js',()=>!!core.contentWindow.__tongluResidentEngineV1,()=>{coreEngineReady=true;sendResidentToCore(pendingArrival)});
+      });
+    });
+  }catch(_){ }
+}
 function applyResident(arrival=false){hideLayer();skyZone.hidden=false;updateResidentUi();pendingArrival=!!arrival;ensureCoreEngine();sendResidentToCore(arrival);if(arrival)showToast('你已经进入羊群')}
 
 function showEmail(){resetCard();showLayer();title.textContent='进入牧场';copy.textContent='留下一个可以找到你的邮箱。确认以后，你会进入羊群，并在牧场里认出自己。';body.innerHTML='<div class="resident-fields"><input id="residentEmail" type="email" inputmode="email" autocomplete="email" placeholder="你的邮箱"></div><div class="resident-actions"><button id="sendCode">发送验证码</button></div>';const input=document.getElementById('residentEmail');if(emailDraft)input.value=emailDraft;document.getElementById('sendCode').onclick=async e=>{const btn=e.currentTarget;emailDraft=input.value.trim();setBusy(btn,true);error.textContent='';try{await request({action:'requestCode',email:emailDraft});showCode()}catch(err){showError(err.reason)}finally{setBusy(btn,false)}}}
