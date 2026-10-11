@@ -97,7 +97,7 @@
     if(dna.marking==='backPatch')out.push(rect(body.x+5,body.y-1,6,3,LIGHT,'mark'));
     if(dna.marking==='socks'){
       out.push(rect(body.leg1,body.y+body.h+3,2,2,LIGHT,'mark'));
-      out.push(rect(body.leg2,body.y+body.bodyH+3,2,2,LIGHT,'mark'));
+      out.push(rect(body.leg2,body.y+body.h+3,2,2,LIGHT,'mark'));
     }
     if(dna.marking==='earMark')out.push(rect(13,faceY-1,1,2,LIGHT,'mark'));
 
