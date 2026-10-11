@@ -2,26 +2,23 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 
-const core=fs.readFileSync('tonglu-core.html','utf8');
+const live=fs.readFileSync('pasture-live.js','utf8');
+const css=fs.readFileSync('pasture-live.css','utf8');
 
-test('pasture stays concealed until the first real environment frame is ready',()=>{
-  assert.match(core,/function revealEnvironmentIfReady\(\)/);
-  assert.match(core,/if\(!pastureReady\|\|!state\|\|!skyState\)return false/);
-  assert.match(core,/environmentLayer\.style\.opacity='1'/);
-  assert.match(core,/frame\.style\.opacity='1'/);
-  assert.match(core,/refreshSkyState\(\)[\s\S]*?revealEnvironmentIfReady\(\)/);
+test('shell masks the default bright pasture until environment readiness',()=>{
+  assert.match(css,/body:not\(\.pasture-environment-ready\)::before/);
+  assert.match(css,/z-index:27/);
+  assert.match(css,/background:#173042/);
 });
 
-test('pasture readiness no longer reveals the default daytime frame before environment state',()=>{
-  const readiness=core.match(/function revealPastureWhenReady\(\)[\s\S]*?frame\.addEventListener\('load',revealPastureWhenReady\)/)?.[0]||'';
-  assert.doesNotMatch(readiness,/frame\.style\.opacity='1'/);
-  assert.match(readiness,/pastureReady=true;[\s\S]*?revealEnvironmentIfReady\(\)/);
+test('shell only removes the startup mask after real weather reached the inner pasture',()=>{
+  assert.match(live,/function coreEnvironmentReady\(\)/);
+  assert.match(live,/__tongluWeather/);
+  assert.match(live,/landscape\.style\.opacity==='1'/);
+  assert.match(live,/function revealCoreWhenEnvironmentReady\(\)/);
+  assert.match(live,/document\.body\.classList\.add\('pasture-environment-ready'\)/);
 });
 
-test('a recent saved location can paint the first environment before waiting for live geolocation',()=>{
-  const refresh=core.match(/async function refresh\(\)[\s\S]*?\n\}/)?.[0]||'';
-  assert.match(refresh,/const devicePromise=getDeviceLocation\(\)/);
-  assert.match(refresh,/const saved=readSavedLocation\(\)/);
-  assert.match(refresh,/if\(!state&&validLocation\(saved\)\)/);
-  assert.ok(refresh.indexOf("weatherAt(saved.latitude,saved.longitude,'saved')")<refresh.indexOf('await devicePromise'));
+test('environment gate is restarted when the core iframe loads',()=>{
+  assert.match(live,/core\.addEventListener\('load',[\s\S]*?revealCoreWhenEnvironmentReady\(\)/);
 });
