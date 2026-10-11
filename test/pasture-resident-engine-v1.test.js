@@ -43,6 +43,17 @@ test('resident placement uses the feet point: grass edges and the log bridge are
   assert.doesNotMatch(engine,/right=x\+21\*s|left=x-2\*s/, 'the whole sheep bounding box must no longer block river-edge placement');
 });
 
+test('resident sheep carries about forty percent more life without wandering away',()=>{
+  const engine=read('pasture-resident-core.js');
+  assert.match(engine,/RESIDENT_LIFE_BOOST\s*=\s*\.40/, 'resident life target must be explicitly locked at +40%');
+  assert.match(engine,/function residentLifePose\(/, 'resident engine must derive a repeatable micro-life pose');
+  assert.match(engine,/breath|crouch|lift/, 'resident life must include multiple subtle motion states');
+  assert.match(engine,/function drawLivingResident\(/, 'visible resident rendering must apply the life pose around the feet anchor');
+  assert.match(engine,/function inverseLifePoint\(/, 'pixel hit testing must invert the same life pose so visible pixels remain grabbable');
+  assert.match(engine,/paintResident\(performance\.now\(\)\)/, 'existing pasture redraw cadence must drive life motion without a competing render loop');
+  assert.doesNotMatch(engine,/pos\.x\s*[+\-]=|pos\.y\s*[+\-]=/, 'life motion must never migrate the saved resident position');
+});
+
 test('approved mp3 bleat is 0.90 seconds and spatialized from sheep position',()=>{
   const engine=read('pasture-resident-core.js');
   const match=engine.match(/BLEAT_STOP_MS\s*=\s*(\d+)/);
