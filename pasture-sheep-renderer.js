@@ -8,6 +8,7 @@
   if(!DNA)throw new Error('PastureSheepDNA required');
 
   const INK='#342f2c', LEGS='#5d5851', LIGHT='#fff7df';
+  const RESIDENT_LIFE_BOOST=.40;
 
   function rect(x,y,w,h,color,role){return [x,y,w,h,color,role||'shape']}
   function rectsFor(input){
@@ -103,13 +104,47 @@
     return out;
   }
 
+  function lifeSeed(input){
+    const s=JSON.stringify(input||{});let h=2166136261>>>0;
+    for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+    return h>>>0;
+  }
+  function residentLifeState(input,now=Date.now()){
+    const seed=lifeSeed(input),offset=seed%4300,t=now+offset;
+    const blinkPeriod=4800+(seed%1700),chewPeriod=8200+((seed>>>5)%3800),earPeriod=10800+((seed>>>9)%5200);
+    const blink=(t%blinkPeriod)<260;
+    const chewPhase=t%chewPeriod;
+    const chew=chewPhase<900;
+    const earTwitch=(t%earPeriod)<620;
+    const breath=Math.sin(t/760)*(.055+RESIDENT_LIFE_BOOST*.025);
+    return{blink,chew,chewPhase,earTwitch,breath};
+  }
+  function shiftHex(color,amount){
+    if(!/^#[0-9a-f]{6}$/i.test(color))return color;
+    const n=parseInt(color.slice(1),16),target=amount>=0?255:0,a=Math.min(1,Math.abs(amount));
+    const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+    const mix=v=>Math.max(0,Math.min(255,Math.round(v+(target-v)*a)));
+    return '#'+[mix(r),mix(g),mix(b)].map(v=>v.toString(16).padStart(2,'0')).join('');
+  }
+  function residentLifeActive(){return typeof globalThis!=='undefined'&&globalThis.__tongluFlockCount === 45}
+  function livingColor(role,color,state,face){
+    if((role==='body'||role==='wool-edge'||role==='forelock')&&state.breath)return shiftHex(color,state.breath);
+    if(role==='eye'&&state.blink)return face;
+    if(role==='mouth'&&state.chew&&Math.floor(state.chewPhase/150)%2===0)return face;
+    if(role==='ear'&&state.earTwitch)return shiftHex(color,.14);
+    return color;
+  }
+
   function draw(ctx,x,y,unit=1,flip=false,dna){
     const rects=rectsFor(dna);
+    const life=residentLifeActive()?residentLifeState(dna):null;
+    const normalized=DNA.validateV2(dna)?dna:DNA.fromLegacy(dna||{});
+    const face=DNA.validateV2(dna)?DNA.palettes.faceColor[normalized.faceColor]:(dna?.headColor||'#8d836e');
     ctx.save();
     if(flip){ctx.translate(x+21*unit,0);ctx.scale(-1,1);x=0}
     ctx.imageSmoothingEnabled=false;
-    for(const [rx,ry,rw,rh,color] of rects){
-      ctx.fillStyle=color;
+    for(const [rx,ry,rw,rh,color,role] of rects){
+      ctx.fillStyle=life?livingColor(role,color,life,face):color;
       ctx.fillRect(Math.round(x+rx*unit),Math.round(y+ry*unit),Math.max(1,Math.round(rw*unit)),Math.max(1,Math.round(rh*unit)));
     }
     ctx.restore();
@@ -122,5 +157,5 @@
     ctx.restore();
   }
 
-  return Object.freeze({rectsFor,draw,drawMask});
+  return Object.freeze({rectsFor,draw,drawMask,residentLifeState,RESIDENT_LIFE_BOOST});
 });

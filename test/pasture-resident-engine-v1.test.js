@@ -43,6 +43,20 @@ test('resident placement uses the feet point: grass edges and the log bridge are
   assert.doesNotMatch(engine,/right=x\+21\*s|left=x-2\*s/, 'the whole sheep bounding box must no longer block river-edge placement');
 });
 
+test('resident sheep carries about forty percent more life without changing its grab geometry or saved position',()=>{
+  const renderer=read('pasture-sheep-renderer.js');
+  const engine=read('pasture-resident-core.js');
+  assert.match(renderer,/RESIDENT_LIFE_BOOST\s*=\s*\.40/, 'resident life target must be explicitly locked at +40%');
+  assert.match(renderer,/function residentLifeState\(/, 'shared renderer must derive repeatable resident micro-life states');
+  assert.match(renderer,/blink|chew|earTwitch|breath/, 'resident life must include several quiet micro gestures');
+  assert.match(renderer,/__tongluFlockCount\s*===\s*45/, 'extra life must apply only to the resident sheep in the 44+1 pasture context');
+  assert.match(renderer,/role==='eye'|role === 'eye'/, 'blink must stay inside existing face geometry');
+  assert.match(renderer,/role==='ear'|role === 'ear'/, 'ear response must stay inside existing ear geometry');
+  assert.match(engine,/Renderer\.drawMask\(/, 'grab mask must remain the canonical shared geometry');
+  assert.doesNotMatch(engine,/pos\.x\s*[+\-]=|pos\.y\s*[+\-]=/, 'life motion must never migrate the saved resident position');
+  assert.doesNotMatch(engine,/requestAnimationFrame\(render\)/, 'extra life must reuse pasture redraws rather than add a permanent render loop');
+});
+
 test('approved mp3 bleat is 0.90 seconds and spatialized from sheep position',()=>{
   const engine=read('pasture-resident-core.js');
   const match=engine.match(/BLEAT_STOP_MS\s*=\s*(\d+)/);
