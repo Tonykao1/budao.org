@@ -586,6 +586,7 @@
 
   function fillRouteFormFromRoute(route) {
     setValue(routeForm, "routeName", route.title || "");
+    setValue(routeForm, "calendarType", route.calendarType || "budao");
     setValue(routeForm, "trailDate", route.date || "");
     setValue(routeForm, "meetingTime", route.time || "");
     setValue(routeForm, "difficulty", route.difficulty || "");
@@ -611,6 +612,7 @@
     const source = trail.source || {};
 
     setValue(routeForm, "routeName", source.routeName || "");
+    setValue(routeForm, "calendarType", source.calendarType || "budao");
     setValue(routeForm, "trailDate", source.trailDate || "");
     setValue(routeForm, "meetingTime", source.meetingTime || "");
     setValue(routeForm, "difficulty", source.difficulty || "");
@@ -644,6 +646,7 @@
       source: {
         owner: route.owner || currentUserEmail,
         routeName: route.title || "",
+        calendarType: route.calendarType || "budao",
         slot: route.slot || slotForEmail(route.owner || currentUserEmail),
         trailDate: route.date || "",
         meetingTime: route.time || "",
@@ -847,6 +850,7 @@
 
   function buildTrailRecord(form) {
     const routeName = valueOf(form, "routeName");
+    const calendarType = valueOf(form, "calendarType") || "budao";
     const trailDate = valueOf(form, "trailDate");
     const normalizedTrailDate = normalizeDate(trailDate);
     const meetingTime = valueOf(form, "meetingTime");
@@ -885,6 +889,7 @@
         source: {
           owner: currentUserEmail,
           routeName,
+          calendarType,
           slot,
           trailDate: normalizedTrailDate || trailDate,
           meetingTime,
@@ -1215,6 +1220,7 @@
       equipmentMinimum: source.equipmentMinimum,
       timezone: source.timezone || "Asia/Shanghai",
       date: source.trailDate,
+      calendarType: source.calendarType || "budao",
       image,
       qrCode: resolveImage(source.qrCode || ""),
       imageAlt: source.images[0] && source.images[0].name ? source.images[0].name : source.existingImageAlt || "",
