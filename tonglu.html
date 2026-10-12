@@ -57,6 +57,21 @@
   </section>
 </div>
 <div id="residentToast" class="resident-toast" hidden></div>
+<script>
+(()=>{
+  const pastureCore=document.getElementById('pastureCore');
+  if(!pastureCore)return;
+  pastureCore.addEventListener('load',()=>{
+    try{
+      const coreLocation=pastureCore.contentWindow.location;
+      const path=coreLocation.pathname;
+      if(path==='/tonglu-core.html')return;
+      const target=path+(coreLocation.search||'')+(coreLocation.hash||'');
+      window.location.replace(target);
+    }catch(e){}
+  });
+})();
+</script>
 <script src="/pasture-live.js"></script>
 </body>
 </html>
