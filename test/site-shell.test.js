@@ -143,3 +143,101 @@ test("home playback wraps right, left, and ended across the full playlist", () =
   player.endTrack();
   assert.equal(player.currentTrack, 0);
 });
+
+function createFellowshipQrHarness(route) {
+  const source = fs.readFileSync(path.join(root, "route-invitation-action.js"), "utf8");
+  let captureClick = null;
+  let bubbleClick = null;
+  const state = { modalOpen: false, bodyModalOpen: false, ariaHidden: "true" };
+  const frame = { innerHTML: '<img src="secret-qr">' };
+  const caption = { textContent: "扫码进群 · 即刻报名", style: { display: "" } };
+  const modal = {
+    classList: { add(name) { if (name === "open") state.modalOpen = true; } },
+    setAttribute(name, value) { if (name === "aria-hidden") state.ariaHidden = value; }
+  };
+  const document = {
+    head: { appendChild() {} },
+    body: { classList: { add(name) { if (name === "modal-open") state.bodyModalOpen = true; } } },
+    createElement() {
+      return {
+        id: "",
+        textContent: "",
+        className: "",
+        style: {},
+        classList: { add() {}, remove() {} },
+        setAttribute() {},
+        appendChild() {},
+        addEventListener() {}
+      };
+    },
+    getElementById(id) {
+      if (id === "budao-three-slot-layout") return null;
+      if (id === "qrModal") return modal;
+      if (id === "qrFrame") return frame;
+      if (id === "qrCaption") return caption;
+      return null;
+    },
+    addEventListener(type, listener, capture) {
+      if (type !== "click") return;
+      if (capture) captureClick = listener;
+      else bubbleClick = listener;
+    }
+  };
+  const context = {
+    window: { BudaoActiveRoutes: [route], open() {}, location: { origin: "https://budao.org" } },
+    document,
+    navigator: {},
+    console,
+    URL,
+    fetch: async () => ({ ok: false, status: 500 })
+  };
+  vm.runInNewContext(source, context);
+  return { captureClick, bubbleClick, frame, caption, state };
+}
+
+test("fellowship route opens the existing dialog with a blank QR area and private-group caption", () => {
+  const harness = createFellowshipQrHarness({ calendarType: "fellowship", qrCode: "secret-qr" });
+  assert.equal(typeof harness.captureClick, "function");
+
+  let prevented = false;
+  let stopped = false;
+  const button = {
+    dataset: { routeIndex: "0" },
+    closest(selector) { return selector === ".route-button" ? this : null; }
+  };
+  harness.captureClick({
+    target: button,
+    preventDefault() { prevented = true; },
+    stopImmediatePropagation() { stopped = true; }
+  });
+
+  assert.equal(prevented, true);
+  assert.equal(stopped, true);
+  assert.equal(harness.frame.innerHTML, "");
+  assert.equal(harness.caption.textContent, "｜小组同行 · 暂不对外｜");
+  assert.equal(harness.caption.style.display, "");
+  assert.equal(harness.state.modalOpen, true);
+  assert.equal(harness.state.bodyModalOpen, true);
+  assert.equal(harness.state.ariaHidden, "false");
+});
+
+test("non-fellowship routes are not intercepted by the private-group rule", () => {
+  const harness = createFellowshipQrHarness({ calendarType: "budao", qrCode: "public-qr" });
+  assert.equal(typeof harness.captureClick, "function");
+
+  let prevented = false;
+  const button = {
+    dataset: { routeIndex: "0" },
+    closest(selector) { return selector === ".route-button" ? this : null; }
+  };
+  harness.captureClick({
+    target: button,
+    preventDefault() { prevented = true; },
+    stopImmediatePropagation() {}
+  });
+
+  assert.equal(prevented, false);
+  assert.equal(harness.frame.innerHTML, '<img src="secret-qr">');
+  assert.equal(harness.caption.textContent, "扫码进群 · 即刻报名");
+  assert.equal(harness.state.modalOpen, false);
+});
