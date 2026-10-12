@@ -12,5 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run fellowship QR regression test
-        run: node --test test/site-shell.test.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run full test suite
+        run: npm test
+      - name: Run lint checks
+        run: npm run lint
+      - name: Run build check
+        run: npm run build
