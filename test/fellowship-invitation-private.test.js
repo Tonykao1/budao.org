@@ -1,14 +1,15 @@
 import assert from 'node:assert';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { test } from 'node:test';
 
 const require = createRequire(import.meta.url);
 const modeB = require('../invitation-mode-b.js');
-const share = require('../invitation-share-mode-b.js');
+const { createInvitationEngine } = require('../invitation-engine.js');
 
 function fakeContext() {
   const calls = [];
-  const ctx = {
+  return {
     calls,
     fillStyle: '', strokeStyle: '', lineWidth: 1, font: '', textAlign: 'left',
     fillRect(...args) { calls.push(['fillRect', ...args]); },
@@ -18,7 +19,6 @@ function fakeContext() {
     measureText(value) { return { width: String(value).length * 12 }; },
     drawImage(...args) { calls.push(['drawImage', ...args]); }
   };
-  return ctx;
 }
 
 test('fellowship route is adapted as internal participation even when it has a QR code', () => {
@@ -54,23 +54,64 @@ test('fellowship snapshot remains internal after permanent invitation serializat
   });
 });
 
-test('fellowship share artifact leaves QR area blank and renders only the private-group caption', () => {
+test('fellowship artifact clears the QR area after base rendering and draws the private-group caption', async () => {
   const ctx = fakeContext();
-  const qrSentinel = { id: 'private-qr' };
-  const model = modeB.routeToModeBViewModel({
+  let renderState = null;
+  let renderAssets = null;
+  let selectClosedCalls = 0;
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext() { return ctx; },
+    toBlob(callback) { callback({ type: 'image/png' }); }
+  };
+  const runtime = {
+    BudaoInvitationModeB: modeB,
+    BudaoInvitationShareModeB: {
+      selectClosedVariant() { selectClosedCalls += 1; return '1'; },
+      renderModeBShareArtifact(context, viewModel, state, assets) {
+        renderState = state;
+        renderAssets = assets;
+        context.fillText('SCAN TO JOIN', 855, 1387);
+        context.fillText('扫码进群，即可报名', 855, 1414);
+      }
+    },
+    document: {
+      createElement(tag) { return tag === 'canvas' ? canvas : {}; }
+    },
+    isQrRegistrationOpen() { return false; }
+  };
+
+  const engine = createInvitationEngine(runtime);
+  const result = await engine.createArtifact({
     routeId: 'f1',
     title: '小组同行',
     calendarType: 'fellowship',
     qrCode: 'https://images.example/private-group.png'
   });
 
-  share.renderModeBShareArtifact(ctx, model, { registrationOpen: true }, {
-    qrImage: qrSentinel
-  });
+  assert.strictEqual(result.viewModel.participation.availability, 'internal');
+  assert.strictEqual(renderState.registrationOpen, true);
+  assert.strictEqual(renderState.closedVariant, null);
+  assert.strictEqual(selectClosedCalls, 0);
+  assert.strictEqual(renderAssets.qrImage, null);
+  assert.strictEqual(renderAssets.closedStampImage, null);
 
-  const textCalls = ctx.calls.filter((call) => call[0] === 'fillText').map((call) => call[1]);
-  assert.ok(textCalls.includes('｜小组同行 · 暂不对外｜'));
-  assert.ok(!textCalls.includes('SCAN TO JOIN'));
-  assert.ok(!textCalls.includes('扫码进群，即可报名'));
-  assert.ok(!ctx.calls.some((call) => call[0] === 'drawImage' && call[1] === qrSentinel));
+  const oldCopyIndex = ctx.calls.findIndex((call) => call[0] === 'fillText' && call[1] === '扫码进群，即可报名');
+  const clearIndex = ctx.calls.findIndex((call) =>
+    call[0] === 'fillRect' && call[1] === 748 && call[2] === 1180 && call[3] === 214 && call[4] === 236
+  );
+  const privateCopyIndex = ctx.calls.findIndex((call) =>
+    call[0] === 'fillText' && call[1] === '｜小组同行 · 暂不对外｜'
+  );
+  assert.ok(oldCopyIndex >= 0);
+  assert.ok(clearIndex > oldCopyIndex, 'QR/copy area must be cleared after the base renderer');
+  assert.ok(privateCopyIndex > clearIndex, 'private-group caption must be drawn after clearing the area');
+});
+
+test('invitation snapshot builder stores fellowship nature and never stores its QR artifact', () => {
+  const source = fs.readFileSync(new URL('../api/invitation.js', import.meta.url), 'utf8');
+  assert.match(source, /calendarType\s*=\s*typeof route\.calendarType/);
+  assert.match(source, /calendarType\s*===\s*'fellowship'/);
+  assert.match(source, /\{ type: 'internal', artifact: '' \}/);
 });
