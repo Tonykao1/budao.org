@@ -1,0 +1,29 @@
+name: Fellowship Invitation Privacy
+
+on:
+  push:
+    paths:
+      - "api/invitation.js"
+      - "invitation-engine.js"
+      - "invitation-mode-b.js"
+      - "invitation-share-mode-b.js"
+      - "test/fellowship-invitation-private.test.js"
+      - ".github/workflows/fellowship-invitation-private.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run full test suite
+        run: npm test
+      - name: Run lint checks
+        run: npm run lint
+      - name: Run build check
+        run: npm run build

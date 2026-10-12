@@ -42,7 +42,11 @@
     }, []);
   }
 
-  function participationFrom(value) {
+  function participationFrom(value, calendarType) {
+    if (text(calendarType) === 'fellowship' || text(value && value.type) === 'internal') {
+      return { type: 'internal', artifact: '', availability: 'internal' };
+    }
+
     const type = text(value && value.type);
     const artifact = safeHttpsUrl(value && value.artifact);
     const hasQr = type === 'legacy_qr' && Boolean(artifact);
@@ -83,7 +87,7 @@
       meetingPlace: text(source.meetingPlace),
       pills,
       visual: visualFrom(source.visual),
-      participation: participationFrom(source.participation)
+      participation: participationFrom(source.participation, source.calendarType)
     };
   }
 
@@ -91,6 +95,9 @@
     const invitation = snapshot && typeof snapshot === 'object' ? snapshot : {};
     const facts = invitation.facts && typeof invitation.facts === 'object'
       ? invitation.facts
+      : {};
+    const sourceRoute = invitation.sourceRoute && typeof invitation.sourceRoute === 'object'
+      ? invitation.sourceRoute
       : {};
 
     return makeViewModel({
@@ -102,6 +109,7 @@
       timezone: facts.timezone,
       description: facts.description,
       meetingPlace: facts.meetingPlace,
+      calendarType: sourceRoute.calendarType,
       distance: facts.distance,
       duration: facts.duration,
       difficulty: facts.difficulty,
@@ -133,6 +141,7 @@
       description: value.description,
       meetingPlace: value.meetingPlace || value.meetingPoint || value.gatheringPlace ||
         value.meetingLocation || value.assemblyPoint,
+      calendarType: value.calendarType,
       distance: value.distance,
       duration: value.duration,
       difficulty: value.difficulty,
@@ -264,7 +273,7 @@
 
     const participation = documentRef.createElement('section');
     participation.className = 'mode-b-participation';
-    participation.setAttribute('aria-label', '报名信息');
+    participation.setAttribute('aria-label', viewModel.participation.availability === 'internal' ? '同行信息' : '报名信息');
     const seal = documentRef.createElement('div');
     seal.className = 'mode-b-qr';
     if (viewModel.participation.availability === 'qr') {
@@ -279,6 +288,9 @@
       seal.appendChild(qr);
       appendText(documentRef, participation, 'p', 'mode-b-participation-kicker', 'SCAN TO JOIN');
       appendText(documentRef, participation, 'p', 'mode-b-participation-copy', '扫码进群，即可报名');
+    } else if (viewModel.participation.availability === 'internal') {
+      seal.classList.add('is-empty', 'is-internal');
+      appendText(documentRef, participation, 'p', 'mode-b-participation-copy', '｜小组同行 · 暂不对外｜');
     } else {
       seal.classList.add('is-empty');
       appendText(documentRef, seal, 'span', '', '报名码\n暂未放出');
