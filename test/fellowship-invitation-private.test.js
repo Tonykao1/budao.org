@@ -29,12 +29,12 @@ test('fellowship route is adapted as internal participation even when it has a Q
     qrCode: 'https://images.example/private-group.png'
   });
 
-  assert.strictEqual(value.calendarType, 'fellowship');
   assert.deepStrictEqual(value.participation, {
     type: 'internal',
     artifact: '',
     availability: 'internal'
   });
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(value, 'calendarType'), false);
 });
 
 test('fellowship snapshot remains internal after permanent invitation serialization', () => {
@@ -46,12 +46,12 @@ test('fellowship snapshot remains internal after permanent invitation serializat
     participation: { type: 'internal', artifact: '' }
   });
 
-  assert.strictEqual(value.calendarType, 'fellowship');
   assert.deepStrictEqual(value.participation, {
     type: 'internal',
     artifact: '',
     availability: 'internal'
   });
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(value, 'calendarType'), false);
 });
 
 test('fellowship artifact clears the QR area after base rendering and draws the private-group caption', async () => {
