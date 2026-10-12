@@ -12,6 +12,7 @@
     const cardWidth = 1080;
     const cardHeight = 1530;
     const logoSource = "budao-logo-mark.png?v=20260719";
+    const fellowshipParticipationBox = Object.freeze({ x: 748, y: 1180, width: 214, height: 236 });
     const closedStampSources = Object.freeze({
         "1": "budao-dalong-1.png?v=20260812",
         "3": "budao-dalong-3.png?v=20260812",
@@ -112,7 +113,8 @@
             image: imageSource(route),
             qrCode: qrSource(route)
         }));
-        const registrationOpen = isRegistrationOpen(route);
+        const internalParticipation = viewModel.participation && viewModel.participation.availability === "internal";
+        const registrationOpen = internalParticipation ? true : isRegistrationOpen(route);
         const closedVariant = registrationOpen ? null : artifact.selectClosedVariant(viewModel.key);
         const renderState = Object.freeze({ registrationOpen, closedVariant });
         const canvas = runtime.document.createElement("canvas");
@@ -124,7 +126,9 @@
 
         const loaded = await Promise.all([
             loadOptionalImage(viewModel.visual.source),
-            registrationOpen ? loadOptionalImage(viewModel.participation.artifact) : Promise.resolve(null),
+            registrationOpen && !internalParticipation
+                ? loadOptionalImage(viewModel.participation.artifact)
+                : Promise.resolve(null),
             loadOptionalImage(logoSource),
             registrationOpen ? Promise.resolve(null) : loadOptionalImage(closedStampSources[closedVariant])
         ]);
@@ -134,8 +138,19 @@
             logoImage: loaded[2],
             closedStampImage: loaded[3]
         });
+        if (internalParticipation) overlayFellowshipParticipation(ctx);
         const blob = await canvasToBlob(canvas);
         return { blob, viewModel, renderState };
+    }
+
+    function overlayFellowshipParticipation(ctx) {
+        const box = fellowshipParticipationBox;
+        ctx.fillStyle = "#fbfaf7";
+        ctx.fillRect(box.x, box.y, box.width, box.height);
+        ctx.fillStyle = "#15110d";
+        ctx.font = '580 16px "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif';
+        ctx.textAlign = "center";
+        ctx.fillText("｜小组同行 · 暂不对外｜", box.x + box.width / 2, box.y + 218);
     }
 
     function setPreviewState(preview, state, frameMessage, statusMessage, disabled) {
