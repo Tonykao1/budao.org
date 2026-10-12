@@ -1,0 +1,16 @@
+name: Fellowship QR Regression
+
+on:
+  push:
+    paths:
+      - "route-invitation-action.js"
+      - "test/site-shell.test.js"
+      - ".github/workflows/fellowship-qr-regression.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run fellowship QR regression test
+        run: node --test test/site-shell.test.js
