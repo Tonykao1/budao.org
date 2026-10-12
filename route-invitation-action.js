@@ -171,6 +171,30 @@
     }
   }
 
+  function handleFellowshipQrClick(e){
+    const button = e.target.closest && e.target.closest('.route-button');
+    if(!button) return;
+
+    const routes = window.BudaoActiveRoutes || [];
+    const route = routes[Number(button.dataset.routeIndex)];
+    if(!route || route.calendarType !== 'fellowship') return;
+
+    const modal = document.getElementById('qrModal');
+    const frame = document.getElementById('qrFrame');
+    const caption = document.getElementById('qrCaption');
+    if(!modal || !frame || !caption) return;
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    frame.innerHTML = '';
+    caption.textContent = '｜小组同行 · 暂不对外｜';
+    caption.style.display = '';
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  }
+
   function onClick(e){
     const button = e.target.closest && e.target.closest('.invitation-create');
     if(!button) return;
@@ -181,6 +205,7 @@
   // bind once
   if (typeof document !== 'undefined'){
     ensureThreeSlotDesktopLayout();
+    document.addEventListener('click', handleFellowshipQrClick, true);
     document.addEventListener('click', onClick, false);
   }
 
