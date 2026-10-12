@@ -2,14 +2,16 @@ const ALLOWED_FIELDS = new Set([
   "id", "routeId", "country", "city", "region", "location", "title", "description",
   "time", "duration", "distance", "surface", "elevation", "difficulty", "suitableFor",
   "equipmentMinimum", "timezone", "date", "meetingPlace", "participantRequirements",
-  "image", "qrCode", "imageAlt"
+  "image", "qrCode", "imageAlt", "calendarType"
 ]);
 const LIMITS = {
   id: 80, routeId: 80, country: 80, city: 80, region: 120, location: 240, title: 160,
   description: 4000, time: 20, duration: 60, distance: 60, surface: 240, elevation: 80,
   difficulty: 80, suitableFor: 500, equipmentMinimum: 500, timezone: 80, date: 32,
-  meetingPlace: 500, participantRequirements: 1000, image: 24_000, qrCode: 24_000, imageAlt: 240
+  meetingPlace: 500, participantRequirements: 1000, image: 24_000, qrCode: 24_000, imageAlt: 240,
+  calendarType: 20
 };
+const CALENDAR_TYPES = new Set(["budao", "pioneer", "march", "camp", "fellowship"]);
 const FORBIDDEN_FIELDS = new Set([
   "role", "isAdmin", "userId", "owner", "ownerId", "createdBy", "approvalState",
   "repository", "repo", "branch", "path", "filePath", "githubToken", "token", "commitTarget",
@@ -28,6 +30,7 @@ function validateRoute(input) {
     if (typeof input[key] !== "string" || input[key].length > LIMITS[key]) return { error: "invalid_field" };
     output[key] = input[key].trim();
   }
+  if (output.calendarType && !CALENDAR_TYPES.has(output.calendarType)) return { error: "invalid_calendar_type" };
   if (output.image && !safeImage(output.image)) return { error: "invalid_image" };
   if (output.qrCode && !safeImage(output.qrCode)) return { error: "invalid_image" };
   return { value: output };
