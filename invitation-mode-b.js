@@ -75,7 +75,6 @@
         return items;
       }, [])
       : pillsFrom(source);
-    const calendarType = text(source.calendarType);
 
     return {
       key: text(source.key),
@@ -86,10 +85,9 @@
       timezone: text(source.timezone),
       description: text(source.description),
       meetingPlace: text(source.meetingPlace),
-      calendarType,
       pills,
       visual: visualFrom(source.visual),
-      participation: participationFrom(source.participation, calendarType)
+      participation: participationFrom(source.participation, source.calendarType)
     };
   }
 
