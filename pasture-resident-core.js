@@ -43,7 +43,35 @@ function flockHash(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=st
 function scaleAtY(y){const t=Math.max(0,Math.min(1,(y-160)/126));return(.32+t*.84)*.56}
 function rebuildMask(){maskCtx.clearRect(0,0,mask.width,mask.height);if(!resident?.appearance)return;Renderer.drawMask(maskCtx,resident.appearance,MASK_OX,MASK_OY)}
 function key(){return 'budao-pasture-resident-pos:'+String(resident?.id||'guest')}
-function initialPosition(){try{const v=JSON.parse(localStorage.getItem(key())||'null');if(v&&Number.isFinite(v.x)&&Number.isFinite(v.y))return{x:v.x,y:v.y,flip:!!v.flip}}catch(_){ }const h=flockHash(String(resident?.id||'resident'));return{x:35+(h%285),y:165+((h>>>8)%105),flip:!!(h&1)}}
+function pointInPolygon(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];const crosses=((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/((yj-yi)||1e-9)+xi);if(crosses)inside=!inside}return inside}
+function bridgeContains(x,y){return x>=BRIDGE_RECT.left&&x<=BRIDGE_RECT.right&&y>=BRIDGE_RECT.top&&y<=BRIDGE_RECT.bottom}
+function walkableFootPoint(x,y){const s=scaleAtY(y),footX=x+10.5*s,footY=y+14*s;if(footX<0||footX>480||footY<145||footY>299)return false;if(bridgeContains(footX,footY))return true;return !pointInPolygon(footX,footY,RIVER_POLYGON)}
+function candidatePosition(x,y){x=Math.max(-4,Math.min(466,x));y=Math.max(150,Math.min(286,y));return walkableFootPoint(x,y)?{x,y}:null}
+function validSavedPosition(v){
+  if(!v||!Number.isFinite(v.x)||!Number.isFinite(v.y))return false;
+  if(v.x<-4||v.x>466||v.y<150||v.y>286)return false;
+  const checked=candidatePosition(v.x,v.y);
+  return !!checked&&Math.abs(checked.x-v.x)<.001&&Math.abs(checked.y-v.y)<.001;
+}
+function deterministicSafePosition(){
+  const h=flockHash(String(resident?.id||'resident'));
+  const preferred=[
+    {x:54+(h%248),y:205+((h>>>8)%58)},
+    {x:70+((h>>>4)%220),y:232+((h>>>12)%38)},
+    {x:42+((h>>>7)%260),y:178+((h>>>15)%34)},
+    {x:120,y:232},{x:240,y:248},{x:72,y:264}
+  ];
+  for(const p of preferred){const checked=candidatePosition(p.x,p.y);if(checked)return{x:checked.x,y:checked.y,flip:!!(h&1)}}
+  return{x:160,y:225,flip:!!(h&1)};
+}
+function initialPosition(){
+  try{
+    const v=JSON.parse(localStorage.getItem(key())||'null');
+    if(validSavedPosition(v))return{x:v.x,y:v.y,flip:!!v.flip};
+    if(v){pos=deterministicSafePosition();savePosition();return{...pos}}
+  }catch(_){ }
+  return deterministicSafePosition();
+}
 function savePosition(){try{localStorage.setItem(key(),JSON.stringify(pos))}catch(_){}}
 function point(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*480,y:(e.clientY-r.top)/r.height*300}}
 function residentSheepHit(clientX,clientY){
@@ -55,10 +83,6 @@ function residentSheepHit(clientX,clientY){
   if(lx<0||ly<0||lx>=mask.width||ly>=mask.height)return false;
   return maskCtx.getImageData(lx,ly,1,1).data[3]>0;
 }
-function pointInPolygon(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];const crosses=((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/((yj-yi)||1e-9)+xi);if(crosses)inside=!inside}return inside}
-function bridgeContains(x,y){return x>=BRIDGE_RECT.left&&x<=BRIDGE_RECT.right&&y>=BRIDGE_RECT.top&&y<=BRIDGE_RECT.bottom}
-function walkableFootPoint(x,y){const s=scaleAtY(y),footX=x+10.5*s,footY=y+14*s;if(footX<0||footX>480||footY<145||footY>299)return false;if(bridgeContains(footX,footY))return true;return !pointInPolygon(footX,footY,RIVER_POLYGON)}
-function candidatePosition(x,y){x=Math.max(-4,Math.min(466,x));y=Math.max(150,Math.min(286,y));return walkableFootPoint(x,y)?{x,y}:null}
 function sheepAudioSpace(){
   const depth=Math.max(0,Math.min(1,(pos.y-160)/126));
   const s=scaleAtY(pos.y);
