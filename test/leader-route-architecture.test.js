@@ -184,3 +184,22 @@ test("leo login alias reuses the shared leader credential but keeps Leo identity
   assert.equal(leo.role, "publisher");
   assert.equal(auth.authenticateCredentials("leo", "wrong-password"), null);
 });
+
+test("Tent activity nature exposes the five calendar systems and route schema restricts calendarType", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "tent.html"), "utf8");
+  assert.match(html, /<select name="calendarType">[\s\S]*value="budao"[\s\S]*value="pioneer"[\s\S]*value="march"[\s\S]*value="camp"[\s\S]*value="fellowship"[\s\S]*<\/select>/);
+  assert.match(html, /<option value="budao" selected>标准步道<\/option>/);
+
+  const schemaPath = require.resolve("../api/_security/route-schema");
+  delete require.cache[schemaPath];
+  const { validateRoute } = require(schemaPath);
+  const supported = ["budao", "pioneer", "march", "camp", "fellowship"];
+
+  supported.forEach((calendarType) => {
+    const result = validateRoute({ title: "Route", calendarType });
+    assert.equal(result.error, undefined);
+    assert.equal(result.value.calendarType, calendarType);
+  });
+
+  assert.equal(validateRoute({ title: "Route", calendarType: "other" }).error, "invalid_calendar_type");
+});
