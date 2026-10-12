@@ -1,0 +1,19 @@
+name: Fellowship Invitation Privacy
+
+on:
+  push:
+    paths:
+      - "api/invitation.js"
+      - "invitation-engine.js"
+      - "invitation-mode-b.js"
+      - "invitation-share-mode-b.js"
+      - "test/fellowship-invitation-private.test.js"
+      - ".github/workflows/fellowship-invitation-private.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run fellowship invitation privacy contract
+        run: node --test test/fellowship-invitation-private.test.js
