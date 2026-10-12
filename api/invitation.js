@@ -276,8 +276,11 @@ function slotForOwner(owner) {
 
 function buildSnapshot(route, publisher) {
   const now = new Date().toISOString();
-  const id = null;
-  const sourceRoute = { routeId: route.routeId || route.id || '' };
+  const calendarType = typeof route.calendarType === 'string' ? route.calendarType.trim() : '';
+  const sourceRoute = {
+    routeId: route.routeId || route.id || '',
+    calendarType
+  };
   const facts = {
     title: route.title || '',
     location: route.location || '',
@@ -297,7 +300,11 @@ function buildSnapshot(route, publisher) {
   };
 
   const visual = { mode: 'original', source: route.image || route.imageUrl || '' };
-  const participation = route.qrCode ? { type: 'legacy_qr', artifact: route.qrCode } : { type: 'none', artifact: '' };
+  const participation = calendarType === 'fellowship'
+    ? { type: 'internal', artifact: '' }
+    : route.qrCode
+      ? { type: 'legacy_qr', artifact: route.qrCode }
+      : { type: 'none', artifact: '' };
   const presentation = { collection: 'daily', template: 'journey' };
 
   return {
