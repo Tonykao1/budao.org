@@ -57,6 +57,19 @@
   </section>
 </div>
 <div id="residentToast" class="resident-toast" hidden></div>
+<script>
+(()=>{
+  const pastureCore=document.getElementById('pastureCore');
+  if(!pastureCore)return;
+  pastureCore.addEventListener('load',()=>{
+    try{
+      if(pastureCore.contentWindow.location.pathname==='/home.html'){
+        window.location.replace('/home.html');
+      }
+    }catch(_){ }
+  });
+})();
+</script>
 <script src="/pasture-live.js"></script>
 </body>
 </html>
