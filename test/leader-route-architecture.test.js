@@ -203,3 +203,34 @@ test("Tent activity nature exposes the five calendar systems and route schema re
 
   assert.equal(validateRoute({ title: "Route", calendarType: "other" }).error, "invalid_calendar_type");
 });
+
+test("published leader routes persist the selected calendar type and default old submissions to budao", async () => {
+  const rateLimit = require("../api/_security/rate-limit");
+  rateLimit.resetForTests();
+  const modulePath = require.resolve("../api/publish-route-v2");
+  delete require.cache[modulePath];
+  const publish = require(modulePath);
+
+  let stored = Buffer.from("[]").toString("base64");
+  global.fetch = async (_url, options) => {
+    if (!options || options.method === "GET") {
+      return { ok: true, status: 200, json: async () => ({ sha: "routes-sha", content: stored }) };
+    }
+    stored = JSON.parse(options.body).content;
+    return { ok: true, status: 200, json: async () => ({ commit: { sha: "commit-sha" } }) };
+  };
+
+  const pioneer = response();
+  await publish(request({ title: "Explore Route", date: "2026-10-13", time: "08:00", timezone: "Asia/Shanghai", calendarType: "pioneer" }, signedCookie("leader-tony", "tony")), pioneer);
+  assert.equal(pioneer.statusCode, 200);
+
+  const standard = response();
+  await publish(request({ title: "Standard Route", date: "2026-10-14", time: "08:00", timezone: "Asia/Shanghai" }, signedCookie("leader-moses", "moses")), standard);
+  assert.equal(standard.statusCode, 200);
+
+  const routes = JSON.parse(Buffer.from(stored, "base64").toString("utf8"));
+  const tony = routes.find((route) => route.leaderId === "leader-tony");
+  const moses = routes.find((route) => route.leaderId === "leader-moses");
+  assert.equal(tony.calendarType, "pioneer");
+  assert.equal(moses.calendarType, "budao");
+});
