@@ -197,6 +197,7 @@ function normalizeRoute(route) {
     equipmentMinimum: route.equipmentMinimum || "",
     timezone: route.timezone || "Asia/Shanghai",
     date: normalizeDate(route.date || ""),
+    calendarType: normalizeCalendarType(route.calendarType),
     meetingPlace: route.meetingPlace || "",
     participantRequirements: route.participantRequirements || "",
     image: resolveImage(route.image),
@@ -205,6 +206,11 @@ function normalizeRoute(route) {
     createdAt: route.createdAt || now,
     updatedAt: route.updatedAt || now
   };
+}
+
+function normalizeCalendarType(value) {
+  const type = String(value || "budao").trim().toLowerCase();
+  return ["budao", "pioneer", "march", "camp", "fellowship"].includes(type) ? type : "budao";
 }
 
 function stripPresentationSlot(route) {
