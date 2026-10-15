@@ -5,7 +5,21 @@
 (function (root, factory) {
   const core = factory();
   if (typeof module === 'object' && module.exports) module.exports = core;
-  else root.MyGrassCore = core;
+  else {
+    root.MyGrassCore = core;
+    if(root&&root.document){
+      const loadReadingLayer=()=>{
+        if(root.document.querySelector('script[data-my-grass-reading-v1]'))return;
+        const script=root.document.createElement('script');
+        script.src='/pasture-preview/my-grass-reading-v1.js';
+        script.defer=true;
+        script.dataset.myGrassReadingV1='1';
+        root.document.head.appendChild(script);
+      };
+      if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',()=>root.setTimeout(loadReadingLayer,0),{once:true});
+      else root.setTimeout(loadReadingLayer,0);
+    }
+  }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const SCHEMA_VERSION = 1;
@@ -13,6 +27,8 @@
   const STORAGE_PREFIX = 'budao.my-grass.v1';
   const PHASES = Object.freeze(['reading', 'reflection', 'sharing']);
   const ESV_NAME = 'English Standard Version (ESV)';
+  let runtimeReadingSession=null;
+  let runtimeReadingRequired=false;
   const BIBLE_OSIS = Object.freeze({
     '创':'GEN','创世记':'GEN','出':'EXO','出埃及记':'EXO','利':'LEV','利未记':'LEV','民':'NUM','民数记':'NUM','申':'DEU','申命记':'DEU',
     '书':'JOS','约书亚记':'JOS','士':'JDG','士师记':'JDG','得':'RUT','路得记':'RUT','撒上':'1SA','撒母耳记上':'1SA','撒下':'2SA','撒母耳记下':'2SA',
@@ -91,6 +107,11 @@
     if(!current)throw new Error('请先点击一节经文，从这一节开始。');
     return normalizeReadingSession({...current,status:'completed',completedAt:timestamp||new Date().toISOString()});
   }
+  function setRuntimeReadingSession(value){
+    runtimeReadingSession=normalizeReadingSession(value);
+    return runtimeReadingSession;
+  }
+  function setReadingSessionRequired(value){runtimeReadingRequired=value===true;}
   function validateScripture(passage) {
     const reference = validateRef(passage?.reference);
     const translation = clip(passage?.translation, 64);
@@ -129,12 +150,14 @@
     if (count(text) > 12000) throw new Error('单篇默想最多12000字，可另开一篇。');
     return text;
   }
-  function newEntry(input, timestamp, id) {
+  function newEntry(input, timestamp, id, allowMissingReading=false) {
     const now = timestamp || new Date().toISOString();
     if (!id || typeof id !== 'string') throw new Error('每份牧草须有独立编号。');
     const scripture = validateScripture(input?.scripture);
     const reflection = normalizeReflection(input?.reflection);
-    const readingSession=normalizeReadingSession(input?.readingSession);
+    const candidate=input&&Object.prototype.hasOwnProperty.call(input,'readingSession')?input.readingSession:runtimeReadingSession;
+    const readingSession=normalizeReadingSession(candidate);
+    if(runtimeReadingRequired&&!readingSession&&!allowMissingReading)throw new Error('请先完成本次阅读，再把领受收入个人古卷。');
     if(readingSession&&readingSession.status!=='completed')throw new Error('请先完成本次阅读。');
     return {
       version: SCHEMA_VERSION, id,
@@ -157,7 +180,8 @@
   }
   function reviseEntry(previous, input, timestamp) {
     if (!previous || !previous.id) throw new Error('找不到对应牧草。');
-    const revised = newEntry(input, timestamp, previous.id);
+    const allowLegacyMissing=!previous.readingSession;
+    const revised = newEntry(input, timestamp, previous.id,allowLegacyMissing);
     return {...revised, createdAt: previous.createdAt, shareIds: [...(previous.shareIds || [])]};
   }
   function makeMicro(entry, quote, id, timestamp) {
@@ -210,6 +234,7 @@
   return Object.freeze({
     SCHEMA_VERSION,MICRO_LIMIT,STORAGE_PREFIX,PHASES,trim,count,clip,
     validateRef,validateScripture,normalizeReadingSession,beginReadingSession,setReadingSessionEnd,completeReadingSession,
-    normalizeReflection,newEntry,reviseEntry,makeMicro,groupByReference,scopeFromIdentity,voicePermissions
+    setRuntimeReadingSession,setReadingSessionRequired,normalizeReflection,newEntry,reviseEntry,
+    makeMicro,groupByReference,scopeFromIdentity,voicePermissions
   });
 });
