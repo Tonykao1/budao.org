@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const C=require('../pasture-preview/my-grass-core.js');
-const B=require('../pasture-preview/my-grass-bible-v04.js');
+const R=require('../pasture-preview/my-grass-reading-v1.js');
 
 test('browsing a chapter creates no reading session; first verse click starts one',()=>{
  assert.equal(C.normalizeReadingSession(null),null);
@@ -36,7 +36,7 @@ test('completing one or more verses creates a durable reading session with stabl
  assert.deepEqual(one.verseIds,['JHN.3.16']);
 });
 
-test('saved devotional entry keeps the completed reading session separate from audio reading',()=>{
+test('saved devotional entry keeps completed reading session separate from audio reading',()=>{
  const session=C.completeReadingSession(C.beginReadingSession({book:'约',chapter:3,verse:16,verseId:'JHN.3.16',translation:'圣经和合本（神版）'},'t1'),'t2');
  const entry=C.newEntry({scripture:{reference:'约 3:16',text:'神爱世人',translation:'圣经和合本（神版）'},readingSession:session,reading:{audioId:null},reflection:'领受'},'t3','e1');
  assert.equal(entry.readingSession.status,'completed');
@@ -44,8 +44,19 @@ test('saved devotional entry keeps the completed reading session separate from a
  assert.equal(entry.reading.kind,'original-human-voice');
 });
 
+test('browser runtime can require a completed reading session for new archive entries',()=>{
+ C.setReadingSessionRequired(true);
+ C.setRuntimeReadingSession(null);
+ assert.throws(()=>C.newEntry({scripture:{reference:'约 3',text:'本章文字',translation:'圣经和合本（神版）'},reflection:''},'t','new'),/完成本次阅读/);
+ const session=C.completeReadingSession(C.beginReadingSession({book:'约',chapter:3,verse:16,verseId:'JHN.3.16',translation:'圣经和合本（神版）'},'a'),'b');
+ C.setRuntimeReadingSession(session);
+ const saved=C.newEntry({scripture:{reference:'约 3:16',text:'神爱世人',translation:'圣经和合本（神版）'},reflection:''},'t','ok');
+ assert.equal(saved.readingSession.reference,'约 3:16');
+ C.setRuntimeReadingSession(null);C.setReadingSessionRequired(false);
+});
+
 test('ESV numbered passage parser exposes clickable verse units without persisting them',()=>{
- const verses=B.parseEsvNumberedText('[16] For God so loved the world. [17] For God did not send his Son to condemn the world. (ESV)');
+ const verses=R.parseEsvNumberedText('[16] For God so loved the world. [17] For God did not send his Son to condemn the world. (ESV)');
  assert.deepEqual(verses,[
   {verse:16,text:'For God so loved the world.'},
   {verse:17,text:'For God did not send his Son to condemn the world.'}
@@ -54,23 +65,26 @@ test('ESV numbered passage parser exposes clickable verse units without persisti
 
 test('reading chapter loader returns verse units for CUV and ESV',async()=>{
  const cuvFetch=async()=>({ok:true,status:200,json:async()=>({verses:[{verse:1,text:'太初有道。'},{verse:2,text:'这道太初与神同在。'}]})});
- const cuv=await B.loadReadingChapter('约',1,'cuv1919-shen-s',cuvFetch);
+ const cuv=await R.loadReadingChapter('约',1,'cuv1919-shen-s',cuvFetch);
  assert.equal(cuv.reference,'约 1');
  assert.equal(cuv.verses.length,2);
  assert.equal(cuv.verses[0].id,'JHN.1.1');
  let requested='';
  const esvFetch=async url=>{requested=String(url);return {ok:true,status:200,json:async()=>({ok:true,canonical:'John 1',text:'[1] In the beginning was the Word. [2] He was in the beginning with God. (ESV)',copyright:'ESV'})}};
- const esv=await B.loadReadingChapter('约',1,'esv',esvFetch);
+ const esv=await R.loadReadingChapter('约',1,'esv',esvFetch);
  assert.equal(requested,'/api/bible-esv?reference=John%201');
  assert.equal(esv.storage,'reference-only');
  assert.deepEqual(esv.verses.map(v=>v.id),['JHN.1.1','JHN.1.2']);
 });
 
-test('reading UI is chapter-first and exposes explicit verse start/end completion controls',()=>{
- const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-v1.js'),'utf8');
+test('reading enhancement is chapter-first and exposes explicit verse completion controls',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
+ const core=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-core.js'),'utf8');
  assert.match(ui,/data-action="verse-select"/);
  assert.match(ui,/完成本次阅读/);
  assert.match(ui,/从这一节开始/);
- assert.doesNotMatch(ui,/id="gsNavFrom"/);
- assert.doesNotMatch(ui,/id="gsNavTo"/);
+ assert.match(ui,/gsNavWhole/);
+ assert.match(ui,/gs-nav-verses/);
+ assert.match(ui,/翻阅和滚动本身不会记作读过/);
+ assert.match(core,/my-grass-reading-v1\.js/);
 });
