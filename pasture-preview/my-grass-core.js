@@ -12,6 +12,7 @@
   const MICRO_LIMIT = 80;
   const STORAGE_PREFIX = 'budao.my-grass.v1';
   const PHASES = Object.freeze(['reading', 'reflection', 'sharing']);
+  const ESV_NAME = 'English Standard Version (ESV)';
   const trim = value => String(value ?? '').trim();
   const count = value => Array.from(trim(value)).length;
   function clip(value, limit) { return Array.from(trim(value)).slice(0, limit).join(''); }
@@ -20,16 +21,38 @@
     if (!ref || count(ref) > 96) throw new Error('请填写准确的经文出处（最多96字）。');
     return ref;
   }
+  function normalizeVerseIds(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map(v => trim(v)).filter(v => /^[1-3A-Z]{3}\.\d{1,3}\.\d{1,3}$/.test(v)).slice(0, 500);
+  }
   function validateScripture(passage) {
     const reference = validateRef(passage?.reference);
-    const text = trim(passage?.text);
-    if (!text) throw new Error('请先录入所选经文的文字。');
-    if (count(text) > 10000) throw new Error('单条经文文字请勿超过10000字；可分段保存。');
+    const translation = clip(passage?.translation, 64);
+    const source = clip(passage?.source, 160);
+    const incomingText = trim(passage?.text);
+    const isLicensedEsv = translation === ESV_NAME || source === 'esv';
+
+    if (!incomingText && !isLicensedEsv) throw new Error('请先录入所选经文的文字。');
+    if (count(incomingText) > 10000) throw new Error('单条经文文字请勿超过10000字；可分段保存。');
+
+    if (isLicensedEsv) {
+      return {
+        reference,
+        text: '',
+        translation: ESV_NAME,
+        source: 'esv',
+        storage: 'reference-only',
+        verseIds: normalizeVerseIds(passage?.verseIds),
+        enteredBy: 'licensed-live-source',
+        verifiedAgainstRecording: passage?.verifiedAgainstRecording === true
+      };
+    }
+
     return {
       reference,
-      text,
-      translation: clip(passage?.translation, 64),
-      source: clip(passage?.source, 160),
+      text: incomingText,
+      translation,
+      source,
       enteredBy: 'user',
       verifiedAgainstRecording: passage?.verifiedAgainstRecording === true
     };
@@ -82,7 +105,7 @@
       source: 'user-reviewed-and-edited',
       origin: 'reflection',
       originalReflectionId: entry.id,
-      visibility: 'private', // V0.1 cannot publish remotely.
+      visibility: 'private',
       status: 'private-draft',
       syntheticAudioId: null,
       approvedForPublicDistribution: false,
