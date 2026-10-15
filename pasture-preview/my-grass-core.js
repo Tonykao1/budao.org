@@ -51,6 +51,46 @@
     if (end - start >= 500) return [];
     return Array.from({length:end-start+1},(_,i)=>osis+'.'+chapter+'.'+(start+i));
   }
+  function readingRef(book,chapter,start,end) {
+    return start===end?book+' '+chapter+':'+start:book+' '+chapter+':'+start+'–'+end;
+  }
+  function validateReadingPoint(point) {
+    const book=trim(point?.book),osis=BIBLE_OSIS[book],chapter=Math.trunc(Number(point?.chapter)),verse=Math.trunc(Number(point?.verse));
+    const verseId=trim(point?.verseId);
+    if(!book||!osis||!Number.isFinite(chapter)||chapter<1||!Number.isFinite(verse)||verse<1)throw new Error('阅读位置无效。');
+    if(verseId!==osis+'.'+chapter+'.'+verse)throw new Error('阅读经节编号与书卷位置不一致。');
+    return {book,osis,chapter,verse,verseId};
+  }
+  function normalizeReadingSession(value) {
+    if(value==null)return null;
+    const book=trim(value.book),osis=BIBLE_OSIS[book],chapter=Math.trunc(Number(value.chapter));
+    const startVerse=Math.trunc(Number(value.startVerse)),endVerse=Math.trunc(Number(value.endVerse));
+    const status=value.status==='completed'?'completed':'reading';
+    if(!book||!osis||!Number.isFinite(chapter)||chapter<1||!Number.isFinite(startVerse)||startVerse<1||!Number.isFinite(endVerse)||endVerse<startVerse)throw new Error('阅读记录无效。');
+    const startVerseId=osis+'.'+chapter+'.'+startVerse,endVerseId=osis+'.'+chapter+'.'+endVerse;
+    const verseIds=Array.from({length:endVerse-startVerse+1},(_,i)=>osis+'.'+chapter+'.'+(startVerse+i));
+    return {
+      status,book,chapter,startVerse,endVerse,startVerseId,endVerseId,
+      reference:readingRef(book,chapter,startVerse,endVerse),translation:clip(value.translation,64),
+      verseIds,startedAt:trim(value.startedAt)||null,completedAt:status==='completed'?(trim(value.completedAt)||null):null
+    };
+  }
+  function beginReadingSession(point,timestamp) {
+    const p=validateReadingPoint(point);
+    return normalizeReadingSession({status:'reading',book:p.book,chapter:p.chapter,startVerse:p.verse,endVerse:p.verse,translation:point.translation,startedAt:timestamp||new Date().toISOString()});
+  }
+  function setReadingSessionEnd(session,point) {
+    const current=normalizeReadingSession(session),p=validateReadingPoint(point);
+    if(!current||current.status!=='reading')throw new Error('请先从一节经文开始阅读。');
+    if(p.book!==current.book||p.chapter!==current.chapter)throw new Error('一次阅读只能在同一章内完成。');
+    if(p.verse<current.startVerse)throw new Error('结束节不能早于起始节。');
+    return normalizeReadingSession({...current,status:'reading',endVerse:p.verse,endVerseId:p.verseId,completedAt:null});
+  }
+  function completeReadingSession(session,timestamp) {
+    const current=normalizeReadingSession(session);
+    if(!current)throw new Error('请先点击一节经文，从这一节开始。');
+    return normalizeReadingSession({...current,status:'completed',completedAt:timestamp||new Date().toISOString()});
+  }
   function validateScripture(passage) {
     const reference = validateRef(passage?.reference);
     const translation = clip(passage?.translation, 64);
@@ -94,10 +134,13 @@
     if (!id || typeof id !== 'string') throw new Error('每份牧草须有独立编号。');
     const scripture = validateScripture(input?.scripture);
     const reflection = normalizeReflection(input?.reflection);
+    const readingSession=normalizeReadingSession(input?.readingSession);
+    if(readingSession&&readingSession.status!=='completed')throw new Error('请先完成本次阅读。');
     return {
       version: SCHEMA_VERSION, id,
       createdAt: now, updatedAt: now,
       scripture,
+      readingSession,
       reading: {
         kind: 'original-human-voice',
         audioId: input?.reading?.audioId || null,
@@ -166,7 +209,7 @@
   }); }
   return Object.freeze({
     SCHEMA_VERSION,MICRO_LIMIT,STORAGE_PREFIX,PHASES,trim,count,clip,
-    validateRef,validateScripture,normalizeReflection,newEntry,reviseEntry,
-    makeMicro,groupByReference,scopeFromIdentity,voicePermissions
+    validateRef,validateScripture,normalizeReadingSession,beginReadingSession,setReadingSessionEnd,completeReadingSession,
+    normalizeReflection,newEntry,reviseEntry,makeMicro,groupByReference,scopeFromIdentity,voicePermissions
   });
 });
