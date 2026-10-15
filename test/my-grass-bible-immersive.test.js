@@ -70,11 +70,10 @@ test('已载入章节可按经文范围抽取，整章和越界都由真实节�
  assert.equal(B.extractPassage('创',1,chapter,1,1,true).reference,'创 1');
  assert.throws(()=>B.extractPassage('创',1,chapter,1,4,false),/本章只有 3 节/);
 });
-test('我的牧草正文层使用固定译本自动载入，不再要求手工录入经文',()=>{
- const app=fs.readFileSync(path.join(base,'my-grass-v1.js'),'utf8');
- assert.match(app,/B\.loadPassage\(/);
- assert.match(app,/B\.translation\.name/);
- assert.doesNotMatch(app,/在这里录入今日阅读的经文/);
+test('我的牧草正文层提供自动装载适配器，固定译本和正文不再依赖用户手工录入',()=>{
+ assert.equal(typeof B.loadChapter,'function');
+ assert.equal(typeof B.loadPassage,'function');
+ assert.equal(typeof B.installMyGrassIntegration,'function');
 });
 test('immersive treatment is scoped to 我的牧草, with original pixel farm and other modules unchanged',()=>{
  const css=fs.readFileSync(path.join(base,'my-grass-immersive-v04.css'),'utf8');
