@@ -66,6 +66,8 @@ test('ESV server proxy requires server-side key and sends Crossway copyright-saf
  assert.equal(parsed.searchParams.get('include-short-copyright'),'true');
  assert.equal(parsed.searchParams.get('include-footnotes'),'false');
  assert.equal(parsed.searchParams.get('include-headings'),'false');
+ assert.equal(parsed.searchParams.get('include-verse-numbers'),'true');
+ assert.equal(parsed.searchParams.get('include-first-verse-numbers'),'true');
  assert.equal(response.body.text,'For God so loved the world… (ESV)');
  global.fetch=oldFetch;
  if(oldKey===undefined)delete process.env.ESV_API_KEY; else process.env.ESV_API_KEY=oldKey;
