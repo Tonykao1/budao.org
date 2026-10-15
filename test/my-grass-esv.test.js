@@ -1,5 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
 const B=require('../pasture-preview/my-grass-bible-v04.js');
 
 test('ESV is registered as the second translation without replacing CUV default',()=>{
@@ -26,14 +27,9 @@ test('ESV loader calls only the same-origin proxy and returns reference-only pay
  const passage=await B.loadTranslationPassage('约 3:16','esv',fakeFetch);
  assert.equal(requested,'/api/bible-esv?reference=John%203%3A16');
  assert.deepEqual(passage,{
-  reference:'约 3:16',
-  canonical:'John 3:16',
-  translation:'English Standard Version (ESV)',
-  source:'esv',
-  storage:'reference-only',
-  verseIds:['JHN.3.16'],
-  text:'For God so loved the world… (ESV)',
-  copyright:'ESV'
+  reference:'约 3:16',canonical:'John 3:16',translation:'English Standard Version (ESV)',
+  source:'esv',storage:'reference-only',verseIds:['JHN.3.16'],
+  text:'For God so loved the world… (ESV)',copyright:'ESV'
  });
 });
 
@@ -42,18 +38,24 @@ test('ESV loader surfaces an unconfigured API key cleanly',async()=>{
  await assert.rejects(()=>B.loadTranslationPassage('约 3:16','esv',fakeFetch),/ESV API 尚未配置/);
 });
 
+test('ESV public path is consolidated into the existing routes function',()=>{
+ const config=JSON.parse(fs.readFileSync(path.join(__dirname,'..','vercel.json'),'utf8'));
+ const rewrites=new Map(config.rewrites.map(entry=>[entry.source,entry.destination]));
+ assert.equal(rewrites.get('/api/bible-esv'),'/api/routes?service=bible-esv');
+ assert.equal(fs.existsSync(path.join(__dirname,'..','api','bible-esv.js')),false);
+});
+
 test('ESV server proxy requires server-side key and sends Crossway copyright-safe parameters',async()=>{
- const oldKey=process.env.ESV_API_KEY;
- const oldFetch=global.fetch;
+ const oldKey=process.env.ESV_API_KEY,oldFetch=global.fetch;
  process.env.ESV_API_KEY='test-secret-key';
  let upstreamUrl='',upstreamAuth='';
  global.fetch=async(url,options)=>{
   upstreamUrl=String(url);upstreamAuth=options.headers.Authorization;
   return {ok:true,status:200,json:async()=>({canonical:'John 3:16',passages:['For God so loved the world… (ESV)']})};
  };
- const handler=require('../api/bible-esv.js');
- const response=mockResponse();
- await handler({method:'GET',query:{reference:'John 3:16'},headers:{'x-forwarded-for':'127.0.0.1'}},response);
+ delete require.cache[require.resolve('../api/routes.js')];
+ const handler=require('../api/routes.js'),response=mockResponse();
+ await handler({method:'GET',query:{service:'bible-esv',reference:'John 3:16'},headers:{'x-forwarded-for':'127.0.0.1'}},response);
  assert.equal(response.statusCode,200);
  assert.equal(upstreamAuth,'Token test-secret-key');
  const parsed=new URL(upstreamUrl);
@@ -69,12 +71,10 @@ test('ESV server proxy requires server-side key and sends Crossway copyright-saf
 });
 
 test('ESV server proxy refuses to operate when the Crossway key is absent',async()=>{
- const oldKey=process.env.ESV_API_KEY;
- delete process.env.ESV_API_KEY;
- delete require.cache[require.resolve('../api/bible-esv.js')];
- const handler=require('../api/bible-esv.js');
- const response=mockResponse();
- await handler({method:'GET',query:{reference:'John 3:16'},headers:{'x-forwarded-for':'127.0.0.2'}},response);
+ const oldKey=process.env.ESV_API_KEY;delete process.env.ESV_API_KEY;
+ delete require.cache[require.resolve('../api/routes.js')];
+ const handler=require('../api/routes.js'),response=mockResponse();
+ await handler({method:'GET',query:{service:'bible-esv',reference:'John 3:16'},headers:{'x-forwarded-for':'127.0.0.2'}},response);
  assert.equal(response.statusCode,503);
  assert.equal(response.body.reason,'esv_not_configured');
  if(oldKey!==undefined)process.env.ESV_API_KEY=oldKey;
@@ -85,6 +85,7 @@ function mockResponse(){
   statusCode:0,headers:{},body:null,
   setHeader(name,value){this.headers[name]=value},
   status(code){this.statusCode=code;return this},
-  json(body){this.body=body;return this}
+  json(body){this.body=body;return this},
+  end(){return this}
  };
 }
