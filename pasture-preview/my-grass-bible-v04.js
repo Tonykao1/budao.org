@@ -36,7 +36,6 @@
   source:'Crossway ESV API'
  });
  const translations=Object.freeze({cuv:cuvTranslation,esv:esvTranslation});
- // Compatibility: existing code and saved tests expect `translation` to be the default CUV edition.
  const translation=cuvTranslation;
 
  // [简称, 中文书名, 章数, 稳定OSIS, 公版语料slug, ESV英文书卷名]
@@ -218,6 +217,15 @@
   }
   return picker;
  }
+ function ensureEsvAttribution(workspace,picker,translationId){
+  let attribution=workspace.querySelector('#gsEsvAttribution');
+  if(!attribution){
+   picker.insertAdjacentHTML('afterend',"<a id='gsEsvAttribution' href='https://www.esv.org/' target='_blank' rel='noopener noreferrer' style='display:block;margin-top:5px;font-size:11px;line-height:1.45;color:inherit;opacity:.72'>ESV® Bible © Crossway · Used by permission · esv.org</a>");
+   attribution=workspace.querySelector('#gsEsvAttribution');
+  }
+  if(attribution)attribution.hidden=translationId!==esvTranslation.id;
+  return attribution;
+ }
  function installMyGrassIntegration(doc,options){
   if(!doc||typeof doc.querySelector!=='function')return ()=>{};
   const opts=options||{},translationLoader=opts.loadTranslationPassage||loadTranslationPassage;
@@ -241,9 +249,11 @@
      const nextId=resolveTranslationId(picker.value);workspace.dataset.scriptureTranslation=nextId;
      version.value=nextId===esvTranslation.id?esvTranslation.name:cuvTranslation.name;dispatchInput(version,doc);
      text.value='';delete text.dataset.scriptureSource;dispatchInput(text,doc);
+     ensureEsvAttribution(workspace,picker,nextId);
      lastKey='';requestToken++;schedule(0);
     });
     picker.value=translationId;
+    ensureEsvAttribution(workspace,picker,translationId);
     text.readOnly=true;text.setAttribute('aria-readonly','true');
     const reference=String(ref.value||'').trim();if(!parse(reference))return;
     workspace.dataset.scriptureReference=reference;
