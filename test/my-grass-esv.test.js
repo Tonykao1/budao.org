@@ -87,6 +87,16 @@ test('reading integration provides an ESV.org attribution link when ESV is selec
  assert.match(source,/Used by permission/);
 });
 
+test('live scripture provenance reaches the saved My Grass draft without persisting licensed ESV text',()=>{
+ const bible=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-bible-v04.js'),'utf8');
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-v1.js'),'utf8');
+ assert.match(bible,/mygrass:scripture-loaded/);
+ assert.match(ui,/mygrass:scripture-loaded/);
+ assert.match(ui,/draft\.scripture\.verseIds/);
+ assert.match(ui,/draft\.scripture\.source/);
+ assert.match(ui,/draft\.scripture\.storage/);
+});
+
 function mockResponse(){
  return {
   statusCode:0,headers:{},body:null,
