@@ -102,8 +102,8 @@ function buildEsvUrl(reference) {
   const url = new URL(ESV_ENDPOINT);
   url.searchParams.set("q", reference);
   url.searchParams.set("include-passage-references", "false");
-  url.searchParams.set("include-verse-numbers", "false");
-  url.searchParams.set("include-first-verse-numbers", "false");
+  url.searchParams.set("include-verse-numbers", "true");
+  url.searchParams.set("include-first-verse-numbers", "true");
   url.searchParams.set("include-footnotes", "false");
   url.searchParams.set("include-footnote-body", "false");
   url.searchParams.set("include-headings", "false");
