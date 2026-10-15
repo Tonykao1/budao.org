@@ -1,49 +1,87 @@
-/* Canonical 66-book Chinese navigation (Protestant numbering).
- * Metadata only; no unlicensed Bible translation is embedded or implied.
- * Verse counts differ by translation/versification and must be checked by the reader.
+/* 我的牧草 · 圣经经文引擎 V0.4
+ * 第一固定译本：1919《圣经和合本（神版）》简体显示。
+ * 正文来自固定的公版语料快照；书卷/章/节使用稳定 ID，便于长期保存与未来多译本扩展。
  */
 (function(root,factory){
  const api=factory();
  if(typeof module==='object'&&module.exports)module.exports=api;
- else root.MyGrassBible=api;
+ else{
+  root.MyGrassBible=api;
+  if(root&&root.document)api.autoInstall(root);
+ }
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
+
+ const SOURCE_COMMIT='0bf4ed97ed6f115a37d9254d75f94bf97d0eab92';
+ const translation=Object.freeze({
+  id:'cuv1919-shen-s',
+  name:'圣经和合本（神版）',
+  language:'zh-CN',
+  year:1919,
+  license:'Public Domain',
+  source:'sangchy1972/pd-text-corpus · zh-Hans · CUV 1919',
+  sourceCommit:SOURCE_COMMIT,
+  stats:Object.freeze({books:66,chapters:1189,verses:31103})
+ });
+
+ // [简称, 中文书名, 章数, 稳定OSIS, 公版语料slug]
  const old=[
- ['创','创世记',50],['出','出埃及记',40],['利','利未记',27],['民','民数记',36],
- ['申','申命记',34],['书','约书亚记',24],['士','士师记',21],['得','路得记',4],
- ['撒上','撒母耳记上',31],['撒下','撒母耳记下',24],['王上','列王纪上',22],
- ['王下','列王纪下',25],['代上','历代志上',29],['代下','历代志下',36],
- ['拉','以斯拉记',10],['尼','尼希米记',13],['斯','以斯帖记',10],
- ['伯','约伯记',42],['诗','诗篇',150],['箴','箴言',31],['传','传道书',12],
- ['歌','雅歌',8],['赛','以赛亚书',66],['耶','耶利米书',52],
- ['哀','耶利米哀歌',5],['结','以西结书',48],['但','但以理书',12],
- ['何','何西阿书',14],['珥','约珥书',3],['摩','阿摩司书',9],
- ['俄','俄巴底亚书',1],['拿','约拿书',4],['弥','弥迦书',7],
- ['鸿','那鸿书',3],['哈','哈巴谷书',3],['番','西番雅书',3],
- ['该','哈该书',2],['亚','撒迦利亚书',14],['玛','玛拉基书',4]
+  ['创','创世记',50,'GEN','genesis'],['出','出埃及记',40,'EXO','exodus'],
+  ['利','利未记',27,'LEV','leviticus'],['民','民数记',36,'NUM','numbers'],
+  ['申','申命记',34,'DEU','deuteronomy'],['书','约书亚记',24,'JOS','joshua'],
+  ['士','士师记',21,'JDG','judges'],['得','路得记',4,'RUT','ruth'],
+  ['撒上','撒母耳记上',31,'1SA','i-samuel'],['撒下','撒母耳记下',24,'2SA','ii-samuel'],
+  ['王上','列王纪上',22,'1KI','i-kings'],['王下','列王纪下',25,'2KI','ii-kings'],
+  ['代上','历代志上',29,'1CH','i-chronicles'],['代下','历代志下',36,'2CH','ii-chronicles'],
+  ['拉','以斯拉记',10,'EZR','ezra'],['尼','尼希米记',13,'NEH','nehemiah'],
+  ['斯','以斯帖记',10,'EST','esther'],['伯','约伯记',42,'JOB','job'],
+  ['诗','诗篇',150,'PSA','psalms'],['箴','箴言',31,'PRO','proverbs'],
+  ['传','传道书',12,'ECC','ecclesiastes'],['歌','雅歌',8,'SNG','song-of-solomon'],
+  ['赛','以赛亚书',66,'ISA','isaiah'],['耶','耶利米书',52,'JER','jeremiah'],
+  ['哀','耶利米哀歌',5,'LAM','lamentations'],['结','以西结书',48,'EZK','ezekiel'],
+  ['但','但以理书',12,'DAN','daniel'],['何','何西阿书',14,'HOS','hosea'],
+  ['珥','约珥书',3,'JOL','joel'],['摩','阿摩司书',9,'AMO','amos'],
+  ['俄','俄巴底亚书',1,'OBA','obadiah'],['拿','约拿书',4,'JON','jonah'],
+  ['弥','弥迦书',7,'MIC','micah'],['鸿','那鸿书',3,'NAM','nahum'],
+  ['哈','哈巴谷书',3,'HAB','habakkuk'],['番','西番雅书',3,'ZEP','zephaniah'],
+  ['该','哈该书',2,'HAG','haggai'],['亚','撒迦利亚书',14,'ZEC','zechariah'],
+  ['玛','玛拉基书',4,'MAL','malachi']
  ];
  const newTestament=[
- ['太','马太福音',28],['可','马可福音',16],['路','路加福音',24],
- ['约','约翰福音',21],['徒','使徒行传',28],['罗','罗马书',16],
- ['林前','哥林多前书',16],['林后','哥林多后书',13],
- ['加','加拉太书',6],['弗','以弗所书',6],['腓','腓立比书',4],
- ['西','歌罗西书',4],['帖前','帖撒罗尼迦前书',5],
- ['帖后','帖撒罗尼迦后书',3],['提前','提摩太前书',6],
- ['提后','提摩太后书',4],['多','提多书',3],['门','腓利门书',1],
- ['来','希伯来书',13],['雅','雅各书',5],['彼前','彼得前书',5],
- ['彼后','彼得后书',3],['约壹','约翰一书',5],
- ['约贰','约翰二书',1],['约叁','约翰三书',1],
- ['犹','犹大书',1],['启','启示录',22]
+  ['太','马太福音',28,'MAT','matthew'],['可','马可福音',16,'MRK','mark'],
+  ['路','路加福音',24,'LUK','luke'],['约','约翰福音',21,'JHN','john'],
+  ['徒','使徒行传',28,'ACT','acts'],['罗','罗马书',16,'ROM','romans'],
+  ['林前','哥林多前书',16,'1CO','i-corinthians'],['林后','哥林多后书',13,'2CO','ii-corinthians'],
+  ['加','加拉太书',6,'GAL','galatians'],['弗','以弗所书',6,'EPH','ephesians'],
+  ['腓','腓立比书',4,'PHP','philippians'],['西','歌罗西书',4,'COL','colossians'],
+  ['帖前','帖撒罗尼迦前书',5,'1TH','i-thessalonians'],['帖后','帖撒罗尼迦后书',3,'2TH','ii-thessalonians'],
+  ['提前','提摩太前书',6,'1TI','i-timothy'],['提后','提摩太后书',4,'2TI','ii-timothy'],
+  ['多','提多书',3,'TIT','titus'],['门','腓利门书',1,'PHM','philemon'],
+  ['来','希伯来书',13,'HEB','hebrews'],['雅','雅各书',5,'JAS','james'],
+  ['彼前','彼得前书',5,'1PE','i-peter'],['彼后','彼得后书',3,'2PE','ii-peter'],
+  ['约壹','约翰一书',5,'1JN','i-john'],['约贰','约翰二书',1,'2JN','ii-john'],
+  ['约叁','约翰三书',1,'3JN','iii-john'],['犹','犹大书',1,'JUD','jude'],
+  ['启','启示录',22,'REV','revelation-of-john']
  ];
- const groups=Object.freeze({old:Object.freeze(old.map(v=>Object.freeze(v))),
-  new:Object.freeze(newTestament.map(v=>Object.freeze(v)))});
- const all=[...groups.old,...groups.new];
+ const freezeEntry=v=>Object.freeze(v.slice());
+ const groups=Object.freeze({
+  old:Object.freeze(old.map(freezeEntry)),
+  new:Object.freeze(newTestament.map(freezeEntry))
+ });
+ const all=Object.freeze([...groups.old,...groups.new]);
+ const chapterCache=new Map();
+
  function resolve(abbrOrName){
   const s=String(abbrOrName||'').trim();
   return all.find(([short,name])=>short===s||name===s)||null;
  }
  function groupOf(abbr){
   return groups.old.some(([s,name])=>abbr===s||abbr===name)?'old':'new';
+ }
+ function bookMeta(book){
+  const entry=resolve(book);
+  if(!entry)throw Error('未识别圣经书卷。');
+  return Object.freeze({abbr:entry[0],name:entry[1],chapters:entry[2],osis:entry[3],slug:entry[4],testament:groupOf(entry[0])});
  }
  function clampChapter(book,value){
   const entry=resolve(book);if(!entry)throw Error('未识别圣经书卷。');
@@ -71,5 +109,167 @@
   if(start<1||end<1||start>176||end>176)return null;
   return {testament:groupOf(entry[0]),book:entry[0],chapter,start,end,whole};
  }
- return Object.freeze({groups,resolve,groupOf,clampChapter,format,parse});
+ function verseId(book,chapter,verse){
+  const meta=bookMeta(book),ch=Math.trunc(Number(chapter)),v=Math.trunc(Number(verse));
+  if(!Number.isFinite(ch)||ch<1||ch>meta.chapters)throw Error('章节超出书卷范围。');
+  if(!Number.isFinite(v)||v<1)throw Error('节数必须从1开始。');
+  return meta.osis+'.'+ch+'.'+v;
+ }
+ function chapterUrl(book,chapter){
+  const meta=bookMeta(book),ch=Math.trunc(Number(chapter));
+  if(!Number.isFinite(ch)||ch<1||ch>meta.chapters)throw Error('章节超出书卷范围。');
+  return 'https://cdn.jsdelivr.net/gh/sangchy1972/pd-text-corpus@'+SOURCE_COMMIT+
+   '/bibles/zh-Hans/books/'+meta.slug+'/chapters/'+ch+'.json';
+ }
+ function normalizeChapter(data){
+  if(!data||!Array.isArray(data.verses)||!data.verses.length)throw Error('经文数据格式不完整。');
+  const verses=data.verses.map(item=>({verse:Math.trunc(Number(item.verse)),text:String(item.text||'').trim()}));
+  if(verses.some(v=>!Number.isFinite(v.verse)||v.verse<1||!v.text))throw Error('经文数据存在无效节。');
+  return {verses};
+ }
+ async function loadChapter(book,chapter,fetchImpl){
+  const meta=bookMeta(book),ch=clampChapter(meta.abbr,chapter),cacheKey=meta.osis+'.'+ch;
+  if(chapterCache.has(cacheKey))return chapterCache.get(cacheKey);
+  const fetcher=fetchImpl||(typeof fetch==='function'?fetch:null);
+  if(!fetcher)throw Error('当前环境无法载入经文。');
+  const pending=(async()=>{
+   const response=await fetcher(chapterUrl(meta.abbr,ch),{cache:'force-cache'});
+   if(!response||!response.ok)throw Error('经文载入失败'+(response&&response.status?'（HTTP '+response.status+'）':'')+'。');
+   return normalizeChapter(await response.json());
+  })();
+  chapterCache.set(cacheKey,pending);
+  try{
+   const result=await pending;
+   chapterCache.set(cacheKey,Promise.resolve(result));
+   return result;
+  }catch(error){
+   chapterCache.delete(cacheKey);
+   throw error;
+  }
+ }
+ function extractPassage(book,chapter,chapterData,start=1,end=1,whole=false){
+  const meta=bookMeta(book),ch=Math.trunc(Number(chapter));
+  if(!Number.isFinite(ch)||ch<1||ch>meta.chapters)throw Error('章节超出书卷范围。');
+  const normalized=normalizeChapter(chapterData),verses=normalized.verses;
+  const maxVerse=Math.max(...verses.map(v=>v.verse));
+  let selected,reference;
+  if(whole){
+   selected=verses.slice();
+   reference=meta.abbr+' '+ch;
+  }else{
+   let a=Math.trunc(Number(start)),b=Math.trunc(Number(end));
+   if(!Number.isFinite(a)||!Number.isFinite(b)||a<1||b<1||a>maxVerse||b>maxVerse)
+    throw Error('本章只有 '+maxVerse+' 节，请重新选择。');
+   if(a>b)[a,b]=[b,a];
+   selected=verses.filter(v=>v.verse>=a&&v.verse<=b);
+   if(!selected.length||selected[0].verse!==a||selected[selected.length-1].verse!==b)
+    throw Error('所选经节在此译本中不存在。');
+   reference=a===b?meta.abbr+' '+ch+':'+a:meta.abbr+' '+ch+':'+a+'–'+b;
+  }
+  return {
+   reference,
+   translation:translation.name,
+   source:translation.id,
+   verseIds:selected.map(v=>verseId(meta.abbr,ch,v.verse)),
+   verses:selected,
+   text:selected.map(v=>v.text).join('\n')
+  };
+ }
+ async function loadPassage(referenceOrState,fetchImpl){
+  const state=typeof referenceOrState==='string'?parse(referenceOrState):referenceOrState;
+  if(!state||!resolve(state.book))throw Error('请先选择有效的经文范围。');
+  const chapter=await loadChapter(state.book,state.chapter,fetchImpl);
+  return extractPassage(state.book,state.chapter,chapter,state.start,state.end,state.whole);
+ }
+ function dispatchInput(node,doc){
+  if(!node)return;
+  const view=doc&&doc.defaultView;
+  const EventCtor=(view&&view.Event)||(typeof Event==='function'?Event:null);
+  if(EventCtor)node.dispatchEvent(new EventCtor('input',{bubbles:true}));
+ }
+ function installMyGrassIntegration(doc,options){
+  if(!doc||typeof doc.querySelector!=='function')return ()=>{};
+  const opts=options||{},loader=opts.loadPassage||loadPassage;
+  let stopped=false,lastRef='',requestToken=0,timer=null;
+  const schedule=(delay=0)=>{
+   if(stopped)return;
+   if(timer!=null){const clear=(doc.defaultView&&doc.defaultView.clearTimeout)||clearTimeout;clear(timer)}
+   const set=(doc.defaultView&&doc.defaultView.setTimeout)||setTimeout;
+   timer=set(hydrate,delay);
+  };
+  async function hydrate(){
+   timer=null;if(stopped)return;
+   const workspace=doc.getElementById('grassWorkspace');
+   if(!workspace)return;
+   const ref=workspace.querySelector('[data-field="reference"]');
+   const version=workspace.querySelector('[data-field="translation"]');
+   const text=workspace.querySelector('[data-field="scriptureText"]');
+   if(version){
+    version.value=translation.name;version.readOnly=true;version.setAttribute('aria-readonly','true');
+    version.title='固定译本：'+translation.name;
+    dispatchInput(version,doc);
+   }
+   if(text){
+    text.readOnly=true;text.setAttribute('aria-readonly','true');
+    text.placeholder='选择经文后自动载入《'+translation.name+'》正文';
+   }
+   if(!ref||!text)return;
+   const reference=String(ref.value||'').trim();
+   if(!parse(reference))return;
+   if(reference===lastRef&&text.value.trim())return;
+   const token=++requestToken;
+   text.dataset.scriptureState='loading';
+   text.placeholder='正在载入 '+translation.name+'……';
+   try{
+    const passage=await loader(reference);
+    if(stopped||token!==requestToken||String(ref.value||'').trim()!==reference)return;
+    lastRef=reference;
+    version.value=passage.translation;dispatchInput(version,doc);
+    text.value=passage.text;
+    text.dataset.scriptureState='ready';
+    text.dataset.scriptureSource=passage.source;
+    text.dataset.verseIds=passage.verseIds.join(',');
+    text.placeholder='已载入 '+passage.translation;
+    dispatchInput(text,doc);
+   }catch(error){
+    if(stopped||token!==requestToken)return;
+    text.dataset.scriptureState='error';
+    text.placeholder=String(error&&error.message||error||'经文载入失败');
+   }
+  }
+  const clickHandler=e=>{
+   if(e.target&&e.target.closest&&e.target.closest('button[data-nav="apply"]'))schedule(0);
+  };
+  const inputHandler=e=>{
+   if(e.target&&e.target.matches&&e.target.matches('[data-field="reference"]'))schedule(180);
+  };
+  doc.addEventListener('click',clickHandler,true);
+  doc.addEventListener('input',inputHandler,true);
+  const ViewMutationObserver=doc.defaultView&&doc.defaultView.MutationObserver;
+  const observer=ViewMutationObserver?new ViewMutationObserver(()=>schedule(0)):null;
+  if(observer&&doc.documentElement)observer.observe(doc.documentElement,{childList:true,subtree:true});
+  schedule(0);
+  return ()=>{
+   stopped=true;requestToken++;
+   if(timer!=null){const clear=(doc.defaultView&&doc.defaultView.clearTimeout)||clearTimeout;clear(timer)}
+   doc.removeEventListener('click',clickHandler,true);
+   doc.removeEventListener('input',inputHandler,true);
+   if(observer)observer.disconnect();
+  };
+ }
+ function autoInstall(root){
+  const run=()=>{
+   if(root.__myGrassCuvShenInstalled)return;
+   root.__myGrassCuvShenInstalled=true;
+   root.__myGrassCuvShenCleanup=installMyGrassIntegration(root.document);
+  };
+  if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',run,{once:true});
+  else run();
+ }
+ function clearCache(){chapterCache.clear()}
+
+ return Object.freeze({
+  translation,groups,resolve,groupOf,bookMeta,clampChapter,format,parse,verseId,
+  chapterUrl,loadChapter,extractPassage,loadPassage,installMyGrassIntegration,autoInstall,clearCache
+ });
 });
