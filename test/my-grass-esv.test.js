@@ -80,6 +80,13 @@ test('ESV server proxy refuses to operate when the Crossway key is absent',async
  if(oldKey!==undefined)process.env.ESV_API_KEY=oldKey;
 });
 
+test('reading integration provides an ESV.org attribution link when ESV is selected',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-bible-v04.js'),'utf8');
+ assert.match(source,/id='gsEsvAttribution'/);
+ assert.match(source,/https:\/\/www\.esv\.org/);
+ assert.match(source,/Used by permission/);
+});
+
 function mockResponse(){
  return {
   statusCode:0,headers:{},body:null,
