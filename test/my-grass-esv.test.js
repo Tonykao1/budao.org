@@ -2,6 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const B=require('../pasture-preview/my-grass-bible-v04.js');
+const C=require('../pasture-preview/my-grass-core.js');
 
 test('ESV is registered as the second translation without replacing CUV default',()=>{
  assert.equal(B.translation.id,'cuv1919-shen-s');
@@ -87,14 +88,13 @@ test('reading integration provides an ESV.org attribution link when ESV is selec
  assert.match(source,/Used by permission/);
 });
 
-test('live scripture provenance reaches the saved My Grass draft without persisting licensed ESV text',()=>{
- const bible=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-bible-v04.js'),'utf8');
- const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-v1.js'),'utf8');
- assert.match(bible,/mygrass:scripture-loaded/);
- assert.match(ui,/mygrass:scripture-loaded/);
- assert.match(ui,/draft\.scripture\.verseIds/);
- assert.match(ui,/draft\.scripture\.source/);
- assert.match(ui,/draft\.scripture\.storage/);
+test('ESV save derives stable verse IDs from its Chinese reference even when UI metadata is absent',()=>{
+ const single=C.validateScripture({reference:'约 3:16',text:'licensed live text',translation:'English Standard Version (ESV)'});
+ assert.deepEqual(single.verseIds,['JHN.3.16']);
+ assert.equal(single.text,'');
+ assert.equal(single.storage,'reference-only');
+ const range=C.validateScripture({reference:'路 6:1–3',text:'licensed live text',translation:'English Standard Version (ESV)'});
+ assert.deepEqual(range.verseIds,['LUK.6.1','LUK.6.2','LUK.6.3']);
 });
 
 function mockResponse(){
