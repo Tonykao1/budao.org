@@ -16,6 +16,15 @@ function normalizeType(value) {
   return allowedTypes.has(type) ? type : "budao";
 }
 
+function normalizeStatus(value) {
+  return value === "cancelled" ? "cancelled" : "scheduled";
+}
+
+function normalizeCancelCode(value, status) {
+  if (status !== "cancelled") return "";
+  return String(value || "OTHER").trim().toUpperCase().slice(0, 20) || "OTHER";
+}
+
 function routeIdentity(value) {
   return String(value || "").trim();
 }
@@ -51,6 +60,8 @@ function syncCalendarEvents(routes, events, today) {
     const routeId = routeIdentity(route && (route.routeId || route.id));
     const date = String(route && route.date || "");
     const type = normalizeType(route && route.calendarType);
+    const status = normalizeStatus(route && route.status);
+    const cancelCode = normalizeCancelCode(route && route.cancelCode, status);
 
     if ((!routeId && !slot) || !validDate(date)) {
       return;
@@ -70,7 +81,9 @@ function syncCalendarEvents(routes, events, today) {
       source: "tent",
       slot,
       routeId,
-      title: String(route.title || "")
+      title: String(route.title || ""),
+      status,
+      cancelCode
     });
   });
 

@@ -1,6 +1,7 @@
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = "main";
+const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH ||
+  (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF) || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const presentationSlots = ["IMS", "BACBC", "HD"];
@@ -8,6 +9,7 @@ const { getAuthenticatedPublisher, isSteward } = require("./_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson: sendProtectedJson } = require("./_security/http");
 const { clientIp, consume } = require("./_security/rate-limit");
 const { readAltarState, writeAltarState, applySupervisionAction, routeSupervision } = require("./_altar/store");
+const cancellation = require("../route-cancellation-core");
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -18,6 +20,8 @@ module.exports = async function handler(request, response) {
   }
 
   if (request.method === "POST") {
+    const scope = requestScope(request);
+    if (scope === "mine") return handleLeaderStatusAction(request, response);
     return handleAltarAction(request, response);
   }
 
@@ -59,6 +63,72 @@ module.exports = async function handler(request, response) {
     sendJson(response, 200, []);
   }
 };
+
+async function handleLeaderStatusAction(request, response) {
+  const parsed = requireJsonPost(request);
+  if (parsed.error) return sendProtectedJson(response, parsed.status, { ok: false, reason: parsed.error });
+  if (!requireSameOrigin(request)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
+
+  const publisher = getAuthenticatedPublisher(request);
+  if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
+  if (!consume("route-status:" + publisher.id + ":" + clientIp(request), 12, 60_000)) {
+    return sendProtectedJson(response, 429, { ok: false, reason: "rate_limited" });
+  }
+  if (!token) return sendProtectedJson(response, 503, { ok: false, reason: "publishing_unavailable" });
+
+  const action = String(parsed.body && parsed.body.action || "").trim().toLowerCase();
+  if (action !== "cancel" && action !== "restore") {
+    return sendProtectedJson(response, 400, { ok: false, reason: "invalid_action" });
+  }
+
+  const routeId = String(parsed.body && parsed.body.routeId || "").trim();
+  if (!routeId) return sendProtectedJson(response, 400, { ok: false, reason: "missing_route" });
+
+  try {
+    const current = await readRoutesFile();
+    const routeIndex = current.routes.findIndex(function (route) {
+      return (route.routeId || route.id) === routeId && belongsToPublisher(route, publisher);
+    });
+    if (routeIndex < 0) {
+      return sendProtectedJson(response, 404, { ok: false, reason: "route_not_found" });
+    }
+
+    const route = current.routes[routeIndex];
+    const actor = "leader:" + String(publisher.username || publisher.id || "").trim();
+    const at = new Date().toISOString();
+    const next = action === "cancel" ?
+      cancellation.cancelRoute(route, {
+        code: parsed.body.cancelCode,
+        publicNote: parsed.body.publicNote,
+        actor,
+        at
+      }) :
+      cancellation.restoreRoute(route, { actor, at });
+
+    next.updatedAt = at;
+    const routes = current.routes.slice();
+    routes[routeIndex] = next;
+    const commit = await writeRoutesFile({
+      content: JSON.stringify(routes, null, 2) + "\n",
+      sha: current.sha,
+      message: action === "cancel" ?
+        "Cancel Route: " + (next.title || routeId) :
+        "Restore Route: " + (next.title || routeId)
+    });
+
+    return sendProtectedJson(response, 200, {
+      ok: true,
+      route: next,
+      branch,
+      commit: commit.commit && commit.commit.sha ? commit.commit.sha : null
+    });
+  } catch (error) {
+    return sendProtectedJson(response, error.status || 500, {
+      ok: false,
+      reason: error.reason || "network_failed"
+    });
+  }
+}
 
 async function handleAltarRead(response, routes) {
   let state = { routes: {}, audit: [] };
@@ -128,19 +198,50 @@ async function handleAltarAction(request, response) {
   }
 }
 
-async function readRoutes() {
+async function readRoutesFile() {
   const result = await fetch(contentsUrl(), {
     method: "GET",
     headers: requestHeaders()
   });
 
-  if (result.status === 404) return [];
-  if (!result.ok) throw new Error("routes_unavailable");
+  if (result.status === 404) return { routes: [], sha: null };
+  if (!result.ok) throw knownError("routes_unavailable", result.status);
 
   const file = await result.json();
-  const text = Buffer.from(file.content || "", "base64").toString("utf8");
-  const routes = JSON.parse(text || "[]");
-  return Array.isArray(routes) ? routes : [];
+  let routes;
+  try {
+    const text = Buffer.from(file.content || "", "base64").toString("utf8");
+    routes = JSON.parse(text || "[]");
+  } catch (error) {
+    throw knownError("json_conflict", 409);
+  }
+  if (!Array.isArray(routes)) throw knownError("json_conflict", 409);
+  return { routes, sha: file.sha || null };
+}
+
+async function readRoutes() {
+  const current = await readRoutesFile();
+  return current.routes;
+}
+
+async function writeRoutesFile({ content, message, sha }) {
+  const body = {
+    message,
+    content: Buffer.from(content, "utf8").toString("base64"),
+    branch
+  };
+  if (sha) body.sha = sha;
+
+  const result = await fetch(contentsUrl(), {
+    method: "PUT",
+    headers: requestHeaders(true),
+    body: JSON.stringify(body)
+  });
+
+  if (result.status === 401 || result.status === 403) throw knownError("token_invalid", 401);
+  if (result.status === 409 || result.status === 422) throw knownError("commit_conflict", 409);
+  if (!result.ok) throw knownError("network_failed", result.status);
+  return result.json();
 }
 
 function projectPublicRoutes(routes, now = new Date(), supervisionRoutes = {}) {
@@ -169,13 +270,19 @@ function projectPublicRoutes(routes, now = new Date(), supervisionRoutes = {}) {
 
 function privateRoutesForLeader(routes, publisher) {
   const owned = (Array.isArray(routes) ? routes : []).filter(function (route) {
-    return route && (route.leaderId === publisher.id || normalizeLeader(route.leader) === normalizeLeader(publisher.username));
+    return belongsToPublisher(route, publisher);
   }).sort(function (left, right) {
     return String(right.updatedAt || right.createdAt || "").localeCompare(String(left.updatedAt || left.createdAt || ""));
   });
 
   if (!owned.length) return [];
   return [{ ...owned[0], slot: "" }];
+}
+
+function belongsToPublisher(route, publisher) {
+  if (!route || !publisher) return false;
+  if (route.leaderId && route.leaderId === publisher.id) return true;
+  return normalizeLeader(route.leader) === normalizeLeader(publisher.username);
 }
 
 function compareAscending(left, right) {
@@ -260,19 +367,20 @@ function contentsUrl() {
   return "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" + routesPath + "?ref=" + branch;
 }
 
-function requestHeaders() {
+function requestHeaders(json) {
   const headers = {
     "Accept": "application/vnd.github+json",
     "User-Agent": "budao-routes-reader",
     "X-GitHub-Api-Version": "2022-11-28"
   };
+  if (json) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = "Bearer " + token;
   return headers;
 }
 
 function setCorsHeaders(response) {
   response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
@@ -280,8 +388,17 @@ function sendJson(response, status, body) {
   response.status(status).json(body);
 }
 
+function knownError(reason, status) {
+  const error = new Error(reason);
+  error.reason = reason;
+  error.status = status;
+  return error;
+}
+
 module.exports.projectPublicRoutes = projectPublicRoutes;
 module.exports.eventTimeMs = eventTimeMs;
 module.exports.privateRoutesForLeader = privateRoutesForLeader;
+module.exports.belongsToPublisher = belongsToPublisher;
+module.exports.handleLeaderStatusAction = handleLeaderStatusAction;
 module.exports.handleAltarRead = handleAltarRead;
 module.exports.handleAltarAction = handleAltarAction;

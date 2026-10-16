@@ -70,6 +70,11 @@
     }
   }
 
+  function routeType(value) {
+    const type = String(value || "budao").trim().toLowerCase();
+    return allowedStepTypes.indexOf(type) >= 0 ? type : "budao";
+  }
+
   function mergeStepSchedule(base, events, routes) {
     const merged = {};
 
@@ -84,7 +89,7 @@
 
     (Array.isArray(routes) ? routes : []).forEach(function (route) {
       if (!route) return;
-      const type = allowedStepTypes.indexOf(route.calendarType) >= 0 ? route.calendarType : "budao";
+      const type = routeType(route.calendarType);
       if (route.calendarType === "none") return;
       addStep(merged, route.date, type);
     });
@@ -92,7 +97,56 @@
     return merged;
   }
 
-  function dayRecord(date, todayKey, schedule) {
+  function cancellationIdentity(item, type, source) {
+    const routeId = String(item && (item.routeId || item.id) || "").trim();
+    const date = String(item && item.date || "");
+    if (routeId) return ["route", routeId, date, type].join("|");
+    return [source || "unknown", String(item && item.slot || ""), date, type, String(item && item.title || "")].join("|");
+  }
+
+  function mergeCancellationSchedule(events, routes) {
+    const records = new Map();
+
+    function remember(item, type, source) {
+      if (!item || !isDateKey(item.date) || allowedStepTypes.indexOf(type) < 0) return;
+      const key = cancellationIdentity(item, type, source);
+      records.set(key, {
+        date: item.date,
+        type,
+        status: item.status === "cancelled" ? "cancelled" : "scheduled"
+      });
+    }
+
+    (Array.isArray(events) ? events : []).forEach(function (event) {
+      if (!event || event.type === "none") return;
+      remember(event, routeType(event.type), event.source || "event");
+    });
+
+    // Live route state deliberately overwrites a same-route ledger record for
+    // the same date/type, so cancellation is visible immediately while the
+    // calendar ledger workflow catches up.
+    (Array.isArray(routes) ? routes : []).forEach(function (route) {
+      if (!route || route.calendarType === "none") return;
+      remember(route, routeType(route.calendarType), "route");
+    });
+
+    const groups = new Map();
+    records.forEach(function (record) {
+      const key = record.date + "|" + record.type;
+      const group = groups.get(key) || { date: record.date, type: record.type, active: false, cancelled: false };
+      if (record.status === "cancelled") group.cancelled = true;
+      else group.active = true;
+      groups.set(key, group);
+    });
+
+    const schedule = {};
+    groups.forEach(function (group) {
+      if (group.cancelled && !group.active) addStep(schedule, group.date, group.type);
+    });
+    return schedule;
+  }
+
+  function dayRecord(date, todayKey, schedule, cancellationSchedule) {
     const key = dateKey(date);
     return {
       year: date.getFullYear(),
@@ -102,22 +156,23 @@
       weekend: date.getDay() === 0 || date.getDay() === 6,
       isToday: key === todayKey,
       dateKey: key,
-      steps: stepsForDate(key, schedule)
+      steps: stepsForDate(key, schedule),
+      cancelledSteps: stepsForDate(key, cancellationSchedule || {})
     };
   }
 
-  function monthRecord(year, monthIndex, days, label, todayKey, schedule) {
+  function monthRecord(year, monthIndex, days, label, todayKey, schedule, cancellationSchedule) {
     return {
       year,
       monthIndex,
       label,
       monthText: String(monthIndex + 1) + "月",
       monthEnglish: monthNames[monthIndex],
-      days: days.map(function (date) { return dayRecord(date, todayKey, schedule); })
+      days: days.map(function (date) { return dayRecord(date, todayKey, schedule, cancellationSchedule); })
     };
   }
 
-  function buildCalendarModel(now, schedule) {
+  function buildCalendarModel(now, schedule, cancellationSchedule) {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayKey = dateKey(today);
     const year = today.getFullYear();
@@ -154,9 +209,9 @@
     const nextDays = daysForMonth(nextMonthStart.getFullYear(), nextMonthStart.getMonth());
 
     return {
-      previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "", todayKey, schedule || baseStepSchedule),
-      current: monthRecord(year, monthIndex, currentDays, "", todayKey, schedule || baseStepSchedule),
-      next: monthRecord(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextDays, "", todayKey, schedule || baseStepSchedule)
+      previous: monthRecord(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousDays, "", todayKey, schedule || baseStepSchedule, cancellationSchedule),
+      current: monthRecord(year, monthIndex, currentDays, "", todayKey, schedule || baseStepSchedule, cancellationSchedule),
+      next: monthRecord(nextMonthStart.getFullYear(), nextMonthStart.getMonth(), nextDays, "", todayKey, schedule || baseStepSchedule, cancellationSchedule)
     };
   }
 
@@ -171,16 +226,18 @@
 
   function renderStepMarks(day) {
     const steps = (day.steps || []).slice(0, 3);
+    const cancelledSteps = day.cancelledSteps || [];
     if (!steps.length) {
       return "";
     }
 
     const label = steps.map(function (type) {
-      return stepTypeLabels[type] || type;
+      return (stepTypeLabels[type] || type) + (cancelledSteps.indexOf(type) >= 0 ? "（已取消）" : "");
     }).join("、");
 
     const marks = steps.map(function (type) {
-      return "<span class=\"budao-calendar-step-mark budao-calendar-step-mark--" + escapeHtml(type) + "\" aria-hidden=\"true\"></span>";
+      const cancelled = cancelledSteps.indexOf(type) >= 0;
+      return "<span class=\"budao-calendar-step-mark budao-calendar-step-mark--" + escapeHtml(type) + (cancelled ? " is-cancelled" : "") + "\" aria-hidden=\"true\"></span>";
     }).join("");
 
     return "<div class=\"budao-calendar-step-stack\" data-count=\"" + steps.length + "\" aria-label=\"" + escapeHtml(label) + "\">" + marks + "</div>";
@@ -231,8 +288,8 @@
     scroll.scrollLeft = centeredScrollPosition(dayLeft, todayRect.width, scroll.clientWidth);
   }
 
-  function renderCalendar(host, now, schedule) {
-    const model = buildCalendarModel(now || new Date(), schedule || baseStepSchedule);
+  function renderCalendar(host, now, schedule, cancellationSchedule) {
+    const model = buildCalendarModel(now || new Date(), schedule || baseStepSchedule, cancellationSchedule || {});
     const widthForDays = function (count) {
       return "calc(var(--budao-calendar-flank-week-width, 245px) * " + count + " / 7)";
     };
@@ -286,6 +343,12 @@
     return JSON.stringify(left || {}) === JSON.stringify(right || {});
   }
 
+  function hasScheduleEntries(schedule) {
+    return Object.keys(schedule || {}).some(function (date) {
+      return Array.isArray(schedule[date]) && schedule[date].length > 0;
+    });
+  }
+
   function refreshPublishedSteps(host, now) {
     if (!host || typeof fetch !== "function") {
       return Promise.resolve(null);
@@ -296,10 +359,11 @@
       loadJson("/api/routes?calendar=" + Date.now())
     ]).then(function (sources) {
       const schedule = mergeStepSchedule(baseStepSchedule, sources[0], sources[1]);
-      if (sameSchedule(schedule, baseStepSchedule)) {
-        return buildCalendarModel(now || new Date(), schedule);
+      const cancellationSchedule = mergeCancellationSchedule(sources[0], sources[1]);
+      if (sameSchedule(schedule, baseStepSchedule) && !hasScheduleEntries(cancellationSchedule)) {
+        return buildCalendarModel(now || new Date(), schedule, cancellationSchedule);
       }
-      return renderCalendar(host, now || new Date(), schedule);
+      return renderCalendar(host, now || new Date(), schedule, cancellationSchedule);
     }).catch(function () {
       return null;
     });
@@ -307,7 +371,7 @@
 
   function mount(host, now) {
     const mountedAt = now || new Date();
-    const model = renderCalendar(host, mountedAt, baseStepSchedule);
+    const model = renderCalendar(host, mountedAt, baseStepSchedule, {});
     refreshPublishedSteps(host, mountedAt);
     return model;
   }
@@ -432,6 +496,7 @@
   return {
     buildCalendarModel,
     mergeStepSchedule,
+    mergeCancellationSchedule,
     centeredScrollPosition,
     centerToday,
     refreshPublishedSteps,
