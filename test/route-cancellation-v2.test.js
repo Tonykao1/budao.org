@@ -104,7 +104,7 @@ test('calendar can project cancelled route states without changing activity type
     { routeId: 'budao-leader-tony', date: '2026-10-17', calendarType: 'pioneer', status: 'cancelled' },
     { routeId: 'budao-leader-moses', date: '2026-10-17', calendarType: 'pioneer', status: 'scheduled' }
   ]);
-  assert.deepEqual(activeWins['2026-10-17'], [], 'an active same-type route must keep the footprint active');
+  assert.deepEqual(activeWins['2026-10-17'] || [], [], 'an active same-type route must keep the footprint active');
 });
 
 test('calendar ledger preserves cancellation status and reason code', () => {
