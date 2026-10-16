@@ -187,3 +187,23 @@ test('scripture reader survives a reading-stage DOM rebuild during microphone re
  assert.match(ui,/lastReaderNode=reader/);
  assert.match(ui,/function enhanceReadingStage\(\)[\s\S]*if\(activeChapter\)renderReader\(\)/);
 });
+
+
+test('scripture companion maps audio time to the selected verses by text weight',()=>{
+ const R=require('../pasture-preview/my-grass-reading-v1.js');
+ const verses=[{verse:1,text:'abcd'},{verse:2,text:'abcdefgh'},{verse:3,text:'abcdefghijkl'}];
+ assert.equal(R.verseForAudioProgress(verses,0,24),1);
+ assert.equal(R.verseForAudioProgress(verses,5,24),2);
+ assert.equal(R.verseForAudioProgress(verses,13,24),3);
+ assert.equal(R.verseForAudioProgress(verses,24,24),3);
+ assert.equal(R.verseForAudioProgress(verses,5,0),null);
+});
+
+test('reading layer listens for linked-audio progress and keeps one quiet current verse',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
+ assert.match(ui,/mygrass:reading-audio-progress/);
+ assert.match(ui,/classList\.remove\('is-following'\)/);
+ assert.match(ui,/classList\.add\('is-following'\)/);
+ assert.match(ui,/detail\.state==='ended'/);
+ assert.match(ui,/scrollIntoView/);
+});

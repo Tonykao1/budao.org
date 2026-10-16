@@ -15,6 +15,20 @@
  const ESV_NAME='English Standard Version (ESV)';
  const CUV_NAME='圣经和合本（神版）';
 
+ function verseForAudioProgress(verses,currentTime,duration){
+  const list=Array.isArray(verses)?verses.filter(v=>Number.isFinite(Number(v?.verse))):[];
+  const totalDuration=Number(duration),time=Number(currentTime);
+  if(!list.length||!Number.isFinite(totalDuration)||totalDuration<=0||!Number.isFinite(time))return null;
+  const weights=list.map(v=>Math.max(1,String(v.text||'').replace(/\s+/g,'').length));
+  const totalWeight=weights.reduce((sum,value)=>sum+value,0);
+  const clamped=Math.max(0,Math.min(time,totalDuration));
+  if(clamped>=totalDuration)return Number(list[list.length-1].verse);
+  const target=(clamped/totalDuration)*totalWeight;
+  let cursor=0;
+  for(let i=0;i<list.length;i++){cursor+=weights[i];if(target<cursor)return Number(list[i].verse)}
+  return Number(list[list.length-1].verse);
+ }
+
  function parseEsvNumberedText(value){
   const text=String(value||'').replace(/\s*\(ESV\)\s*$/,'').trim();
   const marker=/\[(\d+)\]\s*/g,matches=[];let match;
@@ -180,6 +194,26 @@
    if(stopped)return;if(timer)root.clearTimeout(timer);timer=root.setTimeout(()=>{timer=null;syncUi()},delay);
   }
 
+  function clearAudioFollow(){
+   workspace()?.querySelectorAll('.gs-verse.is-following').forEach(node=>node.classList.remove('is-following'));
+  }
+  function keepFollowVisible(button){
+   const reader=workspace()?.querySelector('#gsVerseReader');if(!reader||!button)return;
+   const outer=reader.getBoundingClientRect?.(),inner=button.getBoundingClientRect?.();
+   if(!outer||!inner)return;
+   if(inner.top<outer.top||inner.bottom>outer.bottom)button.scrollIntoView?.({block:'nearest',inline:'nearest'});
+  }
+  function onAudioProgress(event){
+   const detail=event?.detail||{};clearAudioFollow();
+   if(detail.state==='ended'||detail.state==='cleared')return;
+   if(session?.status!=='completed'||!activeChapter)return;
+   const selected=activeChapter.verses.filter(v=>v.verse>=session.startVerse&&v.verse<=session.endVerse);
+   const verse=verseForAudioProgress(selected,detail.currentTime,detail.duration);if(!verse)return;
+   const button=workspace()?.querySelector('.gs-verse[data-verse="'+verse+'"]');if(!button)return;
+   button.classList.add('is-following');
+   if(detail.state==='playing')keepFollowVisible(button);
+  }
+
   function pointFromButton(button){
    const p=currentParsed();if(!p)throw Error('请先翻到一个有效章节。');
    const verse=Number(button.dataset.verse),verseId=String(button.dataset.verseId||'');
@@ -247,12 +281,14 @@
 
   injectStyle();
   doc.addEventListener('click',onClick,true);doc.addEventListener('change',onChange,true);
+  doc.addEventListener('mygrass:reading-audio-progress',onAudioProgress);
   const Mutation=root.MutationObserver;
   if(Mutation&&doc.documentElement){observer=new Mutation(()=>schedule(0));observer.observe(doc.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']})}
   normalizeFreshPage();schedule(0);
   const cleanup=()=>{
    stopped=true;if(timer)root.clearTimeout(timer);loadToken++;observer?.disconnect();
    doc.removeEventListener('click',onClick,true);doc.removeEventListener('change',onChange,true);
+   doc.removeEventListener('mygrass:reading-audio-progress',onAudioProgress);clearAudioFollow();
    C.setRuntimeReadingSession(null);C.setReadingSessionRequired(false);delete root.__myGrassReadingV1Cleanup;
   };
   root.__myGrassReadingV1Cleanup=cleanup;return cleanup;
@@ -261,5 +297,5 @@
   const run=()=>install(root);
   if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',run,{once:true});else run();
  }
- return Object.freeze({parseEsvNumberedText,loadReadingChapter,install,autoInstall});
+ return Object.freeze({parseEsvNumberedText,verseForAudioProgress,loadReadingChapter,install,autoInstall});
 });

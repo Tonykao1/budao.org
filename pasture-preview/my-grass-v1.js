@@ -231,7 +231,7 @@ function stageReading(){
   '<div class="gs-scripture-controls"><button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
   '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div></div>'+
   '<textarea data-field="scriptureText" maxlength="10000" hidden>'+escape(draft.scripture.text)+'</textarea></section>'+
-  '<section class="gs-panel gs-recording-panel" aria-label="个人原声朗读"><h3>我的朗读</h3>'+
+  '<section class="gs-panel gs-recording-panel" aria-label="今日读经原声"><h3>今日读经</h3>'+
   '<div class="gs-recorder-console" data-state="'+state+'">'+
     '<div class="gs-recorder-deck"><div class="gs-recorder-brand"><strong>ORIGINAL VOICE</strong><span>LOCAL RECORDER</span></div>'+
      '<div class="gs-recorder-keys">'+
@@ -326,7 +326,12 @@ function stageReflection(){
     request.onerror=()=>reject(request.error);
    })}finally{db.close()}
   }
+  function broadcastReadingAudioProgress(state,player){
+   const duration=Number(player?.duration),currentTime=Number(player?.currentTime);
+   document.dispatchEvent(new CustomEvent('mygrass:reading-audio-progress',{detail:{state,currentTime:Number.isFinite(currentTime)?currentTime:0,duration:Number.isFinite(duration)?duration:0,audioId:draft.reading.audioId||null}}));
+  }
   function clearPlayer(){
+   if(activePlayer)broadcastReadingAudioProgress('cleared',activePlayer);
    try{activePlayer?.pause?.()}catch(_){}
    activePlayer=null;
    if(activeAudioURL){URL.revokeObjectURL(activeAudioURL);activeAudioURL=null}
@@ -346,7 +351,10 @@ function stageReflection(){
    if(consoleNode)consoleNode.dataset.state=state;if(screen)screen.dataset.state=state;
    if(status)status.textContent=state==='playing'?'PLAY · 正在回听':'LINKED · 已与 '+draft.scripture.reference+' 绑定';
   };
-  player.addEventListener('play',sync);player.addEventListener('pause',sync);player.addEventListener('ended',sync);
+  player.addEventListener('play',()=>{sync();broadcastReadingAudioProgress('playing',player)});
+  player.addEventListener('timeupdate',()=>broadcastReadingAudioProgress(player.ended?'ended':player.paused?'paused':'playing',player));
+  player.addEventListener('pause',()=>{sync();if(!player.ended)broadcastReadingAudioProgress('paused',player)});
+  player.addEventListener('ended',()=>{sync();broadcastReadingAudioProgress('ended',player)});
   return player;
  }catch(e){host.textContent='无法读取本机原声：'+String(e.message||e);return null}
 }

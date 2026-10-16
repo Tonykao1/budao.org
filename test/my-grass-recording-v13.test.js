@@ -51,3 +51,22 @@ test('physical recorder styling stays compact and uses a screen-plus-key layout'
  assert.match(style,/\.gs-recorder-link\{/);
  assert.match(style,/data-state="recording"/);
 });
+
+
+test('right reading area is titled 今日读经 and broadcasts playback progress to scripture',()=>{
+ const src=app();
+ assert.match(src,/gs-recording-panel[^\n]*[\s\S]{0,220}<h3>今日读经<\/h3>/);
+ assert.match(src,/mygrass:reading-audio-progress/);
+ assert.match(src,/addEventListener\('timeupdate'/);
+ assert.match(src,/addEventListener\('pause'/);
+ assert.match(src,/addEventListener\('ended'/);
+});
+
+test('approved recorder layout moves upward without transforms so space below is reusable',()=>{
+ const style=css();
+ assert.match(style,/\.gs-recording-panel\{[^}]*padding-top:0!important/);
+ assert.match(style,/\.gs-recording-panel>h3\{[^}]*margin-bottom:/);
+ assert.match(style,/\.gs-recorder-console\{[^}]*margin:0 0 7px/);
+ assert.doesNotMatch(style,/\.gs-recording-panel\{[^}]*transform:/);
+ assert.match(style,/\.gs-verse\.is-following span\{[^}]*font-weight:900/);
+});
