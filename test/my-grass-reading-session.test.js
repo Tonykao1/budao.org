@@ -98,3 +98,23 @@ test('option A reading feedback stays quiet: grass trace, dark start verse, tiny
  assert.match(css,/\.gs-verse\.is-end:not\(\.is-start\) sup[\s\S]*#9b7e58[\s\S]*!important/);
  assert.match(css,/\.gs-reception-guide[\s\S]*background:transparent!important/);
 });
+
+
+test('chapter-first navigation hides legacy verse-range controls and isolates auto-loaded scripture before apply',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
+ assert.match(ui,/\.gs-nav-verses[^\n]*style\.display='none'/);
+ assert.match(ui,/button\.matches\('\[data-nav="apply"\]'\)&&!session/);
+ assert.match(ui,/text\.dataset\.scriptureSource\|\|text\.dataset\.scriptureState==='ready'/);
+ assert.match(ui,/text\.value='';delete text\.dataset\.scriptureSource/);
+ assert.match(ui,/dispatchInput\(text\)/);
+});
+
+test('ESV reader waits for the Bible hydrator instead of issuing a second UI request and fixes attribution visibility',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
+ assert.match(ui,/chapterFromExistingEsv/);
+ assert.match(ui,/正在载入 ESV 经文/);
+ assert.match(ui,/lastStageKey='';schedule\(80\);return/);
+ assert.match(ui,/scriptureState==='error'/);
+ assert.match(ui,/function syncAttribution/);
+ assert.match(ui,/attribution\.style\.display=show\?'block':'none'/);
+});

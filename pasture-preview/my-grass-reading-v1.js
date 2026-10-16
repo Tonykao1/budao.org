@@ -124,7 +124,14 @@
    reader.innerHTML='<span class="gs-small">正在展开本章经文……</span>';
    try{
     let chapter=cache.get(key)||null;
-    if(!chapter&&tid===ESV_ID)chapter=chapterFromExistingEsv(p.book,p.chapter);
+    if(!chapter&&tid===ESV_ID){
+     chapter=chapterFromExistingEsv(p.book,p.chapter);
+     if(!chapter){
+      const text=ws.querySelector('[data-field="scriptureText"]');
+      if(text?.dataset.scriptureState==='error')throw Error(text.placeholder||'ESV 经文暂时无法载入。');
+      reader.innerHTML='<span class="gs-small">正在载入 ESV 经文……</span>';lastStageKey='';schedule(80);return;
+     }
+    }
     if(!chapter)chapter=await loadReadingChapter(p.book,p.chapter,tid);
     if(stopped||token!==loadToken||!workspace()?.querySelector('#gsVerseReader'))return;
     activeChapter=chapter;chapterKey=key;
@@ -140,7 +147,7 @@
    const nav=doc.getElementById('gsBibleNav');if(!nav||nav.hidden)return;
    const whole=nav.querySelector('#gsNavWhole');
    if(whole&&!whole.checked){whole.checked=true;whole.dispatchEvent(new root.Event('change',{bubbles:true}))}
-   const verses=nav.querySelector('.gs-nav-verses');if(verses)verses.hidden=true;
+   const verses=nav.querySelector('.gs-nav-verses');if(verses){verses.hidden=true;verses.style.display='none'}
    const title=nav.querySelector('#gsNavTitle');if(title)title.textContent='经卷定位';
    const warning=nav.querySelector('#gsNavWarning');if(warning)warning.textContent='定位章节不会记作读过。';
    const apply=nav.querySelector('[data-nav="apply"]');if(apply)apply.textContent='翻到这里';
@@ -173,12 +180,15 @@
    }
    const p=currentParsed(),key=(translationId())+'|'+(p?.book||'')+'|'+(p?.chapter||'');
    if(key!==lastStageKey){lastStageKey=key;activeChapter=null;chapterKey='';hydrateChapter()}
-   else if(activeChapter)renderReader();
   }
 
+  function syncAttribution(){
+   const ws=workspace(),attribution=ws?.querySelector('#gsEsvAttribution');if(!attribution)return;
+   const show=translationId()===ESV_ID;attribution.hidden=!show;attribution.style.display=show?'block':'none';
+  }
   function syncUi(){
    if(stopped)return;enhanceNavigation();
-   const ws=workspace();if(!ws)return;
+   const ws=workspace();if(!ws)return;syncAttribution();
    if(ws.querySelector('[data-field="scriptureText"]'))enhanceReadingStage();
   }
   function schedule(delay=0){
@@ -217,6 +227,14 @@
 
   function onClick(event){
    const button=event.target.closest?.('button');if(!button)return;
+   if(button.matches('[data-nav="apply"]')&&!session){
+    const text=workspace()?.querySelector('[data-field="scriptureText"]');
+    if(text&&(text.dataset.scriptureSource||text.dataset.scriptureState==='ready')){
+     text.value='';delete text.dataset.scriptureSource;delete text.dataset.verseIds;delete text.dataset.scriptureState;dispatchInput(text);
+    }
+    const whole=doc.querySelector('#gsNavWhole');if(whole&&!whole.checked){whole.checked=true;whole.dispatchEvent(new root.Event('change',{bubbles:true}))}
+    return;
+   }
    if(button.matches('[data-nav="apply"]')&&session){
     event.preventDefault();event.stopImmediatePropagation();
     const warning=doc.querySelector('#gsNavWarning');if(warning)warning.textContent=session.status==='reading'?'请先完成本次阅读，再翻到另一章。':'本次阅读已完成；请先「新开一页」，再翻到另一章。';return;
