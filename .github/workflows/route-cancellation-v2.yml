@@ -1,0 +1,36 @@
+name: Route Cancellation V2
+
+on:
+  pull_request:
+    paths:
+      - 'route-cancellation-*.js'
+      - 'route-cancellation.css'
+      - 'tent-cancellation.js'
+      - 'tent-meeting-module.js'
+      - 'route-invitation-action.js'
+      - 'budao-calendar.js'
+      - 'scripts/sync-calendar-events.js'
+      - 'api/routes.js'
+      - 'api/publish-route-v2.js'
+      - 'api/invitation.js'
+      - 'test/route-cancellation-v2.test.js'
+      - 'package.json'
+      - '.github/workflows/route-cancellation-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: node --test --test-concurrency=1 test/calendar-data-sync.test.js test/calendar-strip.test.js test/route-cancellation-v2.test.js test/vercel-function-budget.test.js
+      - run: npm run build
