@@ -126,9 +126,34 @@
     handleCreate(button);
   }
 
+  function loadCancellationPublic(){
+    if(typeof document === 'undefined' || document.getElementById('budaoRouteCancellationPublicCore')) return;
+
+    if(!document.querySelector('link[data-budao-cancellation]')){
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = '/route-cancellation.css?v=20261016';
+      stylesheet.setAttribute('data-budao-cancellation', '1');
+      document.head.appendChild(stylesheet);
+    }
+
+    const core = document.createElement('script');
+    core.id = 'budaoRouteCancellationPublicCore';
+    core.src = '/route-cancellation-core.js?v=20261016';
+    core.onload = function(){
+      if(document.getElementById('budaoRouteCancellationPublic')) return;
+      const publicModule = document.createElement('script');
+      publicModule.id = 'budaoRouteCancellationPublic';
+      publicModule.src = '/route-cancellation-public.js?v=20261016';
+      document.body.appendChild(publicModule);
+    };
+    document.body.appendChild(core);
+  }
+
   // bind once
   if (typeof document !== 'undefined'){
     document.addEventListener('click', onClick, false);
+    loadCancellationPublic();
   }
 
 })();
