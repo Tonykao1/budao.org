@@ -189,6 +189,20 @@
     "qrCode": "https://raw.githubusercontent.com/Tonykao1/budao.org/main/route-assets/leo/a2b42765fe019745105e7a13edc13f62.png",
     "imageAlt": "IMG_6863.jpg",
     "createdAt": "2026-10-16T02:02:04.835Z",
-    "updatedAt": "2026-10-16T02:02:04.835Z"
+    "updatedAt": "2026-10-16T15:07:17.355Z",
+    "status": "cancelled",
+    "cancelCode": "WX",
+    "cancelPublicNote": "",
+    "cancelledAt": "2026-10-16T15:07:17.355Z",
+    "cancelledBy": "leader:leo",
+    "restoredAt": "",
+    "statusHistory": [
+      {
+        "status": "cancelled",
+        "code": "WX",
+        "at": "2026-10-16T15:07:17.355Z",
+        "by": "leader:leo"
+      }
+    ]
   }
 ]
