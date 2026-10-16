@@ -80,7 +80,8 @@
  const freezeEntry=v=>Object.freeze(v.slice());
  const groups=Object.freeze({old:Object.freeze(old.map(freezeEntry)),new:Object.freeze(newTestament.map(freezeEntry))});
  const all=Object.freeze([...groups.old,...groups.new]);
- const chapterCache=new Map();
+ const chapterCache=new Map(),esvPassageCache=new Map();
+ let esvCustomCaches=new WeakMap();
 
  function resolve(abbrOrName){
   const s=String(abbrOrName||'').trim();
@@ -184,16 +185,28 @@
  }
  async function loadEsvPassage(referenceOrState,fetchImpl){
   const state=normalizeState(referenceOrState),reference=normalizeReference(state),canonicalRequest=toEnglishReference(state);
-  const fetcher=fetchImpl||(typeof fetch==='function'?fetch:null);if(!fetcher)throw Error('当前环境无法载入 ESV 经文。');
-  const response=await fetcher(esvTranslation.endpoint+'?reference='+encodeURIComponent(canonicalRequest),{cache:'no-store',headers:{Accept:'application/json'}});
-  let data={};try{data=await response.json()}catch(e){}
-  if(!response.ok){
-   if(response.status===503&&data.reason==='esv_not_configured')throw Error('ESV API 尚未配置。请先在 Vercel 设置 ESV_API_KEY。');
-   if(response.status===429)throw Error('ESV 经文请求暂时较多，请稍后再试。');
-   throw Error('ESV 经文暂时无法载入。');
+  const cacheKey=canonicalRequest;
+  let passageCache=esvPassageCache;
+  if(fetchImpl&&typeof fetchImpl==='function'){
+   passageCache=esvCustomCaches.get(fetchImpl);
+   if(!passageCache){passageCache=new Map();esvCustomCaches.set(fetchImpl,passageCache)}
   }
-  const text=String(data.text||'').trim();if(!text)throw Error('ESV 经文返回为空。');
-  return {reference,canonical:String(data.canonical||canonicalRequest),translation:esvTranslation.name,source:esvTranslation.id,storage:esvTranslation.storage,verseIds:verseIdsForState(state),text,copyright:String(data.copyright||'ESV')};
+  if(passageCache.has(cacheKey))return passageCache.get(cacheKey);
+  const pending=(async()=>{
+   const fetcher=fetchImpl||(typeof fetch==='function'?fetch:null);if(!fetcher)throw Error('当前环境无法载入 ESV 经文。');
+   const response=await fetcher(esvTranslation.endpoint+'?reference='+encodeURIComponent(canonicalRequest),{cache:'no-store',headers:{Accept:'application/json'}});
+   let data={};try{data=await response.json()}catch(e){}
+   if(!response.ok){
+    if(response.status===503&&data.reason==='esv_not_configured')throw Error('ESV API 尚未配置。请先在 Vercel 设置 ESV_API_KEY。');
+    if(response.status===429)throw Error('ESV 经文请求暂时较多，请稍后再试。');
+    throw Error('ESV 经文暂时无法载入。');
+   }
+   const text=String(data.text||'').trim();if(!text)throw Error('ESV 经文返回为空。');
+   return {reference,canonical:String(data.canonical||canonicalRequest),translation:esvTranslation.name,source:esvTranslation.id,storage:esvTranslation.storage,verseIds:verseIdsForState(state),text,copyright:String(data.copyright||'ESV')};
+  })();
+  passageCache.set(cacheKey,pending);
+  try{const result=await pending;passageCache.set(cacheKey,Promise.resolve(result));return result}
+  catch(error){passageCache.delete(cacheKey);throw error}
  }
  function resolveTranslationId(value){
   const s=String(value||'').trim();
@@ -211,7 +224,7 @@
   let picker=workspace.querySelector('#gsTranslationPicker');
   if(!picker){
    picker=doc.createElement('select');picker.id='gsTranslationPicker';picker.className='gs-translation-picker';picker.setAttribute('aria-label','圣经译本');
-   picker.innerHTML='<option value="'+cuvTranslation.id+'">'+cuvTranslation.name+'</option><option value="'+esvTranslation.id+'">'+esvTranslation.name+'</option>';
+   picker.innerHTML='<option value="'+cuvTranslation.id+'">和合本（神版）</option><option value="'+esvTranslation.id+'">ESV</option>';
    hiddenInput.parentNode.insertBefore(picker,hiddenInput.nextSibling);
    picker.addEventListener('change',onChange);
   }
@@ -308,7 +321,7 @@
   const run=()=>{if(root.__myGrassBibleInstalled)return;root.__myGrassBibleInstalled=true;root.__myGrassBibleCleanup=installMyGrassIntegration(root.document)};
   if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',run,{once:true});else run();
  }
- function clearCache(){chapterCache.clear()}
+ function clearCache(){chapterCache.clear();esvPassageCache.clear();esvCustomCaches=new WeakMap()}
 
  return Object.freeze({translation,translations,groups,resolve,groupOf,bookMeta,clampChapter,format,parse,verseId,toEnglishReference,chapterUrl,loadChapter,extractPassage,loadPassage,loadEsvPassage,loadTranslationPassage,installMyGrassIntegration,autoInstall,clearCache});
 });

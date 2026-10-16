@@ -2,6 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const C=require('../pasture-preview/my-grass-core.js');
+const B=require('../pasture-preview/my-grass-bible-v04.js');
 const R=require('../pasture-preview/my-grass-reading-v1.js');
 
 test('browsing a chapter creates no reading session; first verse click starts one',()=>{
@@ -109,12 +110,52 @@ test('chapter-first navigation hides legacy verse-range controls and isolates au
  assert.match(ui,/dispatchInput\(text\)/);
 });
 
-test('ESV reader waits for the Bible hydrator instead of issuing a second UI request and fixes attribution visibility',()=>{
+test('ESV reader uses the shared passage loader directly and fixes attribution visibility',()=>{
  const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
- assert.match(ui,/chapterFromExistingEsv/);
- assert.match(ui,/正在载入 ESV 经文/);
- assert.match(ui,/lastStageKey='';schedule\(80\);return/);
- assert.match(ui,/scriptureState==='error'/);
+ assert.doesNotMatch(ui,/chapterFromExistingEsv/);
+ assert.doesNotMatch(ui,/schedule\(80\)/);
+ assert.match(ui,/await loadReadingChapter\(p\.book,p\.chapter,tid\)/);
  assert.match(ui,/function syncAttribution/);
  assert.match(ui,/attribution\.style\.display=show\?'block':'none'/);
+});
+
+test('approved reading layout keeps scripture dominant with one compact toolbar',()=>{
+ const shell=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-v1.js'),'utf8');
+ const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
+ assert.match(shell,/class="gs-scripture-toolbar"/);
+ assert.match(shell,/class="gs-scripture-reference"[^>]*data-field="reference"/);
+ assert.match(shell,/data-field="translation"[^>]*hidden/);
+ assert.match(shell,/data-field="scriptureText"[^>]*hidden/);
+ assert.doesNotMatch(shell,/<label class="gs-field">译本<input/);
+ assert.doesNotMatch(shell,/<label class="gs-field">经文<textarea/);
+ assert.match(css,/\.gs-scripture-toolbar[\s\S]*display:flex/);
+ assert.match(css,/\.gs-verse-reader[\s\S]*flex:1/);
+});
+
+test('ESV reading renders from the shared loader promise instead of polling hidden textarea',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
+ assert.doesNotMatch(ui,/chapterFromExistingEsv/);
+ assert.doesNotMatch(ui,/schedule\(80\)/);
+ assert.match(ui,/await loadReadingChapter\(p\.book,p\.chapter,tid\)/);
+});
+
+test('concurrent ESV consumers share one in-memory request promise',async()=>{
+ B.clearCache();
+ let calls=0,release;
+ const gate=new Promise(resolve=>{release=resolve});
+ const fetcher=async()=>{
+  calls++;
+  await gate;
+  return {ok:true,status:200,json:async()=>({ok:true,canonical:'Revelation 3',text:'[1] First. [2] Second. (ESV)',copyright:'ESV'})};
+ };
+ const first=B.loadEsvPassage('启 3',fetcher);
+ const second=B.loadEsvPassage('启 3',fetcher);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(calls,1);
+ release();
+ const [a,b]=await Promise.all([first,second]);
+ assert.equal(a.text,b.text);
+ await B.loadEsvPassage('启 3',fetcher);
+ assert.equal(calls,1);
+ B.clearCache();
 });

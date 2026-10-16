@@ -111,13 +111,6 @@
    if(badge){badge.hidden=session?.status!=='completed';badge.textContent=session?.status==='completed'?'已完成 · '+session.reference:''}
   }
 
-  function chapterFromExistingEsv(book,chapter){
-   const ws=workspace(),text=ws?.querySelector('[data-field="scriptureText"]');
-   if(!text||text.dataset.scriptureSource!==ESV_ID||!text.value.trim())return null;
-   const verses=parseEsvNumberedText(text.value);if(!verses.length)return null;
-   const meta=B.bookMeta(book);
-   return {reference:meta.abbr+' '+chapter,translation:ESV_NAME,source:ESV_ID,storage:'reference-only',copyright:'ESV',verses:verses.map(v=>({...v,id:B.verseId(meta.abbr,chapter,v.verse)}))};
-  }
   async function hydrateChapter(){
    const ws=workspace(),reader=ws?.querySelector('#gsVerseReader');if(!reader)return;
    const p=currentParsed();if(!p){reader.textContent='请先选择书卷和章节。';return}
@@ -125,18 +118,10 @@
    reader.innerHTML='<span class="gs-small">正在展开本章经文……</span>';
    try{
     let chapter=cache.get(key)||null;
-    if(!chapter&&tid===ESV_ID){
-     chapter=chapterFromExistingEsv(p.book,p.chapter);
-     if(!chapter){
-      const text=ws.querySelector('[data-field="scriptureText"]');
-      if(text?.dataset.scriptureState==='error')throw Error(text.placeholder||'ESV 经文暂时无法载入。');
-      reader.innerHTML='<span class="gs-small">正在载入 ESV 经文……</span>';lastStageKey='';schedule(80);return;
-     }
-    }
     if(!chapter)chapter=await loadReadingChapter(p.book,p.chapter,tid);
     if(stopped||token!==loadToken||!workspace()?.querySelector('#gsVerseReader'))return;
     activeChapter=chapter;chapterKey=key;
-    if(tid!==ESV_ID)cache.set(key,chapter);
+    cache.set(key,chapter);
     renderReader();
    }catch(error){
     if(stopped||token!==loadToken)return;activeChapter=null;chapterKey='';
