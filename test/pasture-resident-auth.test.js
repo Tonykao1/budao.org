@@ -39,7 +39,7 @@ test('migration hard-enforces one sheep per resident',()=>{
  assert.match(sql,/CREATE UNIQUE INDEX[\s\S]*pasture_sheep\(user_id\)/);
  assert.match(sql,/REFERENCES pasture_users\(id\) ON DELETE CASCADE/);
 });
-test('guest controls are hidden; authenticated controls remain deliberately locked',()=>{
+test('guest controls are hidden; unfinished authenticated controls remain deliberately locked',()=>{
  const css=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','pasture-preview/pasture-resident-gate.css'),'utf8');
  const js=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','pasture-preview/pasture-resident-gate.js'),'utf8');
  assert.match(css,/body:not\(\.pasture-resident-authenticated\) \.actions/);
@@ -80,4 +80,14 @@ test('resident sheep hand uses relaxed, ready, and grabbing states while preserv
  assert.match(preview,/pasture-hand-cursor\.js/);
  assert.match(landscape,/residentHit\(e\.clientX,e\.clientY\)/);
  assert.match(landscape,/baaa01\.mp3/);
+});
+
+test('authenticated resident can enter 我的牧草 without legacy card activation while unfinished features stay locked',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const gate=fs.readFileSync(path.join(__dirname,'..','pasture-preview/pasture-resident-gate.js'),'utf8');
+ const preview=fs.readFileSync(path.join(__dirname,'..','pasture-preview/index.html'),'utf8');
+ assert.match(gate,/RESIDENT_OPEN_FEATURES[^\n]*grassBookBtn/);
+ assert.match(gate,/resident\s*&&\s*RESIDENT_OPEN_FEATURES\.has\(button\.id\)/);
+ assert.match(gate,/authenticated\s*&&\s*!RESIDENT_OPEN_FEATURES\.has\(button\.id\)/);
+ assert.match(preview,/protectedIds=\['returnNow','grassBookBtn','windNewsBtn','partnersBtn','mailBtn'\][\s\S]*protectedIds=\['returnNow','windNewsBtn','partnersBtn','mailBtn'\]/);
 });
