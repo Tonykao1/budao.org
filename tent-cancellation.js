@@ -163,7 +163,7 @@
     if (confirmButton) confirmButton.disabled = true;
 
     try {
-      const response = await fetch("/api/route-status", {
+      const response = await fetch("/api/routes", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
