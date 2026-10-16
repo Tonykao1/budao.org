@@ -1,0 +1,48 @@
+name: My Grass V1.3 recording patch apply
+
+on:
+  push:
+    branches:
+      - feat/my-grass-cuv-shen-bible-v1
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/my-grass-cuv-shen-bible-v1
+          fetch-depth: 1
+
+      - name: Reassemble verified patch
+        shell: bash
+        run: |
+          cat .github/patches/my-grass-rec-v13b.* > /tmp/recording-v13.b64
+          test "$(wc -c < /tmp/recording-v13.b64)" -eq 10844
+          echo "72b420ce77ba4b261b937ef1a0fe6fc2a2fb6c42451505f48245a25a95e60e3e  /tmp/recording-v13.b64" | sha256sum -c -
+          base64 -d /tmp/recording-v13.b64 | gunzip > /tmp/recording-v13.patch
+          git apply --check /tmp/recording-v13.patch
+          git apply /tmp/recording-v13.patch
+
+      - name: Verify restored recording flow
+        run: |
+          node --test test/my-grass-recording-v13.test.js
+          npm run build
+          npm run lint
+          node --test --test-name-pattern='Hobby deployment stays within twelve' test/vercel-function-budget.test.js
+          git diff --check
+
+      - name: Commit verified product changes and clean transfer files
+        shell: bash
+        run: |
+          git config user.name 'OpenAI'
+          git config user.email 'noreply@openai.com'
+          git add package.json pasture-preview/my-grass-v1.js pasture-preview/my-grass-immersive-v04.css test/my-grass-recording-v13.test.js
+          git rm .github/workflows/my-grass-recording-v13-apply-patch.yml
+          git rm .github/patches/my-grass-rec-v13.*
+          git rm .github/patches/my-grass-rec-v13b.*
+          git commit -m 'fix(my-grass): restore V1.3 recording controls'
+          git push origin HEAD:feat/my-grass-cuv-shen-bible-v1
