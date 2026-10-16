@@ -88,3 +88,13 @@ test('reading enhancement is chapter-first and exposes explicit verse completion
  assert.match(ui,/翻阅和滚动本身不会记作读过/);
  assert.match(core,/my-grass-reading-v1\.js/);
 });
+
+test('option A reading feedback stays quiet: grass trace, dark start verse, tiny end sprout',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
+ assert.match(css,/\.gs-verse\.is-range[\s\S]*rgba\(111,129,79,\.13\)[\s\S]*!important/);
+ assert.match(css,/\.gs-verse\.is-start sup[\s\S]*#4f5b3e[\s\S]*!important/);
+ assert.match(css,/\.gs-verse\.is-start:before[\s\S]*content:none!important/);
+ assert.match(css,/\.gs-verse\.is-end:after[\s\S]*content:""!important[\s\S]*radial-gradient/);
+ assert.match(css,/\.gs-verse\.is-end:not\(\.is-start\) sup[\s\S]*#9b7e58[\s\S]*!important/);
+ assert.match(css,/\.gs-reception-guide[\s\S]*background:transparent!important/);
+});
