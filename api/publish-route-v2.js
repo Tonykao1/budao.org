@@ -1,6 +1,7 @@
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH || "main";
+const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH ||
+  (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF) || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const fixedSlots = ["IMS", "BACBC"];
@@ -59,6 +60,13 @@ module.exports = async function handler(request, response) {
       routeToSave.image = routeToSave.image || existingImage;
       routeToSave.qrCode = routeToSave.qrCode || existing.qrCode || "";
       routeToSave.imageAlt = routeToSave.imageAlt || existing.imageAlt || routeToSave.title || "";
+      routeToSave.status = existing.status === "cancelled" ? "cancelled" : "scheduled";
+      routeToSave.cancelCode = existing.status === "cancelled" ? String(existing.cancelCode || "") : "";
+      routeToSave.cancelPublicNote = existing.status === "cancelled" ? String(existing.cancelPublicNote || "").slice(0, 280) : "";
+      routeToSave.cancelledAt = existing.status === "cancelled" ? String(existing.cancelledAt || "") : "";
+      routeToSave.cancelledBy = existing.status === "cancelled" ? String(existing.cancelledBy || "") : "";
+      routeToSave.restoredAt = String(existing.restoredAt || "");
+      routeToSave.statusHistory = Array.isArray(existing.statusHistory) ? existing.statusHistory.slice(-20) : [];
     }
 
     if (existing && sameRoute(normalizeRoute(existing), routeToSave)) {
@@ -242,6 +250,13 @@ function normalizeRoute(route) {
     image: resolveImage(route.image),
     qrCode: resolveQrImage(route.qrCode),
     imageAlt: route.imageAlt || route.title || "",
+    status: route.status === "cancelled" ? "cancelled" : "scheduled",
+    cancelCode: route.status === "cancelled" ? String(route.cancelCode || "") : "",
+    cancelPublicNote: route.status === "cancelled" ? String(route.cancelPublicNote || "").slice(0, 280) : "",
+    cancelledAt: route.status === "cancelled" ? String(route.cancelledAt || "") : "",
+    cancelledBy: route.status === "cancelled" ? String(route.cancelledBy || "") : "",
+    restoredAt: String(route.restoredAt || ""),
+    statusHistory: Array.isArray(route.statusHistory) ? route.statusHistory.slice(-20) : [],
     createdAt: route.createdAt || now,
     updatedAt: now
   };
