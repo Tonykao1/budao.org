@@ -5,6 +5,7 @@
     injectStyles();
     enhanceMeetingField();
     patchPublishRequest();
+    loadCancellationModule();
   }
 
   function enhanceMeetingField() {
@@ -76,10 +77,6 @@
           const route = JSON.parse(init.body);
 
           if (route && typeof route === "object") {
-            // Ensure meetingPlace is populated from various legacy sources,
-            // but do not write `meetingPoint` back into the payload. The
-            // server accepts `meetingPlace` only; legacy `meetingPoint` or
-            // `gatheringPlace` are used as fallbacks.
             route.meetingPlace = place || route.meetingPlace || route.meetingPoint || route.gatheringPlace || "";
             init = {
               ...init,
@@ -97,8 +94,37 @@
 
   function meetingPlaceValue() {
     const input = document.querySelector('input[name="meetingPlace"]');
-
     return input ? input.value.trim() : "";
+  }
+
+  function loadCancellationModule() {
+    if (!document.getElementById("budaoRouteCancellationStyles")) {
+      const stylesheet = document.createElement("link");
+      stylesheet.id = "budaoRouteCancellationStyles";
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = "/route-cancellation.css?v=20261016-v2";
+      document.head.appendChild(stylesheet);
+    }
+
+    function loadControls() {
+      if (document.getElementById("budaoTentCancellationControls")) return;
+      const controls = document.createElement("script");
+      controls.id = "budaoTentCancellationControls";
+      controls.src = "/tent-cancellation.js?v=20261016-v2";
+      document.body.appendChild(controls);
+    }
+
+    if (window.BudaoRouteCancellation) {
+      loadControls();
+      return;
+    }
+
+    if (document.getElementById("budaoRouteCancellationCore")) return;
+    const core = document.createElement("script");
+    core.id = "budaoRouteCancellationCore";
+    core.src = "/route-cancellation-core.js?v=20261016-v2";
+    core.onload = loadControls;
+    document.body.appendChild(core);
   }
 
   function injectStyles() {
@@ -116,6 +142,7 @@
 .meeting-preview{display:flex;min-height:58px;flex-direction:column;justify-content:center;gap:5px;padding:13px 16px;border:1px solid rgba(220,210,187,.13);border-radius:18px;background:rgba(238,232,217,.035)}
 .meeting-preview span{color:rgba(226,220,205,.42);font-size:10px;letter-spacing:.22em}
 .meeting-preview strong{color:rgba(238,232,217,.74);font:300 15px/1.7 ui-serif,Georgia,"Times New Roman",serif;letter-spacing:.04em}
+.route-room{position:relative}
 `;
     document.head.appendChild(style);
   }
