@@ -127,7 +127,12 @@
   }
 
   function loadCancellationPublic(){
-    if(typeof document === 'undefined' || document.getElementById('budaoRouteCancellationPublicCore')) return;
+    if(typeof document === 'undefined' ||
+       typeof document.getElementById !== 'function' ||
+       typeof document.querySelector !== 'function' ||
+       typeof document.createElement !== 'function' ||
+       !document.head || !document.body ||
+       document.getElementById('budaoRouteCancellationPublicCore')) return;
 
     if(!document.querySelector('link[data-budao-cancellation]')){
       const stylesheet = document.createElement('link');
