@@ -7,7 +7,7 @@ function source(file) {
   return fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
 }
 
-test('routes reader follows preview or publish branch before falling back to main', () => {
+test('routes resource follows preview or publish branch before falling back to main', () => {
   const src = source('api/routes.js');
   assert.match(src, /GITHUB_PUBLISH_BRANCH/);
   assert.match(src, /VERCEL_ENV\s*===\s*["']preview["']/);
@@ -32,13 +32,16 @@ test('Tent and public route page both load the shared cancellation core', () => 
   assert.match(publicAction, /route-cancellation-public\.js/);
 });
 
-test('route status endpoint is authenticated, same-origin, reversible, and slot-scoped', () => {
-  const src = source('api/route-status.js');
-  assert.match(src, /getAuthenticatedPublisher/);
-  assert.match(src, /requireSameOrigin/);
-  assert.match(src, /action\s*!==\s*["']cancel["']/);
-  assert.match(src, /action\s*!==\s*["']restore["']/);
-  assert.match(src, /route\.slot\)\s*===\s*publisher\.slot/);
-  assert.match(src, /cancellation\.cancelRoute/);
-  assert.match(src, /cancellation\.restoreRoute/);
+test('existing routes function owns authenticated cancel and restore mutations', () => {
+  const routes = source('api/routes.js');
+  const tent = source('tent-cancellation.js');
+  assert.match(routes, /getAuthenticatedPublisher/);
+  assert.match(routes, /requireSameOrigin/);
+  assert.match(routes, /action\s*!==\s*["']cancel["']/);
+  assert.match(routes, /action\s*!==\s*["']restore["']/);
+  assert.match(routes, /route\.slot\)\s*===\s*publisher\.slot/);
+  assert.match(routes, /cancellation\.cancelRoute/);
+  assert.match(routes, /cancellation\.restoreRoute/);
+  assert.match(tent, /fetch\(["']\/api\/routes["']/);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', 'api', 'route-status.js')), false);
 });
