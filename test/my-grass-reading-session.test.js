@@ -83,7 +83,7 @@ test('reading enhancement is chapter-first and exposes explicit verse completion
  assert.match(ui,/data-action="verse-select"/);
  assert.match(ui,/完成本次阅读/);
  assert.match(ui,/从这一节开始/);
- assert.match(ui,/gsNavWhole/);
+ assert.match(ui,/gs-nav-verses/);
  assert.match(ui,/gs-nav-verses/);
  assert.match(ui,/翻阅和滚动本身不会记作读过/);
  assert.match(core,/my-grass-reading-v1\.js/);
