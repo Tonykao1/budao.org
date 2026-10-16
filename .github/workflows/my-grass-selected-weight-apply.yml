@@ -1,0 +1,34 @@
+name: My Grass selected weight apply
+
+on:
+  push:
+    branches:
+      - feat/my-grass-cuv-shen-bible-v1
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/my-grass-cuv-shen-bible-v1
+          fetch-depth: 1
+      - run: |
+          sed -i 's/color:#382719!important;font-weight:600!important;/color:#382719!important;font-weight:700!important;/' pasture-preview/my-grass-immersive-v04.css
+          sed -i 's/font-weight:600!important/font-weight:700!important/g' test/my-grass-reading-session.test.js
+      - run: |
+          node --test test/my-grass-reading-session.test.js
+          npm run build
+          npm run lint
+          node --test --test-name-pattern='Hobby deployment stays within twelve' test/vercel-function-budget.test.js
+          git diff --check
+      - run: |
+          git config user.name 'OpenAI'
+          git config user.email 'noreply@openai.com'
+          git add pasture-preview/my-grass-immersive-v04.css test/my-grass-reading-session.test.js
+          git rm .github/workflows/my-grass-selected-weight-apply.yml
+          git commit -m 'fix(my-grass): strengthen selected passage weight'
+          git push origin HEAD:feat/my-grass-cuv-shen-bible-v1
