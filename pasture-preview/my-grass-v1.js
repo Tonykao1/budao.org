@@ -50,7 +50,7 @@
    reflection:''
   }}
   let scope='',key='',draft,entries=[],micros=[],tab='reading',archiveOpen=false,editingSavedId=null;
-  let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null;
+  let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null,activePlayer=null;
   let audioPending=false,notice='';
 
   // Full canonical navigation restores the previous testament/book/chapter/verse picker.
@@ -180,6 +180,7 @@
   function getEntry(){return entries.find(e=>e.id===draft.id)||null;}
   function saveEntry(){
    if(audioPending||recorder?.state==='recording'){tell('请先结束录音，再保存对应的经文与声音。');return null}
+   if(draft.reading.audioId&&!draft.scripture.verifiedAgainstRecording){tell('这次原声还没有与经文建立绑定。请先按右侧链接键。');return null}
    const previous=getEntry(),input={scripture:draft.scripture,reflection:draft.reflection,reading:draft.reading};
    try{
     const next=previous?C.reviseEntry(previous,input,iso()):C.newEntry(input,iso(),draft.id);
@@ -199,28 +200,57 @@
     '<strong>'+escape((e.reflection?.text||e.scripture.text||'尚待补录').slice(0,42))+'</strong>'+
     '<span class="gs-archive-date">'+escape(datetime(e.createdAt))+(e.legacy?' · 旧版笔记已保留':'')+'</span></button>').join('')+'</div>').join('')+'</div>';
   }
-  function stageReading(){
-   const barHeights=Array.from({length:31},(_,i)=>8+Math.round(Math.abs(Math.sin(i*1.68)*Math.cos(i*.37))*54));
-   return '<div class="gs-grid"><section class="gs-panel" aria-label="圣经文字">'+
-    '<div class="gs-scripture-heading"><div class="gs-scripture-titlecluster"><h3>今日经文</h3>'+
-    '<input class="gs-scripture-reference" data-field="reference" maxlength="96" aria-label="经文出处" value="'+escape(draft.scripture.reference)+'"></div>'+
-    '<div class="gs-scripture-controls"><button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
-    '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div></div>'+
-    '<textarea data-field="scriptureText" maxlength="10000" hidden>'+escape(draft.scripture.text)+'</textarea></section>'+
-    '<section class="gs-panel" aria-label="个人原声朗读"><h3>我的朗读</h3>'+
-    '<div class="gs-voice-mark" aria-hidden="true">'+barHeights.map(v=>'<span style="--height:'+v+'px"></span>').join('')+'</div>'+
-    '<span class="gs-badge">真人原声 · 本机保存</span>'+
-    '<div class="gs-actions"><button class="gs-action" type="button" data-action="record" '+(audioPending?'disabled':'')+'>'+(recorder?.state==='recording'?'■ 结束朗读':'● 开始朗读')+'</button>'+
-    '<button class="gs-action secondary" type="button" data-action="play" '+(!draft.reading.audioId?'disabled':'')+'>回听</button>'+
-    '<button class="gs-action secondary" type="button" data-action="download-audio" '+(!draft.reading.audioId?'disabled':'')+'>导出原声</button></div>'+
-    '<div id="gsAudioHost" aria-live="polite"></div>'+
-    '<label class="gs-checkbox"><input type="checkbox" data-field="audioVerified" '+(draft.scripture.verifiedAgainstRecording?'checked':'')+'>'+
-    '<span>经文文字与本人朗读相符</span></label>'+
-    '<div class="gs-rule"></div><div class="gs-actions">'+
-    '<button class="gs-action" type="button" data-action="save">留下领受</button>'+
-    '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
-  }
-  function stageReflection(){
+  function recordingSelectionReady(){
+ const badge=$('#gsReadingDoneBadge');
+ return !!(C.trim(draft.scripture.reference)&&badge&&!badge.hidden);
+}
+function recorderUiState(){
+ if(recorder?.state==='recording')return 'recording';
+ if(draft.reading.audioId&&draft.scripture.verifiedAgainstRecording)return activePlayer&&!activePlayer.paused&&!activePlayer.ended?'playing':'linked';
+ if(draft.reading.audioId)return 'recorded';
+ return 'idle';
+}
+function recorderStatusText(){
+ const state=recorderUiState();
+ if(state==='recording')return 'REC · 正在录制本人朗读';
+ if(state==='playing')return 'PLAY · 正在回听';
+ if(state==='linked')return 'LINKED · 已与 '+escape(draft.scripture.reference)+' 绑定';
+ if(state==='recorded')return 'RECORDED · 请按右侧链接键';
+ return 'READY · 先完成左侧经文阅读';
+}
+function stageReading(){
+ const barHeights=Array.from({length:22},(_,i)=>10+Math.round(Math.abs(Math.sin(i*1.41)*Math.cos(i*.53))*46));
+ const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording;
+ const recordDisabled=audioPending||hasAudio;
+ const playDisabled=!hasAudio||!linked;
+ const rerecordDisabled=!hasAudio;
+ const linkDisabled=!hasAudio||linked;
+ return '<div class="gs-grid"><section class="gs-panel" aria-label="圣经文字">'+
+  '<div class="gs-scripture-heading"><div class="gs-scripture-titlecluster"><h3>今日经文</h3>'+
+  '<input class="gs-scripture-reference" data-field="reference" maxlength="96" aria-label="经文出处" value="'+escape(draft.scripture.reference)+'"></div>'+
+  '<div class="gs-scripture-controls"><button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
+  '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div></div>'+
+  '<textarea data-field="scriptureText" maxlength="10000" hidden>'+escape(draft.scripture.text)+'</textarea></section>'+
+  '<section class="gs-panel gs-recording-panel" aria-label="个人原声朗读"><h3>我的朗读</h3>'+
+  '<div class="gs-recorder-console" data-state="'+state+'">'+
+    '<div class="gs-recorder-deck"><div class="gs-recorder-brand"><strong>ORIGINAL VOICE</strong><span>LOCAL RECORDER</span></div>'+
+     '<div class="gs-recorder-keys">'+
+      '<button class="gs-recorder-key gs-recorder-record" type="button" data-action="record" '+(recordDisabled?'disabled':'')+' aria-label="'+(recorder?.state==='recording'?'停止录音':'开始录音')+'"><span class="gs-recorder-key-icon">'+(recorder?.state==='recording'?'■':'●')+'</span><span>'+(recorder?.state==='recording'?'停止':'录音')+'</span></button>'+
+      '<button class="gs-recorder-key" type="button" data-action="play" '+(playDisabled?'disabled':'')+' aria-label="播放或暂停本人原声"><span class="gs-recorder-key-icon">▶Ⅱ</span><span>播放/暂停</span></button>'+
+      '<button class="gs-recorder-key" type="button" data-action="rerecord" '+(rerecordDisabled?'disabled':'')+' aria-label="放弃当前录音并重录"><span class="gs-recorder-key-icon">↻</span><span>重录</span></button>'+
+     '</div></div>'+
+    '<div class="gs-recorder-display"><div class="gs-recorder-screen" id="gsRecorderScreen" data-state="'+state+'">'+
+      '<div class="gs-recorder-wave" aria-hidden="true">'+barHeights.map((v,i)=>'<span style="--h:'+v+'%;--i:'+i+'"></span>').join('')+'</div>'+
+      '<div class="gs-recorder-status" id="gsRecorderStatus">'+recorderStatusText()+'</div></div>'+
+     '<button class="gs-recorder-link" type="button" data-action="link-audio" '+(linkDisabled?'disabled':'')+' aria-label="把本人原声与当前经文建立绑定" title="链接经文与本人原声">🔗</button></div>'+
+  '</div>'+
+  '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
+  '<p class="gs-recorder-note">'+(linked?'原声已与当前经文绑定，可以回听。':hasAudio?'录音已经保存在本机；先链接经文，再回听。':'选定并完成左侧经文后，按实体录音键开始。')+'</p>'+
+  '<div class="gs-rule"></div><div class="gs-actions">'+
+  '<button class="gs-action" type="button" data-action="save">留下领受</button>'+
+  '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
+}
+function stageReflection(){
    return '<div class="gs-grid">'+
     '<section class="gs-panel" aria-label="默想对应经文"><h3>经文 · '+escape(draft.scripture.reference||'尚未定位')+'</h3>'+
     '<div class="gs-scripture-read">'+escape(draft.scripture.text||'请先在「领受」中选择经文，并录入今日阅读的文字。')+'</div>'+
@@ -267,7 +297,7 @@
     '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
     '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回':'翻阅档案')+'</button></div></footer>'+
     '<div class="gs-status" id="gsStatus" role="status" aria-live="polite">'+escape(notice)+'</div>';
-   if(tab==='reading'&&!archiveOpen&&draft.reading.audioId)restoreAudio(draft.reading.audioId);
+   if(tab==='reading'&&!archiveOpen&&draft.reading.audioId&&draft.scripture.verifiedAgainstRecording)restoreAudio(draft.reading.audioId);
   }
   // The sound blob is a separate original asset; it is NEVER treated as voice-model consent.
   function audioDatabase(){
@@ -296,22 +326,68 @@
     request.onerror=()=>reject(request.error);
    })}finally{db.close()}
   }
-  function clearPlayer(){if(activeAudioURL){URL.revokeObjectURL(activeAudioURL);activeAudioURL=null}}
-  async function restoreAudio(id){
-   const host=$('#gsAudioHost');if(!host)return;
-   try{
-    const blob=await getAudio(id);
-    if(!$('#gsAudioHost'))return;
-    if(!blob){host.textContent='本机没有找到对应原声。请重新录制，避免把不存在的音频标记为已保存。';return}
-    clearPlayer();activeAudioURL=URL.createObjectURL(blob);
-    const player=document.createElement('audio');player.controls=true;player.preload='metadata';player.src=activeAudioURL;
-    host.replaceChildren(player);
-    const label=document.createElement('span');label.className='gs-small';label.textContent='原始朗读 · '+Math.max(1,Math.round(blob.size/1024))+' KB · 仅当前浏览器';host.appendChild(label);
-   }catch(e){host.textContent='无法读取本机原声：'+String(e.message||e)}
+  function clearPlayer(){
+   try{activePlayer?.pause?.()}catch(_){}
+   activePlayer=null;
+   if(activeAudioURL){URL.revokeObjectURL(activeAudioURL);activeAudioURL=null}
   }
+  async function restoreAudio(id){
+ const host=$('#gsAudioHost');if(!host||!id)return null;
+ try{
+  const blob=await getAudio(id);
+  if(!$('#gsAudioHost'))return null;
+  if(!blob){host.textContent='本机没有找到对应原声。请重新录制。';return null}
+  clearPlayer();activeAudioURL=URL.createObjectURL(blob);
+  const player=document.createElement('audio');player.preload='metadata';player.src=activeAudioURL;player.hidden=true;player.dataset.audioId=id;
+  activePlayer=player;host.replaceChildren(player);
+  const sync=()=>{
+   const state=player.ended||player.paused?'linked':'playing';
+   const consoleNode=$('.gs-recorder-console'),screen=$('#gsRecorderScreen'),status=$('#gsRecorderStatus');
+   if(consoleNode)consoleNode.dataset.state=state;if(screen)screen.dataset.state=state;
+   if(status)status.textContent=state==='playing'?'PLAY · 正在回听':'LINKED · 已与 '+draft.scripture.reference+' 绑定';
+  };
+  player.addEventListener('play',sync);player.addEventListener('pause',sync);player.addEventListener('ended',sync);
+  return player;
+ }catch(e){host.textContent='无法读取本机原声：'+String(e.message||e);return null}
+}
+async function deleteAudio(id){
+ if(!id)return;
+ const db=await audioDatabase();
+ try{return await new Promise((resolve,reject)=>{
+  const tx=db.transaction('recordings','readwrite');tx.objectStore('recordings').delete(id);
+  tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+ })}finally{db.close()}
+}
+async function togglePlayback(){
+ if(!draft.reading.audioId){tell('还没有可回听的本人原声。');return}
+ if(!draft.scripture.verifiedAgainstRecording){tell('请先按右侧链接键，把本人原声与当前经文链接后再回听。');return}
+ let player=activePlayer;
+ if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
+ if(!player)return;
+ if(player.paused||player.ended){if(player.ended)player.currentTime=0;await player.play().catch(()=>{})}
+ else player.pause();
+}
+function linkRecording(){
+ if(!draft.reading.audioId){tell('请先完成一次本人原声录音。');return}
+ const reference=C.trim(draft.scripture.reference);
+ if(!reference){tell('请先选择左侧经文。');return}
+ if(!window.confirm('确认将这次本人原声与「'+reference+'」建立绑定吗？绑定后才能回听。'))return;
+ draft.scripture.verifiedAgainstRecording=true;persistDraft();render();tell('已建立经文与本人原声的绑定，可以回听。');
+}
+async function rerecordAudio(){
+ if(!draft.reading.audioId){await startOrStopRecording();return}
+ if(!window.confirm('确定放弃这次录音并重新录制吗？当前这份原声会从本机删除。'))return;
+ const oldId=draft.reading.audioId;clearPlayer();
+ try{await deleteAudio(oldId)}catch(e){tell('旧录音清理失败，请稍后再试。');return}
+ draft.reading={audioId:null,mimeType:null,size:0,durationSeconds:0};
+ draft.scripture.verifiedAgainstRecording=false;persistDraft();
+ tell('旧录音已放弃，准备重新录制。');await startOrStopRecording();
+}
   async function startOrStopRecording(){
    if(recorder?.state==='recording'){recorder.stop();return}
    if(audioPending)return;
+   if(draft.reading.audioId){tell('已经有一份录音；如要替换，请使用「↻ 重录」。');return}
+   if(!recordingSelectionReady()){tell('请先完成左侧经文的阅读选择，再开始录音。');return}
    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){tell('当前浏览器不支持麦克风录音。仍可保存文字；建议换用支持录音的浏览器。');return}
    audioPending=true;
    try{
@@ -333,7 +409,7 @@
        await putAudio(audioId,blob);
        draft.reading={audioId,mimeType:blob.type,size:blob.size,durationSeconds:elapsed};
        draft.scripture.verifiedAgainstRecording=false;persistDraft();
-       tell('原声已保存在本机，请回听并核对经文文字，再保存本次领受。');
+       tell('录音完成并保存在本机。请按右侧链接键，与当前经文建立绑定后再回听。');
       }catch(e){tell('音频保存失败：'+String(e.message||e)+'。请检查存储权限或剩余空间。')}
       finally{audioPending=false;render()}
     };
@@ -411,18 +487,15 @@
     microDraft=v;const node=$('#gsMicroCount');if(node)node.textContent=C.count(v)+' / 80字';
    }
   });
-  root.addEventListener('change',e=>{
-   if(e.target.dataset.field==='audioVerified'){
-    draft.scripture.verifiedAgainstRecording=!!e.target.checked&&!!draft.reading.audioId;persistDraft();
-   }
-  });
   root.addEventListener('click',async e=>{
    const b=e.target.closest('button[data-action]');if(!b)return;
    switch(b.dataset.action){
     case 'tab': setTab(b.dataset.tab);break;
     case 'scripture-nav': showBibleNav();break;
     case 'record':await startOrStopRecording();break;
-    case 'play':await restoreAudio(draft.reading.audioId);$('#gsAudioHost audio')?.play?.().catch(()=>{});break;
+    case 'play':await togglePlayback();break;
+    case 'rerecord':await rerecordAudio();break;
+    case 'link-audio':linkRecording();break;
     case 'download-audio':await exportAudio();break;
     case 'export':exportTextArchive();break;
     case 'save':saveEntry();break;
