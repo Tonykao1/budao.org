@@ -92,7 +92,7 @@ test('reading enhancement is chapter-first and exposes explicit verse completion
 
 test('option A reading feedback stays quiet: one-step dark range, grass trace, tiny end sprout',()=>{
  const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
- assert.match(css,/\.gs-verse\.is-range[\s\S]*rgba\(111,129,79,\.13\)[\s\S]*color:#382719!important[\s\S]*font-weight:600!important/);
+ assert.match(css,/\.gs-verse\.is-range[\s\S]*rgba\(111,129,79,\.13\)[\s\S]*color:#382719!important[\s\S]*font-weight:700!important/);
  assert.match(css,/\.gs-verse\.is-range sup[\s\S]*#4f402e[\s\S]*font-weight:800!important/);
  assert.match(css,/\.gs-verse\.is-start:before[\s\S]*content:none!important/);
  assert.match(css,/\.gs-verse\.is-end:after[\s\S]*content:""!important[\s\S]*radial-gradient/);
@@ -171,7 +171,7 @@ test('approved scripture header keeps title and current reference in one compact
 
 test('selected reading range uses one stronger text weight across the whole passage',()=>{
  const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
- assert.match(css,/\.gs-verse\.is-range\{[\s\S]*color:#382719!important[\s\S]*font-weight:600!important/);
+ assert.match(css,/\.gs-verse\.is-range\{[\s\S]*color:#382719!important[\s\S]*font-weight:700!important/);
  assert.match(css,/\.gs-verse\.is-range sup\{[\s\S]*font-weight:800!important/);
  assert.doesNotMatch(css,/\.gs-verse\.is-start sup\{[^}]*font-weight:900!important/);
 });

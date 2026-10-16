@@ -190,7 +190,7 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-verse:hover:not(:disabled){background:rgba(204,175,119,.06)!important}
 #grassWorkspace .gs-verse.is-range{
  background:linear-gradient(to bottom,transparent 87%,rgba(111,129,79,.13) 87%,rgba(111,129,79,.13) 93%,transparent 93%)!important;
- color:#382719!important;font-weight:600!important;
+ color:#382719!important;font-weight:700!important;
 }
 #grassWorkspace .gs-verse.is-range sup{color:#4f402e!important;font-weight:800!important}
 #grassWorkspace .gs-verse.is-start:before{content:none!important;display:none!important}
