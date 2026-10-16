@@ -82,6 +82,13 @@ test('public route page loads cancelled card and change-notice presentation', ()
   assert.match(presenter, /route\.timezone/);
 });
 
+test('cancelled routes cannot create invitations through UI or direct API', () => {
+  const action = source('route-invitation-action.js');
+  const invitation = source('api/invitation.js');
+  assert.match(action, /route\.status\s*===\s*["']cancelled["']/);
+  assert.match(invitation, /route\.status\s*===\s*["']cancelled["'][\s\S]*route_cancelled/);
+});
+
 test('calendar can project cancelled route states without changing activity type', () => {
   const calendar = require('../budao-calendar.js');
   assert.equal(typeof calendar.mergeCancellationSchedule, 'function');
