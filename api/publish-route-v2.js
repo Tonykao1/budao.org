@@ -1,6 +1,7 @@
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH || "main";
+const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH ||
+  (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF) || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const { getAuthenticatedPublisher } = require("./_security/auth");
@@ -39,7 +40,7 @@ module.exports = async function handler(request, response) {
       }
     }
 
-    const routeToSave = normalizeRoute({
+    const routeToSave = preserveCancellationState(normalizeRoute({
       ...validated.value,
       id: existing && (existing.id || existing.routeId) || leaderRouteId(publisher),
       routeId: existing && (existing.routeId || existing.id) || leaderRouteId(publisher),
@@ -50,7 +51,7 @@ module.exports = async function handler(request, response) {
       image: validated.value.image || existing && (existing.image || existing.imageUrl) || "",
       imageAlt: validated.value.imageAlt || existing && existing.imageAlt || validated.value.title || "",
       qrCode: validated.value.qrCode || existing && existing.qrCode || ""
-    });
+    }), existing);
 
     if (routeToSave.image && existing && routeToSave.image === (existing.image || existing.imageUrl || "")) {
       // Existing managed image is retained unchanged.
@@ -172,8 +173,24 @@ function findExistingRoute(routes, publisher) {
   return (Array.isArray(routes) ? routes : []).find((route) => belongsToLeader(route, publisher)) || null;
 }
 
+function preserveCancellationState(route, existing) {
+  const prior = existing && typeof existing === "object" ? existing : {};
+  const cancelled = prior.status === "cancelled";
+  return {
+    ...route,
+    status: cancelled ? "cancelled" : "scheduled",
+    cancelCode: cancelled ? String(prior.cancelCode || "") : "",
+    cancelPublicNote: cancelled ? String(prior.cancelPublicNote || "").slice(0, 280) : "",
+    cancelledAt: cancelled ? String(prior.cancelledAt || "") : "",
+    cancelledBy: cancelled ? String(prior.cancelledBy || "") : "",
+    restoredAt: String(prior.restoredAt || ""),
+    statusHistory: Array.isArray(prior.statusHistory) ? prior.statusHistory.slice(-20) : []
+  };
+}
+
 function normalizeRoute(route) {
   const now = new Date().toISOString();
+  const cancelled = route.status === "cancelled";
   return {
     id: route.id || route.routeId || "",
     routeId: route.routeId || route.id || "",
@@ -203,6 +220,13 @@ function normalizeRoute(route) {
     image: resolveImage(route.image),
     qrCode: resolveQrImage(route.qrCode),
     imageAlt: route.imageAlt || route.title || "",
+    status: cancelled ? "cancelled" : "scheduled",
+    cancelCode: cancelled ? String(route.cancelCode || "") : "",
+    cancelPublicNote: cancelled ? String(route.cancelPublicNote || "").slice(0, 280) : "",
+    cancelledAt: cancelled ? String(route.cancelledAt || "") : "",
+    cancelledBy: cancelled ? String(route.cancelledBy || "") : "",
+    restoredAt: String(route.restoredAt || ""),
+    statusHistory: Array.isArray(route.statusHistory) ? route.statusHistory.slice(-20) : [],
     createdAt: route.createdAt || now,
     updatedAt: route.updatedAt || now
   };
@@ -283,3 +307,4 @@ module.exports.belongsToLeader = belongsToLeader;
 module.exports.leaderRouteId = leaderRouteId;
 module.exports.stripPresentationSlot = stripPresentationSlot;
 module.exports.hasPersistedPresentationSlots = hasPersistedPresentationSlots;
+module.exports.preserveCancellationState = preserveCancellationState;
