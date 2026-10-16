@@ -201,10 +201,11 @@
   }
   function stageReading(){
    const barHeights=Array.from({length:31},(_,i)=>8+Math.round(Math.abs(Math.sin(i*1.68)*Math.cos(i*.37))*54));
-   return '<div class="gs-grid"><section class="gs-panel" aria-label="圣经文字"><h3>今日经文</h3>'+
-    '<div class="gs-scripture-toolbar"><input class="gs-scripture-reference" data-field="reference" maxlength="96" aria-label="经文出处" value="'+escape(draft.scripture.reference)+'">'+
-    '<button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
-    '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div>'+
+   return '<div class="gs-grid"><section class="gs-panel" aria-label="圣经文字">'+
+    '<div class="gs-scripture-heading"><div class="gs-scripture-titlecluster"><h3>今日经文</h3>'+
+    '<input class="gs-scripture-reference" data-field="reference" maxlength="96" aria-label="经文出处" value="'+escape(draft.scripture.reference)+'"></div>'+
+    '<div class="gs-scripture-controls"><button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
+    '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div></div>'+
     '<textarea data-field="scriptureText" maxlength="10000" hidden>'+escape(draft.scripture.text)+'</textarea></section>'+
     '<section class="gs-panel" aria-label="个人原声朗读"><h3>我的朗读</h3>'+
     '<div class="gs-voice-mark" aria-hidden="true">'+barHeights.map(v=>'<span style="--height:'+v+'px"></span>').join('')+'</div>'+

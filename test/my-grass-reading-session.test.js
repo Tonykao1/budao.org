@@ -90,13 +90,12 @@ test('reading enhancement is chapter-first and exposes explicit verse completion
  assert.match(core,/my-grass-reading-v1\.js/);
 });
 
-test('option A reading feedback stays quiet: grass trace, dark start verse, tiny end sprout',()=>{
+test('option A reading feedback stays quiet: one-step dark range, grass trace, tiny end sprout',()=>{
  const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
- assert.match(css,/\.gs-verse\.is-range[\s\S]*rgba\(111,129,79,\.13\)[\s\S]*!important/);
- assert.match(css,/\.gs-verse\.is-start sup[\s\S]*#4f5b3e[\s\S]*!important/);
+ assert.match(css,/\.gs-verse\.is-range[\s\S]*rgba\(111,129,79,\.13\)[\s\S]*color:#382719!important[\s\S]*font-weight:600!important/);
+ assert.match(css,/\.gs-verse\.is-range sup[\s\S]*#4f402e[\s\S]*font-weight:800!important/);
  assert.match(css,/\.gs-verse\.is-start:before[\s\S]*content:none!important/);
  assert.match(css,/\.gs-verse\.is-end:after[\s\S]*content:""!important[\s\S]*radial-gradient/);
- assert.match(css,/\.gs-verse\.is-end:not\(\.is-start\) sup[\s\S]*#9b7e58[\s\S]*!important/);
  assert.match(css,/\.gs-reception-guide[\s\S]*background:transparent!important/);
 });
 
@@ -119,16 +118,16 @@ test('ESV reader uses the shared passage loader directly and fixes attribution v
  assert.match(ui,/attribution\.style\.display=show\?'block':'none'/);
 });
 
-test('approved reading layout keeps scripture dominant with one compact toolbar',()=>{
+test('approved reading layout keeps scripture dominant with one compact heading region',()=>{
  const shell=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-v1.js'),'utf8');
  const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
- assert.match(shell,/class="gs-scripture-toolbar"/);
+ assert.match(shell,/class="gs-scripture-heading"/);
  assert.match(shell,/class="gs-scripture-reference"[^>]*data-field="reference"/);
  assert.match(shell,/data-field="translation"[^>]*hidden/);
  assert.match(shell,/data-field="scriptureText"[^>]*hidden/);
  assert.doesNotMatch(shell,/<label class="gs-field">译本<input/);
  assert.doesNotMatch(shell,/<label class="gs-field">经文<textarea/);
- assert.match(css,/\.gs-scripture-toolbar[\s\S]*display:flex/);
+ assert.match(css,/\.gs-scripture-heading[\s\S]*display:flex/);
  assert.match(css,/\.gs-verse-reader[\s\S]*flex:1/);
 });
 
@@ -158,4 +157,26 @@ test('concurrent ESV consumers share one in-memory request promise',async()=>{
  await B.loadEsvPassage('启 3',fetcher);
  assert.equal(calls,1);
  B.clearCache();
+});
+
+test('approved scripture header keeps title and current reference in one compact visual region',()=>{
+ const shell=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-v1.js'),'utf8');
+ const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
+ assert.match(shell,/class="gs-scripture-heading"[\s\S]*<h3>今日经文<\/h3>[\s\S]*class="gs-scripture-reference"/);
+ assert.match(shell,/class="gs-scripture-controls"[\s\S]*data-action="scripture-nav"[\s\S]*data-field="translation"/);
+ assert.doesNotMatch(shell,/class="gs-scripture-toolbar"/);
+ assert.match(css,/\.gs-scripture-heading\{[\s\S]*display:flex[\s\S]*border-bottom/);
+ assert.match(css,/\.gs-scripture-heading h3\{[\s\S]*border:0!important/);
+});
+
+test('selected reading range uses one stronger text weight across the whole passage',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
+ assert.match(css,/\.gs-verse\.is-range\{[\s\S]*color:#382719!important[\s\S]*font-weight:600!important/);
+ assert.match(css,/\.gs-verse\.is-range sup\{[\s\S]*font-weight:800!important/);
+ assert.doesNotMatch(css,/\.gs-verse\.is-start sup\{[^}]*font-weight:900!important/);
+});
+
+test('ESV scripture receives a larger reading size without changing CUV base size',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
+ assert.match(css,/#grassWorkspace\[data-scripture-translation="esv"\] \.gs-verse\{[\s\S]*font-size:clamp\(19px,1\.45vw,22px\)!important/);
 });
