@@ -180,3 +180,10 @@ test('ESV scripture receives a larger reading size without changing CUV base siz
  const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
  assert.match(css,/#grassWorkspace\[data-scripture-translation="esv"\] \.gs-verse\{[\s\S]*font-size:clamp\(19px,1\.45vw,22px\)!important/);
 });
+
+test('scripture reader survives a reading-stage DOM rebuild during microphone recording',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
+ assert.match(ui,/reader!==lastReaderNode\|\|signature!==lastReaderSignature/);
+ assert.match(ui,/lastReaderNode=reader/);
+ assert.match(ui,/function enhanceReadingStage\(\)[\s\S]*if\(activeChapter\)renderReader\(\)/);
+});

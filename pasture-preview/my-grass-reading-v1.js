@@ -52,7 +52,7 @@
   C.setReadingSessionRequired(true);
   let session=null,activeChapter=null,chapterKey='',loadToken=0,stopped=false,observer=null;
   const cache=new Map();
-  let timer=null,lastStageKey='',lastReaderSignature='';
+  let timer=null,lastStageKey='',lastReaderSignature='',lastReaderNode=null;
 
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function workspace(){return doc.getElementById('grassWorkspace')}
@@ -106,7 +106,7 @@
    const ws=workspace(),reader=ws?.querySelector('#gsVerseReader'),guide=ws?.querySelector('#gsReceptionGuide'),finish=ws?.querySelector('[data-action="complete-reading"]'),badge=ws?.querySelector('#gsReadingDoneBadge');
    if(guide)guide.innerHTML=guideText();
    const signature=activeChapter?(chapterKey+'|'+(session?.status||'idle')+'|'+(session?.startVerse||'')+'|'+(session?.endVerse||'')):'none';
-   if(reader&&activeChapter&&signature!==lastReaderSignature){reader.innerHTML=activeChapter.verses.map(verseMarkup).join('');lastReaderSignature=signature}
+   if(reader&&activeChapter&&(reader!==lastReaderNode||signature!==lastReaderSignature)){reader.innerHTML=activeChapter.verses.map(verseMarkup).join('');lastReaderSignature=signature;lastReaderNode=reader}
    if(finish)finish.disabled=session?.status!=='reading';
    if(badge){badge.hidden=session?.status!=='completed';badge.textContent=session?.status==='completed'?'已完成 · '+session.reference:''}
   }
@@ -164,6 +164,7 @@
    }
    const p=currentParsed(),key=(translationId())+'|'+(p?.book||'')+'|'+(p?.chapter||'');
    if(key!==lastStageKey){lastStageKey=key;activeChapter=null;chapterKey='';hydrateChapter()}
+   if(activeChapter)renderReader();
   }
 
   function syncAttribution(){
@@ -229,7 +230,7 @@
     event.preventDefault();event.stopImmediatePropagation();status('请先完成本次阅读，再进入默想。');return;
    }
    if(action==='new'){
-    session=null;activeChapter=null;chapterKey='';lastStageKey='';lastReaderSignature='';C.setRuntimeReadingSession(null);
+    session=null;activeChapter=null;chapterKey='';lastStageKey='';lastReaderSignature='';lastReaderNode=null;C.setRuntimeReadingSession(null);
     root.setTimeout(()=>{normalizeFreshPage();schedule(0)},0);
    }
   }
