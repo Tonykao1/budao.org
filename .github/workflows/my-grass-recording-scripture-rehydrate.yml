@@ -45,15 +45,17 @@ jobs:
           text=t.read_text()
           marker="test('scripture reader survives a reading-stage DOM rebuild during microphone recording'"
           if marker not in text:
-              text += """
-
-test('scripture reader survives a reading-stage DOM rebuild during microphone recording',()=>{
- const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
- assert.match(ui,/reader!==lastReaderNode\\|\\|signature!==lastReaderSignature/);
- assert.match(ui,/lastReaderNode=reader/);
- assert.match(ui,/function enhanceReadingStage\\(\\)[\\s\\S]*if\\(activeChapter\\)renderReader\\(\\)/);
-});
-"""
+              lines=[
+                "",
+                "test('scripture reader survives a reading-stage DOM rebuild during microphone recording',()=>{",
+                " const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');",
+                r" assert.match(ui,/reader!==lastReaderNode\|\|signature!==lastReaderSignature/);",
+                " assert.match(ui,/lastReaderNode=reader/);",
+                r" assert.match(ui,/function enhanceReadingStage\(\)[\s\S]*if\(activeChapter\)renderReader\(\)/);",
+                "});",
+                ""
+              ]
+              text += '\n'.join(lines)
           t.write_text(text)
           PY
 
