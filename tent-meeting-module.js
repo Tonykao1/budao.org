@@ -5,6 +5,7 @@
     injectStyles();
     enhanceMeetingField();
     patchPublishRequest();
+    loadCancellationModule();
   }
 
   function enhanceMeetingField() {
@@ -101,6 +102,27 @@
     return input ? input.value.trim() : "";
   }
 
+  function loadCancellationModule() {
+    if (document.getElementById("budaoRouteCancellationCore")) {
+      return;
+    }
+
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = "/route-cancellation.css?v=20261016";
+    document.head.appendChild(stylesheet);
+
+    const core = document.createElement("script");
+    core.id = "budaoRouteCancellationCore";
+    core.src = "/route-cancellation-core.js?v=20261016";
+    core.onload = function () {
+      const controls = document.createElement("script");
+      controls.src = "/tent-cancellation.js?v=20261016";
+      document.body.appendChild(controls);
+    };
+    document.body.appendChild(core);
+  }
+
   function injectStyles() {
     if (document.getElementById("budaoMeetingModuleStyles")) {
       return;
@@ -116,6 +138,7 @@
 .meeting-preview{display:flex;min-height:58px;flex-direction:column;justify-content:center;gap:5px;padding:13px 16px;border:1px solid rgba(220,210,187,.13);border-radius:18px;background:rgba(238,232,217,.035)}
 .meeting-preview span{color:rgba(226,220,205,.42);font-size:10px;letter-spacing:.22em}
 .meeting-preview strong{color:rgba(238,232,217,.74);font:300 15px/1.7 ui-serif,Georgia,"Times New Roman",serif;letter-spacing:.04em}
+.route-room{position:relative}
 `;
     document.head.appendChild(style);
   }
