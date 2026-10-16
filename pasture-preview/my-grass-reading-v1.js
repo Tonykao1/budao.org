@@ -26,9 +26,9 @@
   })).filter(v=>Number.isFinite(v.verse)&&v.verse>0&&v.text);
  }
 
- async function loadReadingChapter(book,chapter,translationId,fetchImpl){
+ async function loadReadingChapter(book,chapter,translationId,fetchImpl) {
   if(!B)throw Error('圣经经卷引擎尚未载入。');
-  const meta=B.bookMeta(book),ch=B.clampChapter(meta.abbr,chapter);
+ const meta=B.bookMeta(book),ch=B.clampChapter(meta.abbr,chapter);
   const id=translationId===ESV_ID||translationId===ESV_NAME?ESV_ID:CUV_ID;
   if(id===ESV_ID){
    const passage=await B.loadTranslationPassage(meta.abbr+' '+ch,ESV_ID,fetchImpl);
@@ -52,7 +52,7 @@
   C.setReadingSessionRequired(true);
   let session=null,activeChapter=null,chapterKey='',loadToken=0,stopped=false,observer=null;
   const cache=new Map();
-  let timer=null,lastStageKey='';
+  let timer=null,lastStageKey='',lastReaderSignature='';
 
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function workspace(){return doc.getElementById('grassWorkspace')}
@@ -105,7 +105,8 @@
   function renderReader(){
    const ws=workspace(),reader=ws?.querySelector('#gsVerseReader'),guide=ws?.querySelector('#gsReceptionGuide'),finish=ws?.querySelector('[data-action="complete-reading"]'),badge=ws?.querySelector('#gsReadingDoneBadge');
    if(guide)guide.innerHTML=guideText();
-   if(reader&&activeChapter)reader.innerHTML=activeChapter.verses.map(verseMarkup).join('');
+   const signature=activeChapter?(chapterKey+'|'+(session?.status||'idle')+'|'+(session?.startVerse||'')+'|'+(session?.endVerse||'')):'none';
+   if(reader&&activeChapter&&signature!==lastReaderSignature){reader.innerHTML=activeChapter.verses.map(verseMarkup).join('');lastReaderSignature=signature}
    if(finish)finish.disabled=session?.status!=='reading';
    if(badge){badge.hidden=session?.status!=='completed';badge.textContent=session?.status==='completed'?'已完成 · '+session.reference:''}
   }
@@ -145,8 +146,6 @@
 
   function enhanceNavigation(){
    const nav=doc.getElementById('gsBibleNav');if(!nav||nav.hidden)return;
-   const whole=nav.querySelector('#gsNavWhole');
-   if(whole&&!whole.checked){whole.checked=true;whole.dispatchEvent(new root.Event('change',{bubbles:true}))}
    const verses=nav.querySelector('.gs-nav-verses');if(verses){verses.hidden=true;verses.style.display='none'}
    const title=nav.querySelector('#gsNavTitle');if(title)title.textContent='经卷定位';
    const warning=nav.querySelector('#gsNavWarning');if(warning)warning.textContent='定位章节不会记作读过。';
@@ -232,7 +231,6 @@
     if(text&&(text.dataset.scriptureSource||text.dataset.scriptureState==='ready')){
      text.value='';delete text.dataset.scriptureSource;delete text.dataset.verseIds;delete text.dataset.scriptureState;dispatchInput(text);
     }
-    const whole=doc.querySelector('#gsNavWhole');if(whole&&!whole.checked){whole.checked=true;whole.dispatchEvent(new root.Event('change',{bubbles:true}))}
     return;
    }
    if(button.matches('[data-nav="apply"]')&&session){
@@ -246,7 +244,7 @@
     event.preventDefault();event.stopImmediatePropagation();status('请先完成本次阅读，再进入默想。');return;
    }
    if(action==='new'){
-    session=null;activeChapter=null;chapterKey='';lastStageKey='';C.setRuntimeReadingSession(null);
+    session=null;activeChapter=null;chapterKey='';lastStageKey='';lastReaderSignature='';C.setRuntimeReadingSession(null);
     root.setTimeout(()=>{normalizeFreshPage();schedule(0)},0);
    }
   }
