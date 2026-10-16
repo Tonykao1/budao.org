@@ -1,0 +1,88 @@
+name: My Grass scripture companion apply
+
+on:
+  push:
+    branches:
+      - feat/my-grass-cuv-shen-bible-v1
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/my-grass-cuv-shen-bible-v1
+          fetch-depth: 1
+
+      - name: Apply approved reading companion
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('pasture-preview/my-grass-reading-v1.js')
+          s=p.read_text()
+          if 'function verseForAudioProgress' not in s:
+              s=s.replace(" function parseEsvNumberedText(value){", " function verseForAudioProgress(verses,currentTime,duration){\n  const list=Array.isArray(verses)?verses.filter(v=>Number.isFinite(Number(v?.verse))):[];\n  const totalDuration=Number(duration),time=Number(currentTime);\n  if(!list.length||!Number.isFinite(totalDuration)||totalDuration<=0||!Number.isFinite(time))return null;\n  const weights=list.map(v=>Math.max(1,String(v.text||'').replace(/\\s+/g,'').length));\n  const totalWeight=weights.reduce((sum,value)=>sum+value,0);\n  const clamped=Math.max(0,Math.min(time,totalDuration));\n  if(clamped>=totalDuration)return Number(list[list.length-1].verse);\n  const target=(clamped/totalDuration)*totalWeight;\n  let cursor=0;\n  for(let i=0;i<list.length;i++){cursor+=weights[i];if(target<cursor)return Number(list[i].verse)}\n  return Number(list[list.length-1].verse);\n }\n\n function parseEsvNumberedText(value){",1)
+              s=s.replace("  function pointFromButton(button){", "  function clearAudioFollow(){\n   workspace()?.querySelectorAll('.gs-verse.is-following').forEach(node=>node.classList.remove('is-following'));\n  }\n  function keepFollowVisible(button){\n   const reader=workspace()?.querySelector('#gsVerseReader');if(!reader||!button)return;\n   const outer=reader.getBoundingClientRect?.(),inner=button.getBoundingClientRect?.();\n   if(!outer||!inner)return;\n   if(inner.top<outer.top||inner.bottom>outer.bottom)button.scrollIntoView?.({block:'nearest',inline:'nearest'});\n  }\n  function onAudioProgress(event){\n   const detail=event?.detail||{};clearAudioFollow();\n   if(detail.state==='ended'||detail.state==='cleared')return;\n   if(session?.status!=='completed'||!activeChapter)return;\n   const selected=activeChapter.verses.filter(v=>v.verse>=session.startVerse&&v.verse<=session.endVerse);\n   const verse=verseForAudioProgress(selected,detail.currentTime,detail.duration);if(!verse)return;\n   const button=workspace()?.querySelector('.gs-verse[data-verse=\"'+verse+'\"]');if(!button)return;\n   button.classList.add('is-following');\n   if(detail.state==='playing')keepFollowVisible(button);\n  }\n\n  function pointFromButton(button){",1)
+              s=s.replace("  injectStyle();\n  doc.addEventListener('click',onClick,true);doc.addEventListener('change',onChange,true);", "  injectStyle();\n  doc.addEventListener('click',onClick,true);doc.addEventListener('change',onChange,true);\n  doc.addEventListener('mygrass:reading-audio-progress',onAudioProgress);",1)
+              s=s.replace("   doc.removeEventListener('click',onClick,true);doc.removeEventListener('change',onChange,true);\n   C.setRuntimeReadingSession(null);C.setReadingSessionRequired(false);delete root.__myGrassReadingV1Cleanup;", "   doc.removeEventListener('click',onClick,true);doc.removeEventListener('change',onChange,true);\n   doc.removeEventListener('mygrass:reading-audio-progress',onAudioProgress);clearAudioFollow();\n   C.setRuntimeReadingSession(null);C.setReadingSessionRequired(false);delete root.__myGrassReadingV1Cleanup;",1)
+              s=s.replace("return Object.freeze({parseEsvNumberedText,loadReadingChapter,install,autoInstall});", "return Object.freeze({parseEsvNumberedText,verseForAudioProgress,loadReadingChapter,install,autoInstall});",1)
+          p.write_text(s)
+
+          p=Path('pasture-preview/my-grass-v1.js')
+          s=p.read_text()
+          s=s.replace('<section class="gs-panel gs-recording-panel" aria-label="个人原声朗读"><h3>我的朗读</h3>', '<section class="gs-panel gs-recording-panel" aria-label="今日读经原声"><h3>今日读经</h3>',1)
+          if 'function broadcastReadingAudioProgress' not in s:
+              s=s.replace("  function clearPlayer(){", "  function broadcastReadingAudioProgress(state,player){\n   const duration=Number(player?.duration),currentTime=Number(player?.currentTime);\n   document.dispatchEvent(new CustomEvent('mygrass:reading-audio-progress',{detail:{state,currentTime:Number.isFinite(currentTime)?currentTime:0,duration:Number.isFinite(duration)?duration:0,audioId:draft.reading.audioId||null}}));\n  }\n  function clearPlayer(){",1)
+              s=s.replace("  function clearPlayer(){\n   try{activePlayer?.pause?.()}catch(_){}\n   activePlayer=null;", "  function clearPlayer(){\n   if(activePlayer)broadcastReadingAudioProgress('cleared',activePlayer);\n   try{activePlayer?.pause?.()}catch(_){}\n   activePlayer=null;",1)
+              old="  player.addEventListener('play',sync);player.addEventListener('pause',sync);player.addEventListener('ended',sync);"
+              new="  player.addEventListener('play',()=>{sync();broadcastReadingAudioProgress('playing',player)});\n  player.addEventListener('timeupdate',()=>broadcastReadingAudioProgress(player.ended?'ended':player.paused?'paused':'playing',player));\n  player.addEventListener('pause',()=>{sync();if(!player.ended)broadcastReadingAudioProgress('paused',player)});\n  player.addEventListener('ended',()=>{sync();broadcastReadingAudioProgress('ended',player)});"
+              if old not in s: raise SystemExit('audio event target missing')
+              s=s.replace(old,new,1)
+          p.write_text(s)
+
+          p=Path('pasture-preview/my-grass-immersive-v04.css')
+          s=p.read_text()
+          s=s.replace('#grassWorkspace .gs-recording-panel{display:flex;flex-direction:column;min-height:0}', '#grassWorkspace .gs-recording-panel{display:flex;flex-direction:column;min-height:0;padding-top:0!important}',1)
+          if '#grassWorkspace .gs-recording-panel>h3{' not in s:
+              s=s.replace('#grassWorkspace .gs-recorder-console{', '#grassWorkspace .gs-recording-panel>h3{margin:0!important;margin-bottom:7px!important;padding-bottom:6px!important}\n#grassWorkspace .gs-recorder-console{',1)
+          s=s.replace(' padding:10px;margin:2px 0 7px;border:3px solid #6d573c;', ' padding:10px;margin:0 0 7px;border:3px solid #6d573c;',1)
+          marker='#grassWorkspace .gs-reading-finish{border-top-color:rgba(140,105,62,.18)!important}'
+          if '.gs-verse.is-following span' not in s:
+              s=s.replace(marker,marker+'\n#grassWorkspace .gs-verse.is-following span{font-weight:900!important}\n#grassWorkspace .gs-verse.is-following sup{font-weight:900!important}',1)
+          p.write_text(s)
+
+          p=Path('test/my-grass-reading-session.test.js')
+          s=p.read_text()
+          if "scripture companion maps audio time" not in s:
+              s += "\n\ntest('scripture companion maps audio time to the selected verses by text weight',()=>{\n const R=require('../pasture-preview/my-grass-reading-v1.js');\n const verses=[{verse:1,text:'abcd'},{verse:2,text:'abcdefgh'},{verse:3,text:'abcdefghijkl'}];\n assert.equal(R.verseForAudioProgress(verses,0,24),1);\n assert.equal(R.verseForAudioProgress(verses,5,24),2);\n assert.equal(R.verseForAudioProgress(verses,13,24),3);\n assert.equal(R.verseForAudioProgress(verses,24,24),3);\n assert.equal(R.verseForAudioProgress(verses,5,0),null);\n});\n\ntest('reading layer listens for linked-audio progress and keeps one quiet current verse',()=>{\n const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');\n assert.match(ui,/mygrass:reading-audio-progress/);\n assert.match(ui,/classList\\.remove\\('is-following'\\)/);\n assert.match(ui,/classList\\.add\\('is-following'\\)/);\n assert.match(ui,/detail\\.state==='ended'/);\n assert.match(ui,/scrollIntoView/);\n});\n"
+          p.write_text(s)
+
+          p=Path('test/my-grass-recording-v13.test.js')
+          s=p.read_text()
+          if "right reading area is titled 今日读经" not in s:
+              s += "\n\ntest('right reading area is titled 今日读经 and broadcasts playback progress to scripture',()=>{\n const src=app();\n assert.match(src,/gs-recording-panel[^\\n]*[\\s\\S]{0,220}<h3>今日读经<\\/h3>/);\n assert.match(src,/mygrass:reading-audio-progress/);\n assert.match(src,/addEventListener\\('timeupdate'/);\n assert.match(src,/addEventListener\\('pause'/);\n assert.match(src,/addEventListener\\('ended'/);\n});\n\ntest('approved recorder layout moves upward without transforms so space below is reusable',()=>{\n const style=css();\n assert.match(style,/\\.gs-recording-panel\\{[^}]*padding-top:0!important/);\n assert.match(style,/\\.gs-recording-panel>h3\\{[^}]*margin-bottom:/);\n assert.match(style,/\\.gs-recorder-console\\{[^}]*margin:0 0 7px/);\n assert.doesNotMatch(style,/\\.gs-recording-panel\\{[^}]*transform:/);\n assert.match(style,/\\.gs-verse\\.is-following span\\{[^}]*font-weight:900/);\n});\n"
+          p.write_text(s)
+          PY
+
+      - name: Verify approved companion
+        run: |
+          node --test test/my-grass-reading-session.test.js test/my-grass-recording-v13.test.js
+          npm run build
+          npm run lint
+          node --test --test-name-pattern='Hobby deployment stays within twelve' test/vercel-function-budget.test.js
+          git diff --check
+
+      - name: Commit and self-remove
+        shell: bash
+        run: |
+          git config user.name 'OpenAI'
+          git config user.email 'noreply@openai.com'
+          git add pasture-preview/my-grass-v1.js pasture-preview/my-grass-reading-v1.js pasture-preview/my-grass-immersive-v04.css test/my-grass-reading-session.test.js test/my-grass-recording-v13.test.js
+          git rm .github/workflows/my-grass-scripture-companion-apply.yml
+          git commit -m 'feat(my-grass): add quiet scripture companion playback'
+          git push origin HEAD:feat/my-grass-cuv-shen-bible-v1
