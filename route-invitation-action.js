@@ -209,6 +209,11 @@
   }
 
   function loadCancellationPresentation(){
+    if(!document.head || typeof document.head.appendChild !== 'function' ||
+       !document.body || typeof document.body.appendChild !== 'function'){
+      return;
+    }
+
     if(!document.getElementById('budaoRouteCancellationStyles')){
       const stylesheet = document.createElement('link');
       stylesheet.id = 'budaoRouteCancellationStyles';
