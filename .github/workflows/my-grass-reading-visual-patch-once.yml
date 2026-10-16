@@ -1,0 +1,44 @@
+name: My Grass approved visual refinement once
+
+on:
+  push:
+    branches:
+      - feat/my-grass-cuv-shen-bible-v1
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/my-grass-cuv-shen-bible-v1
+          fetch-depth: 1
+
+      - name: Apply verified patch
+        shell: bash
+        run: |
+          tr -d '[:space:]' < .tmp/my-grass-reading-visual.patch.gz.b64 | base64 -d | gunzip > /tmp/visual.patch
+          git apply --check /tmp/visual.patch
+          git apply /tmp/visual.patch
+
+      - name: Verify
+        run: |
+          npm run build
+          npm run lint
+          node --test --test-name-pattern='Hobby deployment stays within twelve' test/vercel-function-budget.test.js
+          git diff --check
+
+      - name: Commit and self-remove
+        shell: bash
+        run: |
+          git config user.name 'OpenAI'
+          git config user.email 'noreply@openai.com'
+          git add pasture-preview/my-grass-v1.js pasture-preview/my-grass-immersive-v04.css test/my-grass-reading-session.test.js
+          git rm .github/workflows/my-grass-reading-visual-patch-once.yml
+          git rm .tmp/my-grass-reading-visual.patch.gz.b64
+          rmdir .tmp 2>/dev/null || true
+          git commit -m 'fix(my-grass): refine approved scripture reading visuals'
+          git push origin HEAD:feat/my-grass-cuv-shen-bible-v1
