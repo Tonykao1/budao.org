@@ -1,6 +1,7 @@
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
-const branch = "main";
+const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH ||
+  (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF) || "main";
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const fixedSlots = ["IMS", "BACBC"];
