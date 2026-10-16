@@ -114,12 +114,16 @@
   }
 
   async function handleCreate(button){
-    if(IN_FLIGHT.get(button)) return; // already in flight for this button
+    if(IN_FLIGHT.get(button)) return;
     const idx = button.dataset.routeIndex;
     const routes = window.BudaoActiveRoutes || [];
     const route = routes[Number(idx)];
     if(!route){
       showMessageOnCard(button, '无法封存步道。');
+      return;
+    }
+    if(route.status === 'cancelled'){
+      showMessageOnCard(button, '本次步道已取消，暂不开放封存。');
       return;
     }
     const routeId = (typeof route.routeId === 'string' && route.routeId.trim()) ? route.routeId : (typeof route.id === 'string' ? route.id : '');
@@ -156,6 +160,8 @@
         showMessageOnCard(button, '你没有权限封存这条步道。');
       } else if (res.status === 404) {
         showMessageOnCard(button, '未找到这条路线。');
+      } else if (res.status === 409) {
+        showMessageOnCard(button, '本次步道已取消，暂不开放封存。');
       } else if (res.status === 429) {
         showMessageOnCard(button, '操作过于频繁，请稍后再试。');
       } else if (res.status === 503) {
@@ -177,7 +183,7 @@
 
     const routes = window.BudaoActiveRoutes || [];
     const route = routes[Number(button.dataset.routeIndex)];
-    if(!route || route.calendarType !== 'fellowship') return;
+    if(!route || route.status === 'cancelled' || route.calendarType !== 'fellowship') return;
 
     const modal = document.getElementById('qrModal');
     const frame = document.getElementById('qrFrame');
@@ -202,9 +208,39 @@
     handleCreate(button);
   }
 
-  // bind once
+  function loadCancellationPresentation(){
+    if(!document.getElementById('budaoRouteCancellationStyles')){
+      const stylesheet = document.createElement('link');
+      stylesheet.id = 'budaoRouteCancellationStyles';
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = '/route-cancellation.css?v=20261016-v2';
+      document.head.appendChild(stylesheet);
+    }
+
+    function loadPresenter(){
+      if(document.getElementById('budaoRouteCancellationPublic')) return;
+      const presenter = document.createElement('script');
+      presenter.id = 'budaoRouteCancellationPublic';
+      presenter.src = '/route-cancellation-public.js?v=20261016-v2';
+      document.body.appendChild(presenter);
+    }
+
+    if(window.BudaoRouteCancellation){
+      loadPresenter();
+      return;
+    }
+
+    if(document.getElementById('budaoRouteCancellationCore')) return;
+    const core = document.createElement('script');
+    core.id = 'budaoRouteCancellationCore';
+    core.src = '/route-cancellation-core.js?v=20261016-v2';
+    core.onload = loadPresenter;
+    document.body.appendChild(core);
+  }
+
   if (typeof document !== 'undefined'){
     ensureThreeSlotDesktopLayout();
+    loadCancellationPresentation();
     document.addEventListener('click', handleFellowshipQrClick, true);
     document.addEventListener('click', onClick, false);
   }
