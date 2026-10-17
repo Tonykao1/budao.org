@@ -1,0 +1,44 @@
+name: My Grass single verse follow apply
+
+on:
+  push:
+    branches:
+      - feat/my-grass-cuv-shen-bible-v1
+    paths:
+      - .github/workflows/my-grass-single-verse-follow.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/my-grass-cuv-shen-bible-v1
+          fetch-depth: 0
+      - name: Apply single verse playback emphasis fix
+        shell: bash
+        run: |
+          cat > /tmp/fix.b64 <<'EOF'
+H4sIAAAAAAACA71WbW/bNhD+7l/BNEAlzxIjJXYcJ1PSFyzAgH0Y1iH7UHcFLZ1sNjKpkpQdw8l/H19kz7LdNBnSwYAskXf3HO+eO15G8xyF4ZgqRI5KIlUlICwFzCjMj6aLcCyIlCGdTkFIOoNwFnVxKiUaPUO4RVkGdyiL4lGfAMZRL8oH3S6Ko+i0222FYfgs7Fan03ke/ps3KDyOToNT1DF/A6QXRjxbYKsw4vw25CUwdGi/3+nv94TNiAz2CWH7quBOLTMqy4Iszhln0Kq1/+LiVpYkBYTHMhRAMsrGYU4ZlZPliIsMRKh4Gaa84OJcjEfEj7tREEe94PQ4wPFZ+4BOSy4UYephv9GZPh5gKsOcFwWfa/tIb7JlzpkK50DHE3U+iKL/ZKcqHzPT+aYZe1IQxhqpMso3bDagBGFjaED0NiEuXFgOu6OT7vHxD4DejVTvpY/4jKwYPUZma5owrmA5IuntWPCKZedK+6yNCGBqI0Y1iwrI1Xlc3iHJC5ohR6U4DuLjQdAfBLgXNamkf9mTqn3lzSzGXx6t9IZgXeU5pKdp/wzj7snZyej47IlV3jT1nQpvCpvqjge9oI865s9UdwshZE+MUF6xVFHOUFoAEW9N4q5tgvz2shVqgfkq0377Cn+tQCw+QAGp4uJtUfje/tR6bZxz8QtJJz7jGSSX5onTQnv3G5UKC5jyGfheU6d90epoxJQzqdBcJhvQgSNXMpdbTvje4VjeGAf+sBJebWRH8Ed56xy72i++VQjGORf6jcDfApQu5DdU0lEB/qhSijMdf7SOxur430zGnjjQ3D9wevf3B7VNAZoy7KJu+X3X8nU91KSo0TJQhBYJzHRhXWH3dX+/fLjYJYk9ENJQTgpLRRQkSeKBpnvm3d9vr1sTemftSq0vQUodjisrWckDI8qnZQHKmjkgOlozeD8hpQKxVu48ytDdoGzmiWTZI0mqQyGtKciSBj62JJI4p4X+8mfJ5cwtXSb1OcwxhLLYr1/Xmz+vN3Vw7FYDysok9nnNXZR/F3wstI6/ciOow5lWwnS9P+kUVktZJYghlEu8NdOIsQNxPHiUSOsi+ZgRRdxr8srr2JeO9+pTza0tSjWapwKpdhvS6vhm1/XOJ8nVrTOK+9AbxHpAIvryA9JsnU+z5Drn02RXNXJiaqQfxCdmLjKbvlerID3dgECFZhMwiXQT0e/sFjLHKVTW6UOEZbbOJdKjEPpaUVDIpVCnRvsAQuEpUboBVTQ4cgkdbtfSkWXLjrRMhabur0zxG3MLGKEH05taHeerc8XUEmGm3+gZpjROgUTzCS+gvvhHvLBHkhzBnSZ7sbC+2qSjlAhBtYIZ58z9i2BaToik0gv8dnK51HXo6FXRJJfYhOeaFvBhwVK/JGqCv3DK/M+fMyoY0ZT1MPYCb+sC0yv7rzCvHXiVys9cb3dAem59GaSdcbiJthPudf8YmgYy3NtBhu2j7yq7W+IZ+tq14Gi4PW4N981b/0oN15PdcPnx74dPP31ztHt5RDvf/a+wzdFyD/RgB9qUyj8KgKyn5Q0AAA==
+EOF
+          base64 -d /tmp/fix.b64 | gzip -d > /tmp/fix.patch
+          git apply --check /tmp/fix.patch
+          git apply /tmp/fix.patch
+      - name: Verify fix
+        run: |
+          node --test test/my-grass-reading-session.test.js
+          npm run build
+          npm run lint
+          git diff --check
+      - name: Commit and self-remove
+        shell: bash
+        run: |
+          rm .github/workflows/my-grass-single-verse-follow.yml
+          git config user.name "Tonykao1"
+          git config user.email "69593498+Tonykao1@users.noreply.github.com"
+          git add pasture-preview/my-grass-reading-v1.js pasture-preview/my-grass-immersive-v04.css test/my-grass-reading-session.test.js .github/workflows/my-grass-single-verse-follow.yml
+          git commit -m "fix(my-grass): keep playback emphasis to one verse"
+          git push origin HEAD:feat/my-grass-cuv-shen-bible-v1
