@@ -207,3 +207,13 @@ test('reading layer listens for linked-audio progress and keeps one quiet curren
  assert.match(ui,/detail\.state==='ended'/);
  assert.match(ui,/scrollIntoView/);
 });
+
+test('audio companion suppresses whole-range bolding so exactly one verse carries playback emphasis',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
+ const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
+ assert.match(ui,/classList\.add\('is-audio-following'\)/);
+ assert.match(ui,/classList\.remove\('is-audio-following'\)/);
+ assert.match(css,/\.gs-verse-reader\.is-audio-following \.gs-verse\.is-range\{[^}]*font-weight:500!important/);
+ assert.match(css,/\.gs-verse-reader\.is-audio-following \.gs-verse\.is-range span\{[^}]*font-weight:500!important/);
+ assert.match(css,/\.gs-verse-reader\.is-audio-following \.gs-verse\.is-following span\{[^}]*font-weight:900!important/);
+});

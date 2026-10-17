@@ -195,7 +195,9 @@
   }
 
   function clearAudioFollow(){
-   workspace()?.querySelectorAll('.gs-verse.is-following').forEach(node=>node.classList.remove('is-following'));
+   const ws=workspace(),reader=ws?.querySelector('#gsVerseReader');
+   ws?.querySelectorAll('.gs-verse.is-following').forEach(node=>node.classList.remove('is-following'));
+   reader?.classList.remove('is-audio-following');
   }
   function keepFollowVisible(button){
    const reader=workspace()?.querySelector('#gsVerseReader');if(!reader||!button)return;
@@ -207,6 +209,7 @@
    const detail=event?.detail||{};clearAudioFollow();
    if(detail.state==='ended'||detail.state==='cleared')return;
    if(session?.status!=='completed'||!activeChapter)return;
+   workspace()?.querySelector('#gsVerseReader')?.classList.add('is-audio-following');
    const selected=activeChapter.verses.filter(v=>v.verse>=session.startVerse&&v.verse<=session.endVerse);
    const verse=verseForAudioProgress(selected,detail.currentTime,detail.duration);if(!verse)return;
    const button=workspace()?.querySelector('.gs-verse[data-verse="'+verse+'"]');if(!button)return;

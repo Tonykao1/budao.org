@@ -206,6 +206,9 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-reading-finish{border-top-color:rgba(140,105,62,.18)!important}
 #grassWorkspace .gs-verse.is-following span{font-weight:900!important}
 #grassWorkspace .gs-verse.is-following sup{font-weight:900!important}
+#grassWorkspace .gs-verse-reader.is-audio-following .gs-verse.is-range{font-weight:500!important;color:#4b3422!important}
+#grassWorkspace .gs-verse-reader.is-audio-following .gs-verse.is-range span{font-weight:500!important}
+#grassWorkspace .gs-verse-reader.is-audio-following .gs-verse.is-following span{font-weight:900!important}
 .gs-nav-reading-note{background:transparent!important;border-left:1px solid rgba(111,129,79,.50)!important}
 
 
