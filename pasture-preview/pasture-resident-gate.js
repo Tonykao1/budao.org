@@ -9,6 +9,7 @@ const idNode=identity?.querySelector('.bid');
 const stateNode=identity?.querySelector('.state');
 const daysNode=identity?.querySelector('.days');
 let resident=null,pendingArrival=false;
+const RESIDENT_OPEN_FEATURES=new Set(['grassBookBtn']);
 
 function allFeatureButtons(){
   return [...document.querySelectorAll('.pbtn')];
@@ -17,8 +18,9 @@ function paint(){
   const authenticated=!!resident;
   document.body.classList.toggle('pasture-resident-authenticated',authenticated);
   allFeatureButtons().forEach(button=>{
-    button.classList.toggle('pasture-feature-locked',authenticated);
-    if(authenticated){
+    const locked=authenticated&&!RESIDENT_OPEN_FEATURES.has(button.id);
+    button.classList.toggle('pasture-feature-locked',locked);
+    if(locked){
       button.setAttribute('aria-disabled','true');
       button.title='功能正在生长，成熟后开放';
     }else{
@@ -59,6 +61,7 @@ function lockEvent(event){
   if(location.hostname==='127.0.0.1'&&window.__PASTURE_TEST_UNLOCK===true)return;
   const button=event.target.closest('.pbtn');
   if(!button||!actions?.contains(button))return;
+  if(resident&&RESIDENT_OPEN_FEATURES.has(button.id))return;
   event.preventDefault();
   event.stopPropagation();
   if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();

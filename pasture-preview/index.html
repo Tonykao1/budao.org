@@ -29,6 +29,8 @@
  html=html.replace('</style></head><body>','\n#topTools{display:none!important}\n#shopClose,#boxClose{background:#f9f0d5!important;border:3px solid #254c3c!important;color:#264b3d!important;padding:7px 13px!important;font-weight:900!important;border-radius:0!important;box-shadow:none!important;cursor:pointer!important}\nbody.grass-immersive #help,body.grass-immersive #toast{display:none!important}\n</style></head><body>');
  // Only update hosting-specific paths; preserve the approved seven module UI and card engine.
  html=html.replace('https://budao.org/tonglu.html','/tonglu.html');
+ // 我的牧草已进入真实居民功能阶段：居民登录是唯一入口门，不再叠加旧步道卡激活门。
+ html=html.replace("const protectedIds=['returnNow','grassBookBtn','windNewsBtn','partnersBtn','mailBtn'];","const protectedIds=['returnNow','windNewsBtn','partnersBtn','mailBtn'];");
 
  // The assembled approved card engine already upgrades the original card through
  // upgradeApprovedCard(cardHTML) and mounts approvedSixCardHTML in cardIframe.
