@@ -107,6 +107,82 @@
     if(!current)throw new Error('请先点击一节经文，从这一节开始。');
     return normalizeReadingSession({...current,status:'completed',completedAt:timestamp||new Date().toISOString()});
   }
+  // Journey v2: one continuous recording and its user-marked verse boundaries.
+  let runtimeReadingJourney=null;
+  let runtimeJourneyRequired=false;
+  function normalizeReadingJourney(value){
+    if(value==null)return null;
+    const segments=Array.isArray(value.segments)?value.segments.map(s=>({
+      verse:Number(s.verse),verseId:trim(s.verseId),
+      startMs:Number(s.startMs),endMs:s.endMs==null?null:Number(s.endMs)
+    })):[];
+    if(!segments.length)throw Error('Journey 缺少经节时间线。');
+    const first=segments[0];
+    const point=validateReadingPoint({book:value.book,chapter:value.chapter,verse:first.verse,verseId:first.verseId});
+    const status=value.status==='completed'?'completed':'recording';
+    if(first.startMs!==0)throw Error('Journey 必须从零开始。');
+    for(let i=0;i<segments.length;i++){
+      const seg=segments[i],expected=point.osis+'.'+point.chapter+'.'+seg.verse;
+      if(seg.verseId!==expected||seg.verse!==first.verse+i||!Number.isFinite(seg.startMs)||seg.startMs<0)
+        throw Error('Journey 经节必须连续且编号准确。');
+      if(i&&segments[i-1].endMs!==seg.startMs)throw Error('Journey 时间节点必须连续。');
+      if(i<segments.length-1&&(seg.endMs==null||seg.endMs<seg.startMs))throw Error('Journey 时间线不完整。');
+      if(seg.endMs!=null&&(!Number.isFinite(seg.endMs)||seg.endMs<seg.startMs))throw Error('Journey 结束时间无效。');
+    }
+    if(status==='recording'&&segments.at(-1).endMs!==null)throw Error('进行中的 Journey 最后一节必须开放。');
+    if(status==='completed'&&segments.at(-1).endMs===null)throw Error('Journey 尚未封存。');
+    const end=segments.at(-1);
+    const audio=value.audio||null;
+    if(status==='completed'&&(!trim(audio?.audioId)||!Number.isFinite(Number(audio?.size))||Number(audio.size)<=0))
+      throw Error('完成 Journey 必须有真实原声音频。');
+    return {
+      status,book:point.book,chapter:point.chapter,translation:clip(value.translation,64),
+      startVerse:first.verse,endVerse:end.verse,
+      reference:readingRef(point.book,point.chapter,first.verse,end.verse),
+      verseIds:segments.map(s=>s.verseId),segments,startedAt:trim(value.startedAt)||null,
+      completedAt:status==='completed'?trim(value.completedAt)||null:null,
+      durationMs:status==='completed'?end.endMs:null,
+      audio:status==='completed'?{audioId:trim(audio.audioId),mimeType:trim(audio.mimeType),size:Number(audio.size),durationSeconds:Number(audio.durationSeconds)||0}:null
+    };
+  }
+  function startReadingJourney(point,startedAt){
+    const p=validateReadingPoint(point);
+    return normalizeReadingJourney({status:'recording',book:p.book,chapter:p.chapter,translation:point.translation,
+      startedAt:startedAt||new Date().toISOString(),
+      segments:[{verse:p.verse,verseId:p.verseId,startMs:0,endMs:null}]});
+  }
+  function advanceReadingJourney(journey,point,elapsedMs){
+    const current=normalizeReadingJourney(journey),p=validateReadingPoint(point);
+    if(current.status!=='recording')throw Error('读经已经结束。');
+    const last=current.segments.at(-1);
+    if(p.book!==current.book||p.chapter!==current.chapter)throw Error('一次读经不能跨章节。');
+    if(p.verse===last.verse)return journey;
+    if(p.verse!==last.verse+1)throw Error('请从下一节连续阅读。');
+    const ms=Number(elapsedMs);
+    if(!Number.isFinite(ms)||ms<=last.startMs)throw Error('经节时间必须递增。');
+    const segments=current.segments.map(s=>({...s}));
+    segments.at(-1).endMs=ms;
+    segments.push({verse:p.verse,verseId:p.verseId,startMs:ms,endMs:null});
+    return normalizeReadingJourney({...current,segments});
+  }
+  function completeReadingJourney(journey,elapsedMs,completedAt,audioMeta){
+    const current=normalizeReadingJourney(journey);
+    if(current.status!=='recording')throw Error('读经已经结束。');
+    const ms=Number(elapsedMs),last=current.segments.at(-1);
+    if(!Number.isFinite(ms)||ms<=last.startMs)throw Error('结束时间必须在当前节开始之后。');
+    const segments=current.segments.map(s=>({...s}));
+    segments.at(-1).endMs=ms;
+    return normalizeReadingJourney({...current,status:'completed',segments,audio:audioMeta,completedAt:completedAt||new Date().toISOString()});
+  }
+  function journeyVerseAt(journey,elapsedMs){
+    const j=normalizeReadingJourney(journey),ms=Number(elapsedMs);
+    if(!Number.isFinite(ms)||ms<0)return null;
+    const match=j.segments.find(s=>ms>=s.startMs&&(s.endMs===null||ms<s.endMs));
+    return match?match.verse:(j.status==='completed'&&ms===j.durationMs?j.endVerse:null);
+  }
+  function setRuntimeReadingJourney(value){runtimeReadingJourney=normalizeReadingJourney(value);return runtimeReadingJourney;}
+  function getRuntimeReadingJourney(){return runtimeReadingJourney;}
+  function setReadingJourneyRequired(value){runtimeJourneyRequired=value===true;}
   function setRuntimeReadingSession(value){
     runtimeReadingSession=normalizeReadingSession(value);
     return runtimeReadingSession;
@@ -157,13 +233,18 @@
     const reflection = normalizeReflection(input?.reflection);
     const candidate=input&&Object.prototype.hasOwnProperty.call(input,'readingSession')?input.readingSession:runtimeReadingSession;
     const readingSession=normalizeReadingSession(candidate);
-    if(runtimeReadingRequired&&!readingSession&&!allowMissingReading)throw new Error('请先完成本次阅读，再把领受收入个人古卷。');
+    const journeyCandidate=input&&Object.prototype.hasOwnProperty.call(input,'readingJourney')?input.readingJourney:runtimeReadingJourney;
+    const readingJourney=normalizeReadingJourney(journeyCandidate);
+    if(readingJourney&&readingJourney.status!=='completed')throw Error('请先结束今日读经。');
+    if(runtimeJourneyRequired&&!readingJourney&&!allowMissingReading)throw Error('请先完成今日读经。');
+    if(runtimeReadingRequired&&!readingSession&&!readingJourney&&!allowMissingReading)throw new Error('请先完成本次阅读，再把领受收入个人古卷。');
     if(readingSession&&readingSession.status!=='completed')throw new Error('请先完成本次阅读。');
     return {
-      version: SCHEMA_VERSION, id,
+      version: readingJourney?2:SCHEMA_VERSION, id,
       createdAt: now, updatedAt: now,
       scripture,
       readingSession,
+      ...(readingJourney?{readingJourney}:{}),
       reading: {
         kind: 'original-human-voice',
         audioId: input?.reading?.audioId || null,
@@ -180,8 +261,10 @@
   }
   function reviseEntry(previous, input, timestamp) {
     if (!previous || !previous.id) throw new Error('找不到对应牧草。');
-    const allowLegacyMissing=!previous.readingSession;
-    const revised = newEntry(input, timestamp, previous.id,allowLegacyMissing);
+    const allowLegacyMissing=!previous.readingSession&&!previous.readingJourney;
+    const effective=previous.readingJourney&&!Object.prototype.hasOwnProperty.call(input||{},'readingJourney')
+      ?{...input,readingJourney:previous.readingJourney}:input;
+    const revised = newEntry(effective, timestamp, previous.id,allowLegacyMissing);
     return {...revised, createdAt: previous.createdAt, shareIds: [...(previous.shareIds || [])]};
   }
   function makeMicro(entry, quote, id, timestamp) {
@@ -232,6 +315,7 @@
     distributeVoicePublicly:false
   }); }
   return Object.freeze({
+    normalizeReadingJourney,startReadingJourney,advanceReadingJourney,completeReadingJourney,journeyVerseAt,setRuntimeReadingJourney,getRuntimeReadingJourney,setReadingJourneyRequired,
     SCHEMA_VERSION,MICRO_LIMIT,STORAGE_PREFIX,PHASES,trim,count,clip,
     validateRef,validateScripture,normalizeReadingSession,beginReadingSession,setReadingSessionEnd,completeReadingSession,
     setRuntimeReadingSession,setReadingSessionRequired,normalizeReflection,newEntry,reviseEntry,
