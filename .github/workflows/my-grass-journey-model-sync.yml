@@ -1,0 +1,35 @@
+name: Apply Journey model
+on:
+  push:
+    branches: [feat/my-grass-cuv-shen-bible-v1]
+    paths: [.github/workflows/my-grass-journey-model-sync.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/my-grass-cuv-shen-bible-v1
+      - name: Patch
+        shell: bash
+        run: |
+          printf '%s' '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...[truncated]' | base64 -d | gzip -d > /tmp/journey.patch
+          git apply --check /tmp/journey.patch
+          git apply /tmp/journey.patch
+      - name: Validate
+        run: |
+          node --test test/my-grass-reading-journey.test.js test/my-grass-reading-session.test.js
+          npm run build
+          npm run lint
+          git diff --check
+      - name: Commit and clean workflow
+        shell: bash
+        run: |
+          rm .github/workflows/my-grass-journey-model-sync.yml
+          git config user.name 'Tonykao1'
+          git config user.email '69593498+Tonykao1@users.noreply.github.com'
+          git add pasture-preview/my-grass-core.js test/my-grass-reading-journey.test.js .github/workflows/my-grass-journey-model-sync.yml
+          git commit -m 'feat(my-grass): add integrated reading journey model'
+          git push origin HEAD:feat/my-grass-cuv-shen-bible-v1
