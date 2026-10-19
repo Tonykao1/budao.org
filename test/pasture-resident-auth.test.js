@@ -82,12 +82,16 @@ test('resident sheep hand uses relaxed, ready, and grabbing states while preserv
  assert.match(landscape,/baaa01\.mp3/);
 });
 
-test('authenticated resident can enter 我的牧草 without legacy card activation while unfinished features stay locked',()=>{
+test('email-only residents can access only step card, not My Grass; construction stays locked',()=>{
  const fs=require('node:fs'),path=require('node:path');
  const gate=fs.readFileSync(path.join(__dirname,'..','pasture-preview/pasture-resident-gate.js'),'utf8');
  const preview=fs.readFileSync(path.join(__dirname,'..','pasture-preview/index.html'),'utf8');
- assert.match(gate,/RESIDENT_OPEN_FEATURES[^\n]*grassBookBtn/);
- assert.match(gate,/resident\s*&&\s*RESIDENT_OPEN_FEATURES\.has\(button\.id\)/);
- assert.match(gate,/authenticated\s*&&\s*!RESIDENT_OPEN_FEATURES\.has\(button\.id\)/);
- assert.match(preview,/protectedIds=\['returnNow','grassBookBtn','windNewsBtn','partnersBtn','mailBtn'\][\s\S]*protectedIds=\['returnNow','windNewsBtn','partnersBtn','mailBtn'\]/);
+ assert.match(gate,/RESIDENT_OPEN_FEATURES=new Set\(\['budaoCardBtn'\]\)/);
+ assert.match(gate,/resident\?\.cardActivated===true/);
+ assert.match(gate,/button\.id==='grassBookBtn'&&canUseGrass\(\)/);
+ assert.match(gate,/pasture-card-required/);
+ assert.match(gate,/if\(allowed\(button\)\)return/);
+ assert.doesNotMatch(gate,/__PASTURE_TEST_UNLOCK/);
+ assert.doesNotMatch(preview,/演示激活码 BUDAO-2026/);
+ assert.doesNotMatch(preview,/保护.*居民登录是唯一入口门/);
 });
