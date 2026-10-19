@@ -47,7 +47,7 @@ test('operator CLI requires ministry identity and an approval reference and chan
  assert.match(cli,/--issuer/);
  assert.match(cli,/--approval-ref/);
  assert.match(cli,/--recipient/);
- assert.match(cli,/ONLINE'&&!\/\^\[a-f0-9-\]\{36\}\$/i);
+ assert.match(cli,/count!==1/);
  assert.match(cli,/--confirm-issue/);
  assert.match(specs,/步道事工是数字卡和实体卡的唯一发行主体/);
  assert.match(specs,/申请不会自动生成卡密/);
