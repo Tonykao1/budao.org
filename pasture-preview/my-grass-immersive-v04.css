@@ -364,3 +364,9 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 @media(prefers-reduced-motion:reduce){
  #grassWorkspace .gs-light-center,#grassWorkspace .gs-light-node{transition:none}
 }
+
+
+#grassWorkspace .gs-light-echo{margin:4px 0 9px;padding:5px 8px;border-left:1px solid rgba(113,146,94,.65);font:500 14px/1.6 STKaiti,KaiTi,serif;white-space:pre-wrap;color:#59694d}
+#grassWorkspace .gs-light-node.is-pulsing{animation:gsLightPulse 1.2s ease-in-out 1}
+@keyframes gsLightPulse{0%,100%{filter:brightness(1)}45%{filter:brightness(1.22);box-shadow:0 0 20px rgba(160,195,113,.65)}}
+@media(prefers-reduced-motion:reduce){#grassWorkspace .gs-light-node.is-pulsing{animation:none}}
