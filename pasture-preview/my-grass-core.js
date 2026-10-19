@@ -314,7 +314,58 @@
     synthesizePrivateReflection:false,
     distributeVoicePublicly:false
   }); }
+
+  // One completed human-voice reading may become one enduring insight;
+  // six relations grow from it without mutating the original text.
+  const LIGHT_TYPES=Object.freeze(['OUT','TIMELINE','SCRIPTURE','PRAYER','ACTION','GOSPEL']);
+  function createInsightRecord(journey,draft,id,timestamp){
+    const reading=normalizeReadingJourney(journey);
+    if(!reading||reading.status!=='completed'||!reading.audio?.audioId)
+      throw Error('请先完成本人原声读经。');
+    const heard_text=normalizeReflection(draft?.heardText);
+    const today_text=normalizeReflection(draft?.todayText);
+    if(!heard_text&&!today_text)throw Error('请写下今天真实的领受，再点亮「领」。');
+    if(!trim(id))throw Error('领受必须拥有稳定的编号。');
+    const now=timestamp||new Date().toISOString();
+    return Object.freeze({
+      insight_id:trim(id),reading_record_id:reading.audio.audioId,
+      scripture_range:reading.reference,translation:reading.translation,
+      verse_ids:[...reading.verseIds],heard_text,today_text,
+      created_at:now,finalized_at:now,status:'active'
+    });
+  }
+  function createLightRelation(insight,lightType,target,id,timestamp){
+    if(!insight||insight.status!=='active'||!trim(insight.insight_id))throw Error('请先形成中心领受。');
+    if(!LIGHT_TYPES.includes(lightType))throw Error('未知的关系方向。');
+    const to_ref=trim(target);
+    if(!to_ref)throw Error('请写下这一次真实的连接。');
+    if(count(to_ref)>1200)throw Error('单次连接文字不超过1200字。');
+    if(!trim(id))throw Error('关系编号不能为空。');
+    return Object.freeze({
+      relation_id:trim(id),insight_id:insight.insight_id,light_type:lightType,
+      from_ref:insight.insight_id,to_ref,relation_type:'user-authored',
+      created_at:timestamp||new Date().toISOString(),status:'active',
+      metadata:{visibility:'private'}
+    });
+  }
+  function createLightEvent(relation,id,eventGroupId,direction,payload,timestamp){
+    if(!relation?.relation_id||!LIGHT_TYPES.includes(relation.light_type))throw Error('事件没有有效关系。');
+    if(!['internal','inbound','outbound'].includes(direction))throw Error('事件方向无效。');
+    if(!trim(id)||!trim(eventGroupId))throw Error('事件需要稳定编号。');
+    return Object.freeze({
+      event_id:trim(id),relation_id:relation.relation_id,event_group_id:trim(eventGroupId),
+      direction,event_type:'relation-created',actor_ref:direction==='inbound'?'external':'self',
+      created_at:timestamp||new Date().toISOString(),payload:payload||{}
+    });
+  }
+  function createInboundEvent(insight,relation,source,id,eventGroupId,timestamp){
+    if(!insight?.insight_id||insight.status!=='active'||!relation||relation.insight_id!==insight.insight_id)
+      throw Error('外部回应必须指向已存在的领受关系。');
+    if(!trim(source))throw Error('外部回应来源不能为空。');
+    return Object.freeze({...createLightEvent(relation,id,eventGroupId,'inbound',{source:trim(source)},timestamp),event_type:'external-response'});
+  }
   return Object.freeze({
+    LIGHT_TYPES,createInsightRecord,createLightRelation,createLightEvent,createInboundEvent,
     normalizeReadingJourney,startReadingJourney,advanceReadingJourney,completeReadingJourney,journeyVerseAt,setRuntimeReadingJourney,getRuntimeReadingJourney,setReadingJourneyRequired,
     SCHEMA_VERSION,MICRO_LIMIT,STORAGE_PREFIX,PHASES,trim,count,clip,
     validateRef,validateScripture,normalizeReadingSession,beginReadingSession,setReadingSessionEnd,completeReadingSession,
