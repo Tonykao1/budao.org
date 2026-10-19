@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>步道卡 · 牧场激活</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#b1dece;color:#315365}
+body{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(180deg,#92d5e7 0%,#d4eaca 54%,#a9d090 100%)}
+.card{width:min(450px,100%);border:4px solid #254b6f;background:#fff9e9;box-shadow:8px 8px 0 rgba(34,76,89,.23);padding:26px 24px 20px}
+.flag{font:800 11px/1.2 monospace;color:#72855e;letter-spacing:.2em;text-transform:uppercase}.name{font:900 31px/1.3 STKaiti,KaiTi,serif;letter-spacing:.18em;margin:12px 0}
+hr{border:0;border-top:2px dashed #c7ba8c;margin:19px 0}
+p{font-size:14px;line-height:1.85;color:#576a61;margin:12px 0}
+label{font-weight:800;font-size:13px;display:block;margin:18px 0 6px}
+input{width:100%;font:800 19px/1.4 ui-monospace,monospace;letter-spacing:.16em;min-height:48px;padding:10px;border:2px solid #78936f;background:#fffdf1;color:#355a50}
+input:focus{outline:2px solid #78936f;outline-offset:1px}
+button{cursor:pointer;background:#d2e3b8;border:3px solid #45685b;padding:10px 22px;min-height:45px;font-weight:900;font-size:14px;color:#2d5548;box-shadow:3px 3px 0 #7c987f}
+button:disabled{opacity:.55;cursor:wait}
+#status{min-height:23px;margin-top:17px;font-size:12px;color:#765b3d;font-weight:700}
+.small{font-size:12px;color:#6f897d}
+@media(max-width:520px){body{padding:10px}.card{padding:20px 16px}.name{font-size:27px}}
+</style></head>
+<body><main class="card" aria-label="步道卡激活">
+ <div class="flag">BUDAO · DIGITAL PASTURE</div>
+ <h1 class="name">步道卡</h1>
+ <p>邮箱为你开启牧场，步道卡为你开启「我的牧草」。</p>
+ <hr>
+ <form id="form" autocomplete="off">
+  <label for="password">请输入步道卡密码</label>
+  <input id="password" type="password" name="cardPassword" autocomplete="off" maxlength="128" placeholder="你的步道卡密码" required>
+  <div style="margin-top:18px"><button id="submit" type="submit">验证并激活</button></div>
+ </form>
+ <p id="status" role="status" aria-live="polite">正在检查牧场身份……</p>
+ <p class="small">密码与卡号机制尚在定稿中。验证服务启用前，不会临时使用演示密码，也不会提前开放私人功能。</p>
+</main>
+<script>
+(()=>{
+ 'use strict';
+ const status=document.getElementById('status');
+ const form=document.getElementById('form'),button=document.getElementById('submit');
+ const password=document.getElementById('password');
+ let ready=false,busy=false;
+ const say=v=>{status.textContent=v};
+ const request=async(body)=>{
+  const method=body?'POST':'GET';
+  const res=await fetch('/api/pasture-auth',{method,credentials:'include',cache:'no-store',
+   headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
+  const data=await res.json().catch(()=>({ok:false,reason:'bad_response'}));
+  return {res,data};
+ };
+ async function refresh(){
+  try{
+   const {res,data}=await request();
+   if(!res.ok||!data.ok){say('牧场身份暂不可用，请稍候再试。');return}
+   if(!data.user?.id){say('请先使用邮箱注册并进入牧场。');return}
+   if(!data.user.sheep){say('请先捏羊，让你的羊进入牧场。');return}
+   if(data.user.cardActivated===true){
+    form.hidden=true;say('步道卡已激活，「我的牧草」已经开放。');
+    window.parent.postMessage({type:'budao-card-refresh-entitlement'},location.origin);
+    return;
+   }
+   ready=true;say('请妥善保管步道卡密码；正式验证服务尚待启用。');
+  }catch(e){say('暂时无法读取牧场状态，请稍候再试。')}
+ }
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();if(!ready||busy)return;
+  const provided=password.value;
+  if(!provided){say('请输入步道卡密码。');return}
+  busy=true;button.disabled=true;say('正在向牧场验证……');
+  try{
+   const {res,data}=await request({action:'activateCard',password:provided});
+   if(res.ok&&data.ok&&data.user?.cardActivated===true){
+    password.value='';await refresh();
+   }else{
+    say(data.reason==='card_activation_pending'?'步道卡密码系统尚未完成设计，暂不能激活。':
+        data.reason==='unauthorized'?'登录已经失效，请重新登录牧场。':'激活尚未成功，请核对密码或稍后再试。');
+   }
+  }catch(e){say('验证服务暂时不可用，请稍候再试。')}
+  finally{password.value='';busy=false;button.disabled=false}
+ });
+ refresh();
+})();
+</script></body></html>
