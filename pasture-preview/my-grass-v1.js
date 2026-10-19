@@ -297,6 +297,10 @@ function stageReading(){
     focusLight=null;render();tell('领受已形成，六个关系方向如今可以生长。');
    }catch(e){tell(e.message||String(e))}
   }
+  function pulseLight(type){
+   const node=root.querySelector('.gs-light-node[data-light="'+type+'"]');if(!node)return;
+   node.classList.add('is-pulsing');setTimeout(()=>node.classList.remove('is-pulsing'),1250);
+  }
   function addLightRelation(){
    if(!draft.insightRecord||!focusLight)return;
    try{
@@ -304,7 +308,7 @@ function stageReading(){
     const ev=C.createLightEvent(rel,randomId(),randomId(),'internal',{visibility:'private'},iso());
     const updated={relations:[...lightGraph.relations,rel],events:[...lightGraph.events,ev]};
     writeJson(persistentKeys().graph,updated);
-    lightGraph=updated;draft.lightDraft[focusLight]='';persistDraft();render();
+    lightGraph=updated;draft.lightDraft[focusLight]='';persistDraft();render();pulseLight(focusLight);
     tell('已将这一次连接记入个人古卷；不会自动发送给任何人。');
    }catch(e){tell(e.message||String(e))}
   }
@@ -316,7 +320,7 @@ function stageReading(){
     const ev=C.createInboundEvent(draft.insightRecord,relation,reply,randomId(),randomId(),iso());
     const updated={relations:lightGraph.relations,events:[...lightGraph.events,ev]};
     writeJson(persistentKeys().graph,updated);
-    lightGraph=updated;draft.lightDraft[focusLight]='';persistDraft();render();
+    lightGraph=updated;draft.lightDraft[focusLight]='';persistDraft();render();pulseLight(focusLight);
     tell('收到的回应已记录，原来的领受文字不被改写。');
    }catch(e){tell(e.message||String(e))}
   }
@@ -339,6 +343,7 @@ function stageReading(){
        '<button class="gs-smallbutton" type="button" data-action="light-add">记下连接</button>'+
        (relations.some(r=>r.light_type===focusLight)?'<div class="gs-light-history">'+
        relations.filter(r=>r.light_type===focusLight).map(r=>'<div class="gs-light-history-item"><p>'+escape(r.to_ref)+'</p><small>'+escape(datetime(r.created_at))+'</small>'+
+       lightGraph.events.filter(ev=>ev.relation_id===r.relation_id&&ev.direction==='inbound').map(ev=>'<p class="gs-light-echo">↳ '+escape(ev.payload?.source||'')+'</p>').join('')+
        '<button class="gs-smallbutton" type="button" data-action="light-reply" data-relation-id="'+escape(r.relation_id)+'">将上方文字记为收到的回应</button></div>').join('')+
        '</div>':'')+
       '</div>')+
