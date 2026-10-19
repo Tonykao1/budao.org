@@ -23,6 +23,14 @@ module.exports = async function handler(request, response) {
     if (action === "requestCode") return await requestCode(request, response, parsed.body);
     if (action === "verifyCode") return await verifyCode(request, response, parsed.body);
     if (action === "saveSheep") return await saveSheep(request, response, parsed.body);
+    if (action === "activateCard") {
+      // No password scheme has been approved yet. Fail closed until an issuer
+      // and verifier have been designed, audited and attached to this action.
+      const resident = await authenticatedResident(request);
+      if (!resident) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+      if (!resident.sheep) return sendJson(response, 403, { ok: false, reason: "sheep_required" });
+      return sendJson(response, 503, { ok: false, reason: "card_activation_pending" });
+    }
     if (action === "logout") return await logout(request, response);
     return sendJson(response, 400, { ok: false, reason: "unknown_action" });
   } catch (error) {
