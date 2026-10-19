@@ -201,7 +201,14 @@
     return next;
    }catch(e){tell(e.message||String(e));return null}
   }
-  function setTab(next){if(!C.PHASES.includes(next))return;if(['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');return}closeBibleNav();tab=next;archiveOpen=false;render();}
+  function setTab(next){
+   if(!C.PHASES.includes(next))return;
+   if(['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');return}
+   const legacy=!!getEntry()&&!draft.readingJourney;
+   if(next==='reflection'&&journeyPhase!=='completed'&&!legacy){tell('请先完成本人原声读经。');return}
+   if(next==='sharing'&&!draft.insightRecord&&!legacy){tell('请先写下领受，并点亮中心「领」。');return}
+   focusLight=null;closeBibleNav();tab=next;archiveOpen=false;render();
+  }
   function insertArchiveText(){
    const groups=C.groupByReference(entries);
    if(!groups.length)return '<p class="gs-empty">还没有正式保存的记录。每一次真实阅读，都可以从这里开始。</p>';
@@ -347,7 +354,7 @@ function stageReading(){
      '<div class="gs-insight-writing">'+
       '<label class="gs-field">这段经文里，我听见了什么？<textarea rows="3" data-field="heardText" '+(insight?'disabled':'')+' placeholder="听见……">'+escape(words.heardText||'')+'</textarea></label>'+
       '<label class="gs-field">这与今天的我有什么关系？<textarea rows="4" data-field="todayText" '+(insight?'disabled':'')+' placeholder="今天……">'+escape(words.todayText||'')+'</textarea></label>'+
-      (insight?'<p class="gs-small">领受已经形成；原文保持不变，新的回应从七光继续生长。</p>':'')+
+      (insight?'<p class="gs-small">领受已经形成；原文保持不变，新的回应从七光继续生长。</p>':(!draft.readingJourney&&draft.reflection?'<p class="gs-small">旧版默想原文（保持不变）</p><div class="gs-note-source">'+escape(draft.reflection)+'</div>':''))+
      '</div></section>'+
      '<section class="gs-panel gs-light-stage" aria-label="领受与七光">'+lightField()+
       (insight?'<div class="gs-actions"><button type="button" class="gs-smallbutton" data-action="next-sharing">一粒牧草 →</button></div>':'')+
@@ -557,8 +564,8 @@ async function rerecordAudio(){
   }
   function exportTextArchive(){
    const payload={format:'budao-my-grass',version:1,exportedAt:iso(),identityScope:scope,
-    notice:'此处保存了经文出处、用户录入的文字、本人笔记及私人微分享；音频属于独立二进制资产，请分别使用导出原声。',
-    entries,micros};
+    notice:'此处保存经文出处、本人领受、七光关系及私人微分享；音频需分别导出原声。ESV正文不写入档案。',
+    entries,micros,lightGraph};
    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
    downloadBlob(blob,'我的牧草-文字档案-'+new Date().toISOString().slice(0,10)+'.json');
    tell('文字档案已导出。原始朗读请通过对应记录的「导出原声」单独保存。');
@@ -705,7 +712,8 @@ async function rerecordAudio(){
    }
   });
   root.addEventListener('click',async e=>{
-   const b=e.target.closest('button[data-action]');if(!b)return;
+   const b=e.target.closest('button[data-action]');
+   if(!b){if(e.target?.classList?.contains('gs-light-orbit')&&focusLight){focusLight=null;render()}return}
    switch(b.dataset.action){
     case 'tab': setTab(b.dataset.tab);break;
     case 'scripture-nav': showBibleNav();break;
