@@ -44,6 +44,11 @@ async function ensurePastureSchema(env = process.env) {
     activated_at timestamptz,
     revoked_at timestamptz
   )`;
+  // Existing cards remain compatible; new issues must carry ministry provenance.
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS issuer_id text`;
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS authorization_ref text`;
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS delivery_channel text`;
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS reserved_for_user_id uuid REFERENCES pasture_users(id) ON DELETE SET NULL`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_cards_active_resident_uq
     ON pasture_cards(activated_by_user_id) WHERE status='ACTIVATED'`;
   await query`CREATE INDEX IF NOT EXISTS pasture_cards_batch_idx ON pasture_cards(batch_id,issued_at)`;
