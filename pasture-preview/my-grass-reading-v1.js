@@ -299,7 +299,7 @@
    }
    if(button.matches('[data-nav="apply"]')&&journey){
     event.preventDefault();event.stopImmediatePropagation();
-    const warning=doc.querySelector('#gsNavWarning');if(warning)warning.textContent=['arming','recording','finalizing'].includes(journeyPhase)?'请先结束今日读经，再翻到另一章。':'本次读经已完成；请先「新开一页」，再翻到另一章。';return;
+    const warning=doc.querySelector('#gsNavWarning');if(warning)warning.textContent=['arming','recording','paused','finalizing'].includes(journeyPhase)?'请先结束今日读经，再翻到另一章。':'本次读经已完成；请先「新开一页」，再翻到另一章。';return;
    }
    const action=button.dataset.action;
    if(action==='verse-select'){event.preventDefault();event.stopImmediatePropagation();selectVerse(button);return}
@@ -310,6 +310,11 @@
     event.preventDefault();event.stopImmediatePropagation();status('请先完成本次阅读，再进入默想。');return;
    }
    if(action==='new'){
+    // A captured click must not reset the reader before the workspace rejects it.
+    if(['arming','recording','paused','finalizing'].includes(journeyPhase)){
+     event.preventDefault();event.stopImmediatePropagation();
+     status('请先结束今日读经，再新开一页。');return;
+    }
     session=null;journey=null;journeyPhase='idle';journeyConfirm=false;activeChapter=null;chapterKey='';lastStageKey='';lastReaderSignature='';lastReaderNode=null;C.setRuntimeReadingJourney(null);C.setRuntimeReadingSession(null);
     root.setTimeout(()=>{normalizeFreshPage();schedule(0)},0);
    }
