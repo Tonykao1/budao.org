@@ -101,7 +101,7 @@ test('source finalization reuses one entry and only lights after archive persist
   C,iso:()=>when,randomId:()=>('id-'+(++counter)),
   draft:{insightDraft:{heardText:'听见',todayText:'于我'},readingJourney:completedJourney(),reflection:''},
   journeyPhase:'completed',focusLight:null,
-  insightText(){return this.draft.insightDraft},
+  insightText(){return ctx.draft.insightDraft},
   saveEntry(){saved++;return {id:'archive'}},
   render(){rendered++},tell(msg){notices.push(msg)}
  };
