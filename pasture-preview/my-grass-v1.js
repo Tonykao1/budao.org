@@ -47,11 +47,11 @@
    id:randomId(),
    scripture:{reference:ref||'',text:'',translation:'',source:'',verifiedAgainstRecording:false},
    reading:{audioId:null,mimeType:null,size:0,durationSeconds:0},
-   reflection:'',readingJourney:null
+   reflection:'',readingJourney:null,insightDraft:{heardText:'',todayText:''},insightRecord:null,lightDraft:{}
   }}
   let scope='',key='',draft,entries=[],micros=[],tab='reading',archiveOpen=false,editingSavedId=null;
   let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null,activePlayer=null;
-  let audioPending=false,notice='';
+  let audioPending=false,notice='',lightGraph={relations:[],events:[]},focusLight=null;
   let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
 
   // Full canonical navigation restores the previous testament/book/chapter/verse picker.
@@ -148,7 +148,7 @@
 
   function tell(v){notice=v;const node=$('#gsStatus');if(node)node.textContent=v}
   function persistentKeys(){
-   return {entries:key+'.entries',micros:key+'.micros',draft:key+'.draft',legacy:key+'.legacyImported'};
+   return {entries:key+'.entries',micros:key+'.micros',draft:key+'.draft',graph:key+'.lightGraph',legacy:key+'.legacyImported'};
   }
   function refFromOriginal(){return (document.getElementById('refDisplay')?.textContent||'').trim();}
   function persistDraft(){try{writeJson(persistentKeys().draft,draft)}catch(e){tell('本机存储不可用。请先复制重要内容到安全位置。')}}
@@ -162,6 +162,13 @@
    micros=getJson(names.micros,[]);if(!Array.isArray(micros))micros=[];
    draft=getJson(names.draft,null)||emptyDraft(refFromOriginal());
    editingSavedId=entries.some(e=>e.id===draft.id)?draft.id:null;
+   const savedEntry=entries.find(e=>e.id===draft.id);
+   draft.insightRecord=savedEntry?.insightRecord||draft.insightRecord||null;
+   draft.insightDraft=draft.insightRecord?{heardText:draft.insightRecord.heard_text,todayText:draft.insightRecord.today_text}:(draft.insightDraft||{heardText:'',todayText:''});
+   draft.lightDraft=draft.lightDraft||{};
+   const storedGraph=getJson(names.graph,null);
+   lightGraph={relations:Array.isArray(storedGraph?.relations)?storedGraph.relations:[],events:Array.isArray(storedGraph?.events)?storedGraph.events:[]};
+   focusLight=null;
    // One-time import of a previously saved 48-character parchment note.
    // Its Scripture text/audio are unknown and are NOT fabricated.
    if(!getStored(names.legacy)&&scope!=='unassigned-preview'){
@@ -188,7 +195,9 @@
     if(previous)entries=entries.map(e=>e.id===next.id?next:e);
     else entries.unshift(next);
     editingSavedId=next.id;
-    saveAll();persistDraft();tell('已保存到本机个人古卷。经文文字、原声和笔记已建立关联。');
+    if(draft.insightRecord)next.insightRecord=draft.insightRecord;
+    entries=entries.map(e=>e.id===next.id?next:e);
+    saveAll();persistDraft();tell(draft.insightRecord?'领受已与本次原声读经一同收入个人古卷。':'今日读经和原声已收入个人古卷；领受可以随后形成。');
     return next;
    }catch(e){tell(e.message||String(e));return null}
   }
@@ -253,7 +262,7 @@ function stageReading(){
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
   '<div class="gs-rule"></div><div class="gs-actions">'+
-  '<button class="gs-action" type="button" data-action="save">留下领受</button>'+
+  '<span class="gs-small">原声完成后自动归档；领受在下一页形成。</span>'+
   '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
 }
 function stageReflection(){
@@ -290,7 +299,7 @@ function stageReflection(){
   let microDraft='';
   function render(){
    if(!document.body.classList.contains('grassbook-open'))return;
-   const tabs=[['reading','领受'],['reflection','沉淀'],['sharing','牧养']];
+   const tabs=[['reading','读经'],['reflection','领受'],['sharing','牧养']];
    root.innerHTML=
     '<header class="gs-head"><div class="gs-head-title">我的牧草</div>'+
     '<nav class="gs-steps" aria-label="我的牧草三个阶段">'+tabs.map(([id,name])=>
@@ -439,7 +448,9 @@ async function rerecordAudio(){
    const found=entries.find(e=>e.id===id);if(!found)return;
    if(recorder?.state==='recording'||['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经，再翻阅档案。');return}
    draft={id:found.id,scripture:{...found.scripture},reading:{...found.reading},readingJourney:found.readingJourney||null,
-    reflection:found.reflection?.text||''};
+    reflection:found.reflection?.text||'',insightRecord:found.insightRecord||null,
+    insightDraft:found.insightRecord?{heardText:found.insightRecord.heard_text,todayText:found.insightRecord.today_text}:{heardText:'',todayText:''},lightDraft:{}};
+   focusLight=null;
    journey=draft.readingJourney;journeyPhase=journey?.status==='completed'?'completed':'idle';C.setRuntimeReadingJourney(journey);emitJourneyState();
    editingSavedId=found.id;microDraft='';persistDraft();archiveOpen=false;tab='reading';
    tell('已翻开 '+found.scripture.reference+' 的灵修档案。');render();
@@ -447,7 +458,7 @@ async function rerecordAudio(){
   function openNewEntry(){
    if(recorder?.state==='recording'||['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');return}
    clearPlayer();draft=emptyDraft(refFromOriginal());journey=null;journeyPhase='idle';journeyFinalMs=0;C.setRuntimeReadingJourney(null);emitJourneyState();editingSavedId=null;microDraft='';
-   archiveOpen=false;tab='reading';persistDraft();tell('已开启新的一份牧草；既有档案不会被覆盖。');render();
+   focusLight=null;archiveOpen=false;tab='reading';persistDraft();tell('已开启新的一份牧草；既有档案不会被覆盖。');render();
   }
   async function saveMicro(){
    const origin=getEntry();
@@ -557,7 +568,7 @@ async function rerecordAudio(){
       draft.scripture.reference=journey.reference;draft.scripture.translation=journey.translation;
       draft.scripture.verifiedAgainstRecording=false;
       persistDraft();journeyPhase='completed';journeyError='';
-      emitJourneyState();const archived=saveEntry();render();tell(archived?'今日读经已封存到个人古卷：'+journey.reference+'。可以回听，或继续默想。':'原声已保存，但档案未能自动归档。请点击「留下领受」重试。');
+      emitJourneyState();const archived=saveEntry();render();tell(archived?'今日读经已封存到个人古卷：'+journey.reference+'。可以回听，或继续默想。':'原声已存于本机，但尚未完成古卷归档。请稍后重试。');
      }catch(e){journeyFail('保存本次读经失败：'+String(e.message||e))}
     };
     journeyRecorder.start(250);
@@ -611,6 +622,8 @@ async function rerecordAudio(){
    if(field==='reference'||field==='translation'||field==='scriptureText'){
     draft.scripture[field==='scriptureText'?'text':field]=v;persistDraft();
    }else if(field==='reflection'){draft.reflection=v;persistDraft()}
+   else if((field==='heardText'||field==='todayText')&&!draft.insightRecord){draft.insightDraft=draft.insightDraft||{heardText:'',todayText:''};draft.insightDraft[field]=v;persistDraft()}
+   else if(field==='lightNote'&&focusLight){draft.lightDraft=draft.lightDraft||{};draft.lightDraft[focusLight]=v;persistDraft()}
    else if(e.target.id==='gsMicroText'){
     microDraft=v;const node=$('#gsMicroCount');if(node)node.textContent=C.count(v)+' / 80字';
    }
@@ -627,8 +640,13 @@ async function rerecordAudio(){
     case 'download-audio':await exportAudio();break;
     case 'export':exportTextArchive();break;
     case 'save':saveEntry();break;
+    case 'finalize-insight':finalizeInsight();break;
+    case 'light-focus':if(draft.insightRecord){focusLight=b.dataset.light;render()}break;
+    case 'light-reset':focusLight=null;render();break;
+    case 'light-add':addLightRelation();break;
+    case 'light-reply':addInboundEvent(b.dataset.relationId);break;
     case 'next-reflection':if(journeyPhase!=='completed'){tell('请先完成今日读经。');break}setTab('reflection');break;
-    case 'next-sharing':setTab('sharing');break;
+    case 'next-sharing':if(!draft.insightRecord){tell('先写下领受，点亮「领」。');break}setTab('sharing');break;
     case 'archive':if(['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');break}archiveOpen=true;render();break;
     case 'return-stage':archiveOpen=false;render();break;
     case 'open-entry':openSavedEntry(b.dataset.id);break;
