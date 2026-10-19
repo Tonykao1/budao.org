@@ -49,6 +49,8 @@ async function ensurePastureSchema(env = process.env) {
   await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS authorization_ref text`;
   await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS delivery_channel text`;
   await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS reserved_for_user_id uuid REFERENCES pasture_users(id) ON DELETE SET NULL`;
+  await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_cards_genesis_only_uq
+    ON pasture_cards(authorization_ref) WHERE authorization_ref='GENESIS-0001'`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_cards_active_resident_uq
     ON pasture_cards(activated_by_user_id) WHERE status='ACTIVATED'`;
   await query`CREATE INDEX IF NOT EXISTS pasture_cards_batch_idx ON pasture_cards(batch_id,issued_at)`;
