@@ -23,7 +23,7 @@ test('REC status preserves the physical end button across repeated reader syncs'
  assert.match(h.node.innerHTML,/end-journey-ask/);
 });
 test('continue/end confirmation buttons remain mounted while recording ticks run',()=>{
- const h=harness();h.render();h.state.confirm=true;h.render();h.state.elapsed=1700;h.render();
+ const h=harness();h.render();h.state.phase='paused';h.render();h.state.elapsed=1700;h.render();
  assert.equal(h.node.writes,2,'confirm UI must replace the status once, not every tick');
  assert.match(h.node.innerHTML,/end-journey-confirm/);
 });

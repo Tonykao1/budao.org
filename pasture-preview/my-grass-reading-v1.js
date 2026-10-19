@@ -107,6 +107,7 @@
 
   function guideText(){
    if(journeyPhase==='recording'||journeyPhase==='finalizing')return '读完这一节，请轻点下一节。声音与经节一起前行。';
+    if(journeyPhase==='paused')return '录音已暂停；继续读时，声音与经节从这里接着前行。';
    if(journeyPhase==='completed')return '今日读经已留下真实的经节时间轨迹。';
    if(journeyPhase==='arming')return '正在开启麦克风，授权成功后才正式开始读经。';
    return '翻阅不等于读过。点一节经文，就开始今日读经与原声记录。';
@@ -127,8 +128,8 @@
    node.dataset.journeyViewKey=key;
    const fmt=ms=>{const seconds=Math.floor(Math.max(0,ms)/1000);return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')};
    const reference=journey?.reference||'';
-   if(journeyConfirm&&journeyPhase==='recording'){
-    node.innerHTML='<span class="gs-journey-status-copy">结束今日读经？ '+esc(reference)+' · '+ '<time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time>' +'</span><div class="gs-journey-controls"><button type="button" data-action="continue-journey">继续读</button><button type="button" data-action="end-journey-confirm">结束</button></div>';
+   if(journeyPhase==='paused'){
+    node.innerHTML='<span class="gs-journey-status-copy">已暂停 · 结束今日读经？ '+esc(reference)+' · '+ '<time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time>' +'</span><div class="gs-journey-controls"><button type="button" data-action="continue-journey">继续读</button><button type="button" data-action="end-journey-confirm">结束</button></div>';
    }else if(journeyPhase==='recording'){
     node.innerHTML='<span class="gs-journey-status-copy"><b class="gs-journey-rec-dot" aria-hidden="true"></b>正在读经 · '+esc(journey.book+' '+journey.chapter+':'+journey.endVerse)+' · <time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time></span><button type="button" data-action="end-journey-ask">■ 结束今日读经</button>';
    }else if(journeyPhase==='arming')node.textContent='正在开启麦克风…';
@@ -302,9 +303,9 @@
    }
    const action=button.dataset.action;
    if(action==='verse-select'){event.preventDefault();event.stopImmediatePropagation();selectVerse(button);return}
-   if(action==='end-journey-ask'){event.preventDefault();event.stopImmediatePropagation();journeyConfirm=true;renderReadingStatus();return}
-   if(action==='continue-journey'){event.preventDefault();event.stopImmediatePropagation();journeyConfirm=false;renderReadingStatus();return}
-   if(action==='end-journey-confirm'){event.preventDefault();event.stopImmediatePropagation();if(!journeyConfirm)return;journeyConfirm=false;doc.dispatchEvent(new root.CustomEvent('mygrass:journey-end-request'));return}
+   if(action==='end-journey-ask'){event.preventDefault();event.stopImmediatePropagation();doc.dispatchEvent(new root.CustomEvent('mygrass:journey-pause-request'));return}
+   if(action==='continue-journey'){event.preventDefault();event.stopImmediatePropagation();doc.dispatchEvent(new root.CustomEvent('mygrass:journey-resume-request'));return}
+   if(action==='end-journey-confirm'){event.preventDefault();event.stopImmediatePropagation();if(journeyPhase!=='paused')return;doc.dispatchEvent(new root.CustomEvent('mygrass:journey-end-request'));return}
    if(action==='next-reflection'&&journeyPhase!=='completed'){
     event.preventDefault();event.stopImmediatePropagation();status('请先完成本次阅读，再进入默想。');return;
    }
