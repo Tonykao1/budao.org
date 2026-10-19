@@ -119,6 +119,12 @@
   }
   function renderReadingStatus(){
    const node=workspace()?.querySelector('#gsReadingJourneyStatus');if(!node)return;
+   // Timer/recorder DOM mutations cause observer syncs every 250 ms. Never replace
+   // a mounted stop/confirmation button unless its actual visual state changes:
+   // replacing it between pointerdown and pointerup silently swallows clicks.
+   const key=JSON.stringify([journeyPhase,journeyConfirm,journey?.book,journey?.chapter,journey?.endVerse,journey?.reference,journeyError,journeyPhase==='completed'?journeyElapsed:null]);
+   if(node.dataset.journeyViewKey===key)return;
+   node.dataset.journeyViewKey=key;
    const fmt=ms=>{const seconds=Math.floor(Math.max(0,ms)/1000);return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')};
    const reference=journey?.reference||'';
    if(journeyConfirm&&journeyPhase==='recording'){
