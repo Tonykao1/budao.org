@@ -1,5 +1,5 @@
 /* 我的牧草 · 经卷领受 V1
- * 浏览章节 ≠ 正式阅读。第一次点击经节才开始；再次点击定下结束节；明确完成后才形成阅读记录。
+ * 浏览章节 ≠ 正式阅读。点击经节开启连续原声 Journey，逐节推进留下真实时间轨迹。
  */
 (function(root,factory){
   if(typeof module==='object'&&module.exports){
@@ -63,8 +63,8 @@
  function install(root){
   const doc=root&&root.document;if(!doc||!C||!B)return ()=>{};
   if(root.__myGrassReadingV1Cleanup)return root.__myGrassReadingV1Cleanup;
-  C.setReadingSessionRequired(true);
-  let session=null,activeChapter=null,chapterKey='',loadToken=0,stopped=false,observer=null;
+  C.setReadingSessionRequired(false);C.setReadingJourneyRequired(true);
+  let session=null,journey=null,journeyPhase='idle',journeyElapsed=0,journeyConfirm=false,journeyError='',activeChapter=null,chapterKey='',loadToken=0,stopped=false,observer=null;
   const cache=new Map();
   let timer=null,lastStageKey='',lastReaderSignature='',lastReaderNode=null;
 
@@ -91,10 +91,10 @@
 #grassWorkspace .gs-verse sup{font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#9b7e58;margin-right:3px;vertical-align:super}
 #grassWorkspace .gs-verse:hover:not(:disabled){background:rgba(204,175,119,.16)}
 #grassWorkspace .gs-verse:focus-visible{outline:1px dashed #776346;outline-offset:2px}
-#grassWorkspace .gs-verse.is-range{background:linear-gradient(to bottom,transparent 66%,rgba(161,181,112,.23) 66%,rgba(161,181,112,.23) 91%,transparent 91%)}
-#grassWorkspace .gs-verse.is-start sup,#grassWorkspace .gs-verse.is-end sup{color:#53683f;font-weight:900}
-#grassWorkspace .gs-verse.is-start:before{content:"◆";font-size:7px;color:#718458;margin-right:3px;vertical-align:middle}
-#grassWorkspace .gs-verse.is-end:not(.is-start):after{content:"◆";font-size:7px;color:#718458;margin-left:3px;vertical-align:middle}
+
+
+
+
 #grassWorkspace .gs-verse:disabled{cursor:default;opacity:1}
 #grassWorkspace .gs-reading-finish{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding-top:8px;border-top:1px solid rgba(140,105,62,.28)}
 #grassWorkspace .gs-reading-finish .gs-action:disabled{opacity:.43}
@@ -104,25 +104,42 @@
    doc.head.appendChild(style);
   }
 
+
   function guideText(){
-   if(!session)return '翻阅和滚动本身不会记作读过。点击一节，<strong>从这一节开始</strong>。';
-   if(session.status==='reading')return '已从 <strong>'+esc(session.reference.split('–')[0])+'</strong> 开始。继续读，再点击你真正读到的最后一节。';
-   return '本次真实阅读已完成：<strong>'+esc(session.reference)+'</strong>。';
+   if(journeyPhase==='recording'||journeyPhase==='finalizing')return '读完这一节，请轻点下一节。声音与经节一起前行。';
+   if(journeyPhase==='completed')return '今日读经已留下真实的经节时间轨迹。';
+   if(journeyPhase==='arming')return '正在开启麦克风，授权成功后才正式开始读经。';
+   return '翻阅不等于读过。点一节经文，就开始今日读经与原声记录。';
   }
   function verseMarkup(v){
-   const start=session?.startVerse,end=session?.endVerse;
-   const inRange=!!session&&v.verse>=start&&v.verse<=end;
-   const cls=['gs-verse',v.verse===start?'is-start':'',v.verse===end?'is-end':'',inRange?'is-range':''].filter(Boolean).join(' ');
-   const label=!session?'从这一节开始':session.status==='reading'?(v.verse<start?'起始节之前':v.verse===start?'起始节':'把这里作为结束节'):'已完成的阅读';
-   return '<button type="button" class="'+cls+'" data-action="verse-select" data-verse="'+v.verse+'" data-verse-id="'+esc(v.id)+'" '+(session?.status==='completed'?'disabled':'')+' aria-label="第 '+v.verse+' 节，'+label+'"><sup>'+v.verse+'</sup><span>'+esc(v.text)+'</span></button>';
+   const current=journey?.status==='recording'&&journeyPhase==='recording'&&v.verse===journey.endVerse;
+   const read=!!journey&&journey.segments.some(x=>x.verse===v.verse&&x.endMs!==null);
+   const cls=['gs-verse',current?'is-current':'',read?'is-read':''].filter(Boolean).join(' ');
+   return '<button type="button" class="'+cls+'" data-action="verse-select" data-verse="'+v.verse+'" data-verse-id="'+esc(v.id)+'" '+(journeyPhase==='completed'?'disabled':'')+' aria-label="第 '+v.verse+' 节"><sup>'+v.verse+'</sup><span>'+esc(v.text)+'</span></button>';
+  }
+  function renderReadingStatus(){
+   const node=workspace()?.querySelector('#gsReadingJourneyStatus');if(!node)return;
+   const fmt=ms=>{const seconds=Math.floor(Math.max(0,ms)/1000);return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')};
+   const reference=journey?.reference||'';
+   if(journeyConfirm&&journeyPhase==='recording'){
+    node.innerHTML='<span class="gs-journey-status-copy">结束今日读经？ '+esc(reference)+' · '+ '<time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time>' +'</span><div class="gs-journey-controls"><button type="button" data-action="continue-journey">继续读</button><button type="button" data-action="end-journey-confirm">结束</button></div>';
+   }else if(journeyPhase==='recording'){
+    node.innerHTML='<span class="gs-journey-status-copy"><b class="gs-journey-rec-dot" aria-hidden="true"></b>正在读经 · '+esc(journey.book+' '+journey.chapter+':'+journey.endVerse)+' · <time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time></span><button type="button" data-action="end-journey-ask">■ 结束今日读经</button>';
+   }else if(journeyPhase==='arming')node.textContent='正在开启麦克风…';
+   else if(journeyPhase==='finalizing')node.textContent='正在保存本次读经…';
+   else if(journeyPhase==='completed')node.textContent='今日读经完成 · '+reference+' · '+fmt(journeyElapsed);
+   else if(journeyPhase==='error')node.textContent=journeyError||'麦克风未成功录音，请重试。';
+   else node.textContent='点一节经文，开始今日读经';
+   node.dataset.phase=journeyPhase;
   }
   function renderReader(){
-   const ws=workspace(),reader=ws?.querySelector('#gsVerseReader'),guide=ws?.querySelector('#gsReceptionGuide'),finish=ws?.querySelector('[data-action="complete-reading"]'),badge=ws?.querySelector('#gsReadingDoneBadge');
+   const ws=workspace(),reader=ws?.querySelector('#gsVerseReader'),guide=ws?.querySelector('#gsReceptionGuide');
    if(guide)guide.innerHTML=guideText();
-   const signature=activeChapter?(chapterKey+'|'+(session?.status||'idle')+'|'+(session?.startVerse||'')+'|'+(session?.endVerse||'')):'none';
-   if(reader&&activeChapter&&(reader!==lastReaderNode||signature!==lastReaderSignature)){reader.innerHTML=activeChapter.verses.map(verseMarkup).join('');lastReaderSignature=signature;lastReaderNode=reader}
-   if(finish)finish.disabled=session?.status!=='reading';
-   if(badge){badge.hidden=session?.status!=='completed';badge.textContent=session?.status==='completed'?'已完成 · '+session.reference:''}
+   const signature=activeChapter?(chapterKey+'|'+(journeyPhase||'idle')+'|'+(journey?.reference||'')+'|'+(journey?.segments?.length||0)):'none';
+   if(reader&&activeChapter&&(reader!==lastReaderNode||signature!==lastReaderSignature)){
+    reader.innerHTML=activeChapter.verses.map(verseMarkup).join('');lastReaderSignature=signature;lastReaderNode=reader;
+   }
+   renderReadingStatus();
   }
 
   async function hydrateChapter(){
@@ -173,7 +190,7 @@
     const anchor=label||textarea;
     const guide=doc.createElement('div');guide.id='gsReceptionGuide';guide.className='gs-reception-guide';guide.innerHTML=guideText();
     const reader=doc.createElement('div');reader.id='gsVerseReader';reader.className='gs-verse-reader';reader.setAttribute('aria-live','polite');
-    const finish=doc.createElement('div');finish.className='gs-reading-finish';finish.innerHTML='<button class="gs-action" type="button" data-action="complete-reading" disabled>完成本次阅读</button><span class="gs-badge" id="gsReadingDoneBadge" hidden></span>';
+    const finish=doc.createElement('div');finish.className='gs-reading-finish';finish.innerHTML='<div id="gsReadingJourneyStatus" class="gs-journey-status" role="status" aria-live="polite">点一节经文，开始今日读经</div>';
     anchor.insertAdjacentElement('beforebegin',guide);guide.insertAdjacentElement('afterend',reader);reader.insertAdjacentElement('afterend',finish);
    }
    const p=currentParsed(),key=(translationId())+'|'+(p?.book||'')+'|'+(p?.chapter||'');
@@ -208,10 +225,10 @@
   function onAudioProgress(event){
    const detail=event?.detail||{};clearAudioFollow();
    if(detail.state==='ended'||detail.state==='cleared')return;
-   if(session?.status!=='completed'||!activeChapter)return;
+   if(journey?.status!=='completed'||!activeChapter)return;
+   const verse=C.journeyVerseAt(journey,Math.round((detail.currentTime||0)*1000));
+   if(verse==null)return;
    workspace()?.querySelector('#gsVerseReader')?.classList.add('is-audio-following');
-   const selected=activeChapter.verses.filter(v=>v.verse>=session.startVerse&&v.verse<=session.endVerse);
-   const verse=verseForAudioProgress(selected,detail.currentTime,detail.duration);if(!verse)return;
    const button=workspace()?.querySelector('.gs-verse[data-verse="'+verse+'"]');if(!button)return;
    button.classList.add('is-following');
    if(detail.state==='playing')keepFollowVisible(button);
@@ -222,60 +239,79 @@
    const verse=Number(button.dataset.verse),verseId=String(button.dataset.verseId||'');
    return {book:p.book,chapter:p.chapter,verse,verseId,translation:activeChapter?.translation||(translationId()===ESV_ID?ESV_NAME:CUV_NAME)};
   }
+
   function selectVerse(button){
    if(!activeChapter){status('本章经文仍在载入，请稍候。');return}
-   try{
-    const point=pointFromButton(button);
-    if(!session){session=C.beginReadingSession(point,new Date().toISOString());status('已从 '+session.reference+' 开始。读到哪里，再点击那一节。')}
-    else if(session.status==='reading'){session=C.setReadingSessionEnd(session,point);status('本次阅读暂定到 '+session.reference+'。完成时请按「完成本次阅读」。')}
-    else{status('这次阅读已经完成；如要开始新的阅读，请「新开一页」。');return}
-    C.setRuntimeReadingSession(session);renderReader();
-   }catch(error){status(error.message||String(error))}
+   const point=pointFromButton(button);
+   if(journeyPhase==='idle'||journeyPhase==='error'){
+    if(journey?.status==='completed'){status('本次已完成，请新开一页开始下一次读经。');return}
+    journeyPhase='arming';journeyConfirm=false;renderReader();
+    doc.dispatchEvent(new root.CustomEvent('mygrass:journey-start-request',{detail:{point}}));
+    return;
+   }
+   if(journeyPhase!=='recording'||journeyConfirm||!journey)return;
+   if(point.verse===journey.endVerse)return;
+   if(point.verse!==journey.endVerse+1){status('当前正在读第'+journey.endVerse+'节，请从下一节继续。');return}
+   doc.dispatchEvent(new root.CustomEvent('mygrass:journey-advance-request',{detail:{point}}));
   }
-  function completeReading(){
-   if(!activeChapter){status('本章经文仍在载入，请稍候。');return}
-   try{
-    const done=C.completeReadingSession(session,new Date().toISOString());
-    const selected=activeChapter.verses.filter(v=>v.verse>=done.startVerse&&v.verse<=done.endVerse);
-    if(selected.length!==done.verseIds.length)throw Error('经节范围尚未完整载入，请稍后再试。');
-    session=done;C.setRuntimeReadingSession(session);
-    const ws=workspace(),ref=ws?.querySelector('[data-field="reference"]'),textarea=ws?.querySelector('[data-field="scriptureText"]');
-    if(ref){ref.value=done.reference;dispatchInput(ref)}
-    const display=doc.getElementById('refDisplay');if(display)display.textContent=done.reference;
-    if(textarea){textarea.value=activeChapter.storage==='reference-only'?'':selected.map(v=>v.text).join('\n');textarea.dataset.verseIds=done.verseIds.join(',');dispatchInput(textarea)}
-    status('已完成本次阅读：'+done.reference+'。现在可以留下领受，或继续默想。');renderReader();
-   }catch(error){status(error.message||String(error))}
+  function onJourneyState(event){
+   const d=event.detail||{};journeyPhase=d.phase||'idle';journey=d.journey||null;journeyElapsed=d.elapsedMs||0;journeyError=d.error||'';
+   if(journeyPhase!=='recording')journeyConfirm=false;
+   if(journey?.status==='completed'){
+    C.setRuntimeReadingJourney(journey);
+    const matchingChapter=chapterKey===(journey.translation===ESV_NAME?ESV_ID:CUV_ID)+'|'+journey.book+'|'+journey.chapter;
+    if(matchingChapter){
+     const ws=workspace(),ref=ws?.querySelector('[data-field="reference"]'),textarea=ws?.querySelector('[data-field="scriptureText"]');
+     const chosen=activeChapter.verses.filter(v=>v.verse>=journey.startVerse&&v.verse<=journey.endVerse);
+     if(ref){ref.value=journey.reference;dispatchInput(ref)}
+     const display=doc.getElementById('refDisplay');if(display)display.textContent=journey.reference;
+     if(textarea&&chosen.length===journey.verseIds.length){
+      textarea.value=activeChapter.storage==='reference-only'?'':chosen.map(v=>v.text).join('\n');
+      textarea.dataset.verseIds=journey.verseIds.join(',');
+      dispatchInput(textarea);
+     }
+    }
+   }
+   renderReader();
+  }
+  function onJourneyTick(event){
+   if(journeyPhase!=='recording')return;journeyElapsed=event.detail?.elapsedMs||0;
+   const time=workspace()?.querySelector('#gsJourneyTimer');
+   if(time&&!journeyConfirm){const n=Math.floor(journeyElapsed/1000);time.textContent=String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+
   }
 
   function onClick(event){
    const button=event.target.closest?.('button');if(!button)return;
-   if(button.matches('[data-nav="apply"]')&&!session){
+   if(button.matches('[data-nav="apply"]')&&!journey){
     const text=workspace()?.querySelector('[data-field="scriptureText"]');
     if(text&&(text.dataset.scriptureSource||text.dataset.scriptureState==='ready')){
      text.value='';delete text.dataset.scriptureSource;delete text.dataset.verseIds;delete text.dataset.scriptureState;dispatchInput(text);
     }
     return;
    }
-   if(button.matches('[data-nav="apply"]')&&session){
+   if(button.matches('[data-nav="apply"]')&&journey){
     event.preventDefault();event.stopImmediatePropagation();
     const warning=doc.querySelector('#gsNavWarning');if(warning)warning.textContent=session.status==='reading'?'请先完成本次阅读，再翻到另一章。':'本次阅读已完成；请先「新开一页」，再翻到另一章。';return;
    }
    const action=button.dataset.action;
    if(action==='verse-select'){event.preventDefault();event.stopImmediatePropagation();selectVerse(button);return}
-   if(action==='complete-reading'){event.preventDefault();event.stopImmediatePropagation();completeReading();return}
-   if(action==='next-reflection'&&session?.status!=='completed'){
+   if(action==='end-journey-ask'){event.preventDefault();event.stopImmediatePropagation();journeyConfirm=true;renderReadingStatus();return}
+   if(action==='continue-journey'){event.preventDefault();event.stopImmediatePropagation();journeyConfirm=false;renderReadingStatus();return}
+   if(action==='end-journey-confirm'){event.preventDefault();event.stopImmediatePropagation();if(!journeyConfirm)return;journeyConfirm=false;doc.dispatchEvent(new root.CustomEvent('mygrass:journey-end-request'));return}
+   if(action==='next-reflection'&&journeyPhase!=='completed'){
     event.preventDefault();event.stopImmediatePropagation();status('请先完成本次阅读，再进入默想。');return;
    }
    if(action==='new'){
-    session=null;activeChapter=null;chapterKey='';lastStageKey='';lastReaderSignature='';lastReaderNode=null;C.setRuntimeReadingSession(null);
+    session=null;journey=null;journeyPhase='idle';journeyConfirm=false;activeChapter=null;chapterKey='';lastStageKey='';lastReaderSignature='';lastReaderNode=null;C.setRuntimeReadingJourney(null);C.setRuntimeReadingSession(null);
     root.setTimeout(()=>{normalizeFreshPage();schedule(0)},0);
    }
   }
   function onChange(event){
    if(event.target.id==='gsTranslationPicker'){
-    if(session){
+    if(journey){
      event.preventDefault();event.stopImmediatePropagation();
-     event.target.value=session.translation===ESV_NAME?ESV_ID:CUV_ID;
+     event.target.value=journey.translation===ESV_NAME?ESV_ID:CUV_ID;
      status('本次阅读已经与当前译本绑定；如要换译本，请新开一页。');return;
     }
     activeChapter=null;chapterKey='';lastStageKey='';loadToken++;root.setTimeout(()=>schedule(20),0);
@@ -285,14 +321,19 @@
   injectStyle();
   doc.addEventListener('click',onClick,true);doc.addEventListener('change',onChange,true);
   doc.addEventListener('mygrass:reading-audio-progress',onAudioProgress);
+  doc.addEventListener('mygrass:journey-state',onJourneyState);
+  doc.addEventListener('mygrass:journey-tick',onJourneyTick);
   const Mutation=root.MutationObserver;
   if(Mutation&&doc.documentElement){observer=new Mutation(()=>schedule(0));observer.observe(doc.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']})}
+  if(root.__myGrassJourneySnapshot)onJourneyState({detail:root.__myGrassJourneySnapshot});
   normalizeFreshPage();schedule(0);
   const cleanup=()=>{
    stopped=true;if(timer)root.clearTimeout(timer);loadToken++;observer?.disconnect();
    doc.removeEventListener('click',onClick,true);doc.removeEventListener('change',onChange,true);
-   doc.removeEventListener('mygrass:reading-audio-progress',onAudioProgress);clearAudioFollow();
-   C.setRuntimeReadingSession(null);C.setReadingSessionRequired(false);delete root.__myGrassReadingV1Cleanup;
+   doc.removeEventListener('mygrass:reading-audio-progress',onAudioProgress);
+   doc.removeEventListener('mygrass:journey-state',onJourneyState);
+   doc.removeEventListener('mygrass:journey-tick',onJourneyTick);clearAudioFollow();
+   C.setRuntimeReadingSession(null);C.setReadingSessionRequired(false);C.setReadingJourneyRequired(false);delete root.__myGrassReadingV1Cleanup;
   };
   root.__myGrassReadingV1Cleanup=cleanup;return cleanup;
  }

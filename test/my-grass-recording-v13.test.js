@@ -5,41 +5,37 @@ const base=path.join(__dirname,'..','pasture-preview');
 const app=()=>fs.readFileSync(path.join(base,'my-grass-v1.js'),'utf8');
 const css=()=>fs.readFileSync(path.join(base,'my-grass-immersive-v04.css'),'utf8');
 
-test('V1.3 recording restores the compact physical recorder console instead of generic form buttons',()=>{
- const src=app();
- assert.match(src,/gs-recorder-console/);
- assert.match(src,/gs-recorder-key[\s\S]*data-action="record"/);
- assert.match(src,/data-action="play"[\s\S]*播放\/暂停/);
- assert.match(src,/data-action="rerecord"[\s\S]*重录/);
- assert.match(src,/gs-recorder-screen/);
- assert.match(src,/data-action="link-audio"/);
- assert.doesNotMatch(src,/data-field="audioVerified"/);
- assert.doesNotMatch(src,/gs-voice-mark/);
+test('integrated journey retains the physical recorder without separate record or link buttons',()=>{
+ const src=app(),stage=src.slice(src.indexOf('function stageReading()'),src.indexOf('function stageReflection()'));
+ assert.match(stage,/gs-recorder-console/);
+ assert.match(stage,/gs-recorder-screen/);
+ assert.match(stage,/data-action="play"/);
+ assert.match(stage,/gs-journey-rec-indicator/);
+ assert.doesNotMatch(stage,/data-action="record"/);
+ assert.doesNotMatch(stage,/data-action="link-audio"/);
 });
 
-test('recording cannot start until the scripture reading selection is explicitly completed',()=>{
+test('journey first verse requests the microphone and does not create a read record before recorder start',()=>{
  const src=app();
- assert.match(src,/function recordingSelectionReady\(\)/);
- assert.match(src,/gsReadingDoneBadge/);
- assert.match(src,/if\(!recordingSelectionReady\(\)\)[\s\S]{0,220}请先完成左侧经文的阅读选择/);
+ assert.match(src,/mygrass:journey-start-request/);
+ assert.match(src,/getUserMedia\(\{audio:true,video:false\}\)/);
+ assert.match(src,/journeyRecorder\.onstart=/);
+ assert.match(src,/journey=C\.startReadingJourney\(point,iso\(\)\)/);
 });
 
-test('recorded audio must be linked to the selected scripture before playback or save',()=>{
+test('new journey audio is born bound to its own verse timeline, with no manual link gate',()=>{
  const src=app();
- assert.match(src,/function linkRecording\(/);
- assert.match(src,/confirm\([\s\S]{0,220}建立绑定/);
- assert.match(src,/verifiedAgainstRecording=true/);
- assert.match(src,/function togglePlayback\(/);
- assert.match(src,/if\(!draft\.scripture\.verifiedAgainstRecording\)[\s\S]{0,220}先.*链接/);
- assert.match(src,/function saveEntry\([\s\S]*draft\.reading\.audioId&&!draft\.scripture\.verifiedAgainstRecording/);
+ assert.match(src,/C\.completeReadingJourney\(journey,journeyFinalMs/);
+ assert.match(src,/draft\.readingJourney=journey/);
+ assert.match(src,/draft\.readingJourney\?\.status==='completed'/);
+ assert.match(src,/readingJourney:draft\.readingJourney\|\|null/);
 });
 
-test('re-recording has a remorse confirmation and clears the previous binding',()=>{
+test('journey completion writes audio first, and failures never emit a false completed state',()=>{
  const src=app();
- assert.match(src,/function rerecordAudio\(/);
- assert.match(src,/confirm\([\s\S]{0,220}放弃这次录音/);
- assert.match(src,/deleteAudio\(/);
- assert.match(src,/verifiedAgainstRecording=false/);
+ assert.match(src,/await putAudio\(audioId,blob\)/);
+ assert.match(src,/journey=C\.completeReadingJourney/);
+ assert.match(src,/catch\(e\)\{journeyFail\('保存本次读经失败/);
 });
 
 test('physical recorder styling stays compact and uses a screen-plus-key layout',()=>{
@@ -62,11 +58,9 @@ test('right reading area is titled 今日读经 and broadcasts playback progress
  assert.match(src,/addEventListener\('ended'/);
 });
 
-test('approved recorder layout moves upward without transforms so space below is reusable',()=>{
+test('integrated recorder remains compact at the top of the approved right page',()=>{
  const style=css();
- assert.match(style,/\.gs-recording-panel\{[^}]*padding-top:0!important/);
- assert.match(style,/\.gs-recording-panel>h3\{[^}]*margin-bottom:/);
- assert.match(style,/\.gs-recorder-console\{[^}]*margin:0 0 7px/);
- assert.doesNotMatch(style,/\.gs-recording-panel\{[^}]*transform:/);
- assert.match(style,/\.gs-verse\.is-following span\{[^}]*font-weight:900/);
+ assert.match(style,/\.gs-recording-panel\{[^}]*padding-top:0/);
+ assert.match(style,/\.gs-recorder-console\{[\s\S]*?margin:0 0 7px/);
+ assert.match(style,/\.gs-recorder-screen/);
 });

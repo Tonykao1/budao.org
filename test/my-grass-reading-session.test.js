@@ -78,35 +78,27 @@ test('reading chapter loader returns verse units for CUV and ESV',async()=>{
  assert.deepEqual(esv.verses.map(v=>v.id),['JHN.1.1','JHN.1.2']);
 });
 
-test('reading enhancement is chapter-first and exposes explicit verse completion controls',()=>{
+test('reading enhancement is chapter-first and provides integrated journey status',()=>{
  const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
- const core=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-core.js'),'utf8');
- assert.match(ui,/data-action="verse-select"/);
- assert.match(ui,/完成本次阅读/);
- assert.match(ui,/从这一节开始/);
- assert.match(ui,/gs-nav-verses/);
- assert.match(ui,/gs-nav-verses/);
- assert.match(ui,/翻阅和滚动本身不会记作读过/);
- assert.match(core,/my-grass-reading-v1\.js/);
+ assert.match(ui,/function enhanceReadingStage/);
+ assert.match(ui,/gsReadingJourneyStatus/);
+ assert.match(ui,/function selectVerse/);
+ assert.doesNotMatch(ui,/data-action="complete-reading"/);
 });
 
-test('option A reading feedback stays quiet: one-step dark range, grass trace, tiny end sprout',()=>{
+test('journey replaces faint grass tracing with independent read and current markers',()=>{
  const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
- assert.match(css,/\.gs-verse\.is-range[\s\S]*rgba\(111,129,79,\.13\)[\s\S]*color:#382719!important[\s\S]*font-weight:700!important/);
- assert.match(css,/\.gs-verse\.is-range sup[\s\S]*#4f402e[\s\S]*font-weight:800!important/);
- assert.match(css,/\.gs-verse\.is-start:before[\s\S]*content:none!important/);
- assert.match(css,/\.gs-verse\.is-end:after[\s\S]*content:""!important[\s\S]*radial-gradient/);
- assert.match(css,/\.gs-reception-guide[\s\S]*background:transparent!important/);
+ assert.match(css,/\.gs-verse\.is-read:before/);
+ assert.match(css,/\.gs-verse\.is-current:before/);
+ assert.doesNotMatch(css,/\.gs-verse\.is-range\{/);
 });
 
-
-test('chapter-first navigation hides legacy verse-range controls and isolates auto-loaded scripture before apply',()=>{
+test('chapter navigation remains chapter-first and isolates generated scripture',()=>{
  const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
- assert.match(ui,/\.gs-nav-verses[^\n]*style\.display='none'/);
- assert.match(ui,/button\.matches\('\[data-nav="apply"\]'\)&&!session/);
- assert.match(ui,/text\.dataset\.scriptureSource\|\|text\.dataset\.scriptureState==='ready'/);
- assert.match(ui,/text\.value='';delete text\.dataset\.scriptureSource/);
- assert.match(ui,/dispatchInput\(text\)/);
+ assert.match(ui,/verses\.hidden=true/);
+ assert.match(ui,/verses\.style\.display='none'/);
+ assert.match(ui,/button\.matches\('\[data-nav="apply"\]'\)&&!journey/);
+ assert.match(ui,/delete text\.dataset\.scriptureSource/);
 });
 
 test('ESV reader uses the shared passage loader directly and fixes attribution visibility',()=>{
@@ -169,11 +161,11 @@ test('approved scripture header keeps title and current reference in one compact
  assert.match(css,/\.gs-scripture-heading h3\{[\s\S]*border:0!important/);
 });
 
-test('selected reading range uses one stronger text weight across the whole passage',()=>{
+test('only the current journey verse receives a strong editorial focus',()=>{
  const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
- assert.match(css,/\.gs-verse\.is-range\{[\s\S]*color:#382719!important[\s\S]*font-weight:700!important/);
- assert.match(css,/\.gs-verse\.is-range sup\{[\s\S]*font-weight:800!important/);
- assert.doesNotMatch(css,/\.gs-verse\.is-start sup\{[^}]*font-weight:900!important/);
+ assert.match(css,/\.gs-verse\.is-current span\{/);
+ assert.match(css,/text-shadow:/);
+ assert.doesNotMatch(css,/\.gs-verse\.is-range\{/);
 });
 
 test('ESV scripture receives a larger reading size without changing CUV base size',()=>{
@@ -208,12 +200,9 @@ test('reading layer listens for linked-audio progress and keeps one quiet curren
  assert.match(ui,/scrollIntoView/);
 });
 
-test('audio companion suppresses whole-range bolding so exactly one verse carries playback emphasis',()=>{
+test('audio companion uses recorded journey timestamps not all-range font weights',()=>{
  const ui=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-reading-v1.js'),'utf8');
- const css=fs.readFileSync(path.join(__dirname,'..','pasture-preview','my-grass-immersive-v04.css'),'utf8');
- assert.match(ui,/classList\.add\('is-audio-following'\)/);
- assert.match(ui,/classList\.remove\('is-audio-following'\)/);
- assert.match(css,/\.gs-verse-reader\.is-audio-following \.gs-verse\.is-range\{[^}]*font-weight:500!important/);
- assert.match(css,/\.gs-verse-reader\.is-audio-following \.gs-verse\.is-range span\{[^}]*font-weight:500!important/);
- assert.match(css,/\.gs-verse-reader\.is-audio-following \.gs-verse\.is-following span\{[^}]*font-weight:900!important/);
+ assert.match(ui,/C\.journeyVerseAt\(journey/);
+ assert.match(ui,/clearAudioFollow\(\)/);
+ assert.match(ui,/button\.classList\.add\('is-following'\)/);
 });

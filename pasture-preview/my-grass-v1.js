@@ -47,11 +47,12 @@
    id:randomId(),
    scripture:{reference:ref||'',text:'',translation:'',source:'',verifiedAgainstRecording:false},
    reading:{audioId:null,mimeType:null,size:0,durationSeconds:0},
-   reflection:''
+   reflection:'',readingJourney:null
   }}
   let scope='',key='',draft,entries=[],micros=[],tab='reading',archiveOpen=false,editingSavedId=null;
   let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null,activePlayer=null;
   let audioPending=false,notice='';
+  let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
 
   // Full canonical navigation restores the previous testament/book/chapter/verse picker.
   // Passage text is still entered by the user; no unauthorized translation is bundled.
@@ -79,7 +80,7 @@
       '<div class="gs-nav-bottom"><span id="gsNavWarning" role="status">请选择经文范围</span>'+
       '<button class="gs-nav-apply" type="button" data-nav="apply">定下</button></div></div>';
   }
-  function showBibleNav(){
+  function showBibleNav(){if(['arming','recording','finalizing'].includes(journeyPhase)){tell('正在读经，请先结束本次录音。');return}
     if(recorder?.state==='recording'){tell('请先结束朗读录音，再切换经文。');return}
     navState=B.parse(draft.scripture.reference)||{testament:'new',book:'路',chapter:6,start:1,end:11,whole:false};
     paintBibleNav();bibleNav.hidden=false;
@@ -94,7 +95,7 @@
     navState.start=Number(bibleNav.querySelector('#gsNavFrom').value);
     navState.end=Number(bibleNav.querySelector('#gsNavTo').value);
   }
-  function commitBibleNav(){
+  function commitBibleNav(){if(['arming','recording','finalizing'].includes(journeyPhase)){tell('正在读经，不能更换章节。');return}
     readNavNumbers();
     let reference;
     try{reference=B.format(navState.book,navState.chapter,navState.start,navState.end,navState.whole)}
@@ -179,9 +180,9 @@
   function saveAll(){writeJson(persistentKeys().entries,entries);writeJson(persistentKeys().micros,micros)}
   function getEntry(){return entries.find(e=>e.id===draft.id)||null;}
   function saveEntry(){
-   if(audioPending||recorder?.state==='recording'){tell('请先结束录音，再保存对应的经文与声音。');return null}
-   if(draft.reading.audioId&&!draft.scripture.verifiedAgainstRecording){tell('这次原声还没有与经文建立绑定。请先按右侧链接键。');return null}
-   const previous=getEntry(),input={scripture:draft.scripture,reflection:draft.reflection,reading:draft.reading};
+   if(audioPending||recorder?.state==='recording'||['arming','recording','finalizing'].includes(journeyPhase)){tell('请先结束今日读经，再保存领受。');return null}
+   if(!draft.readingJourney&&draft.reading.audioId&&!draft.scripture.verifiedAgainstRecording){tell('这次旧版原声还没有与经文建立绑定。');return null}
+   const previous=getEntry(),input={scripture:draft.scripture,reflection:draft.reflection,reading:draft.reading,readingJourney:draft.readingJourney||null};
    try{
     const next=previous?C.reviseEntry(previous,input,iso()):C.newEntry(input,iso(),draft.id);
     if(previous)entries=entries.map(e=>e.id===next.id?next:e);
@@ -191,7 +192,7 @@
     return next;
    }catch(e){tell(e.message||String(e));return null}
   }
-  function setTab(next){if(!C.PHASES.includes(next))return;closeBibleNav();tab=next;archiveOpen=false;render();}
+  function setTab(next){if(!C.PHASES.includes(next))return;if(['arming','recording','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');return}closeBibleNav();tab=next;archiveOpen=false;render();}
   function insertArchiveText(){
    const groups=C.groupByReference(entries);
    if(!groups.length)return '<p class="gs-empty">还没有正式保存的记录。每一次真实阅读，都可以从这里开始。</p>';
@@ -205,14 +206,19 @@
  return !!(C.trim(draft.scripture.reference)&&badge&&!badge.hidden);
 }
 function recorderUiState(){
- if(recorder?.state==='recording')return 'recording';
+ if(journeyPhase==='recording')return 'recording';
+ if(journeyPhase==='arming')return 'arming';
+ if(journeyPhase==='finalizing')return 'finalizing';
+ if(draft.readingJourney?.status==='completed')return activePlayer&&!activePlayer.paused&&!activePlayer.ended?'playing':'linked';
  if(draft.reading.audioId&&draft.scripture.verifiedAgainstRecording)return activePlayer&&!activePlayer.paused&&!activePlayer.ended?'playing':'linked';
  if(draft.reading.audioId)return 'recorded';
  return 'idle';
 }
 function recorderStatusText(){
  const state=recorderUiState();
- if(state==='recording')return 'REC · 正在录制本人朗读';
+ if(state==='recording')return '● REC · '+String(Math.floor(journeyElapsedMs()/60000)).padStart(2,'0')+':'+String(Math.floor(journeyElapsedMs()/1000)%60).padStart(2,'0')+' · 正在读经';
+ if(state==='arming')return 'MIC · 正在开启麦克风';
+ if(state==='finalizing')return 'SAVE · 正在保存本次读经';
  if(state==='playing')return 'PLAY · 正在回听';
  if(state==='linked')return 'LINKED · 已与 '+escape(draft.scripture.reference)+' 绑定';
  if(state==='recorded')return 'RECORDED · 请按右侧链接键';
@@ -220,7 +226,7 @@ function recorderStatusText(){
 }
 function stageReading(){
  const barHeights=Array.from({length:22},(_,i)=>10+Math.round(Math.abs(Math.sin(i*1.41)*Math.cos(i*.53))*46));
- const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording;
+ const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed';
  const recordDisabled=audioPending||hasAudio;
  const playDisabled=!hasAudio||!linked;
  const rerecordDisabled=!hasAudio;
@@ -234,18 +240,16 @@ function stageReading(){
   '<section class="gs-panel gs-recording-panel" aria-label="今日读经原声"><h3>今日读经</h3>'+
   '<div class="gs-recorder-console" data-state="'+state+'">'+
     '<div class="gs-recorder-deck"><div class="gs-recorder-brand"><strong>ORIGINAL VOICE</strong><span>LOCAL RECORDER</span></div>'+
-     '<div class="gs-recorder-keys">'+
-      '<button class="gs-recorder-key gs-recorder-record" type="button" data-action="record" '+(recordDisabled?'disabled':'')+' aria-label="'+(recorder?.state==='recording'?'停止录音':'开始录音')+'"><span class="gs-recorder-key-icon">'+(recorder?.state==='recording'?'■':'●')+'</span><span>'+(recorder?.state==='recording'?'停止':'录音')+'</span></button>'+
-      '<button class="gs-recorder-key" type="button" data-action="play" '+(playDisabled?'disabled':'')+' aria-label="播放或暂停本人原声"><span class="gs-recorder-key-icon">▶Ⅱ</span><span>播放/暂停</span></button>'+
-      '<button class="gs-recorder-key" type="button" data-action="rerecord" '+(rerecordDisabled?'disabled':'')+' aria-label="放弃当前录音并重录"><span class="gs-recorder-key-icon">↻</span><span>重录</span></button>'+
+     '<div class="gs-recorder-keys gs-journey-keys"><span class="gs-recorder-key gs-journey-rec-indicator" aria-live="off"><span class="gs-recorder-key-icon">●</span><span>REC</span></span>'+
+      '<button class="gs-recorder-key" type="button" data-action="play" '+(playDisabled?'disabled':'')+' aria-label="回听本人今日读经"><span class="gs-recorder-key-icon">▶Ⅱ</span><span>回听/暂停</span></button>'+
      '</div></div>'+
     '<div class="gs-recorder-display"><div class="gs-recorder-screen" id="gsRecorderScreen" data-state="'+state+'">'+
       '<div class="gs-recorder-wave" aria-hidden="true">'+barHeights.map((v,i)=>'<span style="--h:'+v+'%;--i:'+i+'"></span>').join('')+'</div>'+
       '<div class="gs-recorder-status" id="gsRecorderStatus">'+recorderStatusText()+'</div></div>'+
-     '<button class="gs-recorder-link" type="button" data-action="link-audio" '+(linkDisabled?'disabled':'')+' aria-label="把本人原声与当前经文建立绑定" title="链接经文与本人原声">🔗</button></div>'+
+    '</div>'+
   '</div>'+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
-  '<p class="gs-recorder-note">'+(linked?'原声已与当前经文绑定，可以回听。':hasAudio?'录音已经保存在本机；先链接经文，再回听。':'选定并完成左侧经文后，按实体录音键开始。')+'</p>'+
+  '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='finalizing'?'正在封存本人原声与经节时间线…':linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
   '<div class="gs-rule"></div><div class="gs-actions">'+
   '<button class="gs-action" type="button" data-action="save">留下领受</button>'+
   '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
@@ -297,7 +301,7 @@ function stageReflection(){
     '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
     '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回':'翻阅档案')+'</button></div></footer>'+
     '<div class="gs-status" id="gsStatus" role="status" aria-live="polite">'+escape(notice)+'</div>';
-   if(tab==='reading'&&!archiveOpen&&draft.reading.audioId&&draft.scripture.verifiedAgainstRecording)restoreAudio(draft.reading.audioId);
+   if(tab==='reading'&&!archiveOpen&&draft.reading.audioId&&(draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed'))restoreAudio(draft.reading.audioId);
   }
   // The sound blob is a separate original asset; it is NEVER treated as voice-model consent.
   function audioDatabase(){
@@ -368,7 +372,7 @@ async function deleteAudio(id){
 }
 async function togglePlayback(){
  if(!draft.reading.audioId){tell('还没有可回听的本人原声。');return}
- if(!draft.scripture.verifiedAgainstRecording){tell('请先按右侧链接键，把本人原声与当前经文链接后再回听。');return}
+ if(!draft.scripture.verifiedAgainstRecording&&draft.readingJourney?.status!=='completed'){tell('这份旧版原声尚未与经文绑定。');return}
  let player=activePlayer;
  if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
  if(!player)return;
@@ -431,15 +435,16 @@ async function rerecordAudio(){
   }
   function openSavedEntry(id){
    const found=entries.find(e=>e.id===id);if(!found)return;
-   if(recorder?.state==='recording'){tell('请先结束当前录音，再翻阅其他记录。');return}
-   draft={id:found.id,scripture:{...found.scripture},reading:{...found.reading},
+   if(recorder?.state==='recording'||['arming','recording','finalizing'].includes(journeyPhase)){tell('请先结束今日读经，再翻阅档案。');return}
+   draft={id:found.id,scripture:{...found.scripture},reading:{...found.reading},readingJourney:found.readingJourney||null,
     reflection:found.reflection?.text||''};
+   journey=draft.readingJourney;journeyPhase=journey?.status==='completed'?'completed':'idle';C.setRuntimeReadingJourney(journey);emitJourneyState();
    editingSavedId=found.id;microDraft='';persistDraft();archiveOpen=false;tab='reading';
    tell('已翻开 '+found.scripture.reference+' 的灵修档案。');render();
   }
   function openNewEntry(){
-   if(recorder?.state==='recording'){tell('请先结束当前录音。');return}
-   clearPlayer();draft=emptyDraft(refFromOriginal());editingSavedId=null;microDraft='';
+   if(recorder?.state==='recording'||['arming','recording','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');return}
+   clearPlayer();draft=emptyDraft(refFromOriginal());journey=null;journeyPhase='idle';journeyFinalMs=0;C.setRuntimeReadingJourney(null);emitJourneyState();editingSavedId=null;microDraft='';
    archiveOpen=false;tab='reading';persistDraft();tell('已开启新的一份牧草；既有档案不会被覆盖。');render();
   }
   async function saveMicro(){
@@ -485,6 +490,95 @@ async function rerecordAudio(){
    try{await navigator.clipboard.writeText(message);tell('已复制这粒牧草。是否发送给任何人，由你自己决定。')}
    catch(e){tell('复制不可用。内容仍安全保留在当前个人档案中。')}
   }
+
+  // The current verse and continuous microphone recording are ONE Reading Journey.
+  function journeyElapsedMs(){return Math.max(0,Math.round(performance.now()-journeyStartedClock))}
+  function emitJourneyState(){
+   const detail={phase:journeyPhase,journey,elapsedMs:journeyPhase==='recording'?journeyElapsedMs():journeyFinalMs,error:journeyError};
+   window.__myGrassJourneySnapshot=detail;
+   document.dispatchEvent(new CustomEvent('mygrass:journey-state',{detail}));
+  }
+  function emitJourneyTick(){
+   if(journeyPhase!=='recording'||!journey)return;
+   document.dispatchEvent(new CustomEvent('mygrass:journey-tick',{detail:{
+    elapsedMs:journeyElapsedMs(),currentVerse:journey.endVerse
+   }}));
+   const status=$('#gsRecorderStatus');
+   if(status)status.textContent=recorderStatusText();
+  }
+  function releaseJourneyStream(){
+   journeyStream?.getTracks().forEach(t=>t.stop());journeyStream=null;
+   if(journeyStopTimer){clearTimeout(journeyStopTimer);journeyStopTimer=null}
+   if(journeyTickTimer){clearInterval(journeyTickTimer);journeyTickTimer=null}
+  }
+  function journeyFail(message){
+   releaseJourneyStream();journeyPhase='error';journeyError=message;
+   tell(message);emitJourneyState();render();
+  }
+  async function startJourney(point){
+   if(['arming','recording','finalizing'].includes(journeyPhase))return;
+   if(draft.readingJourney?.status==='completed'||draft.reading.audioId){tell('这次读经已有原声，请新开一页开始新的读经。');return}
+   if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){journeyFail('当前浏览器无法录音；请使用支持麦克风录音的浏览器。');return}
+   try{C.startReadingJourney(point,iso())}catch(e){tell(e.message);return}
+   journeyPhase='arming';journeyError='';emitJourneyState();render();
+   let stream;
+   try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    if(journeyPhase!=='arming'){stream.getTracks().forEach(t=>t.stop());return}
+    const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported?.(t));
+    journeyStream=stream;journeyChunks=[];
+    journeyRecorder=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
+    journeyRecorder.ondataavailable=e=>{if(e.data?.size>0)journeyChunks.push(e.data)};
+    journeyRecorder.onerror=e=>journeyFail('读经录音已中断：'+String(e.error?.message||'设备错误'));
+    journeyRecorder.onstart=()=>{
+     if(journeyPhase!=='arming')return;
+     journeyStartedClock=performance.now();
+     journey=C.startReadingJourney(point,iso());
+     journeyPhase='recording';C.setRuntimeReadingJourney(journey);
+     journeyTickTimer=setInterval(emitJourneyTick,250);
+     journeyStopTimer=setTimeout(()=>finishJourney(),15*60*1000);
+     emitJourneyState();render();emitJourneyTick();
+    };
+    journeyRecorder.onstop=async()=>{
+     releaseJourneyStream();
+     if(journeyPhase!=='finalizing'){journeyFail('录音意外中断，未将尚未完成的读经记为已读。');return}
+     const blob=new Blob(journeyChunks,{type:journeyRecorder.mimeType||journeyChunks[0]?.type||'audio/webm'});
+     if(!blob.size||blob.size>20*1024*1024){journeyFail(!blob.size?'没有取得有效原声，读经尚未保存。':'录音超过20MB，请重新分段读经。');return}
+     const audioId=scope+':'+draft.id+':'+randomId();
+     try{
+      await putAudio(audioId,blob);
+      const metadata={audioId,mimeType:blob.type,size:blob.size,durationSeconds:journeyFinalMs/1000};
+      journey=C.completeReadingJourney(journey,journeyFinalMs,iso(),metadata);
+      C.setRuntimeReadingJourney(journey);
+      draft.readingJourney=journey;
+      draft.reading={audioId,mimeType:blob.type,size:blob.size,durationSeconds:journeyFinalMs/1000};
+      draft.scripture.reference=journey.reference;draft.scripture.translation=journey.translation;
+      draft.scripture.verifiedAgainstRecording=false;
+      persistDraft();journeyPhase='completed';journeyError='';
+      emitJourneyState();const archived=saveEntry();render();tell(archived?'今日读经已封存到个人古卷：'+journey.reference+'。可以回听，或继续默想。':'原声已保存，但档案未能自动归档。请点击「留下领受」重试。');
+     }catch(e){journeyFail('保存本次读经失败：'+String(e.message||e))}
+    };
+    journeyRecorder.start(250);
+   }catch(e){
+    stream?.getTracks().forEach(t=>t.stop());
+    journeyFail(e.name==='NotAllowedError'?'没有取得麦克风许可，尚未开始记录读经。':'无法开始读经录音：'+String(e.message||e));
+   }
+  }
+  function advanceJourney(point){
+   if(journeyPhase!=='recording'||!journey)return;
+   try{journey=C.advanceReadingJourney(journey,point,journeyElapsedMs());C.setRuntimeReadingJourney(journey);emitJourneyState();emitJourneyTick()}
+   catch(e){tell(e.message||String(e))}
+  }
+  function finishJourney(){
+   if(journeyPhase!=='recording'||!journey||journeyRecorder?.state!=='recording')return;
+   journeyFinalMs=journeyElapsedMs();journeyPhase='finalizing';emitJourneyState();render();
+   try{journeyRecorder.stop()}catch(e){journeyFail('录音停止失败：'+String(e.message||e))}
+  }
+  document.addEventListener('mygrass:journey-start-request',e=>{void startJourney(e.detail?.point)});
+  document.addEventListener('mygrass:journey-advance-request',e=>advanceJourney(e.detail?.point));
+  document.addEventListener('mygrass:journey-end-request',()=>finishJourney());
+  window.addEventListener('beforeunload',e=>{if(['arming','recording','finalizing'].includes(journeyPhase)){e.preventDefault();e.returnValue=''}});
+
   root.addEventListener('input',e=>{
    const field=e.target.dataset.field;
    const v=e.target.value;
@@ -507,9 +601,9 @@ async function rerecordAudio(){
     case 'download-audio':await exportAudio();break;
     case 'export':exportTextArchive();break;
     case 'save':saveEntry();break;
-    case 'next-reflection':setTab('reflection');break;
+    case 'next-reflection':if(journeyPhase!=='completed'){tell('请先完成今日读经。');break}setTab('reflection');break;
     case 'next-sharing':setTab('sharing');break;
-    case 'archive':archiveOpen=true;render();break;
+    case 'archive':if(['arming','recording','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');break}archiveOpen=true;render();break;
     case 'return-stage':archiveOpen=false;render();break;
     case 'open-entry':openSavedEntry(b.dataset.id);break;
     case 'new':openNewEntry();break;
@@ -542,6 +636,6 @@ async function rerecordAudio(){
   });
   // Init lazily: the main pasture iframe may be present before its six-axis identity is assigned.
   root.hidden=false;
-  loadForIdentity();
+  loadForIdentity();journey=draft.readingJourney||null;journeyPhase=journey?.status==='completed'?'completed':'idle';journeyFinalMs=journey?.durationMs||0;C.setRuntimeReadingJourney(journey);emitJourneyState();
   render();
 })();
