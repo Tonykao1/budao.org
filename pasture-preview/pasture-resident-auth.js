@@ -20,12 +20,15 @@ async function call(body,method='POST'){
  if(!r.ok||!d.ok){const e=new Error(d.reason||'request_failed');e.reason=d.reason;throw e}
  return d;
 }
-function friendly(reason){return({invalid_email:'请检查邮箱地址。',verification_invalid:'验证码不正确。',verification_expired:'验证码已过期，请重新发送。',verification_locked:'尝试次数过多，请重新发送验证码。',email_rate_limited:'验证码发送过于频繁，请稍后再试。',rate_limited:'操作过于频繁，请稍后再试。',service_unavailable:'牧场登录暂时不可用。',auth_not_configured:'牧场登录尚未完成服务配置。',database_not_configured:'牧场账户数据库尚未连接。'})[reason]||'暂时没有完成，请再试一次。'}
+function friendly(reason){return({invalid_email:'请检查邮箱地址。',verification_invalid:'验证码不正确。',verification_expired:'验证码已过期，请重新发送。',verification_locked:'尝试次数过多，请重新发送验证码。',email_rate_limited:'验证码发送过于频繁，请稍后再试。',rate_limited:'操作过于频繁，请稍后再试。',service_unavailable:'牧场登录暂时不可用。',auth_not_configured:'牧场登录尚未完成服务配置。',database_not_configured:'牧场账户数据库尚未连接。',card_activation_pending:'步道卡正式密码方案尚在设计中。'})[reason]||'暂时没有完成，请再试一次。'}
 function apply(arrival=false){
  try{live?.contentWindow?.PastureResidentGate?.setResident(user,{arrival})}catch(e){}
 }
 live?.addEventListener('load',()=>{if(user)setTimeout(()=>apply(false),50)});
-window.addEventListener('message',e=>{if(e.origin!==location.origin)return;if(e.data?.type==='pasture-feature-locked')pop((e.data.label||'这个功能')+' · 正在生长');if(e.data?.type==='pasture-resident-required'){pop('请先验证邮箱，成为牧场居民');layer.hidden=false}});
+window.addEventListener('message',e=>{if(e.origin!==location.origin)return;if(e.data?.type==='pasture-feature-locked')pop((e.data.label||'这个功能')+' · 正在生长');if(e.data?.type==='pasture-resident-required'){pop('请先验证邮箱，成为牧场居民');layer.hidden=false}if(e.data?.type==='pasture-card-required')pop('请先点击「步道卡」，完成激活');if(e.data?.type==='pasture-card-refresh-request')refreshCardEntitlement()});
+async function refreshCardEntitlement(){
+ try{const d=await call(null,'GET');user=d.user||null;apply(false);if(user?.cardActivated)pop('步道卡已激活，「我的牧草」已开放')}catch(e){pop('暂时无法同步步道卡激活状态')}
+}
 function emailView(){
  layer.hidden=false;
  card.innerHTML='<h1 id="pastureResidentTitle">进入牧场</h1><p>留下一个有效邮箱。验证之后，你会成为牧场居民。</p><label for="pastureEmail">邮箱</label><input id="pastureEmail" type="email" autocomplete="email" placeholder="name@example.com" value="'+esc(email)+'"><div class="pasture-resident-actions"><button id="pastureSendCode" type="button">发送验证码</button></div><div class="pasture-resident-message" id="pastureResidentMessage" aria-live="polite"></div>';
