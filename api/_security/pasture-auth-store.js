@@ -32,6 +32,27 @@ async function ensurePastureSchema(env = process.env) {
   // The only issuer for this field will be the future server-side card verifier.
   await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS card_activated_at timestamptz`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_users_email_hash_uq ON pasture_users(email_hash)`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_cards (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    serial text NOT NULL UNIQUE,
+    secret_digest text NOT NULL UNIQUE,
+    secret_version text NOT NULL DEFAULT 'v1',
+    batch_id text NOT NULL,
+    status text NOT NULL DEFAULT 'ISSUED' CHECK (status IN ('ISSUED','ACTIVATED','REVOKED')),
+    activated_by_user_id uuid REFERENCES pasture_users(id) ON DELETE SET NULL,
+    issued_at timestamptz NOT NULL DEFAULT now(),
+    activated_at timestamptz,
+    revoked_at timestamptz
+  )`;
+  await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_cards_active_resident_uq
+    ON pasture_cards(activated_by_user_id) WHERE status='ACTIVATED'`;
+  await query`CREATE INDEX IF NOT EXISTS pasture_cards_batch_idx ON pasture_cards(batch_id,issued_at)`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_card_attempts (
+    user_id uuid PRIMARY KEY REFERENCES pasture_users(id) ON DELETE CASCADE,
+    attempts integer NOT NULL DEFAULT 0,
+    window_started_at timestamptz NOT NULL DEFAULT now()
+  )`;
+
   await query`CREATE TABLE IF NOT EXISTS pasture_email_verifications (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     email_hash text NOT NULL,
