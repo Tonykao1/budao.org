@@ -292,7 +292,7 @@
    }
    if(button.matches('[data-nav="apply"]')&&journey){
     event.preventDefault();event.stopImmediatePropagation();
-    const warning=doc.querySelector('#gsNavWarning');if(warning)warning.textContent=session.status==='reading'?'请先完成本次阅读，再翻到另一章。':'本次阅读已完成；请先「新开一页」，再翻到另一章。';return;
+    const warning=doc.querySelector('#gsNavWarning');if(warning)warning.textContent=['arming','recording','finalizing'].includes(journeyPhase)?'请先结束今日读经，再翻到另一章。':'本次读经已完成；请先「新开一页」，再翻到另一章。';return;
    }
    const action=button.dataset.action;
    if(action==='verse-select'){event.preventDefault();event.stopImmediatePropagation();selectVerse(button);return}
