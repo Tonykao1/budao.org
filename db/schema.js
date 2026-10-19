@@ -201,6 +201,30 @@ const pastureEmailVerifications = pgTable("pasture_email_verifications", {
   lookupIndex: index("pasture_email_verifications_lookup_idx").on(table.emailHash, table.createdAt)
 }));
 
+// Card serial is public and non-deriving. Only a keyed HMAC digest is stored.
+// A card may be claimed once in its lifetime; a resident holds at most one ACTIVE card.
+const pastureCards = pgTable("pasture_cards", {
+ id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+ serial: text("serial").notNull(),
+ secretDigest: text("secret_digest").notNull(),
+ secretVersion: text("secret_version").notNull().default("v1"),
+ batchId: text("batch_id").notNull(),
+ status: text("status").notNull().default("ISSUED"),
+ activatedByUserId: uuid("activated_by_user_id").references(() => pastureUsers.id, { onDelete: "set null" }),
+ issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+ activatedAt: timestamp("activated_at", { withTimezone: true }),
+ revokedAt: timestamp("revoked_at", { withTimezone: true })
+}, (table) => ({
+ serialUnique: uniqueIndex("pasture_cards_serial_uq").on(table.serial),
+ digestUnique: uniqueIndex("pasture_cards_secret_digest_uq").on(table.secretDigest),
+ activeResidentUnique: uniqueIndex("pasture_cards_active_resident_uq").on(table.activatedByUserId).where(sql`${table.status} = 'ACTIVATED'`)
+}));
+const pastureCardAttempts = pgTable("pasture_card_attempts", {
+ userId: uuid("user_id").primaryKey().references(() => pastureUsers.id, { onDelete: "cascade" }),
+ attempts: integer("attempts").notNull().default(0),
+ windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull().defaultNow()
+});
+
 const pastureSessions = pgTable("pasture_sessions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid("user_id").notNull().references(() => pastureUsers.id, { onDelete: "cascade" }),
@@ -240,6 +264,8 @@ module.exports = {
   prayerAuditEvents,
   prayerRateLimits,
   pastureUsers,
+  pastureCards,
+  pastureCardAttempts,
   pastureEmailVerifications,
   pastureSessions,
   pastureSheep
