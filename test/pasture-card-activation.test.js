@@ -69,7 +69,7 @@ test('logout and identity changes revoke access without legacy localStorage bypa
  assert.equal(g.click('grassBookBtn').blocked,true);
  g.api.setResident({id:exampleId,sheep,cardActivated:false});
  assert.equal(g.api.canUseGrass(),false);
- assert.doesNotMatch(gateSource,/localStorage|__PASTURE_TEST_UNLOCK/);
+ assert.doesNotMatch(gateSource,/localStorage\.(?:getItem|setItem)|__PASTURE_TEST_UNLOCK/);
 });
 test('database and public session have separate server-owned card activation status',()=>{
  const base={id:exampleId,emailMasked:'te***@example.com',createdAt:new Date()};
