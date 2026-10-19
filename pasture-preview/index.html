@@ -9,7 +9,7 @@
 #loading{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;padding:26px;background:linear-gradient(#91dcf0 0 49%,#b8d69b 49% 62%,#6ebc65 62%);text-align:center}
 .paper{padding:26px;width:min(480px,100%);background:#fff9e7;border:4px solid #2c556b;box-shadow:7px 7px #24495655}.paper h1{letter-spacing:.16em;font-size:26px;margin:4px 0 8px}.paper p{font-size:13px;line-height:1.85;margin:10px 0}
 .track{height:13px;background:#e3e9c9;border:2px solid #476b56;margin:17px 5px 10px}.fill{height:100%;width:0;background:#74a972;transition:width .15s steps(3,end)}#error{color:#994d40;font-size:12px;white-space:pre-wrap;display:none}
-</style></head><body><div id="loading"><div class="paper"><h1>同路原野</h1><p>正在开启完整数字牧场……<br>载入已完成的七大板块、步道卡与小匣。</p><div class="track"><div class="fill" id="fill"></div></div><p id="status">准备载入</p><p id="error"></p><p style="font-size:11px;color:#657f78">独立预览环境 · 演示激活码 BUDAO-2026 · 不进行真实交易或收款</p></div></div>
+</style></head><body><div id="loading"><div class="paper"><h1>同路原野</h1><p>正在开启完整数字牧场……<br>载入已完成的七大板块、步道卡与小匣。</p><div class="track"><div class="fill" id="fill"></div></div><p id="status">准备载入</p><p id="error"></p><p style="font-size:11px;color:#657f78">独立预览环境 · 步道卡正式密码方案尚待定稿 · 不进行真实交易或收款</p></div></div>
 <script>
 (async()=>{
  const total=20,parts=Array.from({length:total},(_,i)=>'./parts/part-'+String(i).padStart(2,'0')+'.txt');
@@ -26,11 +26,11 @@
  if(!html.startsWith('<!doctype html>')||!html.includes('window.PastureShop')||!html.includes('window.PastureBox')||!html.endsWith('</body></html>'))throw new Error('完整性校验失败，请刷新重试。');
  // Review change 01: remove the entire bottom-right prototype toolbar (all buttons and text).
  // Keep the elements in the DOM to preserve existing event bindings; only remove presentation.
- html=html.replace('</style></head><body>','\n#topTools{display:none!important}\n#shopClose,#boxClose{background:#f9f0d5!important;border:3px solid #254c3c!important;color:#264b3d!important;padding:7px 13px!important;font-weight:900!important;border-radius:0!important;box-shadow:none!important;cursor:pointer!important}\nbody.grass-immersive #help,body.grass-immersive #toast{display:none!important}\n</style></head><body>');
+ html=html.replace('</style></head><body>','\n#topTools,#offlineShop,#offlineBox,#floatingShop,#floatingBox{display:none!important}\n#shopClose,#boxClose{background:#f9f0d5!important;border:3px solid #254c3c!important;color:#264b3d!important;padding:7px 13px!important;font-weight:900!important;border-radius:0!important;box-shadow:none!important;cursor:pointer!important}\nbody.grass-immersive #help,body.grass-immersive #toast{display:none!important}\n</style></head><body>');
  // Only update hosting-specific paths; preserve the approved seven module UI and card engine.
  html=html.replace('https://budao.org/tonglu.html','/tonglu.html');
- // 我的牧草已进入真实居民功能阶段：居民登录是唯一入口门，不再叠加旧步道卡激活门。
- html=html.replace("const protectedIds=['returnNow','grassBookBtn','windNewsBtn','partnersBtn','mailBtn'];","const protectedIds=['returnNow','windNewsBtn','partnersBtn','mailBtn'];");
+ // Two-stage entry: email registration opens pasture; verified card unlocks My Grass.
+ // The functional zone and its server-backed gate determine feature access.
 
  // The assembled approved card engine already upgrades the original card through
  // upgradeApprovedCard(cardHTML) and mounts approvedSixCardHTML in cardIframe.
