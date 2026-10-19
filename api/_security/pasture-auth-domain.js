@@ -156,6 +156,8 @@ function publicUser(user, sheep) {
     id: user.id,
     emailMasked: user.emailMasked,
     createdAt: user.createdAt,
+    // Server-owned entitlement: never read browser localStorage or a client assertion.
+    cardActivated: Boolean(user.cardActivatedAt),
     sheep: sheep ? {
       id: sheep.id,
       bodyColor: sheep.bodyColor,
