@@ -265,17 +265,93 @@ function stageReading(){
   '<span class="gs-small">原声完成后自动归档；领受在下一页形成。</span>'+
   '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
 }
-function stageReflection(){
-   return '<div class="gs-grid">'+
-    '<section class="gs-panel" aria-label="默想对应经文"><h3>经文 · '+escape(draft.scripture.reference||'尚未定位')+'</h3>'+
-    '<div class="gs-scripture-read">'+escape(draft.scripture.text||'请先在「领受」中选择经文，并录入今日阅读的文字。')+'</div>'+
-    '<button class="gs-smallbutton" type="button" data-action="tab" data-tab="reading">返回经文</button></section>'+
-    '<section class="gs-panel" aria-label="个人默想笔记"><h3>我的默想</h3>'+
-    '<label class="gs-field">留给自己的一页<textarea class="gs-large gs-reflection" rows="9" maxlength="12000" data-field="reflection" placeholder="今天，这段经文让我想到……">'+escape(draft.reflection)+'</textarea></label>'+
-    '<span class="gs-small">原始笔记 · 默认私密</span>'+
-    '<div class="gs-actions"><button class="gs-action" type="button" data-action="save">保存默想</button>'+
-    '<button class="gs-action secondary" type="button" data-action="next-sharing">一粒牧草 →</button></div>'+
-    '<div class="gs-rule"></div><span class="gs-badge">专属声音 · 待单独授权后接入</span></section></div>';
+
+  // All six directions remain relationships surrounding one durable center;
+  // nothing here is an automatic public message or an engagement score.
+  const LIGHTS=Object.freeze([
+   ['OUT','传','出去','这一颗领受想递给谁？（这里仅记下，不会自动发送）','top'],
+   ['TIMELINE','忆','关联','这颗领受连接了我生命中的哪一天或哪段经历？','upper-right'],
+   ['SCRIPTURE','连','串珠','写下另一处经文出处及经过上下文核实的联系。','lower-right'],
+   ['PRAYER','求','祷告','这一颗领受带出怎样的祷告？','bottom'],
+   ['ACTION','行','给予','这颗领受催促我采取什么具体行动？','lower-left'],
+   ['GOSPEL','去','福音','这颗领受怎样指向基督，成为对人的福音见证？','upper-left']
+  ]);
+  const insightText=()=>draft.insightDraft||{heardText:'',todayText:''};
+  const graphRelations=()=>lightGraph.relations.filter(r=>r.insight_id===draft.insightRecord?.insight_id);
+  function finalizeInsight(){
+   if(draft.insightRecord){focusLight=null;render();return}
+   if(journeyPhase!=='completed'||draft.readingJourney?.status!=='completed'){tell('请先完成本人原声读经。');return}
+   try{
+    const insight=C.createInsightRecord(draft.readingJourney,insightText(),randomId(),iso());
+    const oldReflection=draft.reflection;
+    draft.insightRecord=insight;
+    draft.reflection=[insight.heard_text,insight.today_text].filter(Boolean).join('\n');
+    if(!saveEntry()){draft.insightRecord=null;draft.reflection=oldReflection;return}
+    focusLight=null;render();tell('领受已形成，六个关系方向如今可以生长。');
+   }catch(e){tell(e.message||String(e))}
+  }
+  function addLightRelation(){
+   if(!draft.insightRecord||!focusLight)return;
+   try{
+    const rel=C.createLightRelation(draft.insightRecord,focusLight,draft.lightDraft?.[focusLight],randomId(),iso());
+    const ev=C.createLightEvent(rel,randomId(),randomId(),'internal',{visibility:'private'},iso());
+    const updated={relations:[...lightGraph.relations,rel],events:[...lightGraph.events,ev]};
+    writeJson(persistentKeys().graph,updated);
+    lightGraph=updated;draft.lightDraft[focusLight]='';persistDraft();render();
+    tell('已将这一次连接记入个人古卷；不会自动发送给任何人。');
+   }catch(e){tell(e.message||String(e))}
+  }
+  function addInboundEvent(relationId){
+   const relation=graphRelations().find(r=>r.relation_id===relationId);
+   if(!relation)return;
+   try{
+    const reply=String(draft.lightDraft?.[focusLight]||'').trim();
+    const ev=C.createInboundEvent(draft.insightRecord,relation,reply,randomId(),randomId(),iso());
+    const updated={relations:lightGraph.relations,events:[...lightGraph.events,ev]};
+    writeJson(persistentKeys().graph,updated);
+    lightGraph=updated;draft.lightDraft[focusLight]='';persistDraft();render();
+    tell('收到的回应已记录，原来的领受文字不被改写。');
+   }catch(e){tell(e.message||String(e))}
+  }
+  function lightField(){
+   const insight=draft.insightRecord,selected=LIGHTS.find(l=>l[0]===focusLight);
+   const relations=graphRelations();
+   return '<section class="gs-light-panel" aria-label="七光关系场">'+
+    '<div class="gs-light-orbit" data-focus="'+escape(focusLight||'')+'">'+
+     '<button type="button" class="gs-light-center '+(insight?'is-lit':'')+'" data-action="'+(insight?'light-reset':'finalize-insight')+'" aria-label="'+(insight?'返回七光全景':'点亮领受')+'">领</button>'+
+     (insight?LIGHTS.map(([type,word,name,prompt,position])=>
+      '<button type="button" class="gs-light-node'+(focusLight&&focusLight!==type?' is-dim':'')+
+      (relations.some(r=>r.light_type===type)?' is-linked':'')+(focusLight===type?' is-focused':'')+
+      '" data-action="light-focus" data-light="'+type+'" data-position="'+position+
+      '" title="'+escape(name)+'" aria-label="'+escape(name)+'" aria-pressed="'+(focusLight===type)+'">'+word+'</button>').join(''):'')+
+     '</div>'+
+     (!insight?'<p class="gs-light-copy">听见 · 于我。准备好时，轻触中心的「领」。</p>':
+      !selected?'<p class="gs-light-copy">中心不失 · 原地展开。触碰其中一光，关系便能生长。</p>':
+      '<div class="gs-light-detail"><p>'+escape(selected[3])+'</p>'+
+       '<label class="gs-field">一次真实的连接<textarea rows="3" maxlength="1200" data-field="lightNote" placeholder="记录真实的人、经文、祷告或行动……">'+escape(draft.lightDraft?.[focusLight]||'')+'</textarea></label>'+
+       '<button class="gs-smallbutton" type="button" data-action="light-add">记下连接</button>'+
+       (relations.some(r=>r.light_type===focusLight)?'<div class="gs-light-history">'+
+       relations.filter(r=>r.light_type===focusLight).map(r=>'<div class="gs-light-history-item"><p>'+escape(r.to_ref)+'</p><small>'+escape(datetime(r.created_at))+'</small>'+
+       '<button class="gs-smallbutton" type="button" data-action="light-reply" data-relation-id="'+escape(r.relation_id)+'">将上方文字记为收到的回应</button></div>').join('')+
+       '</div>':'')+
+      '</div>')+
+    '</section>';
+  }
+  function stageReflection(){
+   const insight=draft.insightRecord,words=insightText();
+   return '<div class="gs-grid gs-insight-layout">'+
+     '<section class="gs-panel" aria-label="听见和于我"><h3>经文 · '+escape(draft.scripture.reference||'尚未定位')+'</h3>'+
+     '<div class="gs-scripture-read">'+(draft.scripture.translation==='English Standard Version (ESV)'?
+       'ESV · 本地只留经文位置和本人领受；版权正文请返回读经页即时阅读。':
+       escape(draft.scripture.text||'请先完成本人原声读经。'))+'</div>'+
+     '<div class="gs-insight-writing">'+
+      '<label class="gs-field">这段经文里，我听见了什么？<textarea rows="3" data-field="heardText" '+(insight?'disabled':'')+' placeholder="听见……">'+escape(words.heardText||'')+'</textarea></label>'+
+      '<label class="gs-field">这与今天的我有什么关系？<textarea rows="4" data-field="todayText" '+(insight?'disabled':'')+' placeholder="今天……">'+escape(words.todayText||'')+'</textarea></label>'+
+      (insight?'<p class="gs-small">领受已经形成；原文保持不变，新的回应从七光继续生长。</p>':'')+
+     '</div></section>'+
+     '<section class="gs-panel gs-light-stage" aria-label="领受与七光">'+lightField()+
+      (insight?'<div class="gs-actions"><button type="button" class="gs-smallbutton" data-action="next-sharing">一粒牧草 →</button></div>':'')+
+     '</section></div>';
   }
   function stageSharing(){
    const saved=getEntry(),associated=micros.filter(m=>m.entryId===draft.id);
