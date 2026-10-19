@@ -42,7 +42,14 @@
   }
   function getJson(k,fallback){try{const v=JSON.parse(getStored(k)||'null');return v==null?fallback:v}catch(e){return fallback}}
   function writeJson(k,v){setStored(k,JSON.stringify(v))}
-  function cardIdentity(){return getJson('budao_pixel_card_activation_prototype_v1',{phase:'guest'})}
+  // An email-authenticated resident receives a new, isolated local storage namespace.
+  // No prototype card state or shared guest scope can unlock a private folio.
+  function residentAccess(){return window.PastureResidentGate?.canUseGrass?.()===true}
+  function residentScope(){
+   if(!residentAccess())return null;
+   const id=String(window.PastureResidentGate?.getResident?.()?.id||'');
+   return /^[a-f0-9-]{36}$/i.test(id)?'pasture-resident-'+id.toLowerCase():null;
+  }
   function emptyDraft(ref){return {
    id:randomId(),
    scripture:{reference:ref||'',text:'',translation:'',source:'',verifiedAgainstRecording:false},
@@ -153,8 +160,9 @@
   function refFromOriginal(){return (document.getElementById('refDisplay')?.textContent||'').trim();}
   function persistDraft(){try{writeJson(persistentKeys().draft,draft)}catch(e){tell('本机存储不可用。请先复制重要内容到安全位置。')}}
   function loadForIdentity(){
-   const current=C.scopeFromIdentity(cardIdentity());
-   if(current===scope&&draft)return;
+   const current=residentScope();
+   if(!current)return false;
+   if(current===scope&&draft)return true;
    if(recorder&&recorder.state==='recording'){try{recorder.stop()}catch(_){}}
    scope=current;key=PREFIX+'.'+scope;
    const names=persistentKeys();
@@ -183,10 +191,12 @@
     }
     setStored(names.legacy,'1');
    }
+   return true;
   }
   function saveAll(){writeJson(persistentKeys().entries,entries);writeJson(persistentKeys().micros,micros)}
   function getEntry(){return entries.find(e=>e.id===draft.id)||null;}
   function saveEntry(){
+   if(!residentAccess()||!residentScope()){tell('请先使用本人步道卡激活牧草。');return null}
    if(audioPending||recorder?.state==='recording'||['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经，再保存领受。');return null}
    if(!draft.readingJourney&&draft.reading.audioId&&!draft.scripture.verifiedAgainstRecording){tell('这次旧版原声还没有与经文建立绑定。');return null}
    const previous=getEntry(),input={scripture:draft.scripture,reflection:draft.reflection,reading:draft.reading,readingJourney:draft.readingJourney||null};
@@ -386,7 +396,7 @@ function stageReading(){
   }
   let microDraft='';
   function render(){
-   if(!document.body.classList.contains('grassbook-open'))return;
+   if(!residentAccess()||!draft||!document.body.classList.contains('grassbook-open'))return;
    const tabs=[['reading','读经'],['reflection','领受'],['sharing','牧养']];
    root.innerHTML=
     '<header class="gs-head"><div class="gs-head-title">我的牧草</div>'+
@@ -760,7 +770,32 @@ async function rerecordAudio(){
   const originalRender=render;
   render=function(){originalRender();addNewEntryControl()};
   entryButton.addEventListener('click',()=>{
-   loadForIdentity();render();
+   if(!residentAccess()||!residentScope()){tell('请先通过步道卡激活「我的牧草」。');return}
+   if(loadForIdentity()){
+    journey=draft.readingJourney||null;journeyPhase=journey?.status==='completed'?'completed':'idle';
+    journeyFinalMs=journey?.durationMs||0;C.setRuntimeReadingJourney(journey);emitJourneyState();render();
+   }
+  });
+  document.addEventListener('pasture-resident-access-changed',()=>{
+   const nextScope=residentScope();
+   if(nextScope&&scope===nextScope&&draft)return;
+   // A logout, account switch or loss of entitlement must revoke access even
+   // if a recording is in progress. In-flight onstop must never save to a new user.
+   journeyPhase='error';
+   try{if(journeyRecorder?.state!=='inactive')journeyRecorder?.stop()}catch(e){}
+   releaseJourneyStream();
+   try{if(recorder?.state==='recording')recorder.stop()}catch(e){}
+   clearPlayer();
+   scope='';key='';draft=null;entries=[];micros=[];lightGraph={relations:[],events:[]};
+   journey=null;C.setRuntimeReadingJourney(null);focusLight=null;tab='reading';archiveOpen=false;
+   document.body.classList.remove('grassbook-open');root.innerHTML='';root.hidden=true;
+   if(nextScope){
+    root.hidden=false;
+    if(loadForIdentity()){
+     journey=draft.readingJourney||null;journeyPhase=journey?.status==='completed'?'completed':'idle';
+     journeyFinalMs=journey?.durationMs||0;C.setRuntimeReadingJourney(journey);emitJourneyState();
+    }
+   }
   });
   window.addEventListener('pagehide',()=>{
    if(recorder?.state==='recording')recorder.stop();
@@ -768,7 +803,12 @@ async function rerecordAudio(){
    recordStream?.getTracks().forEach(t=>t.stop());
   });
   // Init lazily: the main pasture iframe may be present before its six-axis identity is assigned.
-  root.hidden=false;
-  loadForIdentity();journey=draft.readingJourney||null;journeyPhase=journey?.status==='completed'?'completed':'idle';journeyFinalMs=journey?.durationMs||0;C.setRuntimeReadingJourney(journey);emitJourneyState();
-  render();
+  root.hidden=true;
+  // Private data is loaded only after the parent email session AND server-side
+  // step-card entitlement are present. Registration alone never opens the folio.
+  if(residentScope()){
+   root.hidden=false;loadForIdentity();journey=draft.readingJourney||null;
+   journeyPhase=journey?.status==='completed'?'completed':'idle';
+   journeyFinalMs=journey?.durationMs||0;C.setRuntimeReadingJourney(journey);emitJourneyState();render();
+  }
 })();
