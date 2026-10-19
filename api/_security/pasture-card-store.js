@@ -30,6 +30,7 @@ async function redeemSecretDigest(userId,digest,env=process.env){
      UPDATE pasture_cards SET status='ACTIVATED', activated_at=now(),
        activated_by_user_id=${userId}
      WHERE secret_digest=${digest} AND status='ISSUED'
+       AND (reserved_for_user_id IS NULL OR reserved_for_user_id=${userId})
        AND EXISTS(SELECT 1 FROM pasture_users
          WHERE id=${userId} AND status='ACTIVE' AND card_activated_at IS NULL)
      RETURNING id,serial
@@ -51,11 +52,22 @@ async function redeemSecretDigest(userId,digest,env=process.env){
 }
 
 // Admin-only offline issuance: the database never sees the plaintext code.
-async function issueCardRecord({serial,secretDigest,secretVersion,batchId},env=process.env){
+async function issueCardRecord({serial,secretDigest,secretVersion,batchId,issuerId,authorizationRef,deliveryChannel,reservedForUserId},env=process.env){
+ // Online requests can request a card, but they can never issue one. Issuance
+ // requires ministry operator provenance and a recorded approval reference.
+ if(!/^[A-Za-z0-9_.-]{3,80}$/.test(String(issuerId||''))||
+    !/^[A-Za-z0-9_.:-]{4,100}$/.test(String(authorizationRef||''))||
+    !['ONLINE','TRAIL'].includes(deliveryChannel)||
+    (deliveryChannel==='ONLINE'&&!/^[a-f0-9-]{36}$/i.test(String(reservedForUserId||'')))||
+    (deliveryChannel==='TRAIL'&&reservedForUserId!=null)){
+  throw new Error('card_ministry_issuance_authorization_required');
+ }
  const query=queryDb(env);
  await query`
-  INSERT INTO pasture_cards(serial,secret_digest,secret_version,batch_id,status)
-  VALUES(${serial},${secretDigest},${secretVersion},${batchId},'ISSUED')
+  INSERT INTO pasture_cards(serial,secret_digest,secret_version,batch_id,
+    issuer_id,authorization_ref,delivery_channel,reserved_for_user_id,status)
+  VALUES(${serial},${secretDigest},${secretVersion},${batchId},
+    ${issuerId},${authorizationRef},${deliveryChannel},${reservedForUserId||null},'ISSUED')
  `;
  return serial;
 }
