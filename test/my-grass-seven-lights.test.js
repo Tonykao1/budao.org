@@ -142,7 +142,7 @@ test('an actual archive write restores one same-ID insight and its voice binding
  };
  const body=[
   "let scope=ctx.scope,key=ctx.key,draft=ctx.draft,entries=ctx.entries,micros=ctx.micros,editingSavedId=null,recorder=null,audioPending=false,journeyPhase='completed',lightGraph=ctx.lightGraph,focusLight=null;",
-  "const C=ctx.C,PREFIX=C.STORAGE_PREFIX,randomId=ctx.randomId,iso=ctx.iso,tell=ctx.tell,getStored=ctx.getStored,setStored=ctx.setStored,getJson=ctx.getJson,writeJson=ctx.writeJson,cardIdentity=ctx.cardIdentity,emptyDraft=ctx.emptyDraft,document=ctx.document,residentAccess=()=>true,residentScope=()=>scope;",
+  "const C=ctx.C,PREFIX=C.STORAGE_PREFIX,randomId=ctx.randomId,iso=ctx.iso,tell=ctx.tell,getStored=ctx.getStored,setStored=ctx.setStored,getJson=ctx.getJson,writeJson=ctx.writeJson,cardIdentity=ctx.cardIdentity,emptyDraft=ctx.emptyDraft,document=ctx.document,residentAccess=()=>true,residentScope=()=>ctx.scope;",
   storageSource,
   "const first=saveEntry();",
   "draft.insightRecord=C.createInsightRecord(journey,draft.insightDraft,'stable-insight',iso());",
