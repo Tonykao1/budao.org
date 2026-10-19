@@ -114,3 +114,54 @@ test('source finalization reuses one entry and only lights after archive persist
  ctx.finalize();
  assert.equal(saved,1,'a second center click must not duplicate the original record');
 });
+
+
+test('an actual archive write restores one same-ID insight and its voice binding on page reload',()=>{
+ const start=main.indexOf('function persistentKeys(){');
+ const end=main.indexOf('function setTab(next)',start);
+ assert.ok(start>=0&&end>start,'the real storage implementation exists');
+ const storageSource=main.slice(start,end);
+ const journey=completedJourney();
+ const memory=new Map();
+ const ctx={
+  C,scope:'unassigned-preview',key:C.STORAGE_PREFIX+'.unassigned-preview',
+  draft:{
+   id:'entry-voice-1',
+   scripture:{reference:'约 3:16',text:'神爱世人',translation:'圣经和合本（神版）',source:'cuv1919-shen-s'},
+   readingJourney:journey,reading:journey.audio,reflection:'',
+   insightDraft:{heardText:'恩典',todayText:'我要爱人'},insightRecord:null,lightDraft:{}
+  },
+  entries:[],micros:[],lightGraph:{relations:[],events:[]},
+  randomId:()=>'id',iso:()=>when,tell:()=>{},
+  getStored:key=>memory.get(key)||null,setStored:(key,value)=>memory.set(key,value),
+  getJson:(key,fallback)=>memory.has(key)?JSON.parse(memory.get(key)):fallback,
+  writeJson:(key,value)=>memory.set(key,JSON.stringify(value)),
+  cardIdentity:()=>({phase:'guest'}),
+  emptyDraft:()=>({id:'fresh',scripture:{reference:'',text:''},reading:{},reflection:''}),
+  document:{getElementById:()=>({textContent:''})}
+ };
+ const body=[
+  "let scope=ctx.scope,key=ctx.key,draft=ctx.draft,entries=ctx.entries,micros=ctx.micros,editingSavedId=null,recorder=null,audioPending=false,journeyPhase='completed',lightGraph=ctx.lightGraph,focusLight=null;",
+  "const C=ctx.C,PREFIX=C.STORAGE_PREFIX,randomId=ctx.randomId,iso=ctx.iso,tell=ctx.tell,getStored=ctx.getStored,setStored=ctx.setStored,getJson=ctx.getJson,writeJson=ctx.writeJson,cardIdentity=ctx.cardIdentity,emptyDraft=ctx.emptyDraft,document=ctx.document;",
+  storageSource,
+  "const first=saveEntry();",
+  "draft.insightRecord=C.createInsightRecord(journey,draft.insightDraft,'stable-insight',iso());",
+  "draft.reflection='恩典\\n我要爱人';",
+  "const finalized=saveEntry();",
+  "scope='';draft=null;entries=[];micros=[];loadForIdentity();",
+  "return {first,finalized,entries,draft};"
+ ].join('\n');
+ const reloaded=new Function('ctx','journey',body)(ctx,journey);
+ assert.ok(reloaded.first&&reloaded.finalized);
+ assert.equal(reloaded.entries.length,1);
+ assert.equal(reloaded.entries[0].id,'entry-voice-1');
+ assert.equal(reloaded.entries[0].insightRecord.insight_id,'stable-insight');
+ assert.equal(reloaded.draft.insightRecord.reading_record_id,'local-audio-1');
+ assert.equal(reloaded.draft.insightDraft.heardText,'恩典');
+});
+test('inbound echoes are rendered from stored events and light flashes are transient',()=>{
+ assert.match(main,/lightGraph\.events\.filter\(ev=>ev\.relation_id===r\.relation_id&&ev\.direction==='inbound'\)/);
+ assert.match(main,/escape\(ev\.payload\?\.source\|\|''\)/);
+ assert.match(main,/node\.classList\.add\('is-pulsing'\)/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+});
