@@ -419,7 +419,7 @@ body.self-open .self-view{display:flex}
 
 
 <section class="budao-card-layer" id="budaoCardLayer" aria-label="步道卡">
-  <iframe class="budao-card-frame" id="budaoCardFrame" src="tonglu-budao-card-preview.html" title="步道卡"></iframe>
+  <iframe class="budao-card-frame" id="budaoCardFrame" src="/pasture-preview/card-activation.html" title="步道卡"></iframe>
   <button class="budao-card-layer-close" id="closeBudaoCard" type="button">收起 ×</button>
 </section>
 
@@ -1708,18 +1708,19 @@ body.self-open .self-view{display:flex}
 
 <script>
 (() => {
-  const KEY='budao.card.activated.v1';
   const btn=document.getElementById('budaoCardBtn');
   const layer=document.getElementById('budaoCardLayer');
   const frame=document.getElementById('budaoCardFrame');
   const close=document.getElementById('closeBudaoCard');
   const dot=document.getElementById('budaoCardDot');
-  if(!btn||!layer||!frame||!close) return;
-
+  if(!btn||!layer||!frame||!close)return;
+  function canUseGrass(){return window.PastureResidentGate?.canUseGrass?.()===true}
   function syncCardState(){
-    dot?.classList.toggle('active', localStorage.getItem(KEY)==='1');
+    dot?.classList.toggle('active',canUseGrass());
   }
   function openCard(){
+    // Refresh the real server-backed status every time a resident opens their card.
+    frame.src='/pasture-preview/card-activation.html';
     syncCardState();
     document.body.classList.add('budao-card-open');
     frame.contentWindow?.focus();
@@ -1728,46 +1729,17 @@ body.self-open .self-view{display:flex}
     document.body.classList.remove('budao-card-open');
     syncCardState();
   }
-  btn.addEventListener('click', openCard);
-  close.addEventListener('click', closeCard);
-
-  const protectedIds=['grassBookBtn','windNewsBtn','partnersBtn','mailBtn'];
-  protectedIds.forEach(id=>{
-    const el=document.getElementById(id);
-    if(!el)return;
-    el.addEventListener('click',e=>{
-      if(localStorage.getItem(KEY)==='1')return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      openCard();
-      setTimeout(()=>frame.contentWindow?.postMessage({type:'budao-card-request-activation'},'*'),120);
-    },true);
-  });
-
-  window.addEventListener('message', e => {
-    const type=e.data && e.data.type;
-    if(type==='budao-card-close') closeCard();
-    if(type==='budao-card-activated') syncCardState();
-    if(type==='budao-card-open-mail'){
-      closeCard();
-      setTimeout(()=>document.getElementById('mailBtn')?.click(),120);
-    }
-    if(type==='budao-card-open-partners'){
-      closeCard();
-      setTimeout(()=>document.getElementById('partnersBtn')?.click(),120);
-    }
-    if(type==='budao-card-open-wind'){
-      closeCard();
-      setTimeout(()=>document.getElementById('windNewsBtn')?.click(),120);
-    }
-    if(type==='budao-card-open-self'){
-      closeCard();
-      setTimeout(()=>document.getElementById('returnNow')?.click(),120);
+  btn.addEventListener('click',openCard);
+  close.addEventListener('click',closeCard);
+  document.addEventListener('pasture-resident-access-changed',syncCardState);
+  window.addEventListener('message',e=>{
+    if(e.origin!==location.origin||e.source!==frame.contentWindow)return;
+    if(e.data?.type==='budao-card-refresh-entitlement'){
+      window.parent.postMessage({type:'pasture-card-refresh-request'},location.origin);
     }
   });
-  window.addEventListener('storage', syncCardState);
-  window.addEventListener('keydown', e => {
-    if(e.key==='Escape' && document.body.classList.contains('budao-card-open')) closeCard();
+  window.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&document.body.classList.contains('budao-card-open'))closeCard();
   });
   syncCardState();
 })();
