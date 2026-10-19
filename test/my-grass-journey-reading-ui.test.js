@@ -32,3 +32,11 @@ test('opening a saved journey in a different chapter does not copy stale on-scre
  assert.match(completed,/const matchingChapter=/);
  assert.match(completed,/if\(matchingChapter\)/);
 });
+test('chapter navigation after a completed journey never reads the retired reading-session state',()=>{
+ const start=ui.indexOf('if(button.matches(\'[data-nav="apply"]\')&&journey)');
+ const end=ui.indexOf('const action=button.dataset.action;',start);
+ assert.ok(start>=0&&end>start);
+ const guard=ui.slice(start,end);
+ assert.doesNotMatch(guard,/session\.status/);
+ assert.match(guard,/journeyPhase/);
+});
