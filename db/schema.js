@@ -209,6 +209,11 @@ const pastureCards = pgTable("pasture_cards", {
  secretDigest: text("secret_digest").notNull(),
  secretVersion: text("secret_version").notNull().default("v1"),
  batchId: text("batch_id").notNull(),
+ // Identity of ministry-authorized operator, never set by public applications.
+ issuerId: text("issuer_id"),
+ authorizationRef: text("authorization_ref"),
+ deliveryChannel: text("delivery_channel"),
+ reservedForUserId: uuid("reserved_for_user_id").references(() => pastureUsers.id, { onDelete: "set null" }),
  status: text("status").notNull().default("ISSUED"),
  activatedByUserId: uuid("activated_by_user_id").references(() => pastureUsers.id, { onDelete: "set null" }),
  issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
