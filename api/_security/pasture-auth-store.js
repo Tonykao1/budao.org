@@ -28,6 +28,9 @@ async function ensurePastureSchema(env = process.env) {
   await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_ciphertext text`;
   await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_nonce text`;
   await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_tag text`;
+  // A user can own a sheep before their step-card entitlement is verified.
+  // The only issuer for this field will be the future server-side card verifier.
+  await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS card_activated_at timestamptz`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_users_email_hash_uq ON pasture_users(email_hash)`;
   await query`CREATE TABLE IF NOT EXISTS pasture_email_verifications (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
