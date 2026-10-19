@@ -7,6 +7,8 @@ ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS delivery_channel text;
 ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS reserved_for_user_id uuid REFERENCES pasture_users(id) ON DELETE SET NULL;
 ALTER TABLE pasture_cards ADD CONSTRAINT pasture_cards_channel_check
  CHECK (delivery_channel IS NULL OR delivery_channel IN ('ONLINE','TRAIL'));
+CREATE UNIQUE INDEX IF NOT EXISTS pasture_cards_genesis_only_uq
+ ON pasture_cards (authorization_ref) WHERE authorization_ref='GENESIS-0001';
 CREATE INDEX IF NOT EXISTS pasture_cards_reservation_idx ON pasture_cards (reserved_for_user_id)
  WHERE reserved_for_user_id IS NOT NULL AND status='ISSUED';
 
