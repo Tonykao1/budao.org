@@ -521,6 +521,7 @@ async function rerecordAudio(){
     recorder.onstop=async()=>{
       if(recordLimit)clearTimeout(recordLimit);
       stream.getTracks().forEach(t=>t.stop());recordStream=null;
+      if(!draft||!residentAccess()||scope!==residentScope()){audioPending=false;return}
       const elapsed=Math.max(1,Math.round((Date.now()-recordStart)/1000));
       const blob=new Blob(recordChunks,{type:recorder.mimeType||recordChunks[0]?.type||'audio/webm'});
       if(!blob.size){audioPending=false;tell('没有取得有效录音，请重新尝试。');render();return}
@@ -788,7 +789,10 @@ async function rerecordAudio(){
    clearPlayer();
    scope='';key='';draft=null;entries=[];micros=[];lightGraph={relations:[],events:[]};
    journey=null;C.setRuntimeReadingJourney(null);focusLight=null;tab='reading';archiveOpen=false;
-   document.body.classList.remove('grassbook-open');root.innerHTML='';root.hidden=true;
+   document.body.classList.remove('grassbook-open');
+   document.getElementById('skyZone')?.classList.remove('book-open');
+   entryButton.classList.remove('grass-active');
+   root.innerHTML='';root.hidden=true;
    if(nextScope){
     root.hidden=false;
     if(loadForIdentity()){
