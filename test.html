@@ -897,21 +897,15 @@ function routeStartTimestamp(route){
 }
 
 function sortRoutesByStart(routes){
-    const now = Date.now();
+    // Desktop cards read as a timeline: oldest on the left, future on the right.
+    // Mobile portrait order is derived separately in budao-calendar.js.
     return routes
     .map((route,index)=>({ route,index }))
     .sort((left,right)=>{
         const leftStart = routeStartTimestamp(left.route);
         const rightStart = routeStartTimestamp(right.route);
-        // The next walk must be visible first; completed/cancelled history
-        // belongs behind upcoming cards, not ahead of the live event.
-        const leftPast = leftStart < now;
-        const rightPast = rightStart < now;
-        if(leftPast !== rightPast){
-            return leftPast ? 1 : -1;
-        }
         if(leftStart !== rightStart){
-            return leftPast ? rightStart - leftStart : leftStart - rightStart;
+            return leftStart - rightStart;
         }
         return left.index - right.index;
     })
@@ -981,6 +975,10 @@ function renderRoutes(routes){
         const image =
         resolveImage(route.image || route.imageUrl);
 
+        // The upcoming event may occupy the rightmost desktop slot.
+        // Always prioritize its image, independently of presentation index.
+        const isUpcoming = !route.pending && routeStartTimestamp(route) >= Date.now();
+
         const routeDate =
         formatRouteDate(route.date);
 
@@ -989,7 +987,7 @@ function renderRoutes(routes){
             <div class="route-image">
                 ${
                     image ?
-                    `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" loading="${index === 0 ? "eager" : "lazy"}" decoding="async" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
+                    `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" loading="${isUpcoming ? "eager" : "lazy"}" fetchpriority="${isUpcoming ? "high" : "auto"}" decoding="async" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
                     `<span class="route-image-placeholder" data-place="${escapeAttribute(locationLabel)}"></span>`
                 }
                 ${
