@@ -897,16 +897,22 @@ function routeStartTimestamp(route){
 }
 
 function sortRoutesByStart(routes){
+    const now = Date.now();
     return routes
     .map((route,index)=>({ route,index }))
     .sort((left,right)=>{
         const leftStart = routeStartTimestamp(left.route);
         const rightStart = routeStartTimestamp(right.route);
-
-        if(leftStart !== rightStart){
-            return leftStart - rightStart;
+        // The next walk must be visible first; completed/cancelled history
+        // belongs behind upcoming cards, not ahead of the live event.
+        const leftPast = leftStart < now;
+        const rightPast = rightStart < now;
+        if(leftPast !== rightPast){
+            return leftPast ? 1 : -1;
         }
-
+        if(leftStart !== rightStart){
+            return leftPast ? rightStart - leftStart : leftStart - rightStart;
+        }
         return left.index - right.index;
     })
     .map(item=>item.route);
@@ -983,7 +989,7 @@ function renderRoutes(routes){
             <div class="route-image">
                 ${
                     image ?
-                    `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" loading="lazy" decoding="async" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
+                    `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(route.imageAlt || route.title)}" data-place="${escapeAttribute(locationLabel)}" loading="${index === 0 ? "eager" : "lazy"}" decoding="async" onclick="openImage(this.src)" onerror="replaceBrokenImage(this)">` :
                     `<span class="route-image-placeholder" data-place="${escapeAttribute(locationLabel)}"></span>`
                 }
                 ${
@@ -1618,7 +1624,12 @@ function renderEnded(id){
 }
 
 function updateAll(){
-    events.forEach(event=>{
+    events.forEach((event,index)=>{
+        // Never let the per-second timer overwrite the cancellation notice.
+        if(activeRoutes[index] && activeRoutes[index].status === "cancelled"){
+            setCountdownText(event.id,"本次步道已取消");
+            return;
+        }
         if(event.pending){
             setCountdownText(event.id,"等待安放");
             return;
