@@ -25,8 +25,8 @@ test("cancelled countdown is stable, without per-second timer overwrites", () =>
   assert.match(calendar, /text === "本次步道已取消"/);
 });
 
-test("upcoming walk is listed before historical slots and its image loads eagerly", () => {
-  assert.match(page, /const leftPast = leftStart < now/);
-  assert.match(page, /if\(leftPast !== rightPast\)/);
-  assert.match(page, /loading="\\?\$\{index === 0 \? "eager" : "lazy"\}"/);
+test("desktop timeline is chronological and upcoming image loads eagerly in any slot", () => {
+  assert.match(page, /return leftStart - rightStart;/);
+  assert.doesNotMatch(page, /const leftPast = leftStart < now/);
+  assert.match(page, /loading="\\?\$\{isUpcoming \? "eager" : "lazy"\}"/);
 });
