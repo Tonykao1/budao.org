@@ -24,7 +24,7 @@ code{font-family:ui-monospace,monospace;word-wrap:break-word}
 <p>这里不是样机。经步道事工管理员和牧场居民双重身份验证后，真实发行第 0001 张数字步道卡，并通过同一套居民激活服务解锁「我的牧草」。操作仅限本次 Preview 封闭试运行，不发布到正式网站。</p>
 <section><h2>① 步道事工发行身份</h2><div id="adminState" class="status">正在检查……</div>
 <form id="adminLogin" hidden>
-<label for="adminName">管理员用户名</label><input id="adminName" value="tony" autocomplete="username" required>
+<label for="adminName">步道管理员登录名（不是邮箱验证码）</label><input id="adminName" value="tony" autocomplete="username" required><p class="small">请填写之前在步道后台使用的登录名；若密码属于 Tent 带领人账户，可能与本页的管理员账户不同。</p>
 <label for="adminPassword">管理员密码</label><input type="password" id="adminPassword" autocomplete="current-password" required>
 <button type="submit" id="adminSignIn">验证事工管理员</button></form></section>
 <section><h2>② 牧场居民身份与捏羊</h2><div id="residentState" class="status">正在检查……</div>
@@ -50,10 +50,13 @@ async function api(url,body){
 function say(message){$('result').hidden=false;$('result').textContent=message}
 async function check(){
  try{
-  const [a,p]=await Promise.all([api('/api/auth/session'),api('/api/pasture-auth')]);
-  admin=a.res.ok&&a.d.ok;
+  const [a,p]=await Promise.all([api('/api/auth/session?view=pasture-first-card'),api('/api/pasture-auth')]);
+  admin=a.res.ok&&a.d.ministryAuthorized===true;
   resident=p.res.ok&&p.d.ok?p.d.user:null;
-  $('adminState').innerHTML=admin?'<strong class="ok">已验证步道管理员会话</strong>':'<strong class="wait">尚未登录事工管理员</strong>';
+  $('adminState').textContent=admin?'已验证：拥有首卡发行身份。':
+    a.res.ok&&a.d.authenticated?'已经登录后台，但当前账户没有首卡发行权限，或 Preview 尚未配置事工发行身份。':
+    a.res.status===401?'当前浏览器尚未登录步道管理员。':
+    '暂时无法取得发行权限状态（HTTP '+a.res.status+'）。';
   $('adminLogin').hidden=admin;
   $('residentState').textContent=!resident?'尚未验证牧场邮箱。请在同一预览域名完成注册。':
    !resident.sheep?'已验证邮箱，但还没有完成捏羊。':
@@ -72,8 +75,21 @@ $('adminLogin').addEventListener('submit',async e=>{
  try{
   const {res,d}=await api('/api/auth/login',{email:$('adminName').value.trim(),password:$('adminPassword').value});
   $('adminPassword').value='';
-  if(!res.ok||!d.ok){say('事工管理员验证未通过。请检查登录凭据。');return}
+  if(!res.ok||!d.ok){
+   const reasons={
+     invalid_credentials:'账户名或密码不匹配。此页面要求步道后台配置的管理员账号；请不要重复盲试。',
+     user_configuration_unavailable:'Preview 环境的管理员账号配置无法读取或格式有误。不是你的密码错误。',
+     session_configuration_unavailable:'Preview 管理员会话密钥未配置，账号验证不可用。',
+     rate_limited:'登录请求被暂时限制，请至少等待15分钟再继续。',
+     forbidden:'安全校验未通过，请从本页正常登录，不要跨域提交。',
+     invalid_request:'登录表单参数格式不符合后台要求。',
+     invalid_response:'服务器没有返回有效登录结果，请检查 Preview 部署状态。'
+   };
+   say(reasons[d.reason]||'登录请求没有通过，HTTP '+res.status+'，错误代码 '+String(d.reason||'unknown')+'。');
+   return;
+  }
   await check();
+  if(!admin)say('后台密码已经验证通过，但首卡发行权限未验证。不要继续试密码；请检查 Preview 的事工发行配置。');
  }catch(e){say('管理员登录服务暂时不可用。')}
  finally{button.disabled=false;$('adminPassword').value=''}
 });
