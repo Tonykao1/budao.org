@@ -410,7 +410,7 @@
     const countdown = card && card.querySelector ? card.querySelector(".route-countdown") : null;
     const text = countdown ? String(countdown.textContent || "").trim() : "";
 
-    if (text === "已完成此程") return "ended";
+    if (text === "已完成此程" || text === "本次步道已取消") return "ended";
     if (text === "正在同行") return "started";
     if (text === "等待安放") return "pending";
     return "countdown";
