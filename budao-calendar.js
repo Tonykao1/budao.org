@@ -339,6 +339,17 @@
     });
   }
 
+  // Both the calendar and the route cards consume a single live response.
+  function loadPublishedRoutes() {
+    const browser = typeof window !== "undefined" ? window : null;
+    if (browser && browser.BudaoPublishedRoutesPromise) {
+      return browser.BudaoPublishedRoutesPromise;
+    }
+    const request = loadJson("/api/routes?calendar=" + Date.now());
+    if (browser) browser.BudaoPublishedRoutesPromise = request;
+    return request;
+  }
+
   function sameSchedule(left, right) {
     return JSON.stringify(left || {}) === JSON.stringify(right || {});
   }
@@ -356,7 +367,7 @@
 
     return Promise.all([
       loadJson("/calendar-events.json?ts=" + Date.now()),
-      loadJson("/api/routes?calendar=" + Date.now())
+      loadPublishedRoutes()
     ]).then(function (sources) {
       const schedule = mergeStepSchedule(baseStepSchedule, sources[0], sources[1]);
       const cancellationSchedule = mergeCancellationSchedule(sources[0], sources[1]);
