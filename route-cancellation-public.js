@@ -11,7 +11,10 @@
     const Observer = window.MutationObserver;
     if (typeof Observer === "function") {
       const observer = new Observer(scheduleApply);
-      observer.observe(grid, { childList: true, subtree: true, characterData: true });
+      // Observe card additions/removals ONLY. Changes inside a card (such as
+      // countdown updates and cancellation notices) must not recursively
+      // re-trigger apply(), or the page can enter an endless microtask loop.
+      observer.observe(grid, { childList: true });
     }
 
     window.addEventListener("budao:routes-rendered", scheduleApply);
@@ -71,13 +74,18 @@
     if (!note) {
       note = document.createElement("div");
       note.className = "route-cancel-public";
+      // Initialize once: rewriting innerHTML on every observer callback
+      // previously emitted a new mutation, causing an infinite feedback loop.
+      note.innerHTML = "<strong>本次步道已取消</strong><p></p>";
       const content = card.querySelector(".route-content");
       if (content) content.insertBefore(note, content.firstChild);
     }
 
-    note.innerHTML = "<strong>本次步道已取消</strong><p></p>";
     const message = note.querySelector("p");
-    if (message) message.textContent = core.displayMessage(route);
+    const nextMessage = core.displayMessage(route);
+    if (message && message.textContent !== nextMessage) {
+      message.textContent = nextMessage;
+    }
 
     const countdown = card.querySelector(".route-countdown");
     if (countdown && countdown.textContent !== "本次步道已取消") {
