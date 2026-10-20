@@ -677,7 +677,7 @@ aria-hidden="true">
     </div>
 </div>
 
-<script src="budao-calendar.js?v=20260918-data2"></script>
+<script src="budao-calendar.js?v=20261020-public-route-share"></script>
 
 <script>
 
@@ -703,6 +703,16 @@ function resolveImage(value){
 
     if(!image){
         return "";
+    }
+
+    // Route photographs and QR codes live in the same production deployment.
+    // Avoid the less reliable raw.githubusercontent.com domain for site assets.
+    const rawPrefix = "https://raw.githubusercontent.com/Tonykao1/budao.org/main/";
+    if(image.startsWith(rawPrefix)){
+        const assetPath = image.slice(rawPrefix.length);
+        if(/^route-assets\/[a-z0-9_-]+\/[a-z0-9_-]+\.(?:jpe?g|png|webp|gif)$/i.test(assetPath)){
+            return "/" + assetPath;
+        }
     }
 
     if(
@@ -799,27 +809,29 @@ const defaultRoutes = [
 }
 ];
 
-const routesController =
-window.AbortController ? new AbortController() : null;
+// budao-calendar.js starts the same public request while mounting the
+// calendar. Reuse it instead of making a second GitHub-backed API call.
+const publishedRoutesRequest = window.BudaoPublishedRoutesPromise ||
+    fetch("/api/routes?budao=" + Date.now(), { cache:"no-store", credentials:"same-origin" })
+        .then(response=>{
+            if(!response.ok) throw new Error("routes_unavailable");
+            return response.json();
+        });
+if(!window.BudaoPublishedRoutesPromise){
+    window.BudaoPublishedRoutesPromise = publishedRoutesRequest.catch(()=>[]);
+}
 
-const routesTimeout =
-window.setTimeout(()=>{
-    if(routesController){
-        routesController.abort();
-    }
+// Keep the page responsive during a slow request, but still render live
+// routes if they arrive later rather than staying on outdated placeholders.
+const routesTimeout = window.setTimeout(()=>{
+    activateRoutes(fixedRoutesOnly(defaultRoutes));
 },6000);
 
-fetch("/api/routes?budao=" + Date.now(),routesController ? { signal:routesController.signal } : {})
-    .then(response=>response.json())
+publishedRoutesRequest
     .then(routes=>{
         window.clearTimeout(routesTimeout);
         const nextRoutes = fixedRoutesOnly(Array.isArray(routes) ? routes : []);
-
-        if(nextRoutes.length){
-            activateRoutes(nextRoutes);
-        } else {
-            activateRoutes(fixedRoutesOnly(defaultRoutes));
-        }
+        activateRoutes(nextRoutes.length ? nextRoutes : fixedRoutesOnly(defaultRoutes));
     })
     .catch(()=>{
         window.clearTimeout(routesTimeout);

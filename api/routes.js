@@ -31,8 +31,13 @@ module.exports = async function handler(request, response) {
   }
 
   try {
-    const routes = await readRoutes();
     const scope = requestScope(request);
+    // Independent public GitHub reads run concurrently, without changing
+    // private authorization paths or the result's supervision filtering.
+    const publicSupervision = scope !== "mine" && scope !== "altar"
+      ? readAltarState().then((state) => state.routes || {}).catch(() => ({}))
+      : null;
+    const routes = await readRoutes();
 
     response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
 
@@ -49,14 +54,7 @@ module.exports = async function handler(request, response) {
       return handleAltarRead(response, routes);
     }
 
-    let supervisionRoutes = {};
-    try {
-      const altar = await readAltarState();
-      supervisionRoutes = altar.routes || {};
-    } catch (error) {
-      supervisionRoutes = {};
-    }
-
+    const supervisionRoutes = await publicSupervision;
     sendJson(response, 200, projectPublicRoutes(routes, new Date(), supervisionRoutes));
   } catch (error) {
     response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
