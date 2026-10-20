@@ -122,5 +122,15 @@
     "title": "未来智谷少年行",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-10-24",
+    "type": "budao",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony",
+    "title": "舞彩浅山·枫叶季",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
