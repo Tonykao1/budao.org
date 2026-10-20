@@ -53,3 +53,15 @@ test('operator CLI requires ministry identity and an approval reference and chan
  assert.match(specs,/申请不会自动生成卡密/);
  assert.match(specs,/线上申请表、同工审核界面、自动定向交付和线上身份授权尚待建设/);
 });
+
+test('inaugural gate distinguishes logged-in publisher from ministry issuer capability',()=>{
+ const handler=load('api/_security/pasture-first-card-handler.js');
+ const ui=load('admin/pasture-first-card.html');
+ assert.match(handler,/ministryAuthorized:authorized/);
+ assert.match(handler,/if\(request\.method==='GET'\)/);
+ assert.match(ui,/api\/auth\/session\?view=pasture-first-card/);
+ assert.match(ui,/user_configuration_unavailable/);
+ assert.match(ui,/session_configuration_unavailable/);
+ assert.match(ui,/invalid_credentials/);
+ assert.match(ui,/已经登录后台，但当前账户没有首卡发行权限/);
+});
