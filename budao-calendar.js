@@ -388,17 +388,21 @@
   }
 
   function prioritizeRouteStatesForMobile(states) {
+    // The base card order is oldest -> newest. Mobile brings upcoming walks
+    // forward and places completed routes at the bottom (newest past first).
+    // Pending/undated routes are placed between future and completed events.
+    function group(state) {
+      if (state === "ended") return 2;
+      if (state === "pending") return 1;
+      return 0; // countdown or started
+    }
     return (Array.isArray(states) ? states : [])
       .map(function (state, index) {
-        return {
-          index,
-          completed: state === "ended"
-        };
+        return { index, group: group(state) };
       })
       .sort(function (left, right) {
-        if (left.completed !== right.completed) {
-          return left.completed ? 1 : -1;
-        }
+        if (left.group !== right.group) return left.group - right.group;
+        if (left.group === 2) return right.index - left.index;
         return left.index - right.index;
       })
       .map(function (item) {
@@ -446,18 +450,22 @@
 
     rememberRouteCardOrder(cards);
 
+    // Always derive mobile positions from the same canonical desktop order.
+    // Reordering an already reordered list can flip completed cards repeatedly
+    // and create a new MutationObserver feedback loop.
+    const canonicalCards = cards.slice().sort(function (left, right) {
+      return Number(left.dataset.budaoBaseOrder || 0) - Number(right.dataset.budaoBaseOrder || 0);
+    });
     let orderedCards;
 
     if (isMobilePortrait(root)) {
-      const states = cards.map(routeStateFromCard);
+      const states = canonicalCards.map(routeStateFromCard);
       const positions = prioritizeRouteStatesForMobile(states);
       orderedCards = positions.map(function (position) {
-        return cards[position];
+        return canonicalCards[position];
       });
     } else {
-      orderedCards = cards.slice().sort(function (left, right) {
-        return Number(left.dataset.budaoBaseOrder || 0) - Number(right.dataset.budaoBaseOrder || 0);
-      });
+      orderedCards = canonicalCards;
     }
 
     const changed = orderedCards.some(function (card, index) {
