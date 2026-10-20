@@ -11,6 +11,16 @@ const cardDomain=require('./pasture-card-domain');
 const cardStore=require('./pasture-card-store');
 
 module.exports=async function firstCardHandler(request,response){
+ if(request.method==='GET'){
+  const publisher=getAuthenticatedPublisher(request);
+  if(!publisher)return sendJson(response,401,{ok:false,reason:'login_required'});
+  const authorized=publisher.username==='tony' &&
+    process.env.PASTURE_MINISTRY_ISSUER_ID===publisher.username;
+  return sendJson(response,200,{
+    ok:true,authenticated:true,ministryAuthorized:authorized,
+    reason:authorized?null:'ministry_issuer_unavailable'
+  });
+ }
  if(request.method!=='POST')return sendJson(response,405,{ok:false,reason:'method_not_allowed'});
  const parsed=requireJsonPost(request,1024);
  if(parsed.error)return sendJson(response,parsed.status,{ok:false,reason:parsed.error});
