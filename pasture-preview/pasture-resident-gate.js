@@ -41,11 +41,11 @@ function paint(){
   if(stateNode)stateNode.innerHTML='<span class="state-dot"></span>'+(authenticated?(canUseGrass()?'步道卡已激活':'已进入牧场'):'');
   if(daysNode)daysNode.textContent=authenticated&&resident.sheep?'▣  我的羊已进入牧场':'';
 }
-function sendToPasture(arrival=false){
+function sendToPasture(arrival=false,forceReady=false){
   if(arrival)pendingArrival=true;
   let ready=false;
   try{ready=!!scene?.contentWindow&&scene.contentDocument?.readyState==='complete'}catch(e){}
-  if(!ready)return;
+  if(!ready&&!forceReady)return;
   try{
     scene.contentWindow.postMessage({
       type:'pasture-resident-session-v1',
@@ -91,7 +91,7 @@ document.addEventListener('keydown',event=>{
 window.addEventListener('message',event=>{
   if(event.origin!==location.origin||event.source!==scene?.contentWindow)return;
   if(event.data?.type==='pasture-final-core-ready-v1'){
-    sendToPasture(pendingArrival);
+    sendToPasture(pendingArrival,true);
     window.parent?.postMessage({type:'pasture-pilot-core-ready-v1'},HOST_ORIGIN);
   }
   if(event.data?.type==='pasture-final-resident-status-v1'){
