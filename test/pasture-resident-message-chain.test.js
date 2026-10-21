@@ -42,7 +42,7 @@ test('every layer acknowledges sheep receipt and actual canvas painting, never s
  assert.match(gate,/pasture-final-resident-status-v1/);
  assert.match(bridge,/tonglu-resident-applied-v1/);
  assert.match(bridge,/tonglu-resident-painted-v1/);
- assert.match(core,/Renderer\.draw\(ctx,x,y,s,pos\.flip,resident\.appearance\)/);
+ assert.match(core,/Renderer\.draw\(residentCtx,x,y,s,pos\.flip,resident\.appearance\)/);
  assert.match(core,/__tongluResidentPaintCount/);
  assert.match(core,/tonglu-resident-painted-v1/);
  assert.match(core,/tonglu-resident-applied-v1/);
