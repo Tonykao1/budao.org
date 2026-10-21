@@ -25,6 +25,10 @@ function apply(arrival=false){
  try{live?.contentWindow?.PastureResidentGate?.setResident(user,{arrival})}catch(e){}
 }
 live?.addEventListener('load',()=>{if(user)setTimeout(()=>apply(false),50)});
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.source!==live?.contentWindow)return;
+ if(e.data?.type==='pasture-resident-gate-ready-v1')apply(false);
+});
 window.addEventListener('message',e=>{if(e.origin!==location.origin)return;if(e.data?.type==='pasture-feature-locked')pop((e.data.label||'这个功能')+' · 正在生长');if(e.data?.type==='pasture-resident-required'){pop('请先验证邮箱，成为牧场居民');layer.hidden=false}if(e.data?.type==='pasture-card-required')pop('请先点击「步道卡」，完成激活');if(e.data?.type==='pasture-card-refresh-request')refreshCardEntitlement()});
 async function refreshCardEntitlement(){
  try{const d=await call(null,'GET');user=d.user||null;apply(false);if(user?.cardActivated)pop('步道卡已激活，「我的牧草」已开放')}catch(e){pop('暂时无法同步步道卡激活状态')}
