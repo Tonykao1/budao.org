@@ -313,7 +313,8 @@ window.BudaoResidentSheepLocator=Object.freeze({
   x:pos.x+10.5*scaleAtY(pos.y),
   y:pos.y+4*scaleAtY(pos.y),
   unit:scaleAtY(pos.y),
-  visible:canvas.style.display!=='none'&&!arrivalStart
+  visible:residentCanvas.style.display==='block'&&!arrivalStart,
+  opaquePixels:Number(window.__tongluResidentOpaquePixels||0)
  }:null
 });
 
