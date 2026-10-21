@@ -45,7 +45,7 @@ test('preview bridge preserves original verified resident gate and listens only 
  assert.match(bridge,/src="\/tonglu-core.html\?v=/);
  assert.match(bridge,/e\.source!==window\.parent/);
  assert.match(bridge,/e\.origin!==location\.origin/);
- assert.match(bridge,/type:'pasture-resident-session-v1'/);
+ assert.match(bridge,/e\.data\?\.type!=='pasture-resident-session-v1'/);
  assert.match(bridge,/type:'tonglu-resident-v1'/);
  assert.match(bridge,/type:'tonglu-resident-clear-v1'/);
  assert.match(bridge,/\/pasture-sheep-dna\.js/);
