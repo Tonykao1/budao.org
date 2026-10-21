@@ -14,7 +14,7 @@ card.innerHTML='<div style="font-size:15px;font-weight:800">第 45 只羊 · 只
  '<div style="font-size:11px;line-height:1.6;margin-top:6px">不会生成、覆盖或删除任何羊。截图请不要包含浏览器中的私人信息。</div>';
 document.body.appendChild(card);
 const lines=card.querySelector('#pastureSheepCheckLines');
-const state={server:'检查中',hasSheep:null,appearance:'',gate:false,core:false,received:false,painted:false,actualPixels:false,portrait:false};
+const state={server:'检查中',hasSheep:null,appearance:'',gate:false,core:false,received:false,painted:false,actualPixels:false,portrait:false,renderAttempts:0,renderError:null,canvasVisible:null};
 function text(){
  const row=(label,value)=>'<div style="border-top:1px solid #d4dfcb;padding:3px 0"><b>'+label+'：</b>'+value+'</div>';
  const status=state.server==='已登录且有羊'&&state.actualPixels?'已确认独立羊层存在真实不透明羊像素，请观察画面':
@@ -32,6 +32,9 @@ function text(){
   row('居民羊已送达',state.received?'是':'未确认')+
   row('居民羊已绘制',state.painted?'是':state.portrait?'竖屏独立绘制':'未确认')+
   row('羊像素验证',state.actualPixels?'实际不透明像素已确认':state.portrait?'竖屏单独验证':'未确认')+
+  row('独立羊层可见',state.canvasVisible===null?'未确认':state.canvasVisible?'是':'否')+
+  row('绘制尝试',state.renderAttempts||'未报告')+
+  row('绘制异常',state.renderError||'无报告')+
   '<div style="font-size:12px;font-weight:700;color:#7a593d;margin-top:5px">'+status+'</div>';
 }
 async function refresh(){
@@ -113,6 +116,27 @@ function locateMySheep(){
   card.appendChild(msg);setTimeout(()=>msg.remove(),4500);
  }
 }
+function sampleVisualEngine(){
+ try{
+  const zone=live?.contentDocument;
+  const scene=zone?.querySelector('.scene');
+  const bridge=scene?.contentDocument;
+  const coreFrame=bridge?.getElementById('pastureCore');
+  const win=coreFrame?.contentWindow,doc=coreFrame?.contentDocument;
+  const canvas=doc?.getElementById('residentSheepLayer');
+  if(!win||!canvas)return;
+  state.renderAttempts=Number(win.__tongluResidentRenderAttempts||0);
+  const reason=win.__tongluResidentLastRenderError;
+  state.renderError=['canvas_readback_blocked','canvas_bounds_error','draw_exception','no_opaque_pixels'].includes(reason)?reason:null;
+  const style=win.getComputedStyle(canvas);
+  state.canvasVisible=style.display!=='none'&&style.visibility!=='hidden'&&
+    Number(style.opacity)!==0&&!!canvas.getBoundingClientRect().width;
+  state.actualPixels=state.actualPixels||Number(win.__tongluResidentOpaquePixels||0)>0;
+  text();
+ }catch(e){state.renderError='inspection_unavailable';text()}
+}
+setInterval(sampleVisualEngine,1200);
+
 card.querySelector('#pastureSheepCheckRefresh').onclick=refresh;
 card.querySelector('#pastureSheepCheckLocate').onclick=locateMySheep;
 text();refresh();
