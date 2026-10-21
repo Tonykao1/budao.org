@@ -63,6 +63,19 @@ window.addEventListener('message',e=>{
  if(e.source===core.contentWindow&&e.data?.type==='tonglu-resident-ready-v1'){
   ready=true;apply();notifyReady();return;
  }
+ if(e.source===core.contentWindow&&e.data?.type==='tonglu-resident-applied-v1'){
+  window.parent.postMessage({
+   type:'pasture-final-resident-status-v1',
+   received:!!e.data.hasSheep,painted:false,
+   portrait:!!core.contentWindow.__tongluPortraitMode
+  },location.origin);
+  return;
+ }
+ if(e.source===core.contentWindow&&e.data?.type==='tonglu-resident-painted-v1'){
+  window.parent.postMessage({type:'pasture-final-resident-status-v1',
+   received:true,painted:true,portrait:false},location.origin);
+  return;
+ }
  if(e.source!==window.parent||e.data?.type!=='pasture-resident-session-v1')return;
  resident=e.data.resident?.id&&e.data.resident?.sheep?e.data.resident:null;
  pendingArrival=pendingArrival||Boolean(resident&&e.data.arrival);
