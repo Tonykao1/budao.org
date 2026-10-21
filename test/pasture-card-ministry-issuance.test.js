@@ -63,5 +63,20 @@ test('inaugural gate distinguishes logged-in publisher from ministry issuer capa
  assert.match(ui,/user_configuration_unavailable/);
  assert.match(ui,/session_configuration_unavailable/);
  assert.match(ui,/invalid_credentials/);
- assert.match(ui,/已经登录后台，但当前账户没有首卡发行权限/);
+ assert.match(ui,/已登录后台，但不是本次创始步道卡授权发行人/);
+});
+
+test('genesis issuance uses real publisher identity, exact preview branch and verifier preflight',()=>{
+ const handler=load('api/_security/pasture-first-card-handler.js');
+ const ui=load('admin/pasture-first-card.html');
+ assert.match(handler,/VERCEL_ENV==='preview'/);
+ assert.match(handler,/VERCEL_GIT_COMMIT_REF===PILOT_BRANCH/);
+ assert.match(handler,/publisher\?\.role==='publisher'&&publisher\.username==='tony'/);
+ assert.match(handler,/isAuthorizedIssuer\(publisher\)/);
+ assert.match(handler,/cardDomain\.verifierSecret\(env\)/);
+ assert.match(handler,/!isPilotDeployment\(\)/);
+ assert.doesNotMatch(handler,/PASTURE_FIRST_CARD_ISSUANCE_ENABLED|PASTURE_MINISTRY_ISSUER_ID/);
+ assert.match(ui,/a\.d\.ministryAuthorized===true/);
+ assert.match(ui,/a\.d\.issuanceReady===true/);
+ assert.match(ui,/adminLogin'\)\.hidden=loggedIn/);
 });
