@@ -114,13 +114,7 @@ async function saveSheep(request, response, body) {
     created: result.created,
     user: {
       ...resident,
-      sheep: {
-        id: sheep.id,
-        bodyColor: sheep.bodyColor,
-        headColor: sheep.headColor,
-        marking: sheep.marking,
-        createdAt: sheep.createdAt
-      }
+      sheep: domain.publicSheep(sheep)
     }
   });
 }
