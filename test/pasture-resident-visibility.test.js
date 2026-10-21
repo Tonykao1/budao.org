@@ -23,7 +23,7 @@ test('sheep locator is read-only and exposes actual pixels without changing loca
  assert.match(exposed,/Object\.freeze/);
  assert.match(exposed,/position:\(\)=>resident\?\.appearance/);
  assert.match(exposed,/x:pos\.x\+10\.5\*scaleAtY\(pos\.y\)/);
- assert.match(exposed,/visible:canvas\.style\.display!=='none'/);
+ assert.match(exposed,/visible:residentCanvas\.style\.display==='block'/);
  assert.doesNotMatch(exposed,/localStorage\.setItem|pos\.x=|pos\.y=/);
  assert.match(diagnostics,/id="pastureSheepCheckLocate"/);
  assert.match(diagnostics,/BudaoResidentSheepLocator\?\.position/);
