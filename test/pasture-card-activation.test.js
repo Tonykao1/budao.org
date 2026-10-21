@@ -25,7 +25,8 @@ function fakeGate(){
   dispatchEvent(event){events.push(event)}
  };
  const root={
-  parent:{location:{origin:'https://budao.test'},postMessage:(v)=>messages.push(v)}
+  parent:{location:{origin:'https://budao.test'},postMessage:(v)=>messages.push(v)},
+  addEventListener(name,handler){handlers['window:'+name]=handler}
  };
  vm.runInNewContext(gateSource,{document:doc,window:root,location:{hostname:'budao.test'},
   CustomEvent:function(type,opts){return {type,detail:opts.detail}}});
