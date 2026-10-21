@@ -281,7 +281,16 @@ canvas.addEventListener('pointermove',e=>{if(drag&&drag.id===e.pointerId)drag.mo
 function release(e){if(!drag||drag.id!==e.pointerId)return;const moved=drag.moved;drag=null;try{canvas.releasePointerCapture?.(e.pointerId)}catch(_){ }savePosition();canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default';queueResidentPaint();if(moved)playBleat()}
 canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('pointerleave',()=>{if(!drag)canvas.style.cursor='default'});
 window.addEventListener('message',e=>{
-  if(e.origin!==location.origin||e.data?.type!=='tonglu-resident-v1')return;
+  if(e.origin!==location.origin||e.source!==window.parent)return;
+  if(e.data?.type==='tonglu-resident-clear-v1'){
+    resident=null;drag=null;arrivalStart=0;destroyArrivalCanvas();
+    clearTimeout(bleatStopTimer);
+    try{bleat?.pause()}catch(_){}
+    rebuildMask();window.__tongluFlockCount=44;
+    window.__tongluCoreRedrawV1?.();
+    return;
+  }
+  if(e.data?.type!=='tonglu-resident-v1')return;
   const incoming=e.data.resident;if(!incoming?.id||!incoming?.sheep)return;
   const appearance=Number(incoming.sheep.appearanceVersion)===2&&DNA.validateV2(incoming.sheep.appearance)
     ?incoming.sheep.appearance
