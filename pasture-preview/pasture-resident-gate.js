@@ -99,6 +99,7 @@ window.addEventListener('message',event=>{
       type:'pasture-pilot-resident-status-v1',
       received:!!event.data.received,
       painted:!!event.data.painted,
+      actualPixels:!!event.data.actualPixels,
       portrait:!!event.data.portrait
     },HOST_ORIGIN);
   }
