@@ -85,9 +85,28 @@ document.addEventListener('click',lockEvent,true);
 document.addEventListener('keydown',event=>{
   if((event.key==='Enter'||event.key===' ')&&event.target.closest?.('.pbtn'))lockEvent(event);
 },true);
+// The pasture is a nested document. Frame "load" alone is not proof that the
+// final resident engine has installed its message listener. Resend when the
+// final core acknowledges readiness, and relay its acknowledgement for diagnostics.
+window.addEventListener('message',event=>{
+  if(event.origin!==location.origin||event.source!==scene?.contentWindow)return;
+  if(event.data?.type==='pasture-final-core-ready-v1'){
+    sendToPasture(pendingArrival);
+    window.parent?.postMessage({type:'pasture-pilot-core-ready-v1'},HOST_ORIGIN);
+  }
+  if(event.data?.type==='pasture-final-resident-status-v1'){
+    window.parent?.postMessage({
+      type:'pasture-pilot-resident-status-v1',
+      received:!!event.data.received,
+      painted:!!event.data.painted,
+      portrait:!!event.data.portrait
+    },HOST_ORIGIN);
+  }
+},false);
 scene?.addEventListener('load',()=>sendToPasture(pendingArrival));
 paint();
 window.PastureResidentGate=Object.freeze({
   setResident,clearResident,getResident:()=>resident,canUseGrass
 });
+window.parent?.postMessage({type:'pasture-resident-gate-ready-v1'},HOST_ORIGIN);
 })();
