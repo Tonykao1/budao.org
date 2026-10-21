@@ -267,6 +267,8 @@ function paintResident(now=performance.now()){
   ctx.fillStyle='rgba(56,93,54,.15)';ctx.fillRect(Math.round(x-1.5*s),Math.round(y+13*s),Math.round(21*s),Math.max(1,Math.round(2*s)));
   Renderer.draw(ctx,x,y,s,pos.flip,resident.appearance);
   window.__tongluFlockCount=45;
+  window.__tongluResidentPaintCount=(window.__tongluResidentPaintCount||0)+1;
+  if(window.__tongluResidentPaintCount===1)window.parent?.postMessage({type:'tonglu-resident-painted-v1'},location.origin);
 }
 function queueResidentPaint(){if(paintQueued)return;paintQueued=true;queueMicrotask(()=>{paintQueued=false;if(!scenePassPainted)paintResident(performance.now())})}
 function isSceneTintFill(x,y,w,h){if(x!==0||y!==0||w!==480||h!==300)return false;const fill=String(ctx.fillStyle||'');return fill.startsWith('rgba(18, 34, 70')||fill.startsWith('rgba(18,34,70')||fill.startsWith('rgba(244, 177, 112')||fill.startsWith('rgba(244,177,112')}
@@ -286,7 +288,8 @@ window.addEventListener('message',e=>{
     resident=null;drag=null;arrivalStart=0;destroyArrivalCanvas();
     clearTimeout(bleatStopTimer);
     try{bleat?.pause()}catch(_){}
-    rebuildMask();window.__tongluFlockCount=44;
+    rebuildMask();window.__tongluFlockCount=44;window.__tongluResidentPaintCount=0;
+    window.parent?.postMessage({type:'tonglu-resident-applied-v1',hasSheep:false},location.origin);
     window.__tongluCoreRedrawV1?.();
     return;
   }
@@ -296,7 +299,8 @@ window.addEventListener('message',e=>{
     ?incoming.sheep.appearance
     :{bodyColor:incoming.sheep.bodyColor,headColor:incoming.sheep.headColor,marking:incoming.sheep.marking||'NONE'};
   resident={id:incoming.id,sheep:incoming.sheep,appearance};
-  pos=initialPosition();rebuildMask();window.__tongluFlockCount=45;
+  pos=initialPosition();rebuildMask();window.__tongluFlockCount=45;window.__tongluResidentPaintCount=0;
+  window.parent?.postMessage({type:'tonglu-resident-applied-v1',hasSheep:true},location.origin);
   if(e.data.arrival)startArrivalCinematic();else queueResidentPaint();
 });
 window.__tongluResidentEngineV1=true;
