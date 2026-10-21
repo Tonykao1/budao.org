@@ -51,13 +51,16 @@ function say(message){$('result').hidden=false;$('result').textContent=message}
 async function check(){
  try{
   const [a,p]=await Promise.all([api('/api/auth/session?view=pasture-first-card'),api('/api/pasture-auth')]);
-  admin=a.res.ok&&a.d.ministryAuthorized===true;
+  const loggedIn=a.res.ok&&a.d.authenticated===true;
+  const authorized=loggedIn&&a.d.ministryAuthorized===true;
+  admin=authorized&&a.d.issuanceReady===true;
   resident=p.res.ok&&p.d.ok?p.d.user:null;
-  $('adminState').textContent=admin?'已验证：拥有首卡发行身份。':
-    a.res.ok&&a.d.authenticated?'已经登录后台，但当前账户没有首卡发行权限，或 Preview 尚未配置事工发行身份。':
+  $('adminState').textContent=admin?'已验证：步道事工首卡发行身份及发行服务均已就绪。':
+    authorized?'事工管理员已验证，但独立的发行密钥或数据库未准备好。请不要重复输入密码。':
+    loggedIn?'已登录后台，但不是本次创始步道卡授权发行人（tony）。':
     a.res.status===401?'当前浏览器尚未登录步道管理员。':
     '暂时无法取得发行权限状态（HTTP '+a.res.status+'）。';
-  $('adminLogin').hidden=admin;
+  $('adminLogin').hidden=loggedIn;
   $('residentState').textContent=!resident?'尚未验证牧场邮箱。请在同一预览域名完成注册。':
    !resident.sheep?'已验证邮箱，但还没有完成捏羊。':
    resident.cardActivated?'该居民已有激活资格。':'邮箱已验证、本人羊已进入牧场，可申请发行第一张卡。';
@@ -89,7 +92,7 @@ $('adminLogin').addEventListener('submit',async e=>{
    return;
   }
   await check();
-  if(!admin)say('后台密码已经验证通过，但首卡发行权限未验证。不要继续试密码；请检查 Preview 的事工发行配置。');
+  if(!admin)say('管理员密码已经验证通过。如仍不能发行，请查看上方显示的授权身份或发行服务提示；不要重复输入密码。');
  }catch(e){say('管理员登录服务暂时不可用。')}
  finally{button.disabled=false;$('adminPassword').value=''}
 });
