@@ -26,6 +26,22 @@
     const candidate = text(value);
     if (!candidate) return '';
 
+    // The public route page intentionally serves uploaded photographs and
+    // registration QR images from the site's own static assets. Both the
+    // share-image invitation and saved invitation must preserve these URLs.
+    const assetPathPattern = /^\/?route-assets\/[a-z0-9_-]+\/[a-z0-9_-]+\.(?:jpe?g|png|webp|gif)$/i;
+    if (assetPathPattern.test(candidate)) {
+      return '/' + candidate.replace(/^\//, '');
+    }
+
+    // Older saved invitations reference the original GitHub Raw URL. Render
+    // those same checked-in assets from our own domain as well.
+    const rawPrefix = 'https://raw.githubusercontent.com/Tonykao1/budao.org/main/';
+    if (candidate.startsWith(rawPrefix)) {
+      const assetPath = candidate.slice(rawPrefix.length);
+      if (assetPathPattern.test(assetPath)) return '/' + assetPath;
+    }
+
     try {
       const parsed = new URL(candidate);
       return parsed.protocol === 'https:' ? parsed.href : '';
