@@ -51,3 +51,32 @@ test('Preview and first-card user registration load the same locally restored fi
  assert.match(preview,/pasture-resident-auth\.js/);
  assert.match(preview,/pasture-hand-cursor\.js/);
 });
+
+test('approved astronomical sky and responsive portrait are present without losing the resident sheep',()=>{
+ const scene=read('tonglu.html'),portrait=read('tonglu-pasture-portrait.html');
+ const sky=read('pasture-sky-engine.js'),stars=read('pasture-stars.js');
+ assert.match(scene,/src="\/pasture-sky-engine\.js"/);
+ assert.match(scene,/src="\/pasture-stars\.js"/);
+ assert.match(scene,/function drawCelestial/);
+ assert.match(scene,/function refreshSkyState/);
+ assert.match(scene,/function updateMeteor/);
+ assert.match(scene,/skyState,meteorEvent/);
+ assert.match(scene,/drawDesktopResidentSheep\(\)/);
+ assert.match(portrait,/src="\/pasture-sky-engine\.js"/);
+ assert.match(portrait,/function drawSharedCelestial/);
+ assert.match(portrait,/drawSharedCelestial\(now,cloud,c\)/);
+ assert.match(portrait,/function drawResidentLamb/);
+ assert.match(portrait,/residentArrivalNonce/);
+ assert.match(sky,/computeSkyState/);
+ assert.match(stars,/BudaoPastureStars/);
+});
+test('all restored pasture HTML entry points have parseable inline JavaScript',()=>{
+ const vm=require('node:vm');
+ for(const page of ['tonglu.html','tonglu-pasture-portrait.html',
+    'tonglu-pasture-v18.html','tonglu-pasture-v19.html','tonglu-pasture-v20.html']){
+  const html=read(page);
+  const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  assert.ok(scripts.length>=1,page+' has executable inline script');
+  for(const script of scripts)assert.doesNotThrow(()=>new vm.Script(script,{filename:page}),page);
+ }
+});
