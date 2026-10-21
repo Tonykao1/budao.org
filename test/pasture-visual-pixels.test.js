@@ -17,7 +17,8 @@ test('resident sheep uses its own visible compositing canvas, pointer input stil
  assert.match(engine,/setInterval\(\(\)=>\{if\(resident\?\.appearance\)paintResident\(performance\.now\(\)\)\},200\)/);
  assert.match(engine,/queueMicrotask\(\(\)=>\{paintQueued=false;paintResident\(performance\.now\(\)\)\}\)/);
  assert.match(engine,/window\.__tongluResidentLastRenderError/);
- assert.match(engine,/if\(opaque===0\)return/);
+ assert.match(engine,/if\(!opaque\)\{/);
+ assert.match(engine,/no_opaque_pixels/);
  assert.match(engine,/actualPixels:true/);
  assert.match(engine,/clearResidentVisual\(\)/);
 });
