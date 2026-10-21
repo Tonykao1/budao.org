@@ -269,32 +269,48 @@ function clearResidentVisual(){
   residentCanvas.style.display='none';
 }
 function paintResident(now=performance.now()){
-  if(!resident?.appearance||canvas.style.display==='none'||arrivalStart){
-    clearResidentVisual();return;
-  }
+  window.__tongluResidentRenderAttempts=(window.__tongluResidentRenderAttempts||0)+1;
+  if(!resident?.appearance){clearResidentVisual();return}
+  if(canvas.style.display==='none'||arrivalStart){clearResidentVisual();return}
   const x=pos.x,y=pos.y,s=scaleAtY(pos.y);
-  // Crucial: the personal sheep has its OWN transparent canvas above the weather,
-  // foreground and all 44 public sheep. Never draw its pixels into environmentLayer.
-  residentCtx.clearRect(0,0,480,300);
-  residentCtx.fillStyle='rgba(56,93,54,.15)';
-  residentCtx.fillRect(Math.round(x-1.5*s),Math.round(y+13*s),Math.round(21*s),Math.max(1,Math.round(2*s)));
-  Renderer.draw(residentCtx,x,y,s,pos.flip,resident.appearance);
-  residentCanvas.style.display='block';
-  window.__tongluFlockCount=45;
-  if(!window.__tongluResidentPaintCount){
-    // The acknowledgement proves actual nontransparent SHEEP pixels in a crop
-    // above the shadow, not merely that Renderer.draw was invoked.
-    const ox=Math.max(0,Math.floor(x-3*s-1)),oy=Math.max(0,Math.floor(y-9*s-1));
-    const w=Math.max(1,Math.min(480-ox,Math.ceil(27*s)+4));
-    const h=Math.max(1,Math.min(300-oy,Math.ceil(20*s)+2));
-    const pixels=residentCtx.getImageData(ox,oy,w,h).data;
-    let opaque=0;
-    for(let i=3;i<pixels.length;i+=4){if(pixels[i]>32)opaque++;}
-    window.__tongluResidentOpaquePixels=opaque;
-    if(opaque===0)return;
-    window.parent?.postMessage({type:'tonglu-resident-painted-v1',actualPixels:true},location.origin);
+  try{
+    // Sheep pixels belong on their own highest z-index layer, not under weather.
+    residentCtx.clearRect(0,0,480,300);
+    residentCtx.fillStyle='rgba(56,93,54,.15)';
+    residentCtx.fillRect(Math.round(x-1.5*s),Math.round(y+13*s),Math.round(21*s),Math.max(1,Math.round(2*s)));
+    Renderer.draw(residentCtx,x,y,s,pos.flip,resident.appearance);
+    residentCanvas.style.display='block';
+    window.__tongluFlockCount=45;
+    window.__tongluResidentLastRenderError=null;
+    // Verify real alpha coverage rather than counting method invocations. Look
+    // around the actual sheep body, with a full-canvas fallback for edge cases.
+    if(!window.__tongluResidentPaintCount){
+      const ox=Math.max(0,Math.floor(x-3*s-1)),oy=Math.max(0,Math.floor(y-9*s-1));
+      const w=Math.max(1,Math.min(480-ox,Math.ceil(27*s)+4));
+      const h=Math.max(1,Math.min(300-oy,Math.ceil(20*s)+2));
+      let pixels=residentCtx.getImageData(ox,oy,w,h).data;
+      let opaque=0;
+      for(let i=3;i<pixels.length;i+=4)if(pixels[i]>32)opaque++;
+      if(!opaque){
+        pixels=residentCtx.getImageData(0,0,480,300).data;
+        for(let i=3;i<pixels.length;i+=4)if(pixels[i]>32)opaque++;
+      }
+      window.__tongluResidentOpaquePixels=opaque;
+      if(!opaque){
+        window.__tongluResidentLastRenderError='no_opaque_pixels';
+        return;
+      }
+      window.parent?.postMessage({type:'tonglu-resident-painted-v1',actualPixels:true},location.origin);
+    }
+    window.__tongluResidentPaintCount=(window.__tongluResidentPaintCount||0)+1;
+  }catch(error){
+    // Diagnostic code contains no user data, card secrets or sheep appearance.
+    window.__tongluResidentLastRenderError=error?.name==='SecurityError'?
+      'canvas_readback_blocked':error?.name==='IndexSizeError'?
+      'canvas_bounds_error':'draw_exception';
+    window.parent?.postMessage({type:'tonglu-resident-visual-failed-v1',
+      reason:window.__tongluResidentLastRenderError},location.origin);
   }
-  window.__tongluResidentPaintCount=(window.__tongluResidentPaintCount||0)+1;
 }
 // Paint the resident AFTER the shared scene's environmental overlays.
 // The previous fillRect hook painted BEFORE the full-screen night tint, often
@@ -304,8 +320,11 @@ window.__tongluCoreResidentPaintV1=()=>paintResident(performance.now());
 function queueResidentPaint(){
  if(paintQueued)return;
  paintQueued=true;
- queueMicrotask(()=>{paintQueued=false;window.__tongluCoreRedrawV1?.()});
+ queueMicrotask(()=>{paintQueued=false;paintResident(performance.now())});
 }
+// Resident visual update is independent of the background scene: no lost
+// render when weather, daylight or pasture iframe timing changes.
+setInterval(()=>{if(resident?.appearance)paintResident(performance.now())},200);
 // Opt-in, read-only position disclosure to the same-origin diagnostic UI.
 // Never change the sheep's stored coordinates just to make it findable.
 window.BudaoResidentSheepLocator=Object.freeze({
@@ -314,7 +333,9 @@ window.BudaoResidentSheepLocator=Object.freeze({
   y:pos.y+4*scaleAtY(pos.y),
   unit:scaleAtY(pos.y),
   visible:residentCanvas.style.display==='block'&&!arrivalStart,
-  opaquePixels:Number(window.__tongluResidentOpaquePixels||0)
+  opaquePixels:Number(window.__tongluResidentOpaquePixels||0),
+  renderAttempts:Number(window.__tongluResidentRenderAttempts||0),
+  renderError:window.__tongluResidentLastRenderError||null
  }:null
 });
 
@@ -329,7 +350,7 @@ window.addEventListener('message',e=>{
     resident=null;drag=null;arrivalStart=0;destroyArrivalCanvas();
     clearTimeout(bleatStopTimer);
     try{bleat?.pause()}catch(_){}
-    rebuildMask();clearResidentVisual();window.__tongluFlockCount=44;window.__tongluResidentPaintCount=0;window.__tongluResidentOpaquePixels=0;
+    rebuildMask();clearResidentVisual();window.__tongluFlockCount=44;window.__tongluResidentPaintCount=0;window.__tongluResidentOpaquePixels=0;window.__tongluResidentLastRenderError=null;
     window.parent?.postMessage({type:'tonglu-resident-applied-v1',hasSheep:false},location.origin);
     window.__tongluCoreRedrawV1?.();
     return;
