@@ -533,6 +533,8 @@ async function refresh(){
   }
   try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}
 }
+// Used for immediate identity clear without waiting for the next weather tick.
+window.__tongluCoreRedrawV1=()=>draw();
 syncComposition();
 refresh();
 setInterval(refresh,600000);
