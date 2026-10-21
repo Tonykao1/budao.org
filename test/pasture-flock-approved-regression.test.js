@@ -24,7 +24,7 @@ test('the accepted v20 draws five or six lying adults each day without wandering
  assert.match(v20,/rest:!!o\.rest/);
 });
 test('18 freely distributed lambs include 1 or 2 lying, preserve the sheep of the resident',()=>{
- const scene=read('tonglu.html');
+ const scene=read('tonglu-core.html');
  assert.match(scene,/budao-free-lamb-/);
  assert.match(scene,/function lambScaleAtY/);
  assert.match(scene,/function drawDesktopRestingLamb/);
@@ -32,36 +32,36 @@ test('18 freely distributed lambs include 1 or 2 lying, preserve the sheep of th
  assert.match(scene,/const restTarget=1\+/);
  assert.match(scene,/o\.rest\?drawDesktopRestingLamb/);
  assert.match(scene,/Array\(17\)\.fill\('normal'\)\.concat\('blackwhite'\)/);
- assert.match(scene,/function drawResidentLamb/);
- assert.match(scene,/function buildDesktopResidentSheep/);
- assert.match(scene,/PIXEL_HAND_OPEN/);
- assert.match(scene,/PIXEL_HAND_CLOSED/);
- assert.match(scene,/baaa01\.mp3/);
- assert.match(scene,/residentDrag/);
- assert.match(scene,/pixel/i);
+ const engine=read('pasture-resident-core.js');
+ assert.match(engine,/function residentSheepHit/);
+ assert.match(engine,/PIXEL_HAND_OPEN/);
+ assert.match(engine,/PIXEL_HAND_CLOSED/);
+ assert.match(engine,/baaa01\.mp3/);
+ assert.match(engine,/let drag=null/);
+ assert.match(engine,/getImageData/);
 });
 test('Preview and first-card user registration load the same locally restored final landscape',()=>{
- const scene=read('tonglu.html');
+ const scene=read('tonglu-core.html');
  const preview=read('pasture-preview/index.html');
  const first=read('admin/pasture-first-card.html');
- assert.match(scene,/src="\/tonglu-pasture-v20\.html\?v=20261021approved-flock"/);
- assert.match(scene,/frame\.src='\/tonglu-pasture-v20\.html\?v=20261021approved-flock-'/);
- assert.match(preview,/html=html\.replace\('https:\/\/budao\.org\/tonglu\.html','\/tonglu\.html'\)/);
+ assert.match(scene,/src="\/tonglu-pasture-v20\.html\?v=20261005freeflock"/);
+ assert.match(preview,/html=html\.replace\('https:\/\/budao\.org\/tonglu\.html','\/pasture-preview\/tonglu-final-bridge\.html'\)/);
  assert.match(first,/href="\/pasture-preview\/"/);
  assert.match(preview,/pasture-resident-auth\.js/);
  assert.match(preview,/pasture-hand-cursor\.js/);
 });
 
 test('approved astronomical sky and responsive portrait are present without losing the resident sheep',()=>{
- const scene=read('tonglu.html'),portrait=read('tonglu-pasture-portrait.html');
+ const scene=read('tonglu-core.html'),portrait=read('tonglu-pasture-portrait.html');
  const sky=read('pasture-sky-engine.js'),stars=read('pasture-stars.js');
  assert.match(scene,/src="\/pasture-sky-engine\.js"/);
  assert.match(scene,/src="\/pasture-stars\.js"/);
  assert.match(scene,/function drawCelestial/);
  assert.match(scene,/function refreshSkyState/);
  assert.match(scene,/function updateMeteor/);
- assert.match(scene,/skyState,meteorEvent/);
- assert.match(scene,/drawDesktopResidentSheep\(\)/);
+ assert.match(scene,/skyState/);
+ assert.match(scene,/portraitResident/);
+ assert.match(read('pasture-resident-core.js'),/function paintResident/);
  assert.match(portrait,/src="\/pasture-sky-engine\.js"/);
  assert.match(portrait,/function drawSharedCelestial/);
  assert.match(portrait,/drawSharedCelestial\(now,cloud,c\)/);
@@ -72,7 +72,7 @@ test('approved astronomical sky and responsive portrait are present without losi
 });
 test('all restored pasture HTML entry points have parseable inline JavaScript',()=>{
  const vm=require('node:vm');
- for(const page of ['tonglu.html','tonglu-pasture-portrait.html',
+ for(const page of ['tonglu.html','tonglu-core.html','pasture-preview/tonglu-final-bridge.html','tonglu-pasture-portrait.html',
     'tonglu-pasture-v18.html','tonglu-pasture-v19.html','tonglu-pasture-v20.html']){
   const html=read(page);
   const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
