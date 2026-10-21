@@ -10,15 +10,29 @@ const residentStore=require('./pasture-auth-store');
 const cardDomain=require('./pasture-card-domain');
 const cardStore=require('./pasture-card-store');
 
+// Genesis issuance is allowed exactly on the reviewed Preview branch, never
+// on production. A verified 'tony' publisher session IS the ministry approval
+// for this inaugural one-use card; no unrelated server flag is needed.
+const PILOT_BRANCH='feat/my-grass-cuv-shen-bible-v1';
+function isPilotDeployment(env=process.env){
+ return env.VERCEL_ENV==='preview' && env.VERCEL_GIT_COMMIT_REF===PILOT_BRANCH;
+}
+function verifierReady(env=process.env){
+ try{cardDomain.verifierSecret(env);return Boolean(env.DATABASE_URL)}catch(e){return false}
+}
+function isAuthorizedIssuer(publisher){
+ return Boolean(publisher?.role==='publisher'&&publisher.username==='tony');
+}
+
 module.exports=async function firstCardHandler(request,response){
  if(request.method==='GET'){
   const publisher=getAuthenticatedPublisher(request);
   if(!publisher)return sendJson(response,401,{ok:false,reason:'login_required'});
-  const authorized=publisher.username==='tony' &&
-    process.env.PASTURE_MINISTRY_ISSUER_ID===publisher.username;
+  const authorized=isAuthorizedIssuer(publisher)&&isPilotDeployment();
+  const ready=authorized&&verifierReady();
   return sendJson(response,200,{
-    ok:true,authenticated:true,ministryAuthorized:authorized,
-    reason:authorized?null:'ministry_issuer_unavailable'
+    ok:true,authenticated:true,ministryAuthorized:authorized,issuanceReady:ready,
+    reason:!authorized?'ministry_issuer_unavailable':ready?null:'issuance_not_configured'
   });
  }
  if(request.method!=='POST')return sendJson(response,405,{ok:false,reason:'method_not_allowed'});
@@ -27,14 +41,13 @@ module.exports=async function firstCardHandler(request,response){
  if(!requireSameOrigin(request))return sendJson(response,403,{ok:false,reason:'forbidden'});
  if(Object.keys(parsed.body).length!==1||parsed.body.confirm!==true)
   return sendJson(response,400,{ok:false,reason:'explicit_confirmation_required'});
- // A preview-only, deliberately one-shot route. Never enable in Production.
- if(process.env.VERCEL_ENV!=='preview'||
-    process.env.PASTURE_FIRST_CARD_ISSUANCE_ENABLED!=='true')
-  return sendJson(response,404,{ok:false,reason:'not_available'});
+ // A reviewed branch plus verified ministry-publisher identity authorize exactly
+ // the pilot issuance; no visitor, resident-only account or production deployment can issue.
+ if(!isPilotDeployment())return sendJson(response,404,{ok:false,reason:'not_available'});
  const publisher=getAuthenticatedPublisher(request);
- if(!publisher||publisher.username!=='tony'||
-    process.env.PASTURE_MINISTRY_ISSUER_ID!==publisher.username)
+ if(!isAuthorizedIssuer(publisher))
   return sendJson(response,403,{ok:false,reason:'ministry_authorization_required'});
+ if(!verifierReady())return sendJson(response,503,{ok:false,reason:'issuance_not_configured'});
  if(!consume('genesis-first-card:'+clientIp(request),3,15*60*1000))
   return sendJson(response,429,{ok:false,reason:'rate_limited'});
  try{
