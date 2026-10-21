@@ -250,6 +250,8 @@ const pastureSheep = pgTable("pasture_sheep", {
   bodyColor: text("body_color").notNull(),
   headColor: text("head_color").notNull(),
   marking: text("marking").notNull().default("NONE"),
+  appearanceVersion: integer("appearance_version").notNull().default(1),
+  appearanceV2: jsonb("appearance_v2"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
 }, (table) => ({
