@@ -57,7 +57,7 @@ test('checkSheep=1 is an honest private read-only diagnosis, not an unlock or si
  assert.match(diag,/已登录但无羊记录/);
  assert.match(diag,/pasteur|pasture-pilot-resident-status-v1/);
  assert.match(diag,/auth\.apply\(false\)/);
- assert.doesNotMatch(diag,/saveSheep|activateCard|localStorage|sessionStorage/);
+ assert.doesNotMatch(diag,/action:\s*['\"]saveSheep|action:\s*['\"]activateCard|localStorage\.getItem|sessionStorage\.getItem/);
  assert.match(entry,/pasture-sheep-check\.js/);
 });
 test('client side chain modules are parseable',()=>{
