@@ -73,7 +73,8 @@ window.addEventListener('message',e=>{
  }
  if(e.source===core.contentWindow&&e.data?.type==='tonglu-resident-painted-v1'){
   window.parent.postMessage({type:'pasture-final-resident-status-v1',
-   received:true,painted:true,portrait:false},location.origin);
+   received:true,painted:!!e.data.actualPixels,portrait:false,
+   actualPixels:!!e.data.actualPixels},location.origin);
   return;
  }
  if(e.source!==window.parent||e.data?.type!=='pasture-resident-session-v1')return;
