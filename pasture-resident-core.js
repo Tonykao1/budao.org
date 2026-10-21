@@ -270,12 +270,26 @@ function paintResident(now=performance.now()){
   window.__tongluResidentPaintCount=(window.__tongluResidentPaintCount||0)+1;
   if(window.__tongluResidentPaintCount===1)window.parent?.postMessage({type:'tonglu-resident-painted-v1'},location.origin);
 }
-function queueResidentPaint(){if(paintQueued)return;paintQueued=true;queueMicrotask(()=>{paintQueued=false;if(!scenePassPainted)paintResident(performance.now())})}
-function isSceneTintFill(x,y,w,h){if(x!==0||y!==0||w!==480||h!==300)return false;const fill=String(ctx.fillStyle||'');return fill.startsWith('rgba(18, 34, 70')||fill.startsWith('rgba(18,34,70')||fill.startsWith('rgba(244, 177, 112')||fill.startsWith('rgba(244,177,112')}
-const originalClearRect=ctx.clearRect.bind(ctx);
-const originalFillRect=ctx.fillRect.bind(ctx);
-ctx.clearRect=function(...args){scenePassPainted=false;originalClearRect(...args);queueResidentPaint()};
-ctx.fillRect=function(x,y,w,h){if(!scenePassPainted&&isSceneTintFill(x,y,w,h)){const sceneTint=ctx.fillStyle;paintResident(performance.now());scenePassPainted=true;ctx.fillStyle=sceneTint}return originalFillRect(x,y,w,h)};
+// Paint the resident AFTER the shared scene's environmental overlays.
+// The previous fillRect hook painted BEFORE the full-screen night tint, often
+// obscuring the personal sheep even while "painted" acknowledgements were true.
+// Do not monkey-patch canvas primitives: a stable end-of-frame hook is exact.
+window.__tongluCoreResidentPaintV1=()=>paintResident(performance.now());
+function queueResidentPaint(){
+ if(paintQueued)return;
+ paintQueued=true;
+ queueMicrotask(()=>{paintQueued=false;window.__tongluCoreRedrawV1?.()});
+}
+// Opt-in, read-only position disclosure to the same-origin diagnostic UI.
+// Never change the sheep's stored coordinates just to make it findable.
+window.BudaoResidentSheepLocator=Object.freeze({
+ position:()=>resident?.appearance?{
+  x:pos.x+10.5*scaleAtY(pos.y),
+  y:pos.y+4*scaleAtY(pos.y),
+  unit:scaleAtY(pos.y),
+  visible:canvas.style.display!=='none'&&!arrivalStart
+ }:null
+});
 
 canvas.addEventListener('pointermove',e=>{if(drag){const p=point(e),next=candidatePosition(p.x-drag.dx,p.y-drag.dy);if(next){pos.x=next.x;pos.y=next.y}canvas.style.cursor=PIXEL_HAND_CLOSED;paintResident(performance.now());e.preventDefault();return}canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default'});
 canvas.addEventListener('pointerdown',e=>{if(!residentSheepHit(e.clientX,e.clientY))return;const p=point(e);drag={id:e.pointerId,dx:p.x-pos.x,dy:p.y-pos.y,moved:false};canvas.setPointerCapture?.(e.pointerId);canvas.style.cursor=PIXEL_HAND_CLOSED;e.preventDefault()});
