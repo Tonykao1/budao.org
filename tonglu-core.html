@@ -440,7 +440,7 @@ function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
   if(pastureReady){drawDesktopLambs();drawReturnTwig();}
-  if(!state)return;
+  if(!state){window.__tongluCoreResidentPaintV1?.();return;}
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
   const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;
@@ -463,6 +463,9 @@ function draw(){
   updateMeteor(now);
   drawCelestial(now,cloud,c);
   weatherFx(kind(c.weatherCode),cloud);
+  // The resident sheep is composited LAST; environmental tint must not
+  // cover it and painting must not run before the full-scene redraw.
+  window.__tongluCoreResidentPaintV1?.();
 }
 function build(raw,lat,lon,source){
   const offset=Number(raw.utc_offset_seconds||0);
