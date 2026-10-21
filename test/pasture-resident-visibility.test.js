@@ -13,7 +13,7 @@ test('resident sheep is composited AFTER night overlay rather than before full-s
  assert.match(engine,/window\.__tongluCoreResidentPaintV1=\(\)=>paintResident\(performance\.now\(\)\)/);
  assert.doesNotMatch(engine,/ctx\.fillRect=function|ctx\.clearRect=function|isSceneTintFill/);
  assert.match(engine,/if\(!resident\?\.appearance\|\|canvas\.style\.display==='none'\|\|arrivalStart\)/);
- assert.match(engine,/Renderer\.draw\(ctx,x,y,s,pos\.flip,resident\.appearance\)/);
+ assert.match(engine,/Renderer\.draw\(residentCtx,x,y,s,pos\.flip,resident\.appearance\)/);
  assert.match(engine,/window\.__tongluResidentPaintCount/);
 });
 test('sheep locator is read-only and exposes actual pixels without changing location',()=>{
