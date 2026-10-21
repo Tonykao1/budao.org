@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>同路原野 · 已验收牧场核心</title>
+<style>*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#8edff1}
+#pastureCore{display:block;position:fixed;inset:0;width:100%;height:100%;border:0}</style>
+</head><body>
+<iframe id="pastureCore" title="数字牧场 · 最终景观" src="/tonglu-core.html?v=20261021finalresident" aria-label="数字牧场"></iframe>
+<script>
+(()=>{
+'use strict';
+// Bridge existing pilot resident session into the production-accepted V2 resident
+// engine, without duplicating the production login UI or weakening the card gate.
+const core=document.getElementById('pastureCore');
+let ready=false,resident=null,pendingArrival=false,coreFailed=false;
+function notifyReady(){
+ window.parent.postMessage({type:'pasture-final-core-ready-v1'},location.origin);
+}
+function apply(){
+ if(!ready||!core.contentWindow)return;
+ if(!resident?.id||!resident?.sheep){
+  core.contentWindow.postMessage({type:'tonglu-resident-clear-v1'},location.origin);
+  pendingArrival=false;return;
+ }
+ core.contentWindow.postMessage({
+  type:'tonglu-resident-v1',resident:{id:resident.id,sheep:resident.sheep},
+  arrival:pendingArrival
+ },location.origin);
+ pendingArrival=false;
+}
+function addCoreScript(doc,id,src,readyFn){
+ return new Promise((resolve,reject)=>{
+  if(readyFn()){resolve();return}
+  const existing=doc.getElementById(id);
+  if(existing){
+   existing.addEventListener('load',resolve,{once:true});
+   existing.addEventListener('error',reject,{once:true});return;
+  }
+  const script=doc.createElement('script');script.id=id;script.src=src;
+  script.onload=resolve;script.onerror=reject;doc.body.appendChild(script);
+ });
+}
+async function prepare(){
+ if(coreFailed)return;
+ const doc=core.contentDocument,win=core.contentWindow;
+ if(!doc||!win)return;
+ ready=false;
+ try{
+  await addCoreScript(doc,'pastureSheepDnaScript','/pasture-sheep-dna.js',()=>!!win.PastureSheepDNA);
+  await addCoreScript(doc,'pastureSheepRendererScript','/pasture-sheep-renderer.js',()=>!!win.PastureSheepRenderer);
+  await addCoreScript(doc,'pastureResidentCoreScript','/pasture-resident-core.js',()=>!!win.__tongluResidentEngineV1);
+  ready=!!win.__tongluResidentEngineV1;
+  if(!ready)throw Error('resident_engine_not_ready');
+  apply();notifyReady();
+ }catch(e){
+  coreFailed=true;
+  window.parent.postMessage({type:'pasture-final-core-error-v1'},location.origin);
+ }
+}
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin)return;
+ if(e.source===core.contentWindow&&e.data?.type==='tonglu-resident-ready-v1'){
+  ready=true;apply();notifyReady();return;
+ }
+ if(e.source!==window.parent||e.data?.type!=='pasture-resident-session-v1')return;
+ resident=e.data.resident?.id&&e.data.resident?.sheep?e.data.resident:null;
+ pendingArrival=pendingArrival||Boolean(resident&&e.data.arrival);
+ apply();
+});
+core.addEventListener('load',prepare);
+if(core.contentDocument?.readyState==='complete')prepare();
+})();
+</script></body></html>
