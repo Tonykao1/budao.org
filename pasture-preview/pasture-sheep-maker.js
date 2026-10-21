@@ -1,69 +1,124 @@
 (()=>{
 'use strict';
-const bodies=[['#f4ecdc','米白'],['#f2e3b3','麦穗'],['#bfd8da','浅蓝灰'],['#dec9c8','豆沙'],['#c7d5b5','青草'],['#d8d7ce','银灰'],['#f1d7bf','杏色'],['#eee8dc','云白']];
-const heads=[['#8d836e','褐灰'],['#917d62','麦褐'],['#776d66','深灰'],['#866f70','棕红'],['#727a66','青灰'],['#716a64','炭灰'],['#907461','栗色'],['#746d65','石褐']];
-const marks=[['NONE','无记号'],['FACE','脸部浅记号'],['BACK','背部浅记号'],['SOCKS','浅色腿']];
-const state={bodyColor:bodies[0][0],headColor:heads[0][0],marking:'NONE'};
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function colorButtons(list,kind){return list.map(([v,n],i)=>'<button type="button" class="pasture-visual-choice" data-sheep-'+kind+'="'+esc(v)+'" aria-pressed="'+(i===0?'true':'false')+'" aria-label="'+esc(n)+'"><span class="pasture-sheep-chip" style="--chip:'+esc(v)+'" aria-hidden="true"><i></i></span><span>'+esc(n)+'</span></button>').join('')}
-function markButtons(){return marks.map(([v,n],i)=>'<button type="button" class="pasture-mark-choice" data-sheep-mark="'+v+'" aria-pressed="'+(i===0?'true':'false')+'"><span class="pasture-mark-icon mark-'+v.toLowerCase()+'" aria-hidden="true"><i></i></span><span>'+n+'</span></button>').join('')}
-function px(ctx,x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
-function draw(){
- const c=document.getElementById('pastureSheepPreview');if(!c)return;
- const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1)),cssW=Math.max(280,c.clientWidth||360),cssH=Math.round(cssW*.46);
- c.width=Math.round(cssW*dpr);c.height=Math.round(cssH*dpr);const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;
- ctx.clearRect(0,0,cssW,cssH);
- const sky='#bfe7cd',grass='#89bd79',dark='#315366',light='#fff7df';
- px(ctx,0,0,cssW,cssH,sky);px(ctx,0,cssH*.72,cssW,cssH*.28,grass);
- const s=Math.max(4,Math.floor(cssW/92)),cx=Math.floor(cssW/2),cy=Math.floor(cssH*.54);
- ctx.fillStyle='rgba(49,83,102,.16)';ctx.fillRect(cx-24*s,cy+15*s,48*s,3*s);
- [[-20,-8,18,17],[-10,-13,18,23],[2,-14,18,24],[14,-9,15,19],[-17,3,36,12]].forEach(r=>px(ctx,cx+r[0]*s,cy+r[1]*s,r[2]*s,r[3]*s,state.bodyColor));
- px(ctx,cx+19*s,cy-4*s,13*s,15*s,state.headColor);px(ctx,cx+29*s,cy-1*s,6*s,5*s,state.headColor);px(ctx,cx+17*s,cy-5*s,5*s,4*s,state.headColor);
- const leg=state.marking==='SOCKS'?light:dark;px(ctx,cx-12*s,cy+11*s,4*s,10*s,leg);px(ctx,cx+9*s,cy+11*s,4*s,10*s,leg);
- if(state.marking==='FACE')px(ctx,cx+23*s,cy-1*s,5*s,5*s,light);
- if(state.marking==='BACK')px(ctx,cx-7*s,cy-11*s,13*s,5*s,light);
- px(ctx,cx+27*s,cy+1*s,2*s,2*s,'#263a42');
- for(let i=-4;i<=4;i++)px(ctx,cx+i*12*s,cy+24*s+(Math.abs(i)%2)*s,2*s,4*s,'#5c925e');
+// The real 4-stage, 8-dimension maker from the accepted pasture. Existing
+// residents are never invited to create a replacement sheep in this Preview.
+const BASE_DIMS=['woolColor','faceColor','woolShape','bodyShape'];
+const FEATURE_DIMS=['ears','expression','marking','forelock'];
+const auth=window.PastureResidentAuth;
+let DNA=null,Renderer=null,I18n=null,makerState=null,busy=false,loaded=false;
+const DRAFT_KEY='budao:preview:maker-v2:draft:';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function t(k){return I18n?.t(k)||k}
+function draftKey(){return DRAFT_KEY+String(auth?.getUser()?.id||'unauthenticated')}
+function readDraft(){
+ try{const v=JSON.parse(sessionStorage.getItem(draftKey())||'null');return DNA?.validateV2(v)?v:null}
+ catch(e){return null}
 }
-function choose(selector,key,value){
- state[key]=value;
- document.querySelectorAll(selector).forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute(selector.includes('body')?'data-sheep-body':selector.includes('head')?'data-sheep-head':'data-sheep-mark')===value)));
- draw();
+function writeDraft(d){if(makerState?.review)return;try{sessionStorage.setItem(draftKey(),JSON.stringify(d))}catch(e){}}
+function clearDraft(){try{sessionStorage.removeItem(draftKey())}catch(e){}}
+function makerInitialDna(review){
+ const sheep=auth?.getUser()?.sheep;
+ if(review&&sheep){
+  if(sheep.appearanceVersion===2&&DNA.validateV2(sheep.appearance))return {...sheep.appearance};
+  return DNA.fromLegacy(sheep);
+ }
+ return readDraft()||DNA.defaultV2();
 }
-function bindChoices(){
- document.querySelectorAll('[data-sheep-body]').forEach(b=>b.addEventListener('click',()=>choose('[data-sheep-body]','bodyColor',b.dataset.sheepBody)));
- document.querySelectorAll('[data-sheep-head]').forEach(b=>b.addEventListener('click',()=>choose('[data-sheep-head]','headColor',b.dataset.sheepHead)));
- document.querySelectorAll('[data-sheep-mark]').forEach(b=>b.addEventListener('click',()=>choose('[data-sheep-mark]','marking',b.dataset.sheepMark)));
+async function ensureModules(){
+ if(loaded)return;
+ const files=[
+  ['/pasture-sheep-dna.js',()=>!!window.PastureSheepDNA],
+  ['/pasture-sheep-renderer.js',()=>!!window.PastureSheepRenderer],
+  ['/pasture-sheep-i18n.js',()=>!!window.PastureSheepI18n]
+ ];
+ for(const [src,exists] of files){
+  if(exists())continue;
+  await new Promise((resolve,reject)=>{
+   const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=reject;
+   document.head.appendChild(script)
+  });
+ }
+ DNA=window.PastureSheepDNA;Renderer=window.PastureSheepRenderer;I18n=window.PastureSheepI18n;
+ if(!DNA||!Renderer||!I18n)throw Error('sheep_maker_unavailable');
+ loaded=true;
+}
+function dimensionButtons(keys){return keys.map(key=>'<button type="button" class="maker-dimension" data-maker-dimension="'+key+'" data-kind="'+key+'" aria-label="'+esc(t(key))+'" aria-pressed="'+String(makerState.activeDimension===key)+'"><span class="maker-dimension-glyph" aria-hidden="true"></span></button>').join('')}
+function optionButtons(key){return DNA.enums[key].map(value=>'<button type="button" class="maker-option" data-maker-option="'+esc(value)+'" aria-label="'+esc(t(key)+': '+t(value))+'" aria-pressed="'+String(makerState.dna[key]===value)+'"><canvas class="maker-option-canvas" width="68" height="58" aria-hidden="true"></canvas></button>').join('')}
+function previewCanvas(){return '<div class="maker-preview-wrap"><canvas id="pastureSheepPreview" class="maker-main-canvas" width="540" height="314" role="img" aria-label="'+esc(t('preview'))+'"></canvas></div>'}
+function navButton(cls,symbol,label){return '<button type="button" class="maker-nav '+cls+'" aria-label="'+esc(t(label))+'">'+symbol+'</button>'}
+function makerScreenMarkup(){
+  if(makerState.screen===1)return '<div class="maker-v2 maker-screen-one"><div class="maker-you">你</div>'+previewCanvas()+'<div class="maker-controls">'+navButton('primary maker-next','→','next')+'</div></div>';
+  if(makerState.screen===2)return '<div class="maker-v2 maker-screen-two">'+previewCanvas()+'<div class="maker-dimensions">'+dimensionButtons(BASE_DIMS)+'</div><div class="maker-options-panel">'+optionButtons(makerState.activeDimension)+'</div><div class="maker-controls">'+navButton('maker-back','←','back')+navButton('primary maker-next','→','next')+'</div></div>';
+  if(makerState.screen===3)return '<div class="maker-v2 maker-screen-three">'+previewCanvas()+'<div class="maker-dimensions">'+dimensionButtons(FEATURE_DIMS)+'</div><div class="maker-options-panel">'+optionButtons(makerState.activeDimension)+'</div><div class="maker-controls">'+navButton('maker-back','←','back')+'<button type="button" class="maker-random" aria-label="'+esc(t('random'))+'">↻</button>'+navButton('primary maker-next','→','next')+'</div></div>';
+  return '<div class="maker-v2 maker-screen-four">'+previewCanvas()+'<div class="maker-controls">'+navButton('maker-back','←','back')+navButton('confirm maker-confirm','✓','confirm')+'</div></div>';
+}
+function drawDnaToCanvas(canvas,dna,small=false,dim=false){if(!canvas||!Renderer)return;const ctx=canvas.getContext('2d');const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.imageSmoothingEnabled=false;if(!small){ctx.fillStyle='rgba(191,231,205,.30)';ctx.fillRect(0,0,w,h);ctx.fillStyle='rgba(137,189,121,.22)';ctx.fillRect(0,Math.floor(h*.72),w,Math.ceil(h*.28))}const unit=small?2.15:Math.max(5,Math.floor(w/78));const x=small?9:Math.floor(w*.43);const y=small?30:Math.floor(h*.60);if(dim)ctx.globalAlpha=.64;Renderer.draw(ctx,x,y,unit,false,dna);ctx.globalAlpha=1}
+function drawMakerCanvases(){const main=document.getElementById('pastureSheepPreview');if(main)drawDnaToCanvas(main,makerState.dna,false,makerState.screen===1);if(makerState.activeDimension)document.querySelectorAll('.maker-option').forEach(button=>{const value=button.dataset.makerOption;drawDnaToCanvas(button.querySelector('.maker-option-canvas'),{...makerState.dna,[makerState.activeDimension]:value},true,false)})}
+function wireMaker(){
+  document.querySelectorAll('[data-maker-dimension]').forEach(button=>button.onclick=()=>{makerState.activeDimension=button.dataset.makerDimension;renderMaker()});
+  document.querySelectorAll('[data-maker-option]').forEach(button=>button.onclick=()=>{makerState.dna={...makerState.dna,[makerState.activeDimension]:button.dataset.makerOption};writeDraft(makerState.dna);renderMaker()});
+  document.querySelector('.maker-back')?.addEventListener('click',()=>{makerState.screen=Math.max(1,makerState.screen-1);makerState.activeDimension=makerState.screen===2?BASE_DIMS[0]:makerState.screen===3?FEATURE_DIMS[0]:null;renderMaker()});
+  document.querySelector('.maker-next')?.addEventListener('click',()=>{makerState.screen=Math.min(4,makerState.screen+1);makerState.activeDimension=makerState.screen===2?BASE_DIMS[0]:makerState.screen===3?FEATURE_DIMS[0]:null;renderMaker()});
+  document.querySelector('.maker-random')?.addEventListener('click',()=>{makerState.dna=DNA.randomV2();writeDraft(makerState.dna);renderMaker()});
+  document.querySelector('.maker-confirm')?.addEventListener('click',confirmMaker);
+}
+
+function renderMaker(){
+ const card=auth.card;
+ card.innerHTML=makerScreenMarkup()+'<div class="pasture-resident-message" id="pastureResidentMessage" role="status" aria-live="polite"></div>';
+ wireMaker();drawMakerCanvases();
+}
+function notify(message){const el=document.getElementById('pastureResidentMessage');if(el)el.textContent=message}
+function endMaker(){
+ const card=auth.card;
+ card.classList.remove('maker-v2-card','pasture-sheep-maker-card');
+ makerState=null;busy=false;auth.layer.hidden=true;auth.apply(false);
+}
+async function confirmMaker(e){
+ if(busy||!makerState||!DNA.validateV2(makerState.dna))return;
+ if(makerState.review){endMaker();return}
+ busy=true;
+ const button=e?.currentTarget;if(button)button.disabled=true;
+ notify('正在确认你的牧场身份……');
+ try{
+  // Revalidate that there isn't already a sheep in the account before writing.
+  const latest=await auth.call(null,'GET');
+  if(latest.user?.sheep){
+   auth.setUser(latest.user);notify('你的羊已经存在，不会重新捏造或覆盖。');
+   setTimeout(endMaker,250);return;
+  }
+  const saved=await auth.call({action:'saveSheep',appearanceVersion:2,appearance:makerState.dna});
+  auth.setUser(saved.user);
+  if(saved.created)clearDraft();
+  endMaker();
+  if(saved.created)auth.pop('你的羊已进入牧场');
+  else auth.pop('找到了你原来捏的羊，没有覆盖');
+ }catch(e){
+  notify(auth.friendly(e.reason)||'暂时没有完成，请稍后再试。');
+  busy=false;if(button)button.disabled=false;
+ }
 }
 async function open(event){
- const auth=window.PastureResidentAuth;if(!auth)return;
- const review=!!event?.detail?.review;
- state.bodyColor=bodies[0][0];state.headColor=heads[0][0];state.marking='NONE';
- const card=auth.card;auth.layer.hidden=false;
- card.classList.add('pasture-sheep-maker-card');
- card.innerHTML='<h1 id="pastureResidentTitle">捏一只羊</h1><p>'+(review?'审看模式：你可以反复试捏，不会覆盖现在牧场里的羊。':'别填表。看着它，一点一点捏成你喜欢的样子。完成后，它会从天上落进羊群。')+'</p>'+
- '<canvas id="pastureSheepPreview" role="img" aria-label="你的羊实时预览"></canvas>'+
- '<div class="pasture-choice"><strong>羊毛</strong><div class="row">'+colorButtons(bodies,'body')+'</div></div>'+
- '<div class="pasture-choice"><strong>脸</strong><div class="row">'+colorButtons(heads,'head')+'</div></div>'+
- '<div class="pasture-choice"><strong>记号</strong><div class="row pasture-mark-row">'+markButtons()+'</div></div>'+
- '<div class="pasture-resident-actions pasture-sheep-finish"><button id="pastureSaveSheep" type="button">'+(review?'完成审看 · 回到牧场':'这就是我 · 进入牧场')+'</button></div><div class="pasture-resident-message" id="pastureResidentMessage" aria-live="polite"></div>';
- bindChoices();draw();requestAnimationFrame(draw);
- document.getElementById('pastureSaveSheep').onclick=async()=>{
-  const button=document.getElementById('pastureSaveSheep');button.disabled=true;
-  const message=document.getElementById('pastureResidentMessage');
-  if(review){
-   message.textContent='审看完成。现有居民数据没有改变。';
-   setTimeout(()=>{auth.layer.hidden=true;auth.apply(false);button.disabled=false},250);
-   return;
-  }
-  message.textContent='正在进入牧场……';
-  try{
-   const result=await auth.call({action:'saveSheep',bodyColor:state.bodyColor,headColor:state.headColor,marking:state.marking});
-   auth.setUser(result.user);auth.layer.hidden=true;auth.apply(!!result.created);auth.pop('你的羊已经进入牧场');
-  }catch(e){message.textContent=auth.friendly(e.reason);button.disabled=false}
- };
+ const user=event?.detail?.user||auth.getUser();
+ if(!user?.id)return;
+ const review=Boolean(event?.detail?.review);
+ if(user.sheep&&!review){auth.setUser(user);auth.apply(false);return}
+ if(makerState)return;
+ try{
+  await ensureModules();
+  // While scripts load, the verified account may acquire a sheep in another tab.
+  const latest=auth.getUser();
+  if(!review&&latest?.sheep)return auth.apply(false);
+  makerState={screen:1,dna:makerInitialDna(review),activeDimension:null,review};
+  auth.layer.hidden=false;
+  auth.card.classList.add('maker-v2-card','pasture-sheep-maker-card');
+  renderMaker();
+ }catch(e){
+  auth.layer.hidden=false;
+  auth.card.innerHTML='<p role="alert">暂时无法打开最终捏羊界面，请刷新后重试。不会创建或覆盖任何羊。</p>';
+ }
 }
-window.addEventListener('resize',()=>{if(!document.getElementById('pastureResidentLayer')?.hidden&&document.getElementById('pastureSheepPreview'))draw()},{passive:true});
+window.addEventListener('resize',()=>{if(makerState)requestAnimationFrame(drawMakerCanvases)},{passive:true});
 window.addEventListener('pasture-needs-sheep',open);
 window.PastureSheepMaker=Object.freeze({open});
 })();
