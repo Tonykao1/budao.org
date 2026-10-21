@@ -20,7 +20,7 @@ test('resident session cookie is HttpOnly and 180-day scoped',()=>{
 });
 test('resident owns exactly one validated sheep profile domain object',()=>{
  const sheep=d.validateSheep({bodyColor:d.BODY_COLORS[0],headColor:d.HEAD_COLORS[1],marking:'FACE'});
- assert.deepEqual(sheep,{bodyColor:d.BODY_COLORS[0],headColor:d.HEAD_COLORS[1],marking:'FACE'});
+ assert.deepEqual(sheep,{bodyColor:d.BODY_COLORS[0],headColor:d.HEAD_COLORS[1],marking:'FACE',appearanceVersion:1,appearanceV2:null});
  assert.throws(()=>d.validateSheep({bodyColor:'#000000',headColor:d.HEAD_COLORS[0],marking:'NONE'}),/invalid_sheep/);
  assert.equal(d.BODY_COLORS.length,8);
  assert.equal(d.HEAD_COLORS.length,8);
@@ -62,9 +62,11 @@ test('sheep maker is visual-first with live preview and no dropdown customizatio
  const maker=fs.readFileSync(path.join(__dirname,'..','pasture-preview/pasture-sheep-maker.js'),'utf8');
  assert.doesNotMatch(maker,/<select/i);
  assert.match(maker,/pastureSheepPreview/);
- assert.match(maker,/data-sheep-body/);
- assert.match(maker,/data-sheep-head/);
- assert.match(maker,/data-sheep-mark/);
+ assert.match(maker,/BASE_DIMS/);
+ assert.match(maker,/FEATURE_DIMS/);
+ assert.match(maker,/data-maker-dimension/);
+ assert.match(maker,/data-maker-option/);
+ assert.match(maker,/appearanceVersion:2/);
  assert.match(maker,/aria-pressed/);
  assert.match(maker,/saveSheep/);
 });
