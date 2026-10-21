@@ -90,6 +90,8 @@ async function ensurePastureSchema(env = process.env) {
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await query`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_version integer NOT NULL DEFAULT 1`;
+  await query`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_v2 jsonb`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_sheep_user_id_uq ON pasture_sheep(user_id)`;
   ensured = true;
 }
@@ -190,10 +192,9 @@ async function saveSheep(userId, appearance) {
   const db = getDb();
   const existing = await sheepForUser(userId);
   if (existing) {
-    const rows = await db.update(pastureSheep)
-      .set({ ...appearance, updatedAt: new Date() })
-      .where(eq(pastureSheep.id, existing.id)).returning();
-    return { sheep: rows[0] || existing, created: false };
+    // One resident, one sheep. An already issued identity must never be
+    // silently overwritten by a stale Preview maker or a repeated request.
+    return { sheep: existing, created: false };
   }
   const rows = await db.insert(pastureSheep)
     .values({ userId, ...appearance }).returning();
