@@ -76,6 +76,7 @@ function syncComposition(){
   const nextPortrait=window.innerHeight>window.innerWidth*1.08;
   if(nextPortrait===portraitMode&&portraitFrame.dataset.initialized)return;
   portraitMode=nextPortrait;
+  window.__tongluPortraitMode=portraitMode;
   if(portraitMode){
     if(!portraitFrame.dataset.initialized){
       portraitFrame.src='/tonglu-pasture-portrait.html?v=20260924flock1';
