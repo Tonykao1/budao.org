@@ -17,7 +17,8 @@ const lines=card.querySelector('#pastureSheepCheckLines');
 const state={server:'检查中',hasSheep:null,appearance:'',gate:false,core:false,received:false,painted:false,actualPixels:false,portrait:false};
 function text(){
  const row=(label,value)=>'<div style="border-top:1px solid #d4dfcb;padding:3px 0"><b>'+label+'：</b>'+value+'</div>';
- const status=state.server==='已登录且有羊'&&state.painted?'引擎报告已绘制，请观察画面及遮挡':
+ const status=state.server==='已登录且有羊'&&state.actualPixels?'已确认独立羊层存在真实不透明羊像素，请观察画面':
+  state.server==='已登录且有羊'&&state.painted?'绘制调用完成，但尚未收到羊像素验证':
   state.server==='已登录且有羊'&&!state.gate?'等待功能区加载':
   state.server==='已登录且有羊'&&!state.core?'等待最终牧场引擎加载':
   state.server==='已登录且有羊'&&!state.received?'尚未确认羊已送达引擎':
@@ -30,6 +31,7 @@ function text(){
   row('牧场核心已就绪',state.core?'是':'未确认')+
   row('居民羊已送达',state.received?'是':'未确认')+
   row('居民羊已绘制',state.painted?'是':state.portrait?'竖屏独立绘制':'未确认')+
+  row('羊像素验证',state.actualPixels?'实际不透明像素已确认':state.portrait?'竖屏单独验证':'未确认')+
   '<div style="font-size:12px;font-weight:700;color:#7a593d;margin-top:5px">'+status+'</div>';
 }
 async function refresh(){
@@ -57,6 +59,7 @@ window.addEventListener('message',event=>{
  case 'pasture-pilot-core-ready-v1':state.core=true;break;
  case 'pasture-pilot-resident-status-v1':
   state.received=!!event.data.received;state.painted=state.painted||!!event.data.painted;
+  state.actualPixels=state.actualPixels||!!event.data.actualPixels;
   state.portrait=!!event.data.portrait;break;
  default:return;
  }
