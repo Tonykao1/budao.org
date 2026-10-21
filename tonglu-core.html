@@ -28,10 +28,11 @@ const portraitFrame=document.getElementById('portraitFrame');
 const environmentLayer=document.getElementById('environmentLayer');
 let pastureReady=false;
 let portraitMode=false;
+let portraitResident=null,portraitArrivalNonce=0;
 
 function sendPortraitEnvironment(){
   if(state&&portraitFrame.contentWindow){
-    portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state:{...state,skyState}},location.origin);
+    portraitFrame.contentWindow.postMessage({type:'tonglu-environment-v1',state:{...state,skyState},resident:portraitResident,arrivalNonce:portraitArrivalNonce},location.origin);
   }
 }
 function flockDateKeyFromState(s){
@@ -58,6 +59,18 @@ function sendLandscapeEnvironment(){
   }catch(e){}
 }
 portraitFrame.addEventListener('load',sendPortraitEnvironment);
+// Preview identity bridge: preserve the final core's desktop spatial resident engine
+// while showing the same resident on portrait's established shepherd canvas.
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==window.parent)return;
+ if(event.data?.type==='tonglu-resident-clear-v1'){
+  portraitResident=null;sendPortraitEnvironment();return;
+ }
+ if(event.data?.type!=='tonglu-resident-v1')return;
+ portraitResident=event.data.resident?.sheep?event.data.resident:null;
+ if(event.data.arrival&&portraitResident)portraitArrivalNonce++;
+ sendPortraitEnvironment();
+});
 
 function syncComposition(){
   const nextPortrait=window.innerHeight>window.innerWidth*1.08;
