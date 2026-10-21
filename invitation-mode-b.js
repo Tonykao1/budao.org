@@ -28,7 +28,7 @@
 
     // The public route page intentionally serves uploaded photographs and
     // registration QR images from the site's own static assets. Both the
-    // share-canvas invitation and saved invitation must preserve these URLs.
+    // share-image invitation and saved invitation must preserve these URLs.
     const assetPathPattern = /^\/?route-assets\/[a-z0-9_-]+\/[a-z0-9_-]+\.(?:jpe?g|png|webp|gif)$/i;
     if (assetPathPattern.test(candidate)) {
       return '/' + candidate.replace(/^\//, '');
