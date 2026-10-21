@@ -1,10 +1,13 @@
 (()=>{
 'use strict';
 const canvas=document.getElementById('environmentLayer');
+const residentCanvas=document.getElementById('residentSheepLayer');
 const DNA=window.PastureSheepDNA;
 const Renderer=window.PastureSheepRenderer;
-if(!canvas||!DNA||!Renderer)return;
+if(!canvas||!residentCanvas||!DNA||!Renderer)return;
 const ctx=canvas.getContext('2d');
+const residentCtx=residentCanvas.getContext('2d',{willReadFrequently:true});
+residentCtx.imageSmoothingEnabled=false;
 const BLEAT_URL='/pasture-preview/assets/baaa01.mp3';
 const BLEAT_STOP_MS=900;
 const ARRIVAL_DURATION_MS=4200;
@@ -255,20 +258,43 @@ function arrivalFrame(now){
 }
 function startArrivalCinematic(){
   if(!resident?.appearance)return;
-  destroyArrivalCanvas();ensureArrivalCanvas();
+  destroyArrivalCanvas();ensureArrivalCanvas();clearResidentVisual();
   arrivalStart=performance.now();arrivalImpactPlayed=false;impactParticles=[];arrivalShake=0;
   window.__tongluFlockCount=44;
   arrivalRaf=requestAnimationFrame(arrivalFrame);
 }
 
+function clearResidentVisual(){
+  residentCtx.clearRect(0,0,480,300);
+  residentCanvas.style.display='none';
+}
 function paintResident(now=performance.now()){
-  if(!resident?.appearance||canvas.style.display==='none'||arrivalStart)return;
+  if(!resident?.appearance||canvas.style.display==='none'||arrivalStart){
+    clearResidentVisual();return;
+  }
   const x=pos.x,y=pos.y,s=scaleAtY(pos.y);
-  ctx.fillStyle='rgba(56,93,54,.15)';ctx.fillRect(Math.round(x-1.5*s),Math.round(y+13*s),Math.round(21*s),Math.max(1,Math.round(2*s)));
-  Renderer.draw(ctx,x,y,s,pos.flip,resident.appearance);
+  // Crucial: the personal sheep has its OWN transparent canvas above the weather,
+  // foreground and all 44 public sheep. Never draw its pixels into environmentLayer.
+  residentCtx.clearRect(0,0,480,300);
+  residentCtx.fillStyle='rgba(56,93,54,.15)';
+  residentCtx.fillRect(Math.round(x-1.5*s),Math.round(y+13*s),Math.round(21*s),Math.max(1,Math.round(2*s)));
+  Renderer.draw(residentCtx,x,y,s,pos.flip,resident.appearance);
+  residentCanvas.style.display='block';
   window.__tongluFlockCount=45;
+  if(!window.__tongluResidentPaintCount){
+    // The acknowledgement proves actual nontransparent SHEEP pixels in a crop
+    // above the shadow, not merely that Renderer.draw was invoked.
+    const ox=Math.max(0,Math.floor(x-3*s-1)),oy=Math.max(0,Math.floor(y-9*s-1));
+    const w=Math.max(1,Math.min(480-ox,Math.ceil(27*s)+4));
+    const h=Math.max(1,Math.min(300-oy,Math.ceil(20*s)+2));
+    const pixels=residentCtx.getImageData(ox,oy,w,h).data;
+    let opaque=0;
+    for(let i=3;i<pixels.length;i+=4){if(pixels[i]>32)opaque++;}
+    window.__tongluResidentOpaquePixels=opaque;
+    if(opaque===0)return;
+    window.parent?.postMessage({type:'tonglu-resident-painted-v1',actualPixels:true},location.origin);
+  }
   window.__tongluResidentPaintCount=(window.__tongluResidentPaintCount||0)+1;
-  if(window.__tongluResidentPaintCount===1)window.parent?.postMessage({type:'tonglu-resident-painted-v1'},location.origin);
 }
 // Paint the resident AFTER the shared scene's environmental overlays.
 // The previous fillRect hook painted BEFORE the full-screen night tint, often
@@ -302,7 +328,7 @@ window.addEventListener('message',e=>{
     resident=null;drag=null;arrivalStart=0;destroyArrivalCanvas();
     clearTimeout(bleatStopTimer);
     try{bleat?.pause()}catch(_){}
-    rebuildMask();window.__tongluFlockCount=44;window.__tongluResidentPaintCount=0;
+    rebuildMask();clearResidentVisual();window.__tongluFlockCount=44;window.__tongluResidentPaintCount=0;window.__tongluResidentOpaquePixels=0;
     window.parent?.postMessage({type:'tonglu-resident-applied-v1',hasSheep:false},location.origin);
     window.__tongluCoreRedrawV1?.();
     return;
@@ -313,7 +339,7 @@ window.addEventListener('message',e=>{
     ?incoming.sheep.appearance
     :{bodyColor:incoming.sheep.bodyColor,headColor:incoming.sheep.headColor,marking:incoming.sheep.marking||'NONE'};
   resident={id:incoming.id,sheep:incoming.sheep,appearance};
-  pos=initialPosition();rebuildMask();window.__tongluFlockCount=45;window.__tongluResidentPaintCount=0;
+  pos=initialPosition();rebuildMask();clearResidentVisual();window.__tongluFlockCount=45;window.__tongluResidentPaintCount=0;window.__tongluResidentOpaquePixels=0;
   window.parent?.postMessage({type:'tonglu-resident-applied-v1',hasSheep:true},location.origin);
   if(e.data.arrival)startArrivalCinematic();else queueResidentPaint();
 });
