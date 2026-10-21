@@ -14,6 +14,9 @@ test('resident sheep uses its own visible compositing canvas, pointer input stil
  assert.match(engine,/Renderer\.draw\(residentCtx,x,y,s,pos\.flip,resident\.appearance\)/);
  assert.doesNotMatch(engine,/Renderer\.draw\(ctx,x,y,s,pos\.flip,resident\.appearance\)/);
  assert.match(engine,/residentCtx\.getImageData\(ox,oy,w,h\)/);
+ assert.match(engine,/setInterval\(\(\)=>\{if\(resident\?\.appearance\)paintResident\(performance\.now\(\)\)\},200\)/);
+ assert.match(engine,/queueMicrotask\(\(\)=>\{paintQueued=false;paintResident\(performance\.now\(\)\)\}\)/);
+ assert.match(engine,/window\.__tongluResidentLastRenderError/);
  assert.match(engine,/if\(opaque===0\)return/);
  assert.match(engine,/actualPixels:true/);
  assert.match(engine,/clearResidentVisual\(\)/);
@@ -67,6 +70,7 @@ test('rendered sheep creates opaque pixels on independent layer, preserved throu
   performance:{now:()=>5000},
   queueMicrotask:fn=>fn(),
   cancelAnimationFrame:()=>{},clearTimeout:()=>{},setTimeout:()=>0,
+  setInterval:(fn,ms)=>{if(ms!==200)throw Error('unexpected redraw interval');return 1},
   console
  };
  vm.runInNewContext(read('pasture-resident-core.js'),sandbox);
