@@ -14,7 +14,7 @@ card.innerHTML='<div style="font-size:15px;font-weight:800">第 45 只羊 · 只
  '<div style="font-size:11px;line-height:1.6;margin-top:6px">不会生成、覆盖或删除任何羊。截图请不要包含浏览器中的私人信息。</div>';
 document.body.appendChild(card);
 const lines=card.querySelector('#pastureSheepCheckLines');
-const state={server:'检查中',hasSheep:null,appearance:'',gate:false,core:false,received:false,painted:false,portrait:false};
+const state={server:'检查中',hasSheep:null,appearance:'',gate:false,core:false,received:false,painted:false,actualPixels:false,portrait:false};
 function text(){
  const row=(label,value)=>'<div style="border-top:1px solid #d4dfcb;padding:3px 0"><b>'+label+'：</b>'+value+'</div>';
  const status=state.server==='已登录且有羊'&&state.painted?'引擎报告已绘制，请观察画面及遮挡':
