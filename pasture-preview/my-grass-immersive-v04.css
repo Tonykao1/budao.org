@@ -195,13 +195,13 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-journey-status-copy{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
 #grassWorkspace .gs-journey-status button{border:1px solid #75593c;background:#efe0b9;color:#382719;font:800 12px/1.3 "PingFang SC",sans-serif;padding:8px 10px;min-height:36px;cursor:pointer}
 #grassWorkspace .gs-journey-status[data-phase="recording"] button{background:#dcc59b;border-color:#68462e}
-#grassWorkspace .gs-journey-controls{display:flex;gap:8px}
+#grassWorkspace .gs-journey-controls{display:flex;gap:8px;flex-wrap:wrap}
 #grassWorkspace .gs-journey-rec-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#953d30;box-shadow:0 0 0 2px rgba(149,61,48,.1);animation:gsRecBreath 2s ease-in-out infinite}
 @keyframes gsRecBreath{50%{opacity:.55}}
 @media(prefers-reduced-motion:reduce){#grassWorkspace .gs-journey-rec-dot{animation:none}}
 #grassWorkspace .gs-recorder-console[data-state="recording"] .gs-journey-rec-indicator{background:#d0aa76;border-color:#804435}
 #grassWorkspace .gs-journey-rec-indicator{cursor:default}
-#grassWorkspace .gs-journey-keys{grid-template-columns:repeat(2,minmax(0,1fr))}
+#grassWorkspace .gs-journey-keys{grid-template-columns:repeat(3,minmax(0,1fr))}
 
 .gs-nav-reading-note{background:transparent!important;border-left:1px solid rgba(111,129,79,.5)!important}
 
