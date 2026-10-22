@@ -859,7 +859,7 @@ async function startOrStopRecording(){
    }
    root.hidden=false;
    if(loadForIdentity()){
-    rerecordOriginal=null;
+    if(rerecordOriginal){render();return}
     journey=draft.readingJourney||null;
     journeyPhase=journey?.status==='completed'?'completed':'idle';
     journeyFinalMs=journey?.durationMs||0;
