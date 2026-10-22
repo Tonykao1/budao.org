@@ -14,7 +14,9 @@ test('resident sheep uses its own visible compositing canvas, pointer input stil
  assert.match(engine,/Renderer\.draw\(residentCtx,x,y,s,pos\.flip,resident\.appearance\)/);
  assert.doesNotMatch(engine,/Renderer\.draw\(ctx,x,y,s,pos\.flip,resident\.appearance\)/);
  assert.match(engine,/residentCtx\.getImageData\(ox,oy,w,h\)/);
- assert.match(engine,/setInterval\(\(\)=>\{if\(resident\?\.appearance\)paintResident\(performance\.now\(\)\)\},200\)/);
+ assert.match(engine,/setInterval\(\(\)=>\{/);
+ assert.match(engine,/performance\.now\(\)-lastCorePaintAt>400/);
+ assert.match(engine,/function scheduleDragPaint\(\)/);
  assert.match(engine,/queueMicrotask\(\(\)=>\{paintQueued=false;paintResident\(performance\.now\(\)\)\}\)/);
  assert.match(engine,/window\.__tongluResidentLastRenderError/);
  assert.match(engine,/if\(!opaque\)\{/);
