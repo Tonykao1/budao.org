@@ -138,8 +138,20 @@ frame.addEventListener('load',revealPastureWhenReady);
 revealPastureWhenReady();
 
 const canvas=document.getElementById('environmentLayer');
-const ctx=canvas.getContext('2d');
+const screenCtx=canvas.getContext('2d');
+// The flock, atmospheric tint and weather compose offscreen before one atomic
+// copy to the visible scene. Never display a half-cleared public pasture.
+const sceneBuffer=document.createElement('canvas');
+sceneBuffer.width=480;sceneBuffer.height=300;
+const ctx=sceneBuffer.getContext('2d');
 ctx.imageSmoothingEnabled=false;
+screenCtx.imageSmoothingEnabled=false;
+function publishScene(){
+  screenCtx.save();
+  screenCtx.globalCompositeOperation='copy';
+  screenCtx.drawImage(sceneBuffer,0,0);
+  screenCtx.restore();
+}
 let state=null,skyState=null,tick=0;
 let meteorNextAt=0,meteorEvent=null;
 const LANDSCAPE_SKY_BOTTOM=96;
@@ -293,6 +305,9 @@ function returnTwigHit(clientX,clientY){
   return x>=8&&x<=39&&y>=254&&y<=297;
 }
 canvas.addEventListener('pointermove',e=>{
+  // Captured drag is a resident-sheep operation. The return twig must not
+  // schedule an extra full-scene render as the pointer passes over it.
+  if(window.__tongluResidentDraggingV1)return;
   const hover=returnTwigHit(e.clientX,e.clientY);
   if(hover!==returnTwigHover){
     returnTwigHover=hover;
@@ -301,6 +316,7 @@ canvas.addEventListener('pointermove',e=>{
   }
 });
 canvas.addEventListener('pointerleave',()=>{
+  if(window.__tongluResidentDraggingV1)return;
   if(returnTwigHover){
     returnTwigHover=false;
     canvas.style.cursor='default';
@@ -308,6 +324,8 @@ canvas.addEventListener('pointerleave',()=>{
   }
 });
 canvas.addEventListener('click',e=>{
+  // The pointer release after grabbing a sheep is not a navigation click.
+  if(window.__tongluResidentWasDraggedV1){window.__tongluResidentWasDraggedV1=false;return;}
   if(returnTwigHit(e.clientX,e.clientY)) location.assign('/home.html');
 });
 function kind(code){
@@ -452,7 +470,7 @@ function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
   if(pastureReady){drawDesktopLambs();drawReturnTwig();}
-  if(!state){window.__tongluCoreResidentPaintV1?.({tint:null,weatherKind:'clear',cloud:0});return;}
+  if(!state){publishScene();window.__tongluCoreResidentPaintV1?.({tint:null,weatherKind:'clear',cloud:0});return;}
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
   const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;
@@ -479,8 +497,9 @@ function draw(){
   updateMeteor(now);
   drawCelestial(now,cloud,c);
   weatherFx(kind(c.weatherCode),cloud);
-  // Render on an independent, visible layer, but apply this same scene tint
-  // and the same weather pixels to its opaque sheep silhouette.
+  // Commit the COMPLETE scene first, then the resident follows in a separate
+  // layer using the exact same lighting and weather state.
+  publishScene();
   window.__tongluCoreResidentPaintV1?.({tint:sceneTint,weatherKind:kind(c.weatherCode),cloud});
 }
 function build(raw,lat,lon,source){
