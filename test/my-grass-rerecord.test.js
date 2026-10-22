@@ -46,7 +46,7 @@ test('confirmed rerecord keeps original audio, passage and entry unchanged until
  assert.equal(v.journey,null);
  assert.equal(v.journeyPhase,'idle');
  assert.equal(v.clearCount,1);
- assert.match(v.notice,/旧音频仍安全保留/);
+ assert.match(v.notice,/原声在新录音保存前不会改变/);
  h.cancel();const restored=h.snapshot();
  assert.equal(restored.rerecordOriginal,null);
  assert.equal(restored.draft.reading.audioId,'voice-old');
