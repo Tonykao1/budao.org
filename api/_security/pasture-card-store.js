@@ -51,6 +51,30 @@ async function redeemSecretDigest(userId,digest,env=process.env){
  }
 }
 
+// Read-only card receipt for the authenticated resident. The card password,
+// verifier digest and other residents' card data never leave the database.
+async function residentCardReceipt(userId,env=process.env){
+ const query=queryDb(env);
+ const rows=await query`
+  SELECT serial,status,issuer_id,authorization_ref,delivery_channel,
+         issued_at,activated_at
+  FROM pasture_cards
+  WHERE (activated_by_user_id=${userId} AND status='ACTIVATED')
+     OR (reserved_for_user_id=${userId} AND status IN ('ISSUED','ACTIVATED'))
+  ORDER BY CASE WHEN status='ACTIVATED' THEN 0 ELSE 1 END,issued_at DESC
+  LIMIT 1
+ `;
+ const card=rows[0];
+ if(!card)return null;
+ return {
+  serial:card.serial,status:card.status,
+  issuer:card.issuer_id||null,
+  authorizationRef:card.authorization_ref||null,
+  deliveryChannel:card.delivery_channel||null,
+  issuedAt:card.issued_at,activatedAt:card.activated_at||null
+ };
+}
+
 // Admin-only offline issuance: the database never sees the plaintext code.
 async function issueCardRecord({serial,secretDigest,secretVersion,batchId,issuerId,authorizationRef,deliveryChannel,reservedForUserId},env=process.env){
  // Online requests can request a card, but they can never issue one. Issuance
@@ -90,4 +114,4 @@ async function revokeCard(serial,env=process.env){
  `;
  return {revoked:rows[0]?.revoked===true,residentDisabled:rows[0]?.resident_disabled===true};
 }
-module.exports={consumeActivationAttempt,redeemSecretDigest,issueCardRecord,revokeCard};
+module.exports={consumeActivationAttempt,redeemSecretDigest,issueCardRecord,revokeCard,residentCardReceipt};
