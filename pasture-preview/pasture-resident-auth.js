@@ -35,7 +35,12 @@ window.addEventListener('message',e=>{
  if(e.data?.type==='pasture-resident-required'){pop('请先验证邮箱，成为牧场居民');layer.hidden=false}
  if(e.data?.type==='pasture-card-required')refreshCardEntitlement();
  if(e.data?.type==='pasture-card-refresh-request')refreshCardEntitlement();
- if(e.data?.type==='pasture-grass-open-request-v1')refreshCardEntitlement({openGrass:true});
+ if(e.data?.type==='pasture-grass-open-request-v1'){
+  // My Grass and the old standalone step-card shade are mutually exclusive.
+  document.getElementById('cardShade')?.classList.remove('open');
+  const exit=document.getElementById('topExit');if(exit)exit.style.display='none';
+  refreshCardEntitlement({openGrass:true});
+ }
 });
 // New Preview hostnames do not share cookies, and an issuance in another tab
 // does not update an already-open pasture. Focus returns require a real GET.
