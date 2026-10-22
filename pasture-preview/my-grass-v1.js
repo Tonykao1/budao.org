@@ -525,11 +525,11 @@ function rerecordAudio(){
  if(archived?.shareIds?.length||micros.some(m=>m.entryId===draft.id)){
   tell('这份读经已有关联牧草，请新开一页，避免修改既有来源。');return;
  }
- if(!window.confirm('重新录制本次读经吗？请从原段落第一节重新开始。原录音与古卷记录会保留，直到新录音成功归档；取消或失败不会删除原声。'))return;
+ if(!window.confirm('重新录制本次读经吗？可在本章重新选择起始节，并按这次实际读到的经节结束。若与原范围不同，保存前会再次确认。旧原声保留到新录音成功归档。'))return;
  rerecordOriginal={audioId:draft.reading.audioId,scope,draftId:draft.id,journey:draft.readingJourney};
  clearPlayer();journey=null;journeyPhase='idle';journeyFinalMs=0;journeyError='';
  C.setRuntimeReadingJourney(null);emitJourneyState();render();
- tell('进入重录准备：从左页原段落第一节重新开始；旧音频仍安全保留。');
+ tell('进入重录准备：请点击左页本章想开始的一节；实际读到哪里就可以在哪里结束，原声在新录音保存前不会改变。');
 }
 async function startOrStopRecording(){
    if(recorder?.state==='recording'){recorder.stop();return}
@@ -693,9 +693,8 @@ async function startOrStopRecording(){
     }
     if(!original.journey||point.book!==original.journey.book||
        point.chapter!==original.journey.chapter||
-       point.translation!==original.journey.translation||
-       point.verse!==original.journey.startVerse){
-     tell('重录必须从原段落第一节开始（'+original.journey?.reference+'）；原录音尚未改变。');return;
+       point.translation!==original.journey.translation){
+     tell('请在原书卷与章节内选择新的起始经节。若要换章或换译本，请新开一页；原录音不会改变。');return;
     }
    }
    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){journeyFail('当前浏览器无法录音；请使用支持麦克风录音的浏览器。');return}
@@ -732,11 +731,10 @@ async function startOrStopRecording(){
      if(journeyPhase!=='finalizing'){journeyFail('录音意外中断，未将尚未完成的读经记为已读。');return}
      const blob=new Blob(journeyChunks,{type:journeyRecorder.mimeType||journeyChunks[0]?.type||'audio/webm'});
      if(!blob.size||blob.size>20*1024*1024){journeyFail(!blob.size?'没有取得有效原声，读经尚未保存。':'录音超过20MB，请重新分段读经。');return}
-     if(rerecordOriginal&&(journey.startVerse!==rerecordOriginal.journey.startVerse||
-        journey.endVerse!==rerecordOriginal.journey.endVerse||
-        journey.book!==rerecordOriginal.journey.book||journey.chapter!==rerecordOriginal.journey.chapter||
+     if(rerecordOriginal&&(journey.book!==rerecordOriginal.journey.book||
+        journey.chapter!==rerecordOriginal.journey.chapter||
         journey.translation!==rerecordOriginal.journey.translation)){
-      journeyFail('重录的经文范围与原段落不一致；原始录音没有改变。');return;
+      journeyFail('经文书卷、章节或译本与当前档案不一致；原始录音没有改变。');return;
      }
      const audioId=scope+':'+draft.id+':'+randomId();
      try{
@@ -749,7 +747,7 @@ async function startOrStopRecording(){
       journey=C.completeReadingJourney(journey,journeyFinalMs,iso(),metadata);
       C.setRuntimeReadingJourney(journey);
       const previousDraft=rerecordOriginal?{
-       ...draft,reading:{...draft.reading},readingJourney:draft.readingJourney
+       ...draft,scripture:{...draft.scripture},reading:{...draft.reading},readingJourney:draft.readingJourney
       }:null;
       const previousAudioId=rerecordOriginal?.audioId||null;
       // Save the new audio AND timeline before retiring the original one.
@@ -795,9 +793,6 @@ async function startOrStopRecording(){
   }
   function advanceJourney(point){
    if(journeyPhase!=='recording'||!journey)return;
-   if(rerecordOriginal&&point.verse>rerecordOriginal.journey.endVerse){
-    tell('本次重录应在原经文的最后一节结束；旧原声未改变。');return;
-   }
    try{journey=C.advanceReadingJourney(journey,point,journeyElapsedMs());C.setRuntimeReadingJourney(journey);emitJourneyState();emitJourneyTick()}
    catch(e){tell(e.message||String(e))}
   }
@@ -825,10 +820,10 @@ async function startOrStopRecording(){
   }
   function finishJourney(){
    if(!['recording','paused'].includes(journeyPhase)||!journey||!['recording','paused'].includes(journeyRecorder?.state))return;
-   if(rerecordOriginal&&journey.endVerse!==rerecordOriginal.journey.endVerse){
-    if(window.confirm('这遍只读到第'+journey.endVerse+'节，尚未读完原段落。不能用不完整的朗读替换原声。是否放弃这一遍并从第一节重来？'))discardCurrentTake();
-    else tell('已保留暂停状态。可以继续读，或点击「这遍重来」。');
-    return;
+   if(rerecordOriginal&&journey.reference!==rerecordOriginal.journey.reference){
+    if(!window.confirm('本次实际朗读的是「'+journey.reference+'」，与上次的「'+rerecordOriginal.journey.reference+'」不同。确定将当前这份未形成正式领受的读经档案更新为本次经文范围及原声吗？取消可继续朗读或放弃本遍，旧原声仍保留。')){
+     tell('尚未替换原录音。可以继续读，或点击「这遍重来」。');return;
+    }
    }
    journeyFinalMs=journeyElapsedMs();journeyPhase='finalizing';emitJourneyState();render();
    try{journeyRecorder.stop()}catch(e){journeyFail('录音停止失败：'+String(e.message||e))}
