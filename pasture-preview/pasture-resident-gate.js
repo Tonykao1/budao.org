@@ -71,6 +71,16 @@ function lockEvent(event){
   // No test-only override: gating must match the real preview and production.
   const button=event.target.closest?.('.pbtn');
   if(!button||!actions?.contains(button))return;
+  // Opening My Grass is a privileged operation. Even an old/stale DOM gate
+  // must ask the top-level authenticated client to refresh server entitlement.
+  // It then opens ONLY the grass workspace on a freshly verified response.
+  if(button.id==='grassBookBtn'){
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    window.parent?.postMessage({type:'pasture-grass-open-request-v1'},HOST_ORIGIN);
+    return;
+  }
   if(allowed(button))return;
   event.preventDefault();
   event.stopPropagation();
