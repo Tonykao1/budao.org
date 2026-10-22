@@ -11,8 +11,8 @@ test('public landscape commits an offscreen complete frame, before resident rece
  assert.match(core,/screenCtx\.globalCompositeOperation='copy'/);
  assert.match(core,/screenCtx\.drawImage\(sceneBuffer,0,0\)/);
  const draw=core.slice(core.indexOf('function draw(){'),core.indexOf('\nfunction build(',core.indexOf('function draw(){')));
- assert.ok(draw.indexOf('publishScene();')>draw.indexOf('weatherFx(kind(c.weatherCode),cloud)'));
- assert.ok(draw.indexOf('publishScene();')<draw.lastIndexOf('window.__tongluCoreResidentPaintV1?.('));
+ assert.ok(draw.lastIndexOf('publishScene();')>draw.indexOf('weatherFx(kind(c.weatherCode),cloud)'));
+ assert.ok(draw.lastIndexOf('publishScene();')<draw.lastIndexOf('window.__tongluCoreResidentPaintV1?.('));
  assert.match(core,/if\(window\.__tongluResidentDraggingV1\)return/);
  assert.match(core,/if\(window\.__tongluResidentWasDraggedV1\)/);
 });
