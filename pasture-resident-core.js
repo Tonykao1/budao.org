@@ -39,6 +39,8 @@ let bleatGain=null;
 let bleatPan=null;
 let paintQueued=false;
 let scenePassPainted=false;
+let dragPaintRaf=0;
+let lastCorePaintAt=0;
 // Lighting parameters are supplied by the public scene, never estimated from
 // wall-clock time in a second renderer. Independent painting remains visible.
 let residentScene={tint:null,weatherKind:'clear',cloud:0};
@@ -326,6 +328,16 @@ function paintResident(now=performance.now()){
       reason:window.__tongluResidentLastRenderError},location.origin);
   }
 }
+// Batch high-frequency mouse movements into one visual update per browser frame.
+// In particular, a new pointermove must never clear/repaint the resident layer
+// in the middle of a public-scene frame.
+function scheduleDragPaint(){
+  if(dragPaintRaf)return;
+  dragPaintRaf=requestAnimationFrame(()=>{
+    dragPaintRaf=0;
+    if(resident?.appearance)paintResident(performance.now());
+  });
+}
 // A stable end-of-frame hook receives the *exact* shared-scene light/weather.
 // Never draw below the opaque scene overlay or invent a separate weather clock.
 window.__tongluCoreResidentPaintV1=(scene)=>{
@@ -334,16 +346,23 @@ window.__tongluCoreResidentPaintV1=(scene)=>{
     weatherKind:typeof scene.weatherKind==='string'?scene.weatherKind:'clear',
     cloud:Number.isFinite(scene.cloud)?scene.cloud:0
   };
-  paintResident(performance.now());
+  lastCorePaintAt=performance.now();
+  // During captured dragging, the next RAF will consume the newest pointer
+  // position and the newest shared illumination once, not twice.
+  if(drag){scheduleDragPaint();return;}
+  if(!dragPaintRaf)paintResident(lastCorePaintAt);
 };
 function queueResidentPaint(){
  if(paintQueued)return;
  paintQueued=true;
  queueMicrotask(()=>{paintQueued=false;paintResident(performance.now())});
 }
-// Resident visual update is independent of the background scene: no lost
-// render when weather, daylight or pasture iframe timing changes.
-setInterval(()=>{if(resident?.appearance)paintResident(performance.now())},200);
+// A recovery heartbeat only paints if the shared scene has stopped sending
+// frames. Normal rendering is owned by the shared scene, not two timers.
+setInterval(()=>{
+  if(resident?.appearance&&!arrivalStart&&performance.now()-lastCorePaintAt>400)
+    paintResident(performance.now());
+},200);
 // Opt-in, read-only position disclosure to the same-origin diagnostic UI.
 // Never change the sheep's stored coordinates just to make it findable.
 window.BudaoResidentSheepLocator=Object.freeze({
@@ -358,15 +377,16 @@ window.BudaoResidentSheepLocator=Object.freeze({
  }:null
 });
 
-canvas.addEventListener('pointermove',e=>{if(drag){const p=point(e),next=candidatePosition(p.x-drag.dx,p.y-drag.dy);if(next){pos.x=next.x;pos.y=next.y}canvas.style.cursor=PIXEL_HAND_CLOSED;paintResident(performance.now());e.preventDefault();return}canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default'});
-canvas.addEventListener('pointerdown',e=>{if(!residentSheepHit(e.clientX,e.clientY))return;const p=point(e);drag={id:e.pointerId,dx:p.x-pos.x,dy:p.y-pos.y,moved:false};canvas.setPointerCapture?.(e.pointerId);canvas.style.cursor=PIXEL_HAND_CLOSED;e.preventDefault()});
+canvas.addEventListener('pointermove',e=>{if(drag){const p=point(e),next=candidatePosition(p.x-drag.dx,p.y-drag.dy);if(next){pos.x=next.x;pos.y=next.y}canvas.style.cursor=PIXEL_HAND_CLOSED;scheduleDragPaint();e.preventDefault();return}canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default'});
+canvas.addEventListener('pointerdown',e=>{if(!residentSheepHit(e.clientX,e.clientY))return;const p=point(e);drag={id:e.pointerId,dx:p.x-pos.x,dy:p.y-pos.y,moved:false};window.__tongluResidentDraggingV1=true;window.__tongluResidentWasDraggedV1=false;canvas.setPointerCapture?.(e.pointerId);canvas.style.cursor=PIXEL_HAND_CLOSED;e.preventDefault()});
 canvas.addEventListener('pointermove',e=>{if(drag&&drag.id===e.pointerId)drag.moved=true},{passive:true});
-function release(e){if(!drag||drag.id!==e.pointerId)return;const moved=drag.moved;drag=null;try{canvas.releasePointerCapture?.(e.pointerId)}catch(_){ }savePosition();canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default';queueResidentPaint();if(moved)playBleat()}
+function release(e){if(!drag||drag.id!==e.pointerId)return;const moved=drag.moved;drag=null;window.__tongluResidentDraggingV1=false;window.__tongluResidentWasDraggedV1=moved;setTimeout(()=>{window.__tongluResidentWasDraggedV1=false},0);if(dragPaintRaf){cancelAnimationFrame(dragPaintRaf);dragPaintRaf=0}try{canvas.releasePointerCapture?.(e.pointerId)}catch(_){ }savePosition();canvas.style.cursor=residentSheepHit(e.clientX,e.clientY)?PIXEL_HAND_OPEN:'default';queueResidentPaint();if(moved)playBleat()}
 canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('pointerleave',()=>{if(!drag)canvas.style.cursor='default'});
 window.addEventListener('message',e=>{
   if(e.origin!==location.origin||e.source!==window.parent)return;
   if(e.data?.type==='tonglu-resident-clear-v1'){
-    resident=null;drag=null;arrivalStart=0;destroyArrivalCanvas();
+    resident=null;drag=null;window.__tongluResidentDraggingV1=false;window.__tongluResidentWasDraggedV1=false;arrivalStart=0;destroyArrivalCanvas();
+    if(dragPaintRaf){cancelAnimationFrame(dragPaintRaf);dragPaintRaf=0}
     clearTimeout(bleatStopTimer);
     try{bleat?.pause()}catch(_){}
     rebuildMask();clearResidentVisual();window.__tongluFlockCount=44;window.__tongluResidentPaintCount=0;window.__tongluResidentOpaquePixels=0;window.__tongluResidentLastRenderError=null;
