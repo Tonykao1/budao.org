@@ -47,7 +47,7 @@ test('email-registered resident can only open the step card while My Grass is lo
  for(const id of ['grassBookBtn','windNewsBtn','returnNow','boxEntryBtn']){
   assert.equal(g.click(id).blocked,true,id+' must be blocked');
  }
- assert.equal(g.messages.find(e=>e.label==='grassBookBtn')?.type,'pasture-card-required');
+ assert.equal(g.messages.find(e=>e.type==='pasture-grass-open-request-v1')?.type,'pasture-grass-open-request-v1');
 });
 test('only explicit server-reported cardActivated true plus sheep releases My Grass',()=>{
  const g=fakeGate();
@@ -58,7 +58,8 @@ test('only explicit server-reported cardActivated true plus sheep releases My Gr
  assert.equal(g.api.canUseGrass(),false);
  g.api.setResident({id:exampleId,cardActivated:true,sheep});
  assert.equal(g.api.canUseGrass(),true);
- assert.equal(g.click('grassBookBtn').blocked,false);
+ assert.equal(g.click('grassBookBtn').blocked,true,'click waits for a new server-side entitlement verification');
+ assert.equal(g.messages.at(-1).type,'pasture-grass-open-request-v1');
  assert.equal(g.click('budaoCardBtn').blocked,false);
  assert.equal(g.click('windNewsBtn').blocked,true);
  assert.equal(g.events.at(-1).detail.cardActivated,true);
