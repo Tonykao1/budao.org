@@ -57,6 +57,18 @@
  // srcdoc activation prototype regardless of REAL ministry card entitlement.
  // Keep the existing pixel-card artwork as archive only; never execute it as
  // the resident's step card or use its localStorage "active" state.
+ // Intercept My Grass separately from the archived outside-card launcher.
+ // Never route a grass click through showCard(), including stale demo handlers.
+ const oldOuterCardListener="  open?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();showCard()},true);";
+ if(!html.includes(oldOuterCardListener))throw new Error('外层步道卡点击绑定未定位');
+ html=html.replace(oldOuterCardListener,
+   "  open?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();showCard()},true);"+
+   "\\n  const grass=d.getElementById('grassBookBtn');"+
+   "\\n  grass?.addEventListener('click',e=>{"+
+   "\\n    e.preventDefault();e.stopImmediatePropagation();"+
+   "\\n    if(shade.classList.contains('open'))hideCard();"+
+   "\\n    main.contentWindow?.postMessage({type:'pasture-grass-request-from-shell-v1'},location.origin);"+
+   "\\n  },true);");
  const staleCaptureStart=html.indexOf("  const protectedIds=['returnNow','grassBookBtn','windNewsBtn','partnersBtn','mailBtn'];");
  const staleCaptureEnd=html.indexOf("  // Only the former 小匣 entrance is changed",staleCaptureStart);
  if(staleCaptureStart<0||staleCaptureEnd<=staleCaptureStart)
