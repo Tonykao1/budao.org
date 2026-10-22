@@ -657,7 +657,21 @@ async function startOrStopRecording(){
   }
   async function startJourney(point){
    if(['arming','recording','paused','finalizing'].includes(journeyPhase))return;
-   if(draft.readingJourney?.status==='completed'||draft.reading.audioId){tell('这次读经已有原声，请新开一页开始新的读经。');return}
+   if((draft.readingJourney?.status==='completed'||draft.reading.audioId)&&!rerecordOriginal){
+    tell('这次读经已有原声；如需纠正读错的内容，请使用「重新录音」。');return;
+   }
+   if(rerecordOriginal){
+    const original=rerecordOriginal;
+    if(original.scope!==scope||original.draftId!==draft.id){
+     tell('居民或编辑稿已经改变；请重新进入牧草。');return;
+    }
+    if(!original.journey||point.book!==original.journey.book||
+       point.chapter!==original.journey.chapter||
+       point.translation!==original.journey.translation||
+       point.verse!==original.journey.startVerse){
+     tell('重录必须从原段落第一节开始（'+original.journey?.reference+'）；原录音尚未改变。');return;
+    }
+   }
    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){journeyFail('当前浏览器无法录音；请使用支持麦克风录音的浏览器。');return}
    try{C.startReadingJourney(point,iso())}catch(e){tell(e.message);return}
    journeyPhase='arming';journeyError='';emitJourneyState();render();
@@ -690,12 +704,37 @@ async function startOrStopRecording(){
       const metadata={audioId,mimeType:blob.type,size:blob.size,durationSeconds:journeyFinalMs/1000};
       journey=C.completeReadingJourney(journey,journeyFinalMs,iso(),metadata);
       C.setRuntimeReadingJourney(journey);
+      const previousDraft=rerecordOriginal?{
+       ...draft,reading:{...draft.reading},readingJourney:draft.readingJourney
+      }:null;
+      const previousAudioId=rerecordOriginal?.audioId||null;
+      // Save the new audio AND timeline before retiring the original one.
+      if(!residentAccess()||scope!==residentScope()||!draft||
+         (rerecordOriginal&&(rerecordOriginal.scope!==scope||rerecordOriginal.draftId!==draft.id))){
+       journeyFail('居民身份已经变化；此录音不会写入其他人的档案。');return;
+      }
       draft.readingJourney=journey;
       draft.reading={audioId,mimeType:blob.type,size:blob.size,durationSeconds:journeyFinalMs/1000};
       draft.scripture.reference=journey.reference;draft.scripture.translation=journey.translation;
       draft.scripture.verifiedAgainstRecording=false;
-      persistDraft();journeyPhase='completed';journeyError='';
-      emitJourneyState();const archived=saveEntry();render();tell(archived?'今日读经已封存到个人古卷：'+journey.reference+'。可以回听，或继续默想。':'原声已存于本机，但尚未完成古卷归档。请稍后重试。');
+      journeyPhase='completed';journeyError='';C.setRuntimeReadingJourney(journey);
+      const archived=saveEntry();
+      if(!archived&&previousDraft){
+       draft=previousDraft;journey=previousDraft.readingJourney;
+       journeyPhase='error';C.setRuntimeReadingJourney(journey);
+       persistDraft();emitJourneyState();render();
+       tell('重录归档未成功，原始录音和古卷记录保持不变。可再试或保留原声。');
+       return;
+      }
+      if(archived){
+       rerecordOriginal=null;
+       if(previousAudioId&&previousAudioId!==audioId&&
+          !entries.some(item=>item.reading?.audioId===previousAudioId)){
+        try{await deleteAudio(previousAudioId)}catch(_){}
+       }
+      }
+      emitJourneyState();render();
+      tell(archived?'今日读经已封存到个人古卷：'+journey.reference+'。可以回听，或继续默想。':'原声已存于本机，但尚未完成古卷归档。请稍后重试。');
      }catch(e){journeyFail('保存本次读经失败：'+String(e.message||e))}
     };
     journeyRecorder.start(250);
