@@ -99,6 +99,11 @@ document.addEventListener('keydown',event=>{
 // final resident engine has installed its message listener. Resend when the
 // final core acknowledges readiness, and relay its acknowledgement for diagnostics.
 window.addEventListener('message',event=>{
+  if(event.origin===HOST_ORIGIN&&event.source===window.parent&&
+     event.data?.type==='pasture-grass-request-from-shell-v1'){
+    window.parent.postMessage({type:'pasture-grass-open-request-v1'},HOST_ORIGIN);
+    return;
+  }
   if(event.origin!==HOST_ORIGIN||event.source!==scene?.contentWindow)return;
   if(event.data?.type==='pasture-final-core-ready-v1'){
     sendToPasture(pendingArrival,true);
