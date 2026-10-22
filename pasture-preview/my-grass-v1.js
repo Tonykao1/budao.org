@@ -406,7 +406,7 @@ function stageReading(){
       '<div class="gs-grid"><section class="gs-panel"><h3>个人古卷</h3>'+insertArchiveText()+'</section>'+
       '<section class="gs-panel"><h3>经文重逢</h3><div class="gs-empty">每一次真实的领受，都有自己的时间与声音。</div></section></div>':
       tab==='reading'?stageReading():tab==='reflection'?stageReflection():stageSharing())+'</main>'+
-    '<footer class="gs-foot"><span>本机私密 · 原声与文字可导出</span>'+
+    '<footer class="gs-foot"><span>本机私密 · 文字与当前稿可导出 · 原声另存</span>'+
     '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
     '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回':'翻阅档案')+'</button></div></footer>'+
     '<div class="gs-status" id="gsStatus" role="status" aria-live="polite">'+escape(notice)+'</div>';
@@ -579,12 +579,16 @@ async function rerecordAudio(){
    setTimeout(()=>URL.revokeObjectURL(url),30000);
   }
   function exportTextArchive(){
-   const payload={format:'budao-my-grass',version:1,exportedAt:iso(),identityScope:scope,
-    notice:'此处保存经文出处、本人领受、七光关系及私人微分享；音频需分别导出原声。ESV正文不写入档案。',
-    entries,micros,lightGraph};
-   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
-   downloadBlob(blob,'我的牧草-文字档案-'+new Date().toISOString().slice(0,10)+'.json');
-   tell('文字档案已导出。原始朗读请通过对应记录的「导出原声」单独保存。');
+   // A running audio journey must finish before a stable snapshot is exported.
+   if(audioPending||['arming','recording','paused','finalizing'].includes(journeyPhase)){
+    tell('请先结束本人原声读经，再导出完整文字记录。');return;
+   }
+   try{
+    const payload=C.buildTextArchive({scope,draft,entries,micros,lightGraph,exportedAt:iso()});
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    downloadBlob(blob,'我的牧草-私人文字备份-'+new Date().toISOString().slice(0,10)+'.json');
+    tell('已导出正式档案、七光与当前编辑稿。此文件只在本机，含私人信息；原声音频仍须单独导出。');
+   }catch(e){tell('文字导出失败：'+String(e.message||e))}
   }
   async function exportAudio(){
    if(!draft.reading.audioId){tell('当前记录还没有本机朗读音频。');return}
