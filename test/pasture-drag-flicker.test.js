@@ -3,16 +3,15 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 
-test('public landscape commits an offscreen complete frame, before resident receives lighting',()=>{
+test('landscape stays in its proven direct canvas and late iframe loads cannot hide public flock',()=>{
  const core=read('tonglu-core.html');
- assert.match(core,/const sceneBuffer=document\.createElement\('canvas'\)/);
- assert.match(core,/const screenCtx=canvas\.getContext\('2d'\)/);
- assert.match(core,/const ctx=sceneBuffer\.getContext\('2d'\)/);
- assert.match(core,/screenCtx\.globalCompositeOperation='copy'/);
- assert.match(core,/screenCtx\.drawImage\(sceneBuffer,0,0\)/);
+ assert.match(core,/const ctx=canvas\.getContext\('2d'\)/);
+ assert.doesNotMatch(core,/sceneBuffer|publishScene\(\)|globalCompositeOperation='copy'/);
+ assert.doesNotMatch(core,/frame\.style\.opacity='0'/);
+ assert.match(core,/landscapeRecoveryAttempts<1/);
+ assert.match(core,/if\(!pastureReady&&!window\.__tongluResidentDraggingV1\)/);
  const draw=core.slice(core.indexOf('function draw(){'),core.indexOf('\nfunction build(',core.indexOf('function draw(){')));
- assert.ok(draw.lastIndexOf('publishScene();')>draw.indexOf('weatherFx(kind(c.weatherCode),cloud)'));
- assert.ok(draw.lastIndexOf('publishScene();')<draw.lastIndexOf('window.__tongluCoreResidentPaintV1?.('));
+ assert.ok(draw.lastIndexOf('window.__tongluCoreResidentPaintV1?.(')>draw.indexOf('weatherFx(kind(c.weatherCode),cloud)'));
  assert.match(core,/if\(window\.__tongluResidentDraggingV1\)return/);
  assert.match(core,/if\(window\.__tongluResidentWasDraggedV1\)/);
 });
