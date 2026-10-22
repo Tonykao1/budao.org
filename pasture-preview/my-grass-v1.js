@@ -550,6 +550,12 @@ async function startOrStopRecording(){
       const blob=new Blob(recordChunks,{type:recorder.mimeType||recordChunks[0]?.type||'audio/webm'});
       if(!blob.size){audioPending=false;tell('没有取得有效录音，请重新尝试。');render();return}
       if(blob.size>20*1024*1024){audioPending=false;tell('这段录音超过20MB，请分段朗读并保存。');render();return}
+      if(rerecordOriginal&&(journey.startVerse!==rerecordOriginal.journey.startVerse||
+         journey.endVerse!==rerecordOriginal.journey.endVerse||
+         journey.book!==rerecordOriginal.journey.book||journey.chapter!==rerecordOriginal.journey.chapter||
+         journey.translation!==rerecordOriginal.journey.translation)){
+       journeyFail('重录的经文范围与原段落不一致；原始录音没有改变。');return;
+      }
       const audioId=scope+':'+draft.id+':'+randomId();
       try{
        await putAudio(audioId,blob);
@@ -745,6 +751,9 @@ async function startOrStopRecording(){
   }
   function advanceJourney(point){
    if(journeyPhase!=='recording'||!journey)return;
+   if(rerecordOriginal&&point.verse>rerecordOriginal.journey.endVerse){
+    tell('本次重录应在原经文的最后一节结束；旧原声未改变。');return;
+   }
    try{journey=C.advanceReadingJourney(journey,point,journeyElapsedMs());C.setRuntimeReadingJourney(journey);emitJourneyState();emitJourneyTick()}
    catch(e){tell(e.message||String(e))}
   }
@@ -772,6 +781,9 @@ async function startOrStopRecording(){
   }
   function finishJourney(){
    if(!['recording','paused'].includes(journeyPhase)||!journey||!['recording','paused'].includes(journeyRecorder?.state))return;
+   if(rerecordOriginal&&journey.endVerse!==rerecordOriginal.journey.endVerse){
+    tell('请读至原段落第'+rerecordOriginal.journey.endVerse+'节后再结束重录；旧录音仍保持不变。');return;
+   }
    journeyFinalMs=journeyElapsedMs();journeyPhase='finalizing';emitJourneyState();render();
    try{journeyRecorder.stop()}catch(e){journeyFail('录音停止失败：'+String(e.message||e))}
   }
