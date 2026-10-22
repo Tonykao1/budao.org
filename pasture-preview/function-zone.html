@@ -1619,6 +1619,10 @@ body.self-open .self-view{display:flex}
   noteInput.addEventListener('input',()=>{noteCount.textContent=noteInput.value.length});
 
   function openBook(){
+    // Final permission must come from the refreshed resident gate, not from
+    // an old card/preview toggle or a programmatic button click.
+    if(window.PastureResidentGate?.canUseGrass?.()!==true)return;
+    window.dispatchEvent(new Event('pasture-close-card-for-grass-v1'));
     closeWindBoard();
     closePartnersLayer();
     closeMailLayer();
@@ -1632,6 +1636,9 @@ body.self-open .self-view{display:flex}
     selector.classList.remove('open');
   }
   grassBookBtn.addEventListener('click',openBook);
+  // The top-level auth client emits this only after re-reading the server.
+  window.addEventListener('pasture-open-grass-after-check-v1',openBook);
+  window.addEventListener('pasture-close-grass-for-card-v1',closeGrassBook);
   closeBook.addEventListener('click',closeGrassBook);
   windNewsBtn.addEventListener('click',openWind);
   closeWind.addEventListener('click',closeWindBoard);
@@ -1719,6 +1726,8 @@ body.self-open .self-view{display:flex}
     dot?.classList.toggle('active',canUseGrass());
   }
   function openCard(){
+    // Two modules may not stay open at the same time.
+    window.dispatchEvent(new Event('pasture-close-grass-for-card-v1'));
     // Refresh the real server-backed status every time a resident opens their card.
     frame.src='/pasture-preview/card-activation.html';
     syncCardState();
@@ -1730,6 +1739,7 @@ body.self-open .self-view{display:flex}
     syncCardState();
   }
   btn.addEventListener('click',openCard);
+  window.addEventListener('pasture-close-card-for-grass-v1',closeCard);
   close.addEventListener('click',closeCard);
   document.addEventListener('pasture-resident-access-changed',syncCardState);
   window.addEventListener('message',e=>{
