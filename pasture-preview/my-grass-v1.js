@@ -770,13 +770,25 @@ async function rerecordAudio(){
   }
   const originalRender=render;
   render=function(){originalRender();addNewEntryControl()};
-  entryButton.addEventListener('click',()=>{
-   if(!residentAccess()||!residentScope()){tell('请先通过步道卡激活「我的牧草」。');return}
-   if(loadForIdentity()){
-    journey=draft.readingJourney||null;journeyPhase=journey?.status==='completed'?'completed':'idle';
-    journeyFinalMs=journey?.durationMs||0;C.setRuntimeReadingJourney(journey);emitJourneyState();render();
+  function openResidentWorkspace(){
+   // The outer shell intercepts clicks for a fresh server entitlement read,
+   // then opens the original folio through a verified custom event. A native
+   // grassBookBtn click is no longer guaranteed to reach this script.
+   if(!residentAccess()||!residentScope()){
+    tell('请先通过步道卡激活「我的牧草」。');return;
    }
-  });
+   root.hidden=false;
+   if(loadForIdentity()){
+    journey=draft.readingJourney||null;
+    journeyPhase=journey?.status==='completed'?'completed':'idle';
+    journeyFinalMs=journey?.durationMs||0;
+    C.setRuntimeReadingJourney(journey);
+    emitJourneyState();
+    render(); // AFTER openBook has made the original V0.4 folio visible.
+   }
+  }
+  entryButton.addEventListener('click',openResidentWorkspace);
+  window.addEventListener('pasture-open-grass-after-check-v1',openResidentWorkspace);
   document.addEventListener('pasture-resident-access-changed',()=>{
    const nextScope=residentScope();
    if(nextScope&&scope===nextScope&&draft)return;
