@@ -416,7 +416,7 @@ function stageReading(){
     '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
     '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回':'翻阅档案')+'</button></div></footer>'+
     '<div class="gs-status" id="gsStatus" role="status" aria-live="polite">'+escape(notice)+'</div>';
-   if(tab==='reading'&&!archiveOpen&&draft.reading.audioId&&(draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed'))restoreAudio(draft.reading.audioId);
+   if(tab==='reading'&&!archiveOpen&&!rerecordOriginal&&draft.reading.audioId&&(draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed'))restoreAudio(draft.reading.audioId);
   }
   // The sound blob is a separate original asset; it is NEVER treated as voice-model consent.
   function audioDatabase(){
@@ -459,7 +459,7 @@ function stageReading(){
  const host=$('#gsAudioHost');if(!host||!id)return null;
  try{
   const blob=await getAudio(id);
-  if(!$('#gsAudioHost'))return null;
+  if(!$('#gsAudioHost')||draft?.reading?.audioId!==id||rerecordOriginal)return null;
   if(!blob){host.textContent='本机没有找到对应原声。请重新录制。';return null}
   clearPlayer();activeAudioURL=URL.createObjectURL(blob);
   const player=document.createElement('audio');player.preload='metadata';player.src=activeAudioURL;player.hidden=true;player.dataset.audioId=id;
