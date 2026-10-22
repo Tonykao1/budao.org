@@ -29,10 +29,43 @@ window.addEventListener('message',e=>{
  if(e.origin!==location.origin||e.source!==live?.contentWindow)return;
  if(e.data?.type==='pasture-resident-gate-ready-v1')apply(false);
 });
-window.addEventListener('message',e=>{if(e.origin!==location.origin)return;if(e.data?.type==='pasture-feature-locked')pop((e.data.label||'这个功能')+' · 正在生长');if(e.data?.type==='pasture-resident-required'){pop('请先验证邮箱，成为牧场居民');layer.hidden=false}if(e.data?.type==='pasture-card-required')pop('请先点击「步道卡」，完成激活');if(e.data?.type==='pasture-card-refresh-request')refreshCardEntitlement()});
-async function refreshCardEntitlement(){
- try{const d=await call(null,'GET');user=d.user||null;apply(false);if(user?.cardActivated)pop('步道卡已激活，「我的牧草」已开放')}catch(e){pop('暂时无法同步步道卡激活状态')}
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.source!==live?.contentWindow)return;
+ if(e.data?.type==='pasture-feature-locked')pop((e.data.label||'这个功能')+' · 正在生长');
+ if(e.data?.type==='pasture-resident-required'){pop('请先验证邮箱，成为牧场居民');layer.hidden=false}
+ if(e.data?.type==='pasture-card-required')refreshCardEntitlement();
+ if(e.data?.type==='pasture-card-refresh-request')refreshCardEntitlement();
+ if(e.data?.type==='pasture-grass-open-request-v1')refreshCardEntitlement({openGrass:true});
+});
+// New Preview hostnames do not share cookies, and an issuance in another tab
+// does not update an already-open pasture. Focus returns require a real GET.
+let refreshInFlight=null;
+async function refreshCardEntitlement(options={}){
+ if(refreshInFlight)return refreshInFlight;
+ refreshInFlight=(async()=>{
+  try{
+   const d=await call(null,'GET');
+   user=d.user||null;
+   apply(false);
+   if(options.openGrass){
+    if(!user){emailView();pop('请先验证牧场邮箱');return}
+    if(!user.sheep){pop('请先捏羊，成为牧场居民');return}
+    if(!user.cardActivated){pop(d.card?.status==='ISSUED'?'步道卡已发行，尚未激活。请到步道卡输入卡密。':'步道卡尚未激活，请先完成发行与核销。');return}
+    // The gate is updated synchronously by apply(). Never open from an
+    // unvalidated server response or from the card overlay.
+    const gate=live?.contentWindow?.PastureResidentGate;
+    if(gate?.canUseGrass?.()===true)
+     live.contentWindow.dispatchEvent(new CustomEvent('pasture-open-grass-after-check-v1'));
+    else pop('牧草权限仍在同步，请重新点击。');
+   }else if(!options.quiet&&user?.cardActivated){
+    pop('服务器已确认：步道卡激活，「我的牧草」已开放');
+   }
+  }catch(e){if(!options.quiet)pop('暂时无法同步服务器牧场权限，请检查网络后重试')}
+ })();
+ try{return await refreshInFlight}finally{refreshInFlight=null}
 }
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshCardEntitlement({quiet:true})});
+window.addEventListener('pageshow',e=>{if(e.persisted)refreshCardEntitlement({quiet:true})});
 function emailView(){
  layer.hidden=false;
  card.innerHTML='<h1 id="pastureResidentTitle">进入牧场</h1><p>留下一个有效邮箱。验证之后，你会成为牧场居民。</p><label for="pastureEmail">邮箱</label><input id="pastureEmail" type="email" autocomplete="email" placeholder="name@example.com" value="'+esc(email)+'"><div class="pasture-resident-actions"><button id="pastureSendCode" type="button">发送验证码</button></div><div class="pasture-resident-message" id="pastureResidentMessage" aria-live="polite"></div>';
