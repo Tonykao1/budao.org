@@ -8,8 +8,8 @@ test('resident sheep is composited AFTER night overlay rather than before full-s
  assert.ok(start>0&&end>start,'final pasture draw function');
  const draw=core.slice(start,end);
  assert.ok(draw.indexOf('weatherFx(kind(c.weatherCode),cloud)')>=0);
- assert.ok(draw.lastIndexOf('window.__tongluCoreResidentPaintV1?.();')>draw.indexOf('weatherFx(kind(c.weatherCode),cloud)'));
- assert.match(draw,/if\(!state\)\{window\.__tongluCoreResidentPaintV1\?\.\(\);return;\}/);
+ assert.ok(draw.lastIndexOf('window.__tongluCoreResidentPaintV1?.({tint:sceneTint,weatherKind:kind(c.weatherCode),cloud});')>draw.indexOf('weatherFx(kind(c.weatherCode),cloud)'));
+ assert.match(draw,/if\(!state\)\{window\.__tongluCoreResidentPaintV1\?\.\(\{tint:null,weatherKind:'clear',cloud:0\}\);return;\}/);
  assert.match(engine,/window\.__tongluCoreResidentPaintV1=\(scene\)=>/);
  assert.match(engine,/residentCtx\.globalCompositeOperation='source-atop'/);
  assert.match(engine,/residentScene\.tint/);
