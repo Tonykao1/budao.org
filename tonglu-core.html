@@ -422,38 +422,48 @@ function refreshSkyState(){
   sendPortraitEnvironment();
   draw();
 }
-function weatherFx(type,cloud){
+function weatherFx(type,cloud,target=ctx){
+  // Exactly the same weather pixel pattern on the public flock and on the
+  // independent resident layer. Target/context is the only difference.
+  const stamp=(x,y,w,h,color)=>{
+    target.fillStyle=color;
+    target.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));
+  };
   if(type==='fog'){
-    ctx.save();ctx.globalAlpha=.18;
-    for(let i=0;i<5;i++){const x=((i*117+tick*2)%600)-100;rect(x,93+i*16,150,5,'#fff')}
-    ctx.restore();
+    target.save();target.globalAlpha=.18;
+    for(let i=0;i<5;i++){const x=((i*117+tick*2)%600)-100;stamp(x,93+i*16,150,5,'#fff')}
+    target.restore();
   }
   if(type==='rain'){
     const n=Math.round(32+Math.min(42,cloud/2));
-    ctx.save();ctx.globalAlpha=.48;
-    for(let i=0;i<n;i++){const x=(i*71+tick*7)%480,y=(i*43+tick*11)%300;rect(x,y,1,3,i%4===0?'#dff7ff':'#b9def1')}
-    ctx.restore();
+    target.save();target.globalAlpha=.48;
+    for(let i=0;i<n;i++){const x=(i*71+tick*7)%480,y=(i*43+tick*11)%300;stamp(x,y,1,3,i%4===0?'#dff7ff':'#b9def1')}
+    target.restore();
   }
   if(type==='snow'){
     const n=Math.round(36+Math.min(30,cloud/3));
-    ctx.save();ctx.globalAlpha=.8;
-    for(let i=0;i<n;i++){const x=(i*83+tick*(i%3+1))%480,y=(i*37+tick*3)%300;rect(x,y,i%7===0?2:1,i%7===0?2:1,'#f5fbff')}
-    ctx.restore();
+    target.save();target.globalAlpha=.8;
+    for(let i=0;i<n;i++){const x=(i*83+tick*(i%3+1))%480,y=(i*37+tick*3)%300;stamp(x,y,i%7===0?2:1,i%7===0?2:1,'#f5fbff')}
+    target.restore();
   }
 }
+window.__tongluCoreWeatherFxV1=(target,type,cloud)=>weatherFx(type,cloud,target);
 function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
   if(pastureReady){drawDesktopLambs();drawReturnTwig();}
-  if(!state){window.__tongluCoreResidentPaintV1?.();return;}
+  if(!state){window.__tongluCoreResidentPaintV1?.({tint:null,weatherKind:'clear',cloud:0});return;}
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
   const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;
-  let darkness=0,progress=.5;
+  let darkness=0,progress=.5,sceneTint=null;
   if(day){
     progress=Math.max(0,Math.min(1,(now-sunrise)/(sunset-sunrise)));
     const edge=Math.min(progress,1-progress);
-    if(edge<.12){ctx.fillStyle='rgba(244,177,112,'+((.12-edge)*.75)+')';ctx.fillRect(0,0,480,300)}
+    if(edge<.12){
+      sceneTint='rgba(244,177,112,'+((.12-edge)*.75)+')';
+      ctx.fillStyle=sceneTint;ctx.fillRect(0,0,480,300);
+    }
   }else{
     let ns,ne;
     if(now<sunrise){ns=prev;ne=sunrise}else{ns=sunset;ne=next}
@@ -462,15 +472,16 @@ function draw(){
       const edge=Math.min(progress,1-progress);
       darkness=Math.max(.20,Math.min(.62,.62*(edge/.22)));
     }else darkness=.52;
-    ctx.fillStyle='rgba(18,34,70,'+darkness+')';ctx.fillRect(0,0,480,300);
+    sceneTint='rgba(18,34,70,'+darkness+')';
+    ctx.fillStyle=sceneTint;ctx.fillRect(0,0,480,300);
   }
   const cloud=effectiveCloudCover();
   updateMeteor(now);
   drawCelestial(now,cloud,c);
   weatherFx(kind(c.weatherCode),cloud);
-  // The resident sheep is composited LAST; environmental tint must not
-  // cover it and painting must not run before the full-scene redraw.
-  window.__tongluCoreResidentPaintV1?.();
+  // Render on an independent, visible layer, but apply this same scene tint
+  // and the same weather pixels to its opaque sheep silhouette.
+  window.__tongluCoreResidentPaintV1?.({tint:sceneTint,weatherKind:kind(c.weatherCode),cloud});
 }
 function build(raw,lat,lon,source){
   const offset=Number(raw.utc_offset_seconds||0);
