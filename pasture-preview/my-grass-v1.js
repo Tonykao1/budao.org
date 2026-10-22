@@ -698,18 +698,25 @@ async function startOrStopRecording(){
    }
    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){journeyFail('当前浏览器无法录音；请使用支持麦克风录音的浏览器。');return}
    try{C.startReadingJourney(point,iso())}catch(e){tell(e.message);return}
+   const attemptId=++journeyAttemptToken;
    journeyPhase='arming';journeyError='';emitJourneyState();render();
    let stream;
    try{
     stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-    if(journeyPhase!=='arming'){stream.getTracks().forEach(t=>t.stop());return}
+    if(journeyPhase!=='arming'||attemptId!==journeyAttemptToken){
+     stream.getTracks().forEach(t=>t.stop());return;
+    }
     const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported?.(t));
     journeyStream=stream;journeyChunks=[];
     journeyRecorder=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
-    journeyRecorder.ondataavailable=e=>{if(e.data?.size>0)journeyChunks.push(e.data)};
-    journeyRecorder.onerror=e=>journeyFail('读经录音已中断：'+String(e.error?.message||'设备错误'));
+    journeyRecorder.ondataavailable=e=>{
+     if(attemptId===journeyAttemptToken&&e.data?.size>0)journeyChunks.push(e.data);
+    };
+    journeyRecorder.onerror=e=>{
+     if(attemptId===journeyAttemptToken)journeyFail('读经录音已中断：'+String(e.error?.message||'设备错误'));
+    };
     journeyRecorder.onstart=()=>{
-     if(journeyPhase!=='arming')return;
+     if(attemptId!==journeyAttemptToken||journeyPhase!=='arming')return;
      journeyStartedClock=performance.now();journeyPauseTotal=0;journeyPausedClock=null;journeyFinalMs=0;
      journey=C.startReadingJourney(point,iso());
      journeyPhase='recording';C.setRuntimeReadingJourney(journey);
@@ -718,6 +725,7 @@ async function startOrStopRecording(){
      emitJourneyState();render();emitJourneyTick();
     };
     journeyRecorder.onstop=async()=>{
+     if(attemptId!==journeyAttemptToken)return; // An intentionally abandoned take.
      releaseJourneyStream();
      if(journeyPhase!=='finalizing'){journeyFail('录音意外中断，未将尚未完成的读经记为已读。');return}
      const blob=new Blob(journeyChunks,{type:journeyRecorder.mimeType||journeyChunks[0]?.type||'audio/webm'});
@@ -731,6 +739,10 @@ async function startOrStopRecording(){
      const audioId=scope+':'+draft.id+':'+randomId();
      try{
       await putAudio(audioId,blob);
+      // Account switch, cancellation or navigation during async persistence
+      // must never attach this audio to another resident's private diary.
+      if(attemptId!==journeyAttemptToken||!residentAccess()||scope!==residentScope()||
+         (rerecordOriginal&&(rerecordOriginal.scope!==scope||rerecordOriginal.draftId!==draft?.id)))return;
       const metadata={audioId,mimeType:blob.type,size:blob.size,durationSeconds:journeyFinalMs/1000};
       journey=C.completeReadingJourney(journey,journeyFinalMs,iso(),metadata);
       C.setRuntimeReadingJourney(journey);
@@ -773,6 +785,7 @@ async function startOrStopRecording(){
     journeyRecorder.start(250);
    }catch(e){
     stream?.getTracks().forEach(t=>t.stop());
+    if(attemptId!==journeyAttemptToken)return;
     journeyFail(e.name==='NotAllowedError'?'没有取得麦克风许可，尚未开始记录读经。':'无法开始读经录音：'+String(e.message||e));
    }
   }
@@ -905,6 +918,7 @@ async function startOrStopRecording(){
    if(nextScope&&scope===nextScope&&draft)return;
    // A logout, account switch or loss of entitlement must revoke access even
    // if a recording is in progress. In-flight onstop must never save to a new user.
+   ++journeyAttemptToken;
    journeyPhase='error';
    try{if(journeyRecorder?.state!=='inactive')journeyRecorder?.stop()}catch(e){}
    releaseJourneyStream();
@@ -925,6 +939,11 @@ async function startOrStopRecording(){
    }
   });
   window.addEventListener('pagehide',()=>{
+   ++journeyAttemptToken;
+   if(journeyRecorder?.state&&journeyRecorder.state!=='inactive'){
+    try{journeyRecorder.stop()}catch(_){}
+   }
+   releaseJourneyStream();
    if(recorder?.state==='recording')recorder.stop();
    clearPlayer();
    recordStream?.getTracks().forEach(t=>t.stop());
