@@ -129,7 +129,7 @@
    const fmt=ms=>{const seconds=Math.floor(Math.max(0,ms)/1000);return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')};
    const reference=journey?.reference||'';
    if(journeyPhase==='paused'){
-    node.innerHTML='<span class="gs-journey-status-copy">已暂停 · 结束今日读经？ '+esc(reference)+' · '+ '<time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time>' +'</span><div class="gs-journey-controls"><button type="button" data-action="continue-journey">继续读</button><button type="button" data-action="end-journey-confirm">结束</button></div>';
+    node.innerHTML='<span class="gs-journey-status-copy">已暂停 · 结束今日读经？ '+esc(reference)+' · '+ '<time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time>' +'</span><div class="gs-journey-controls"><button type="button" data-action="continue-journey">继续读</button><button type="button" data-action="end-journey-confirm">结束</button><button type="button" data-action="restart-current-take">↻ 这遍重来</button></div>';
    }else if(journeyPhase==='recording'){
     node.innerHTML='<span class="gs-journey-status-copy"><b class="gs-journey-rec-dot" aria-hidden="true"></b>正在读经 · '+esc(journey.book+' '+journey.chapter+':'+journey.endVerse)+' · <time id="gsJourneyTimer" aria-live="off">'+fmt(journeyElapsed)+'</time></span><button type="button" data-action="end-journey-ask">■ 结束今日读经</button>';
    }else if(journeyPhase==='arming')node.textContent='正在开启麦克风…';
