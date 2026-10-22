@@ -60,6 +60,7 @@
   let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null,activePlayer=null;
   let audioPending=false,notice='',lightGraph={relations:[],events:[]},focusLight=null;
   let rerecordOriginal=null; // Keep original audio until replacement is fully saved.
+  let journeyAttemptToken=0; // A discarded take cannot revive itself through late recorder events.
   let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
 
   // Full canonical navigation restores the previous testament/book/chapter/verse picker.
@@ -273,7 +274,9 @@ function stageReading(){
     '<div class="gs-recorder-deck"><div class="gs-recorder-brand"><strong>ORIGINAL VOICE</strong><span>LOCAL RECORDER</span></div>'+
      '<div class="gs-recorder-keys gs-journey-keys"><span class="gs-recorder-key gs-journey-rec-indicator" aria-live="off"><span class="gs-recorder-key-icon">●</span><span>REC</span></span>'+
       '<button class="gs-recorder-key" type="button" data-action="play" '+(playDisabled?'disabled':'')+' aria-label="回听本人今日读经"><span class="gs-recorder-key-icon">▶Ⅱ</span><span>回听/暂停</span></button>'+
-      (rerecordOriginal&&['idle','error'].includes(journeyPhase)?
+      (['arming','recording','paused'].includes(journeyPhase)?
+       '<button class="gs-recorder-key gs-recorder-rerecord" type="button" data-action="restart-current-take" aria-label="放弃这遍，从第一节重新开始"><span class="gs-recorder-key-icon">↻</span><span>这遍重来</span></button>':
+       rerecordOriginal&&['idle','error'].includes(journeyPhase)?
        '<button class="gs-recorder-key gs-recorder-rerecord" type="button" data-action="cancel-rerecord" aria-label="取消重新录音并恢复原声"><span class="gs-recorder-key-icon">↶</span><span>保留原声</span></button>':
        '<button class="gs-recorder-key gs-recorder-rerecord" type="button" data-action="rerecord" '+(rerecordDisabled?'disabled':'')+' aria-label="重新录制本次读经"><span class="gs-recorder-key-icon">↻</span><span>重新录音</span></button>')+
      '</div></div>'+
@@ -651,6 +654,27 @@ async function startOrStopRecording(){
    if(journeyStopTimer){clearTimeout(journeyStopTimer);journeyStopTimer=null}
    if(journeyTickTimer){clearInterval(journeyTickTimer);journeyTickTimer=null}
   }
+  function discardCurrentTake(){
+    // Discard can occur while waiting for mic permission, actively recording,
+    // or paused. Invalidate ALL callbacks before stopping the MediaRecorder:
+    // its onstop event may arrive after a new attempt has already begun.
+    ++journeyAttemptToken;
+    const abandoned=journeyRecorder;journeyRecorder=null;
+    try{if(abandoned&&abandoned.state!=='inactive')abandoned.stop()}catch(_){}
+    releaseJourneyStream();journeyChunks=[];
+    journey=null;journeyPhase='idle';journeyError='';
+    journeyFinalMs=0;journeyPausedClock=null;journeyPauseTotal=0;
+    C.setRuntimeReadingJourney(null);
+    emitJourneyState();render();
+    tell(rerecordOriginal
+      ?'本遍已放弃，旧原声与古卷记录保持不变。请从原段落第一节重新读。'
+      :'本遍已放弃，没有形成读经记录。请从第一节重新开始。');
+  }
+  function restartCurrentTake(){
+    if(!['arming','recording','paused'].includes(journeyPhase))return;
+    if(!window.confirm('放弃这一遍正在录制的读经，从第一节重新开始吗？这遍不保存，已归档的原声与古卷不会改变。'))return;
+    discardCurrentTake();
+  }
   function journeyFail(message){
    releaseJourneyStream();journeyPhase='error';journeyError=message;
    tell(message);emitJourneyState();render();
@@ -785,7 +809,9 @@ async function startOrStopRecording(){
   function finishJourney(){
    if(!['recording','paused'].includes(journeyPhase)||!journey||!['recording','paused'].includes(journeyRecorder?.state))return;
    if(rerecordOriginal&&journey.endVerse!==rerecordOriginal.journey.endVerse){
-    tell('请读至原段落第'+rerecordOriginal.journey.endVerse+'节后再结束重录；旧录音仍保持不变。');return;
+    if(window.confirm('这遍只读到第'+journey.endVerse+'节，尚未读完原段落。不能用不完整的朗读替换原声。是否放弃这一遍并从第一节重来？'))discardCurrentTake();
+    else tell('已保留暂停状态。可以继续读，或点击「这遍重来」。');
+    return;
    }
    journeyFinalMs=journeyElapsedMs();journeyPhase='finalizing';emitJourneyState();render();
    try{journeyRecorder.stop()}catch(e){journeyFail('录音停止失败：'+String(e.message||e))}
@@ -819,6 +845,7 @@ async function startOrStopRecording(){
     case 'play':await togglePlayback();break;
     case 'rerecord':rerecordAudio();break;
     case 'cancel-rerecord':cancelRerecord();break;
+    case 'restart-current-take':restartCurrentTake();break;
     case 'link-audio':linkRecording();break;
     case 'download-audio':await exportAudio();break;
     case 'export':exportTextArchive();break;
