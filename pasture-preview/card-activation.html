@@ -15,20 +15,33 @@ button{cursor:pointer;background:#d2e3b8;border:3px solid #45685b;padding:10px 2
 button:disabled{opacity:.55;cursor:wait}
 #status{min-height:23px;margin-top:17px;font-size:12px;color:#765b3d;font-weight:700}
 .small{font-size:12px;color:#6f897d}
+#receipt{margin:18px 0;padding:16px;background:#e6efd0;border:2px solid #567863}
+#receipt strong{font-size:20px;color:#28644d}#receipt dl{display:grid;grid-template-columns:75px 1fr;gap:8px;margin:15px 0 0;font-size:12px}
+#receipt dt{color:#59726d}#receipt dd{margin:0;overflow-wrap:anywhere;font-weight:800}
+#receipt code{font:700 14px/1.5 ui-monospace,monospace}
 @media(max-width:520px){body{padding:10px}.card{padding:20px 16px}.name{font-size:27px}}
 </style></head>
 <body><main class="card" aria-label="步道卡激活">
  <div class="flag">BUDAO · DIGITAL PASTURE</div>
- <h1 class="name">步道卡</h1>
+ <h1 class="name" id="cardTitle">步道卡</h1>
  <p>邮箱为你开启牧场，步道卡为你开启「我的牧草」。</p>
  <hr>
+ <section id="receipt" hidden aria-label="步道卡发行与激活记录">
+  <strong id="cardStatus">待确认</strong>
+  <dl>
+   <dt>卡号</dt><dd><code id="cardSerial"></code></dd>
+   <dt>发行者</dt><dd id="cardIssuer">步道事工</dd>
+   <dt>发行时间</dt><dd id="cardIssued">—</dd>
+   <dt>激活时间</dt><dd id="cardActivatedAt">—</dd>
+  </dl>
+ </section>
  <form id="form" autocomplete="off">
   <label for="password">请输入步道卡密码</label>
   <input id="password" type="password" name="cardPassword" autocomplete="off" maxlength="128" placeholder="你的步道卡密码" required>
   <div style="margin-top:18px"><button id="submit" type="submit">验证并激活</button></div>
  </form>
  <p id="status" role="status" aria-live="polite">正在检查牧场身份……</p>
- <p class="small">密码与卡号机制尚在定稿中。验证服务启用前，不会临时使用演示密码，也不会提前开放私人功能。</p>
+ <p class="small" id="cardHint">步道卡仅由步道事工发行。激活状态以服务器中的正式发行与核销记录为准；任何情况下都不会使用演示密码。</p>
 </main>
 <script>
 (()=>{
@@ -36,7 +49,21 @@ button:disabled{opacity:.55;cursor:wait}
  const status=document.getElementById('status');
  const form=document.getElementById('form'),button=document.getElementById('submit');
  const password=document.getElementById('password');
+ const receipt=document.getElementById('receipt'),title=document.getElementById('cardTitle');
+ const cardStatus=document.getElementById('cardStatus'),cardSerial=document.getElementById('cardSerial');
+ const cardIssuer=document.getElementById('cardIssuer'),cardIssued=document.getElementById('cardIssued'),cardActivatedAt=document.getElementById('cardActivatedAt');
+ const hint=document.getElementById('cardHint');
  let ready=false,busy=false;
+ const when=v=>v?new Date(v).toLocaleString('zh-CN',{hour12:false}):'—';
+ function renderReceipt(card,activated){
+  receipt.hidden=!card;
+  if(!card)return;
+  cardStatus.textContent=activated?'已激活 · 我的牧草已开放':'已发行 · 待完成激活';
+  cardSerial.textContent=card.serial||'—';
+  cardIssuer.textContent=card.issuer==='tony'?'步道事工（授权发行人 Tony）':'步道事工';
+  cardIssued.textContent=when(card.issuedAt);
+  cardActivatedAt.textContent=activated?when(card.activatedAt):'尚未激活';
+ }
  const say=v=>{status.textContent=v};
  const request=async(body)=>{
   const method=body?'POST':'GET';
@@ -46,18 +73,38 @@ button:disabled{opacity:.55;cursor:wait}
   return {res,data};
  };
  async function refresh(){
+  ready=false;
   try{
    const {res,data}=await request();
-   if(!res.ok||!data.ok){say('牧场身份暂不可用，请稍候再试。');return}
-   if(!data.user?.id){say('请先使用邮箱注册并进入牧场。');return}
-   if(!data.user.sheep){say('请先捏羊，让你的羊进入牧场。');return}
-   if(data.user.cardActivated===true){
-    form.hidden=true;say('步道卡已激活，「我的牧草」已经开放。');
+   if(!res.ok||!data.ok){
+    form.hidden=true;renderReceipt(null,false);
+    say('无法查询服务器卡片状态，请稍后重试。');return;
+   }
+   if(!data.user?.id){
+    form.hidden=true;renderReceipt(null,false);
+    say('请先使用邮箱登录牧场。');return;
+   }
+   if(!data.user.sheep){
+    form.hidden=true;renderReceipt(null,false);
+    say('请先让你的羊进入牧场。');return;
+   }
+   const activated=data.user.cardActivated===true;
+   const card=data.card||null;
+   renderReceipt(card,activated);
+   title.textContent=activated?'步道卡 · 已激活':card?.status==='ISSUED'?'步道卡 · 已发行':'步道卡 · 待发行';
+   form.hidden=activated;
+   hint.textContent=activated?
+    '此卡已由步道事工发行并核销。再次点击「我的牧草」，系统会重新向服务器核对权限。':
+    card?.status==='ISSUED'?'此卡已定向发行但尚未核销，请使用发行时收到的一次性卡密。':
+    '尚无当前居民的发行记录。只有步道事工可以发行步道卡。';
+   if(activated){
+    say(card?.status==='ACTIVATED'?'服务器与发行记录一致：牧草权限已开放。':'服务器已标记激活，但卡片核销记录尚未核对，请联系事工管理员。');
     window.parent.postMessage({type:'budao-card-refresh-entitlement'},location.origin);
     return;
    }
-   ready=true;say('请妥善保管步道卡密码；正式验证服务尚待启用。');
-  }catch(e){say('暂时无法读取牧场状态，请稍候再试。')}
+   ready=true;
+   say(card?.status==='ISSUED'?'请在下方输入首次发行的一次性卡密。':'请先由步道事工发行，之后在此输入卡密。');
+  }catch(e){form.hidden=true;say('暂时无法读取步道卡状态，请稍后重试。')}
  }
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(!ready||busy)return;
