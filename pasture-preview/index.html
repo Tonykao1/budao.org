@@ -51,6 +51,43 @@
  html=html.replace('<title>数字牧场｜七功能整合 × 小铺与小匣 V1 · 交互审看</title>','<title>数字牧场 · 七大板块完整预览</title><meta name="robots" content="noindex,nofollow">');
  html=html.replace('此整合样机从 GitHub 已有的功能区原型读取界面，并采用 budao.org 当前牧场景观','本预览使用本站已开发的功能区与牧场景观');
  html=html.replace('同路原野 · 整合审看版','同路原野 · 完整预览站');
+
+ // Critical pilot routing fix: the 20-piece archived shell still carried its
+ // demo-card target-capture gate. It stole My Grass clicks and opened an old
+ // srcdoc activation prototype regardless of REAL ministry card entitlement.
+ // Keep the existing pixel-card artwork as archive only; never execute it as
+ // the resident's step card or use its localStorage "active" state.
+ const staleCaptureStart=html.indexOf("  const protectedIds=['returnNow','grassBookBtn','windNewsBtn','partnersBtn','mailBtn'];");
+ const staleCaptureEnd=html.indexOf("  // Only the former 小匣 entrance is changed",staleCaptureStart);
+ if(staleCaptureStart<0||staleCaptureEnd<=staleCaptureStart)
+  throw new Error('旧版步道卡点击拦截未定位，拒绝发布不一致的导航');
+ html=html.slice(0,staleCaptureStart)+
+   "  // The authenticated PastureResidentGate owns all feature permissions.\n"+
+   html.slice(staleCaptureEnd);
+ const staleActive="function isActive(){return readState().phase==='active'}";
+ if(!html.includes(staleActive))throw new Error('旧版演示权限判定未定位');
+ html=html.replace(staleActive,"function isActive(){return false} // Archived shop/box demo never grants entitlement");
+ const staleSyncStart=html.indexOf("function syncState(){const p=readState().phase;");
+ const staleSyncEnd=html.indexOf("\nconst cardOnlyStyle=",staleSyncStart);
+ if(staleSyncStart<0||staleSyncEnd<=staleSyncStart)
+  throw new Error('旧版步道卡状态同步未定位');
+ html=html.slice(0,staleSyncStart)+
+   "function syncState(){\n"+
+   " const activated=main.contentWindow?.PastureResidentGate?.canUseGrass?.()===true;\n"+
+   " $('phaseText').textContent=activated?'步道卡已激活 · 我的牧草已开放':'步道卡尚未激活 · 请向步道事工申请';\n"+
+   " syncReturnButton();\n"+
+   "}\n"+
+   html.slice(staleSyncEnd);
+ const staleFrameLoad="card.srcdoc=cardDoc;";
+ if(!html.includes(staleFrameLoad))throw new Error('旧版步道卡 srcdoc 未定位');
+ html=html.replace(staleFrameLoad,"card.removeAttribute('srcdoc');card.src='/pasture-preview/card-activation.html';");
+ const staleShow="function showCard(){shade.classList.add('open');";
+ if(!html.includes(staleShow))throw new Error('旧版步道卡按钮路由未定位');
+ html=html.replace(staleShow,
+   "function showCard(){card.src='/pasture-preview/card-activation.html';shade.classList.add('open');");
+ // The legacy card's localStorage state can neither unlock content nor
+ // silently render the old card. A new auth-enabled card is always presented.
+
  // Resident layer: public landscape first, authenticated controls second.
  html=html.replace('</head>','<link rel="stylesheet" href="/pasture-preview/pasture-resident-auth.css"><link rel="stylesheet" href="/pasture-sheep-maker-v2.css"></head>');
  html=html.replace('</body>','<script src="/pasture-preview/pasture-resident-auth.js"><'+'/script><script src="/pasture-preview/pasture-sheep-maker.js"><'+'/script><script src="/pasture-preview/pasture-hand-cursor.js"><'+'/script><script src="/pasture-preview/pasture-sheep-check.js"><'+'/script></body>');
