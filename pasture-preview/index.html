@@ -63,12 +63,12 @@
  if(!html.includes(oldOuterCardListener))throw new Error('外层步道卡点击绑定未定位');
  html=html.replace(oldOuterCardListener,
    "  open?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();showCard()},true);"+
-   "\\n  const grass=d.getElementById('grassBookBtn');"+
-   "\\n  grass?.addEventListener('click',e=>{"+
-   "\\n    e.preventDefault();e.stopImmediatePropagation();"+
-   "\\n    if(shade.classList.contains('open'))hideCard();"+
-   "\\n    main.contentWindow?.postMessage({type:'pasture-grass-request-from-shell-v1'},location.origin);"+
-   "\\n  },true);");
+   "\n  const grass=d.getElementById('grassBookBtn');"+
+   "\n  grass?.addEventListener('click',e=>{"+
+   "\n    e.preventDefault();e.stopImmediatePropagation();"+
+   "\n    if(shade.classList.contains('open'))hideCard();"+
+   "\n    main.contentWindow?.postMessage({type:'pasture-grass-request-from-shell-v1'},location.origin);"+
+   "\n  },true);");
  const staleCaptureStart=html.indexOf("  const protectedIds=['returnNow','grassBookBtn','windNewsBtn','partnersBtn','mailBtn'];");
  const staleCaptureEnd=html.indexOf("  // Only the former 小匣 entrance is changed",staleCaptureStart);
  if(staleCaptureStart<0||staleCaptureEnd<=staleCaptureStart)
