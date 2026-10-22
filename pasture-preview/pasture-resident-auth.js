@@ -41,7 +41,12 @@ window.addEventListener('message',e=>{
 // does not update an already-open pasture. Focus returns require a real GET.
 let refreshInFlight=null;
 async function refreshCardEntitlement(options={}){
- if(refreshInFlight)return refreshInFlight;
+ // A background tab-focus refresh must never consume a user's explicit
+ // click-to-open request. Wait for it, then run the privileged fresh read.
+ if(refreshInFlight){
+  if(!options.openGrass)return refreshInFlight;
+  try{await refreshInFlight}catch(_){}
+ }
  refreshInFlight=(async()=>{
   try{
    const d=await call(null,'GET');
