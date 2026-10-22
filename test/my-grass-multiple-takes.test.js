@@ -154,3 +154,43 @@ test('failed archive after complete attempt never deletes old voice; user may re
  await h.start(h.point(1));assert.equal(h.inspect().phase,'recording');
  h.restart();await flush();
 });
+
+
+test('after shorter retake, the real verse-reader handler restores exact selected text and verse IDs before archiving',()=>{
+ const begin=reader.indexOf('function onJourneyState(event){');
+ const end=reader.indexOf('function onJourneyTick(event){',begin);
+ assert.ok(begin>0&&end>begin);
+ const handler=reader.slice(begin,end);
+ function simulate({start,end,storage='persisted'}){
+  const draft={scripture:{reference:'诗 23:1–4',text:'stale old passage'}};
+  const ref={value:'诗 23:1–4'};
+  const text={value:'stale old passage',dataset:{}};
+  const display={textContent:'诗 23:1–4'};
+  const ws={querySelector(selector){return selector==='[data-field="reference"]'?ref:selector==='[data-field="scriptureText"]'?text:null}};
+  const original=JSON.stringify(draft);
+  const context={
+   C:{setRuntimeReadingJourney(){}},ESV_NAME:'English Standard Version (ESV)',
+   ESV_ID:'esv',CUV_ID:'cuv',
+   chapterKey:'cuv|诗|23',activeChapter:{storage,verses:Array.from({length:5},(_,i)=>({verse:i+1,text:'经文第'+(i+1)+'节'}))},
+   workspace:()=>ws,doc:{getElementById:()=>display},renderReader(){},
+   dispatchInput(node){if(node===ref)draft.scripture.reference=node.value;else if(node===text)draft.scripture.text=node.value},
+   journeyPhase:'idle',journey:null,journeyElapsed:0,journeyError:'',journeyConfirm:false
+  };
+  vm.runInNewContext(handler+'; onJourneyState(event)',{...context,event:{detail:{
+   phase:'completed',elapsedMs:10000,
+   journey:{status:'completed',book:'诗',chapter:23,startVerse:start,endVerse:end,
+    translation:'圣经和合本（神版）',reference:'诗 23:'+start+'–'+end,verseIds:Array.from({length:end-start+1},(_,i)=>'PSA.23.'+(start+i))}
+  }}});
+  assert.notEqual(JSON.stringify(draft),original);
+  return {draft,text,display};
+ }
+ let x=simulate({start:1,end:2});
+ assert.equal(x.draft.scripture.reference,'诗 23:1–2');
+ assert.equal(x.draft.scripture.text,'经文第1节\n经文第2节');
+ assert.equal(x.text.dataset.verseIds,'PSA.23.1,PSA.23.2');
+ assert.equal(x.display.textContent,'诗 23:1–2');
+ x=simulate({start:2,end:3});
+ assert.equal(x.draft.scripture.text,'经文第2节\n经文第3节');
+ x=simulate({start:1,end:2,storage:'reference-only'});
+ assert.equal(x.draft.scripture.text,'','licensed text must not be stored in a text archive');
+});
