@@ -39,6 +39,9 @@ let bleatGain=null;
 let bleatPan=null;
 let paintQueued=false;
 let scenePassPainted=false;
+// Lighting parameters are supplied by the public scene, never estimated from
+// wall-clock time in a second renderer. Independent painting remains visible.
+let residentScene={tint:null,weatherKind:'clear',cloud:0};
 const mask=document.createElement('canvas');mask.width=48;mask.height=48;
 const maskCtx=mask.getContext('2d',{willReadFrequently:true});
 
@@ -274,11 +277,22 @@ function paintResident(now=performance.now()){
   if(canvas.style.display==='none'||arrivalStart){clearResidentVisual();return}
   const x=pos.x,y=pos.y,s=scaleAtY(pos.y);
   try{
-    // Sheep pixels belong on their own highest z-index layer, not under weather.
+    // Paint separately to avoid disappearing under the scene redraw, but do
+    // not let the independent layer escape the same day/night/weather light.
     residentCtx.clearRect(0,0,480,300);
-    residentCtx.fillStyle='rgba(56,93,54,.15)';
+    residentCtx.fillStyle='rgba(56,93,54,.12)';
     residentCtx.fillRect(Math.round(x-1.5*s),Math.round(y+13*s),Math.round(21*s),Math.max(1,Math.round(2*s)));
     Renderer.draw(residentCtx,x,y,s,pos.flip,resident.appearance);
+    // source-atop affects only real sheep/shadow pixels; the rest of the
+    // canvas stays transparent. It cannot add a halo or obscure the pasture.
+    residentCtx.save();
+    residentCtx.globalCompositeOperation='source-atop';
+    if(residentScene.tint){
+      residentCtx.fillStyle=residentScene.tint;
+      residentCtx.fillRect(0,0,480,300);
+    }
+    window.__tongluCoreWeatherFxV1?.(residentCtx,residentScene.weatherKind,residentScene.cloud);
+    residentCtx.restore();
     residentCanvas.style.display='block';
     window.__tongluFlockCount=45;
     window.__tongluResidentLastRenderError=null;
@@ -312,11 +326,16 @@ function paintResident(now=performance.now()){
       reason:window.__tongluResidentLastRenderError},location.origin);
   }
 }
-// Paint the resident AFTER the shared scene's environmental overlays.
-// The previous fillRect hook painted BEFORE the full-screen night tint, often
-// obscuring the personal sheep even while "painted" acknowledgements were true.
-// Do not monkey-patch canvas primitives: a stable end-of-frame hook is exact.
-window.__tongluCoreResidentPaintV1=()=>paintResident(performance.now());
+// A stable end-of-frame hook receives the *exact* shared-scene light/weather.
+// Never draw below the opaque scene overlay or invent a separate weather clock.
+window.__tongluCoreResidentPaintV1=(scene)=>{
+  if(scene&&typeof scene==='object')residentScene={
+    tint:typeof scene.tint==='string'?scene.tint:null,
+    weatherKind:typeof scene.weatherKind==='string'?scene.weatherKind:'clear',
+    cloud:Number.isFinite(scene.cloud)?scene.cloud:0
+  };
+  paintResident(performance.now());
+};
 function queueResidentPaint(){
  if(paintQueued)return;
  paintQueued=true;
