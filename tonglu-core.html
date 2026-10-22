@@ -100,6 +100,7 @@ function syncComposition(){
 }
 window.addEventListener('resize',syncComposition,{passive:true});
 let pastureWatchTimer=null;
+let landscapeRecoveryAttempts=0;
 function revealPastureWhenReady(){
   clearInterval(pastureWatchTimer);
   let tries=0;
@@ -119,6 +120,7 @@ function revealPastureWhenReady(){
         pasture.style.pointerEvents='none';
         frame.style.opacity='1';
         pastureReady=true;
+        window.__tongluLandscapeHealthyV1=true;
         sendLandscapeEnvironment();
         draw();
         clearInterval(pastureWatchTimer);
@@ -127,10 +129,17 @@ function revealPastureWhenReady(){
     }catch(e){}
     if(tries>=100){
       clearInterval(pastureWatchTimer);
-      frame.style.opacity='0';
-      setTimeout(()=>{
-        frame.src='/tonglu-pasture-v20.html?v=20261005freeflock-'+Date.now();
-      },800);
+      // Never hide a once-visible pasture or enter an endless reload loop.
+      // The v20 landscape is assembled by several nested async document writes;
+      // a late load event must not erase the entire scene.
+      window.__tongluLandscapeHealthyV1=false;
+      if(!pastureReady&&landscapeRecoveryAttempts<1&&!window.__tongluResidentDraggingV1){
+        landscapeRecoveryAttempts++;
+        setTimeout(()=>{
+          if(!pastureReady&&!window.__tongluResidentDraggingV1)
+            frame.src='/tonglu-pasture-v20.html?v=20261005freeflock-recovery-'+Date.now();
+        },800);
+      }
     }
   },100);
 }
@@ -138,20 +147,11 @@ frame.addEventListener('load',revealPastureWhenReady);
 revealPastureWhenReady();
 
 const canvas=document.getElementById('environmentLayer');
-const screenCtx=canvas.getContext('2d');
-// The flock, atmospheric tint and weather compose offscreen before one atomic
-// copy to the visible scene. Never display a half-cleared public pasture.
-const sceneBuffer=document.createElement('canvas');
-sceneBuffer.width=480;sceneBuffer.height=300;
-const ctx=sceneBuffer.getContext('2d');
+// Restore the original, previously approved landscape compositing surface.
+// The public scene is already a synchronous canvas draw; the added copy layer
+// must not be able to blank out the landscape iframe during user dragging.
+const ctx=canvas.getContext('2d');
 ctx.imageSmoothingEnabled=false;
-screenCtx.imageSmoothingEnabled=false;
-function publishScene(){
-  screenCtx.save();
-  screenCtx.globalCompositeOperation='copy';
-  screenCtx.drawImage(sceneBuffer,0,0);
-  screenCtx.restore();
-}
 let state=null,skyState=null,tick=0;
 let meteorNextAt=0,meteorEvent=null;
 const LANDSCAPE_SKY_BOTTOM=96;
@@ -470,7 +470,7 @@ function draw(){
   tick++;
   ctx.clearRect(0,0,480,300);
   if(pastureReady){drawDesktopLambs();drawReturnTwig();}
-  if(!state){publishScene();window.__tongluCoreResidentPaintV1?.({tint:null,weatherKind:'clear',cloud:0});return;}
+  if(!state){window.__tongluCoreResidentPaintV1?.({tint:null,weatherKind:'clear',cloud:0});return;}
   const now=Date.now(),a=state.astronomy,c=state.current;
   const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
   const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;
@@ -497,9 +497,8 @@ function draw(){
   updateMeteor(now);
   drawCelestial(now,cloud,c);
   weatherFx(kind(c.weatherCode),cloud);
-  // Commit the COMPLETE scene first, then the resident follows in a separate
-  // layer using the exact same lighting and weather state.
-  publishScene();
+  // Public environment is drawn on its original canvas before the resident
+  // receives identical tint/weather, without an extra full-screen copy.
   window.__tongluCoreResidentPaintV1?.({tint:sceneTint,weatherKind:kind(c.weatherCode),cloud});
 }
 function build(raw,lat,lon,source){
