@@ -129,6 +129,7 @@ test('failed archive after complete attempt never deletes old voice; user may re
  const h=demo({archiveWorks:false});
  await h.start(h.point(1));h.advance(h.point(2));h.advance(h.point(3));h.advance(h.point(4));h.pause();h.finish();await flush();
  assert.equal(h.inspect().phase,'error');
+ assert.equal(h.inspect().journey,null,'failed completed retake must not leave the reader locked');
  assert.equal(h.inspect().oldEntry.reading.audioId,'voice-old');
  assert.equal(h.deleted.length,0);
  assert.ok(h.inspect().original,'protected prior record remains selected');
