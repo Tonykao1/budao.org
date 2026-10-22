@@ -676,7 +676,9 @@ async function startOrStopRecording(){
     discardCurrentTake();
   }
   function journeyFail(message){
-   releaseJourneyStream();journeyPhase='error';journeyError=message;
+   releaseJourneyStream();
+   if(rerecordOriginal){journey=null;C.setRuntimeReadingJourney(null)}
+   journeyPhase='error';journeyError=message;
    tell(message);emitJourneyState();render();
   }
   async function startJourney(point){
@@ -765,8 +767,10 @@ async function startOrStopRecording(){
       emitJourneyState();
       const archived=saveEntry();
       if(!archived&&previousDraft){
-       draft=previousDraft;journey=previousDraft.readingJourney;
-       journeyPhase='error';C.setRuntimeReadingJourney(journey);
+       // Keep old draft but clear rejected completed take, so the first verse
+       // becomes selectable again on another retry.
+       draft=previousDraft;journey=null;
+       journeyPhase='error';C.setRuntimeReadingJourney(null);
        persistDraft();emitJourneyState();render();
        tell('重录归档未成功，原始录音和古卷记录保持不变。可再试或保留原声。');
        return;
