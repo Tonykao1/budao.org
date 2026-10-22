@@ -69,6 +69,12 @@ async function refreshCardEntitlement(options={}){
  })();
  try{return await refreshInFlight}finally{refreshInFlight=null}
 }
+// The card lives in the OUTER Preview shell, not in the removed prototype
+// card-layer inside the functional iframe. Relay its server status to the gate.
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.source!==document.getElementById('cardIframe')?.contentWindow)return;
+ if(e.data?.type==='budao-card-refresh-entitlement')refreshCardEntitlement();
+});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshCardEntitlement({quiet:true})});
 window.addEventListener('pageshow',e=>{if(e.persisted)refreshCardEntitlement({quiet:true})});
 function emailView(){
