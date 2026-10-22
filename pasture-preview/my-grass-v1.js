@@ -724,6 +724,9 @@ async function startOrStopRecording(){
       draft.scripture.reference=journey.reference;draft.scripture.translation=journey.translation;
       draft.scripture.verifiedAgainstRecording=false;
       journeyPhase='completed';journeyError='';C.setRuntimeReadingJourney(journey);
+      // Synchronously update the actual selected scripture text and verse IDs
+      // before saveEntry snapshots the full reading into the personal archive.
+      emitJourneyState();
       const archived=saveEntry();
       if(!archived&&previousDraft){
        draft=previousDraft;journey=previousDraft.readingJourney;
