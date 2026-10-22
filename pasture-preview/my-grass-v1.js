@@ -59,6 +59,7 @@
   let scope='',key='',draft,entries=[],micros=[],tab='reading',archiveOpen=false,editingSavedId=null;
   let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null,activePlayer=null;
   let audioPending=false,notice='',lightGraph={relations:[],events:[]},focusLight=null;
+  let rerecordOriginal=null; // Keep original audio until replacement is fully saved.
   let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
 
   // Full canonical navigation restores the previous testament/book/chapter/verse picker.
@@ -236,6 +237,7 @@ function recorderUiState(){
  if(journeyPhase==='paused')return 'paused';
  if(journeyPhase==='arming')return 'arming';
  if(journeyPhase==='finalizing')return 'finalizing';
+ if(rerecordOriginal)return 'ready';
  if(draft.readingJourney?.status==='completed')return activePlayer&&!activePlayer.paused&&!activePlayer.ended?'playing':'linked';
  if(draft.reading.audioId&&draft.scripture.verifiedAgainstRecording)return activePlayer&&!activePlayer.paused&&!activePlayer.ended?'playing':'linked';
  if(draft.reading.audioId)return 'recorded';
@@ -256,8 +258,9 @@ function stageReading(){
  const barHeights=Array.from({length:22},(_,i)=>10+Math.round(Math.abs(Math.sin(i*1.41)*Math.cos(i*.53))*46));
  const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed';
  const recordDisabled=audioPending||hasAudio;
- const playDisabled=!hasAudio||!linked;
- const rerecordDisabled=!hasAudio;
+ const playDisabled=!hasAudio||!linked||!!rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase);
+ const canRerecord=!!draft.readingJourney&&draft.readingJourney.status==='completed'&&hasAudio&&!draft.insightRecord&&!getEntry()?.insightRecord;
+ const rerecordDisabled=audioPending||!canRerecord||['arming','recording','paused','finalizing'].includes(journeyPhase);
  const linkDisabled=!hasAudio||linked;
  return '<div class="gs-grid"><section class="gs-panel" aria-label="圣经文字">'+
   '<div class="gs-scripture-heading"><div class="gs-scripture-titlecluster"><h3>今日经文</h3>'+
@@ -270,6 +273,9 @@ function stageReading(){
     '<div class="gs-recorder-deck"><div class="gs-recorder-brand"><strong>ORIGINAL VOICE</strong><span>LOCAL RECORDER</span></div>'+
      '<div class="gs-recorder-keys gs-journey-keys"><span class="gs-recorder-key gs-journey-rec-indicator" aria-live="off"><span class="gs-recorder-key-icon">●</span><span>REC</span></span>'+
       '<button class="gs-recorder-key" type="button" data-action="play" '+(playDisabled?'disabled':'')+' aria-label="回听本人今日读经"><span class="gs-recorder-key-icon">▶Ⅱ</span><span>回听/暂停</span></button>'+
+      (rerecordOriginal&&['idle','error'].includes(journeyPhase)?
+       '<button class="gs-recorder-key gs-recorder-rerecord" type="button" data-action="cancel-rerecord" aria-label="取消重新录音并恢复原声"><span class="gs-recorder-key-icon">↶</span><span>保留原声</span></button>':
+       '<button class="gs-recorder-key gs-recorder-rerecord" type="button" data-action="rerecord" '+(rerecordDisabled?'disabled':'')+' aria-label="重新录制本次读经"><span class="gs-recorder-key-icon">↻</span><span>重新录音</span></button>')+
      '</div></div>'+
     '<div class="gs-recorder-display"><div class="gs-recorder-screen" id="gsRecorderScreen" data-state="'+state+'">'+
       '<div class="gs-recorder-wave" aria-hidden="true">'+barHeights.map((v,i)=>'<span style="--h:'+v+'%;--i:'+i+'"></span>').join('')+'</div>'+
@@ -277,7 +283,7 @@ function stageReading(){
     '</div>'+
   '</div>'+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
-  '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
+  '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
   '<div class="gs-rule"></div><div class="gs-actions">'+
   '<span class="gs-small">原声完成后自动归档；领受在下一页形成。</span>'+
   '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
@@ -495,16 +501,34 @@ function linkRecording(){
  if(!window.confirm('确认将这次本人原声与「'+reference+'」建立绑定吗？绑定后才能回听。'))return;
  draft.scripture.verifiedAgainstRecording=true;persistDraft();render();tell('已建立经文与本人原声的绑定，可以回听。');
 }
-async function rerecordAudio(){
- if(!draft.reading.audioId){await startOrStopRecording();return}
- if(!window.confirm('确定放弃这次录音并重新录制吗？当前这份原声会从本机删除。'))return;
- const oldId=draft.reading.audioId;clearPlayer();
- try{await deleteAudio(oldId)}catch(e){tell('旧录音清理失败，请稍后再试。');return}
- draft.reading={audioId:null,mimeType:null,size:0,durationSeconds:0};
- draft.scripture.verifiedAgainstRecording=false;persistDraft();
- tell('旧录音已放弃，准备重新录制。');await startOrStopRecording();
+function cancelRerecord(){
+ if(!rerecordOriginal||!['idle','error'].includes(journeyPhase))return;
+ rerecordOriginal=null;journey=draft.readingJourney||null;
+ journeyPhase=journey?.status==='completed'?'completed':'idle';
+ journeyFinalMs=journey?.durationMs||0;journeyError='';
+ C.setRuntimeReadingJourney(journey);emitJourneyState();render();
+ tell('已取消重录，原声及经节记录保持不变。');
 }
-  async function startOrStopRecording(){
+function rerecordAudio(){
+ if(rerecordOriginal){tell('请从左页第一节开始重录，或点击「保留原声」取消。');return}
+ if(['arming','recording','paused','finalizing'].includes(journeyPhase))return;
+ const archived=getEntry();
+ if(!draft.reading.audioId||draft.readingJourney?.status!=='completed'){
+  tell('请先完成一次逐节读经，才能重新录音。');return;
+ }
+ if(draft.insightRecord||archived?.insightRecord){
+  tell('这次读经已形成正式领受，不能直接改写原声与经节出处；请新开一页，留下新的读经见证。');return;
+ }
+ if(archived?.shareIds?.length||micros.some(m=>m.entryId===draft.id)){
+  tell('这份读经已有关联牧草，请新开一页，避免修改既有来源。');return;
+ }
+ if(!window.confirm('重新录制本次读经吗？请从原段落第一节重新开始。原录音与古卷记录会保留，直到新录音成功归档；取消或失败不会删除原声。'))return;
+ rerecordOriginal={audioId:draft.reading.audioId,scope,draftId:draft.id,journey:draft.readingJourney};
+ clearPlayer();journey=null;journeyPhase='idle';journeyFinalMs=0;journeyError='';
+ C.setRuntimeReadingJourney(null);emitJourneyState();render();
+ tell('进入重录准备：从左页原段落第一节重新开始；旧音频仍安全保留。');
+}
+async function startOrStopRecording(){
    if(recorder?.state==='recording'){recorder.stop();return}
    if(audioPending)return;
    if(draft.reading.audioId){tell('已经有一份录音；如要替换，请使用「↻ 重录」。');return}
@@ -546,7 +570,7 @@ async function rerecordAudio(){
   function openSavedEntry(id){
    const found=entries.find(e=>e.id===id);if(!found)return;
    if(recorder?.state==='recording'||['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经，再翻阅档案。');return}
-   draft={id:found.id,scripture:{...found.scripture},reading:{...found.reading},readingJourney:found.readingJourney||null,
+   rerecordOriginal=null;draft={id:found.id,scripture:{...found.scripture},reading:{...found.reading},readingJourney:found.readingJourney||null,
     reflection:found.reflection?.text||'',insightRecord:found.insightRecord||null,
     insightDraft:found.insightRecord?{heardText:found.insightRecord.heard_text,todayText:found.insightRecord.today_text}:{heardText:'',todayText:''},lightDraft:{}};
    focusLight=null;
@@ -556,7 +580,7 @@ async function rerecordAudio(){
   }
   function openNewEntry(){
    if(recorder?.state==='recording'||['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');return}
-   clearPlayer();draft=emptyDraft(refFromOriginal());journey=null;journeyPhase='idle';journeyFinalMs=0;C.setRuntimeReadingJourney(null);emitJourneyState();editingSavedId=null;microDraft='';
+   clearPlayer();rerecordOriginal=null;draft=emptyDraft(refFromOriginal());journey=null;journeyPhase='idle';journeyFinalMs=0;C.setRuntimeReadingJourney(null);emitJourneyState();editingSavedId=null;microDraft='';
    focusLight=null;archiveOpen=false;tab='reading';persistDraft();tell('已开启新的一份牧草；既有档案不会被覆盖。');render();
   }
   async function saveMicro(){
@@ -739,7 +763,8 @@ async function rerecordAudio(){
     case 'scripture-nav': showBibleNav();break;
     case 'record':await startOrStopRecording();break;
     case 'play':await togglePlayback();break;
-    case 'rerecord':await rerecordAudio();break;
+    case 'rerecord':rerecordAudio();break;
+    case 'cancel-rerecord':cancelRerecord();break;
     case 'link-audio':linkRecording();break;
     case 'download-audio':await exportAudio();break;
     case 'export':exportTextArchive();break;
@@ -783,6 +808,7 @@ async function rerecordAudio(){
    }
    root.hidden=false;
    if(loadForIdentity()){
+    rerecordOriginal=null;
     journey=draft.readingJourney||null;
     journeyPhase=journey?.status==='completed'?'completed':'idle';
     journeyFinalMs=journey?.durationMs||0;
@@ -804,7 +830,7 @@ async function rerecordAudio(){
    try{if(recorder?.state==='recording')recorder.stop()}catch(e){}
    clearPlayer();
    scope='';key='';draft=null;entries=[];micros=[];lightGraph={relations:[],events:[]};
-   journey=null;C.setRuntimeReadingJourney(null);focusLight=null;tab='reading';archiveOpen=false;
+   rerecordOriginal=null;journey=null;C.setRuntimeReadingJourney(null);focusLight=null;tab='reading';archiveOpen=false;
    document.body.classList.remove('grassbook-open');
    document.getElementById('skyZone')?.classList.remove('book-open');
    entryButton.classList.remove('grass-active');
