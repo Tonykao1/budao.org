@@ -79,30 +79,48 @@ test('the recorder offers one-tap take-again when actively recording, arming, or
  assert.match(css,/#grassWorkspace \.gs-journey-controls\{[^}]*flex-wrap:wrap/);
  assert.match(css,/\.gs-journey-keys\{grid-template-columns:repeat\(3/);
 });
-test('user stops a flawed SECOND take halfway: finishing offers discard, then third/fourth tries work',async()=>{
+test('user can freely end a SECOND take earlier; saved archive uses actual shorter verse range',async()=>{
  const h=demo();
  await h.start(h.point(1));h.advance(h.point(2));h.pause();h.finish();await flush();
- assert.equal(h.inspect().phase,'idle','early end prompts discard instead of trapping user paused');
- assert.equal(h.inspect().original.audioId,'voice-old');
- assert.equal(h.inspect().oldEntry.reading.audioId,'voice-old');
- assert.equal(h.written.length,0,'aborted retry never archived');
- await h.start(h.point(1));h.advance(h.point(2));h.restart();await flush();
- assert.equal(h.inspect().phase,'idle','retry works a third time');
- await h.start(h.point(1));h.advance(h.point(2));h.advance(h.point(3));h.advance(h.point(4));h.pause();h.finish();await flush();
- assert.equal(h.inspect().phase,'completed');
- assert.equal(h.written.length,1,'only the accepted full retry stores audio');
- assert.equal(h.inspect().oldEntry.reading.audioId,h.written[0].id);
+ assert.equal(h.inspect().phase,'completed','shorter recording is valid after explicit confirmation');
+ assert.equal(h.inspect().journey.reference,'诗 23:1–2');
+ assert.equal(h.inspect().oldEntry.scripture.reference,'诗 23:1–2');
+ assert.equal(h.inspect().oldEntry.readingJourney.endVerse,2);
+ assert.equal(h.written.length,1);
  assert.equal(h.deleted.length,1);
- assert.equal(h.deleted[0],'voice-old','old audio retired only after new complete archive');
+ assert.equal(h.deleted[0],'voice-old','old take retires only after shorter recording is archived');
 });
-test('declining half-finished discard leaves recording paused and continuing remains possible',async()=>{
- let decisions=[false,true];
+test('declining a changed-range replacement stays paused; continuing to original end still works',async()=>{
+ let decisions=[false];
  const h=demo({confirm:()=>decisions.shift()});
  await h.start(h.point(1));h.advance(h.point(2));h.pause();h.finish();
  assert.equal(h.inspect().phase,'paused');
  assert.equal(h.inspect().oldEntry.reading.audioId,'voice-old');
  h.resume();h.advance(h.point(3));h.advance(h.point(4));h.pause();h.finish();await flush();
- assert.equal(h.inspect().phase,'completed');assert.equal(h.written.length,1);
+ assert.equal(h.inspect().phase,'completed');
+ assert.equal(h.written.length,1);
+ assert.equal(h.inspect().oldEntry.readingJourney.endVerse,4);
+});
+test('a third or fourth attempted reading can be discarded repeatedly without corrupting old audio',async()=>{
+ const h=demo();
+ await h.start(h.point(1));h.advance(h.point(2));h.restart();await flush();
+ assert.equal(h.inspect().phase,'idle');
+ await h.start(h.point(1));h.advance(h.point(2));h.restart();await flush();
+ assert.equal(h.inspect().phase,'idle');
+ assert.equal(h.written.length,0);
+ assert.equal(h.inspect().oldEntry.reading.audioId,'voice-old');
+ await h.start(h.point(1));h.advance(h.point(2));h.advance(h.point(3));h.pause();h.finish();await flush();
+ assert.equal(h.inspect().phase,'completed');
+ assert.equal(h.inspect().oldEntry.readingJourney.endVerse,3);
+ assert.equal(h.written.length,1);
+ assert.equal(h.deleted.length,1);
+});
+test('new retake may begin at another verse in the same chapter',async()=>{
+ const h=demo();
+ await h.start(h.point(2));h.advance(h.point(3));h.pause();h.finish();await flush();
+ assert.equal(h.inspect().phase,'completed');
+ assert.equal(h.inspect().oldEntry.readingJourney.startVerse,2);
+ assert.equal(h.inspect().oldEntry.readingJourney.endVerse,3);
 });
 test('rapidly abandoning one recording does not allow its late stop to overwrite the next take',async()=>{
  const h=demo();
