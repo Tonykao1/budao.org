@@ -364,12 +364,41 @@
     if(!trim(source))throw Error('外部回应来源不能为空。');
     return Object.freeze({...createLightEvent(relation,id,eventGroupId,'inbound',{source:trim(source)},timestamp),event_type:'external-response'});
   }
+  // Local portable text snapshot. NOT remote backup: original audio blobs
+  // remain in IndexedDB and must be exported separately.
+  function buildTextArchive({scope,draft,entries,micros,lightGraph,exportedAt}={}){
+    if(!/^pasture-resident-[a-f0-9-]{36}$/i.test(String(scope||'')))
+      throw Error('请先使用本人已激活的步道卡登录后再导出。');
+    if(!draft||typeof draft!=='object'||!draft.id)
+      throw Error('当前牧草尚未初始化，不能生成完整档案。');
+    const safeScripture=scripture=>{
+      if(!scripture||typeof scripture!=='object')return scripture;
+      return scripture.source==='esv'||scripture.translation===ESV_NAME
+        ?{...scripture,text:'',storage:'reference-only'}
+        :{...scripture};
+    };
+    const safeEntry=entry=>({...entry,scripture:safeScripture(entry.scripture)});
+    const archived=Array.isArray(entries)?entries.map(safeEntry):[];
+    const currentDraft={...draft,scripture:safeScripture(draft.scripture)};
+    const audioIds=[...new Set(
+      [...archived,currentDraft].map(item=>item?.reading?.audioId).filter(Boolean)
+    )];
+    return {
+      format:'budao-my-grass',version:2,
+      exportedAt:exportedAt||new Date().toISOString(),identityScope:scope,
+      notice:'本文件包含已保存档案及尚未归档的当前编辑稿；属于私人资料。仅下载到本机，非云端备份。本人原声音频未包含，需单独导出。ESV版权正文不写入档案。',
+      entries:archived,micros:Array.isArray(micros)?micros:[],
+      lightGraph:lightGraph&&typeof lightGraph==='object'?lightGraph:{relations:[],events:[]},
+      currentDraft,
+      audioManifest:{included:false,requiredAudioIds:audioIds}
+    };
+  }
   return Object.freeze({
     LIGHT_TYPES,createInsightRecord,createLightRelation,createLightEvent,createInboundEvent,
     normalizeReadingJourney,startReadingJourney,advanceReadingJourney,completeReadingJourney,journeyVerseAt,setRuntimeReadingJourney,getRuntimeReadingJourney,setReadingJourneyRequired,
     SCHEMA_VERSION,MICRO_LIMIT,STORAGE_PREFIX,PHASES,trim,count,clip,
     validateRef,validateScripture,normalizeReadingSession,beginReadingSession,setReadingSessionEnd,completeReadingSession,
     setRuntimeReadingSession,setReadingSessionRequired,normalizeReflection,newEntry,reviseEntry,
-    makeMicro,groupByReference,scopeFromIdentity,voicePermissions
+    makeMicro,groupByReference,scopeFromIdentity,voicePermissions,buildTextArchive
   });
 });
