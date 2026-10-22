@@ -61,23 +61,26 @@ test('declining, linked insights, and shared records cannot replace original',()
  h=harness({shares:true});h.start();assert.equal(h.snapshot().rerecordOriginal,null);
  assert.match(h.snapshot().notice,/关联牧草/);
 });
-test('replacement enforces same verse range and retires old audio only after archive save',()=>{
+test('changed reading range is accepted within same chapter and must be explicitly confirmed',()=>{
  const start=source.slice(source.indexOf('async function startJourney(point)'),source.indexOf('function advanceJourney(point)'));
  const advancing=source.slice(source.indexOf('function advanceJourney(point)'),source.indexOf('function pauseJourney()'));
  const finish=source.slice(source.indexOf('function finishJourney()'),source.indexOf("document.addEventListener('mygrass:journey-start-request'"));
- assert.match(start,/point\.verse!==original\.journey\.startVerse/);
  assert.match(start,/point\.translation!==original\.journey\.translation/);
- assert.match(start,/journey\.endVerse!==rerecordOriginal\.journey\.endVerse/);
+ assert.doesNotMatch(start,/point\.verse!==original\.journey\.startVerse/);
+ assert.doesNotMatch(start,/journey\.endVerse!==rerecordOriginal\.journey\.endVerse/);
  assert.match(start,/const previousAudioId=rerecordOriginal\?\.audioId/);
  assert.match(start,/const archived=saveEntry\(\)/);
  assert.match(start,/if\(!archived&&previousDraft\)/);
+ assert.match(start,/scripture:\{\.\.\.draft\.scripture\}/,'restore exact original scripture when archive fails');
  assert.match(start,/draft=previousDraft/);
  assert.match(start,/if\(archived\)\{/);
  const archivedAt=start.indexOf('const archived=saveEntry()');
  const deletedAt=start.indexOf('await deleteAudio(previousAudioId)');
  assert.ok(archivedAt>=0&&deletedAt>archivedAt);
- assert.match(advancing,/point\.verse>rerecordOriginal\.journey\.endVerse/);
- assert.match(finish,/journey\.endVerse!==rerecordOriginal\.journey\.endVerse/);
+ assert.doesNotMatch(advancing,/point\.verse>rerecordOriginal\.journey\.endVerse/);
+ assert.match(finish,/journey\.reference!==rerecordOriginal\.journey\.reference/);
+ assert.match(finish,/window\.confirm/);
+ assert.match(finish,/更新为本次经文范围及原声/);
 });
 test('old audio player cannot remount over in-progress rerecord',()=>{
  assert.match(source,/const playDisabled=!hasAudio\|\|!linked\|\|!!rerecordOriginal/);
