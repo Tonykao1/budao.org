@@ -550,12 +550,6 @@ async function startOrStopRecording(){
       const blob=new Blob(recordChunks,{type:recorder.mimeType||recordChunks[0]?.type||'audio/webm'});
       if(!blob.size){audioPending=false;tell('没有取得有效录音，请重新尝试。');render();return}
       if(blob.size>20*1024*1024){audioPending=false;tell('这段录音超过20MB，请分段朗读并保存。');render();return}
-      if(rerecordOriginal&&(journey.startVerse!==rerecordOriginal.journey.startVerse||
-         journey.endVerse!==rerecordOriginal.journey.endVerse||
-         journey.book!==rerecordOriginal.journey.book||journey.chapter!==rerecordOriginal.journey.chapter||
-         journey.translation!==rerecordOriginal.journey.translation)){
-       journeyFail('重录的经文范围与原段落不一致；原始录音没有改变。');return;
-      }
       const audioId=scope+':'+draft.id+':'+randomId();
       try{
        await putAudio(audioId,blob);
@@ -704,6 +698,12 @@ async function startOrStopRecording(){
      if(journeyPhase!=='finalizing'){journeyFail('录音意外中断，未将尚未完成的读经记为已读。');return}
      const blob=new Blob(journeyChunks,{type:journeyRecorder.mimeType||journeyChunks[0]?.type||'audio/webm'});
      if(!blob.size||blob.size>20*1024*1024){journeyFail(!blob.size?'没有取得有效原声，读经尚未保存。':'录音超过20MB，请重新分段读经。');return}
+     if(rerecordOriginal&&(journey.startVerse!==rerecordOriginal.journey.startVerse||
+        journey.endVerse!==rerecordOriginal.journey.endVerse||
+        journey.book!==rerecordOriginal.journey.book||journey.chapter!==rerecordOriginal.journey.chapter||
+        journey.translation!==rerecordOriginal.journey.translation)){
+      journeyFail('重录的经文范围与原段落不一致；原始录音没有改变。');return;
+     }
      const audioId=scope+':'+draft.id+':'+randomId();
      try{
       await putAudio(audioId,blob);
