@@ -20,7 +20,7 @@ test('resident session cookie is HttpOnly and 180-day scoped',()=>{
 });
 test('resident owns exactly one validated sheep profile domain object',()=>{
  const sheep=d.validateSheep({bodyColor:d.BODY_COLORS[0],headColor:d.HEAD_COLORS[1],marking:'FACE'});
- assert.deepEqual(sheep,{bodyColor:d.BODY_COLORS[0],headColor:d.HEAD_COLORS[1],marking:'FACE'});
+ assert.deepEqual(sheep,{bodyColor:d.BODY_COLORS[0],headColor:d.HEAD_COLORS[1],marking:'FACE',appearanceVersion:1,appearanceV2:null});
  assert.throws(()=>d.validateSheep({bodyColor:'#000000',headColor:d.HEAD_COLORS[0],marking:'NONE'}),/invalid_sheep/);
  assert.equal(d.BODY_COLORS.length,8);
  assert.equal(d.HEAD_COLORS.length,8);
@@ -39,7 +39,7 @@ test('migration hard-enforces one sheep per resident',()=>{
  assert.match(sql,/CREATE UNIQUE INDEX[\s\S]*pasture_sheep\(user_id\)/);
  assert.match(sql,/REFERENCES pasture_users\(id\) ON DELETE CASCADE/);
 });
-test('guest controls are hidden; authenticated controls remain deliberately locked',()=>{
+test('guest controls are hidden; unfinished authenticated controls remain deliberately locked',()=>{
  const css=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','pasture-preview/pasture-resident-gate.css'),'utf8');
  const js=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','pasture-preview/pasture-resident-gate.js'),'utf8');
  assert.match(css,/body:not\(\.pasture-resident-authenticated\) \.actions/);
@@ -62,9 +62,11 @@ test('sheep maker is visual-first with live preview and no dropdown customizatio
  const maker=fs.readFileSync(path.join(__dirname,'..','pasture-preview/pasture-sheep-maker.js'),'utf8');
  assert.doesNotMatch(maker,/<select/i);
  assert.match(maker,/pastureSheepPreview/);
- assert.match(maker,/data-sheep-body/);
- assert.match(maker,/data-sheep-head/);
- assert.match(maker,/data-sheep-mark/);
+ assert.match(maker,/BASE_DIMS/);
+ assert.match(maker,/FEATURE_DIMS/);
+ assert.match(maker,/data-maker-dimension/);
+ assert.match(maker,/data-maker-option/);
+ assert.match(maker,/appearanceVersion:2/);
  assert.match(maker,/aria-pressed/);
  assert.match(maker,/saveSheep/);
 });
@@ -80,4 +82,18 @@ test('resident sheep hand uses relaxed, ready, and grabbing states while preserv
  assert.match(preview,/pasture-hand-cursor\.js/);
  assert.match(landscape,/residentHit\(e\.clientX,e\.clientY\)/);
  assert.match(landscape,/baaa01\.mp3/);
+});
+
+test('email-only residents can access only step card, not My Grass; construction stays locked',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const gate=fs.readFileSync(path.join(__dirname,'..','pasture-preview/pasture-resident-gate.js'),'utf8');
+ const preview=fs.readFileSync(path.join(__dirname,'..','pasture-preview/index.html'),'utf8');
+ assert.match(gate,/RESIDENT_OPEN_FEATURES=new Set\(\['budaoCardBtn'\]\)/);
+ assert.match(gate,/resident\?\.cardActivated===true/);
+ assert.match(gate,/button\.id==='grassBookBtn'&&canUseGrass\(\)/);
+ assert.match(gate,/pasture-card-required/);
+ assert.match(gate,/if\(allowed\(button\)\)return/);
+ assert.doesNotMatch(gate,/__PASTURE_TEST_UNLOCK/);
+ assert.doesNotMatch(preview,/演示激活码 BUDAO-2026/);
+ assert.doesNotMatch(preview,/保护.*居民登录是唯一入口门/);
 });

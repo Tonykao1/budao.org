@@ -1,4 +1,5 @@
 const crypto = require("node:crypto");
+const SheepDNA = require("../../pasture-sheep-dna.js");
 
 const COOKIE_NAME = "budao_pasture_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;
@@ -138,31 +139,48 @@ function clearSessionCookie(secure = true) {
   ].filter(Boolean).join("; ");
 }
 
-function validateSheep(input) {
-  const bodyColor = String(input && input.bodyColor || "");
-  const headColor = String(input && input.headColor || "");
-  const marking = String(input && input.marking || "NONE").toUpperCase();
-  if (!BODY_COLORS.includes(bodyColor) || !HEAD_COLORS.includes(headColor) || !MARKINGS.includes(marking)) {
-    const error = new Error("invalid_sheep");
-    error.code = "INVALID_SHEEP";
-    throw error;
-  }
-  return { bodyColor, headColor, marking };
+function invalidSheep() {
+  const error = new Error("invalid_sheep");
+  error.code = "INVALID_SHEEP";
+  throw error;
 }
-
+function validateSheep(input) {
+  // Preserve the complete final-generation appearance, including six-dimensional
+  // identity details; reject malformed data rather than silently flattening it.
+  if (Number(input?.appearanceVersion) === 2 || input?.appearance?.version === 2) {
+    if (!SheepDNA.validateV2(input?.appearance)) invalidSheep();
+    const v2 = { ...input.appearance };
+    return {
+      ...SheepDNA.toLegacy(v2),
+      appearanceVersion: 2,
+      appearanceV2: v2
+    };
+  }
+  const bodyColor = String(input?.bodyColor || "");
+  const headColor = String(input?.headColor || "");
+  const marking = String(input?.marking || "NONE").toUpperCase();
+  if (!BODY_COLORS.includes(bodyColor) || !HEAD_COLORS.includes(headColor) || !MARKINGS.includes(marking)) invalidSheep();
+  return { bodyColor, headColor, marking, appearanceVersion: 1, appearanceV2: null };
+}
+function publicSheep(sheep) {
+  return sheep ? {
+    id: sheep.id,
+    bodyColor: sheep.bodyColor,
+    headColor: sheep.headColor,
+    marking: sheep.marking,
+    appearanceVersion: Number(sheep.appearanceVersion || 1),
+    appearance: sheep.appearanceV2 || null,
+    createdAt: sheep.createdAt
+  } : null;
+}
 function publicUser(user, sheep) {
   if (!user) return null;
   return {
     id: user.id,
     emailMasked: user.emailMasked,
     createdAt: user.createdAt,
-    sheep: sheep ? {
-      id: sheep.id,
-      bodyColor: sheep.bodyColor,
-      headColor: sheep.headColor,
-      marking: sheep.marking,
-      createdAt: sheep.createdAt
-    } : null
+    cardActivated: Boolean(user.cardActivatedAt),
+    sheep: publicSheep(sheep)
   };
 }
 
@@ -190,5 +208,6 @@ module.exports = {
   serializeSessionCookie,
   clearSessionCookie,
   validateSheep,
+  publicSheep,
   publicUser
 };
