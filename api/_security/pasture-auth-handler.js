@@ -11,7 +11,10 @@ module.exports = async function handler(request, response) {
 
     if (request.method === "GET") {
       const resident = await authenticatedResident(request);
-      return sendJson(response, 200, { ok: true, user: resident });
+      // The resident's current server-side entitlement and ministry card receipt
+      // travel together; clients must never guess activation from UI state.
+      const card = resident?.id ? await cardStore.residentCardReceipt(resident.id) : null;
+      return sendJson(response, 200, { ok: true, user: resident, card });
     }
 
     const parsed = requireJsonPost(request);
