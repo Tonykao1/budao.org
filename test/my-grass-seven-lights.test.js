@@ -84,7 +84,9 @@ test('the completed voice and reading session are archived before insight; futur
  assert.match(onstop,/await putAudio\(audioId,blob\)/);
  assert.match(onstop,/C\.completeReadingJourney/);
  assert.match(onstop,/draft\.readingJourney=journey/);
- assert.match(onstop,/persistDraft\(\);journeyPhase='completed'/);
+ assert.match(onstop,/journeyPhase='completed';journeyError='';C\.setRuntimeReadingJourney\(journey\)/);
+ assert.match(onstop,/const archived=saveEntry\(\)/);
+ assert.match(onstop,/if\(!archived&&previousDraft\)/);
  assert.match(onstop,/const archived=saveEntry\(\)/);
  const setter=main.slice(main.indexOf('function setTab(next)'),main.indexOf('function insertArchiveText()',main.indexOf('function setTab(next)')));
  assert.match(setter,/next==='reflection'&&journeyPhase!=='completed'&&!legacy/);
