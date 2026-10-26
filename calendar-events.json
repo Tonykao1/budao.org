@@ -132,5 +132,15 @@
     "title": "舞彩浅山·枫叶季",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-11-01",
+    "type": "fellowship",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony",
+    "title": "晨星·步道半日营",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
