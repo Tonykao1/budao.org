@@ -301,6 +301,7 @@ let isPlaying = false;
 let hasStartedPlayback = false;
 let dspEnabled = false;
 let dspSwitchPending = false;
+let audioEngineAttachFailed = false;
 let audioContext = null;
 let sourceNode = null;
 let bypassGain = null;
@@ -378,8 +379,10 @@ function initAudioEngine() {
   if (!audioContext) return;
 
   try {
+    audioEngineAttachFailed = false;
     sourceNode = audioContext.createMediaElementSource(audio);
   } catch (error) {
+    audioEngineAttachFailed = true;
     console.warn("Unable to attach music to Web Audio", error);
     audioContext.close().catch(() => {});
     audioContext = null;
@@ -618,6 +621,7 @@ async function rebuildAudioPipeline(reason = "audio route change", forceNative =
       }
     }
 
+    audioEngineAttachFailed = false;
     applyDspState();
 
     if (resumeAfterRecovery) {
@@ -704,7 +708,7 @@ async function toggleDsp() {
       // before the first await and while the user gesture is still active.
       const ready = await ensureAudioEngineReady();
       if (!ready) {
-        if (audioContext || sourceNode) {
+        if (audioContext || sourceNode || audioEngineAttachFailed) {
           await restoreNativeAudioPipeline("DSP enable failed");
         }
         return;
