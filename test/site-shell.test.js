@@ -144,6 +144,187 @@ test("home playback wraps right, left, and ended across the full playlist", () =
   assert.equal(player.currentTrack, 0);
 });
 
+
+function createDspPlaybackHarness(options = {}) {
+  const script = home.match(/<script>([\s\S]*?)<\/script>/i)?.[1] || "";
+  const loudnessMap = JSON.parse(fs.readFileSync(path.join(root, "music/music.json"), "utf8"));
+  const listeners = new Map();
+  const contexts = [];
+  const pendingResumes = [];
+  const controls = Object.fromEntries(["playBtn", "nextBtn", "prevBtn", "dspBtn"].map((id) => [id, {
+    attributes: {},
+    classList: { toggle() {}, remove() {}, add() {} },
+    setAttribute(name, value) { this.attributes[name] = value; },
+    addEventListener(type, handler) { listeners.set(id + ":" + type, handler); }
+  }]));
+
+  class TestAudio {
+    constructor(src) {
+      this.src = src;
+      this.paused = true;
+      this.ended = false;
+      this.currentTime = 0;
+      this.duration = 180;
+      this.readyState = 1;
+      this.defaultPlaybackRate = 1;
+      this.playbackRate = 1;
+      this.listeners = new Map();
+    }
+    addEventListener(type, fn) { this.listeners.set(type, fn); }
+    removeEventListener(type, fn) {
+      if (this.listeners.get(type) === fn) this.listeners.delete(type);
+    }
+    emit(type) { this.listeners.get(type)?.(); }
+    load() { this.currentTime = 0; this.emit("loadedmetadata"); }
+    play() { this.paused = false; this.ended = false; this.emit("play"); return Promise.resolve(); }
+    pause() { this.paused = true; this.emit("pause"); }
+  }
+
+  class TestParam {
+    constructor(value = 1) { this.value = value; }
+    cancelScheduledValues() {}
+    setValueAtTime(value) { this.value = value; }
+    linearRampToValueAtTime(value) { this.value = value; }
+  }
+  class TestNode {
+    constructor() {
+      this.gain = new TestParam();
+      this.frequency = new TestParam();
+      this.Q = new TestParam();
+    }
+    connect(destination) { return destination; }
+  }
+  class TestAudioContext {
+    constructor() {
+      this.state = options.resumeFails || options.deferResume ? "suspended" : "running";
+      this.currentTime = 0;
+      this.destination = new TestNode();
+      contexts.push(this);
+    }
+    createMediaElementSource(media) {
+      if (media.attachedToWebAudio) throw new Error("MediaElement already attached");
+      media.attachedToWebAudio = true;
+      return new TestNode();
+    }
+    createGain() { return new TestNode(); }
+    createBiquadFilter() { return new TestNode(); }
+    async resume() {
+      if (options.resumeFails) throw new Error("Simulated AudioContext resume rejection");
+      if (options.deferResume) {
+        await new Promise((resolve) => pendingResumes.push(resolve));
+      }
+      this.state = "running";
+    }
+    close() { this.state = "closed"; return Promise.resolve(); }
+  }
+  const navigator = {
+    userAgent: options.safari
+      ? "Mozilla/5.0 Macintosh AppleWebKit/605.1.15 Version/17.6 Safari/605.1.15"
+      : "Mozilla/5.0 Chrome/125.0 AppleWebKit/537.36 Safari/537.36",
+    maxTouchPoints: 0,
+    mediaSession: { setActionHandler() {}, setPositionState() {} }
+  };
+  const environment = {
+    Audio: TestAudio,
+    AudioContext: TestAudioContext,
+    MediaMetadata: class {},
+    Math: Object.create(Math),
+    navigator,
+    document: { getElementById: (id) => controls[id], addEventListener() {}, hidden: false },
+    fetch: async () => ({ ok: true, json: async () => loudnessMap }),
+    performance: { now: () => 0 },
+    console: { ...console, debug() {} },
+    setInterval: () => 1,
+    clearInterval() {},
+    setTimeout: () => 1,
+    clearTimeout() {},
+    addEventListener() {}
+  };
+  environment.window = environment;
+  environment.Math.random = () => 0;
+  vm.runInNewContext(script + "\n;globalThis.dspProbe = {" +
+    "get audio() { return audio; }," +
+    "get enabled() { return dspEnabled; }," +
+    "get pending() { return dspSwitchPending; }," +
+    "get context() { return audioContext; }" +
+    "};", environment);
+  return {
+    controls,
+    contexts,
+    pendingResumes,
+    get audio() { return environment.dspProbe.audio; },
+    get enabled() { return environment.dspProbe.enabled; },
+    get pending() { return environment.dspProbe.pending; },
+    get context() { return environment.dspProbe.context; },
+    click(id) { return listeners.get(id + ":click")(); }
+  };
+}
+
+test("Reference B includes a measured entry for every homepage song", () => {
+  const playlist = [...home.match(/const playlist = \[([\s\S]*?)\];/)[1]
+    .matchAll(/"([^"]+\.mp3)"/g)].map((match) => match[1]);
+  const map = JSON.parse(fs.readFileSync(path.join(root, "music/music.json"), "utf8"));
+  assert.equal(playlist.length, 25);
+  assert.deepEqual(Object.keys(map.tracks).sort(), playlist.slice().sort());
+  for (const song of playlist) {
+    assert.ok(Number.isFinite(map.tracks[song].gain_db), song + " needs measured gain");
+  }
+});
+
+test("raw playback does not construct Web Audio before DSP is enabled", async () => {
+  const h = createDspPlaybackHarness();
+  await h.click("playBtn");
+  assert.equal(h.contexts.length, 0);
+  await h.click("dspBtn");
+  assert.equal(h.contexts.length, 1);
+  assert.equal(h.enabled, true);
+  assert.equal(h.controls.dspBtn.attributes["aria-pressed"], "true");
+});
+
+test("rapid DSP clicks never create duplicate contexts or double-toggle", async () => {
+  const h = createDspPlaybackHarness({ deferResume: true });
+  const first = h.click("dspBtn");
+  const second = h.click("dspBtn");
+  assert.equal(h.contexts.length, 1);
+  assert.equal(h.pending, true);
+  assert.equal(h.enabled, false);
+  assert.equal(h.pendingResumes.length, 1);
+  h.pendingResumes[0]();
+  await Promise.all([first, second]);
+  assert.equal(h.enabled, true);
+  assert.equal(h.pending, false);
+});
+
+test("a rejected AudioContext resume restores native playback instead of silence", async () => {
+  const h = createDspPlaybackHarness({ resumeFails: true });
+  await h.click("playBtn");
+  const previous = h.audio;
+  previous.currentTime = 32;
+  await h.click("dspBtn");
+  assert.equal(h.enabled, false);
+  assert.equal(h.context, null);
+  assert.notEqual(h.audio, previous);
+  assert.equal(h.audio.paused, false);
+  assert.equal(h.audio.currentTime, 32);
+  assert.equal(h.controls.dspBtn.attributes["aria-pressed"], "false");
+});
+
+test("Safari DSP off rebuilds native playback while preserving playback position", async () => {
+  const h = createDspPlaybackHarness({ safari: true });
+  await h.click("playBtn");
+  await h.click("dspBtn");
+  const previous = h.audio;
+  const oldContext = h.context;
+  previous.currentTime = 42;
+  await h.click("dspBtn");
+  assert.equal(h.enabled, false);
+  assert.equal(h.context, null);
+  assert.equal(oldContext.state, "closed");
+  assert.notEqual(h.audio, previous);
+  assert.equal(h.audio.currentTime, 42);
+  assert.equal(h.audio.paused, false);
+});
+
 function createFellowshipQrHarness(route) {
   const source = fs.readFileSync(path.join(root, "route-invitation-action.js"), "utf8");
   let captureClick = null;
