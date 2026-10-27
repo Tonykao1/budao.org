@@ -33,10 +33,10 @@ jobs:
           # The homepage is the single source of truth for the playlist.
           # Never silently leave new songs without a loudness measurement.
           home = pathlib.Path("home.html").read_text(encoding="utf-8")
-          playlist_match = re.search(r"const playlist\\s*=\\s*\\[([\\s\\S]*?)\\];", home)
+          playlist_match = re.search(r"const playlist\s*=\s*\[([\s\\S]*?)\];", home)
           if not playlist_match:
               raise RuntimeError("Could not find homepage playlist")
-          playlist = re.findall(r'"([^"]+\\.mp3)"', playlist_match.group(1))
+          playlist = re.findall(r'"([^"]+\.mp3)"', playlist_match.group(1))
           if not playlist or len(playlist) != len(set(playlist)):
               raise RuntimeError("Homepage playlist missing or contains duplicate paths")
           missing = [path for path in playlist if not pathlib.Path(path).is_file()]
