@@ -371,7 +371,7 @@ function stageReading(){
         '<button type="button" data-action="dsp-eq" aria-pressed="'+eqEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(eqEnabled?'ON':'OFF')+'</button>'+
         '<small class="gs-eq-values">低 '+(eqBands.low>0?'+':'')+eqBands.low+' / 中 '+(eqBands.mid>0?'+':'')+eqBands.mid+' / 高 '+(eqBands.high>0?'+':'')+eqBands.high+' dB</small></div>'+
       ['COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel gs-dsp-coming"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['压缩','混响'][i]+' · 待接入</small></div>').join('')+
-    '</div><p id="gsDspStatus" role="status">'+(denoiseEnabled?'降噪试听已选择 · 原声文件不受影响':'第 1 模块：降噪试听可启用 · 其余模块待接入')+'</p></div>'+
+    '</div><p id="gsDspStatus" role="status">'+((denoiseEnabled||eqEnabled)?[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null].filter(Boolean).join(' + ')+' · 仅试听，原声母本不变':'降噪和三段均衡可试听 · 压缩与混响待接入')+'</p></div>'+
   soundPathView()+voiceYearRingView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
