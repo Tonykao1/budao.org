@@ -363,6 +363,18 @@
       ctx.lineWidth = 1;
       ctx.strokeRect(box.x, box.y, box.width, box.height);
       drawPostmark(ctx, viewModel);
+      // Invitation 2.0: a concise, legible identity label shared with the web invitation.
+      // Keep it away from the postmark and preserve the destination photograph.
+      const tagX = box.x + 24;
+      const tagY = box.y + box.height - 74;
+      ctx.fillStyle = 'rgba(24, 42, 32, 0.88)';
+      ctx.fillRect(tagX, tagY, 218, 50);
+      drawBoundedText(ctx, '步道同行', tagX + 16, tagY + 32, 112, {
+        color: '#fffdf7', size: 23, weight: 650, maxLines: 1
+      });
+      drawBoundedText(ctx, 'BUDAO', tagX + 134, tagY + 31, 72, {
+        color: '#eee4c6', size: 13, weight: 700, maxLines: 1
+      });
     },
 
     intent: function (ctx, viewModel) {
@@ -390,6 +402,8 @@
         { label: '时间', value: text(viewModel.time) ? text(viewModel.time) + ' 集合' : '待定', x: box.x + 220, width: 190 },
         { label: '地点', value: text(viewModel.location) || '同行地点待定', x: box.x + 440, width: 404 }
       ];
+      ctx.fillStyle = '#f5f1e7';
+      ctx.fillRect(box.x, box.y, box.width, box.height);
       drawRule(ctx, box.x, box.y, box.x + box.width, box.y, 'rgba(61,48,35,0.14)', 1);
       drawRule(ctx, box.x, box.y + box.height, box.x + box.width, box.y + box.height,
         'rgba(61,48,35,0.14)', 1);
@@ -412,6 +426,8 @@
 
     meeting: function (ctx, viewModel) {
       const box = ARTIFACT_LAYOUT.meeting;
+      ctx.fillStyle = '#f3f5ee';
+      ctx.fillRect(box.x - 10, box.y + 1, box.width + 20, box.height - 3);
       drawBoundedText(ctx, 'MEETING POINT', box.x, box.y + 22, 200, {
         color: '#8b7860',
         size: 13,
@@ -460,6 +476,10 @@
       ordered.forEach(function (key, index) {
         const column = index % 2;
         const row = Math.floor(index / 2);
+        if (facts.get(key)) {
+          ctx.fillStyle = '#f3f4ed';
+          ctx.fillRect(box.x + column * 296 - 8, box.y + row * 66 - 8, columnWidth + 15, 60);
+        }
         drawFact(ctx, facts.get(key), box.x + column * 296, box.y + row * 66, columnWidth, {
           labelSize: 13,
           valueSize: 16,
@@ -604,6 +624,124 @@
     }
   };
 
+  const THEME_PALETTES = Object.freeze({
+    classic: { paper: '#fbfaf7', color: '#17130f', tint: '#eee8dc' },
+    landscape: { paper: '#e7eee7', color: '#193e30', tint: '#d5e4d5' },
+    natural: { paper: '#fff8e8', color: '#365d39', tint: '#ffedcd' }
+  });
+
+
+  // Two independent poster compositions based on the approved Lupiguan triptych.
+  // Text, route data and QR stay vector-sharp; uploaded images are never edited by AI.
+  function posterText(ctx, value, x, y, width, size, color, weight, maxLines) {
+    drawBoundedText(ctx, value, x, y, width, {
+      size: size, color: color, weight: weight || 600, maxLines: maxLines || 1,
+      lineHeight: Math.round(size * 1.35)
+    });
+  }
+
+  function posterRegistration(ctx, model, state, assets, dark) {
+    const x = 772, y = 1210, outer = 190, pad = 18;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x, y, outer, outer);
+    if (!state.registrationOpen) {
+      posterText(ctx, '报名已截止', x + 13, y + 98, 168, 23, '#405843', 700);
+    } else if (!drawContainAsset(ctx, assets.qrImage, {
+      x: x + pad, y: y + pad, width: 154, height: 154
+    })) {
+      posterText(ctx, '报名码暂未放出', x + 11, y + 95, 168, 18, '#405843', 600);
+    }
+    posterText(ctx, state.registrationOpen ? '扫码报名 · 一路同行' : '此程已封缄',
+      x - 8, 1437, 235, 18, dark ? '#ffffff' : '#274935', 700);
+  }
+
+  function posterFacts(ctx, model, x, y, color, width) {
+    const facts = factMap(model);
+    const order = ['distance', 'elevation', 'difficulty'];
+    order.forEach(function (key, index) {
+      const fact = facts.get(key);
+      if (!fact) return;
+      const col = x + index * (width + 15);
+      ctx.fillStyle = color === '#ffffff' ? '#153b2e' : '#edf2da';
+      ctx.fillRect(col - 8, y - 36, width + 8, 112);
+      posterText(ctx, fact.value, col + 10, y + 45, width - 20, 36, color, 800, 1);
+      posterText(ctx, fact.label, col + 10, y - 10, width - 20, 18, color, 650, 1);
+    });
+  }
+
+  function renderOutdoorPoster(ctx, model, state, assets) {
+    ctx.fillStyle = '#142c23';
+    ctx.fillRect(0, 0, ARTIFACT_WIDTH, ARTIFACT_HEIGHT);
+    const scenic = { x: 0, y: 0, width: 1080, height: 1040 };
+    if (!drawCoverAsset(ctx, assets.destinationImage, scenic)) {
+      ctx.fillStyle = '#476e63';
+      ctx.fillRect(0, 0, 1080, 1040);
+    }
+    // Photo is the hero; a dedicated bottom panel maintains legibility.
+    ctx.fillStyle = 'rgba(5,27,22,0.56)';
+    ctx.fillRect(0, 0, 1080, 135);
+    posterText(ctx, 'BUDAO  /  山野同行', 74, 84, 680, 26, '#ffffff', 700);
+    ctx.fillStyle = 'rgba(4,33,26,0.82)';
+    ctx.fillRect(0, 640, 1080, 400);
+    posterText(ctx, model.title || '步道同行', 72, 755, 925, 78, '#ffffff', 800, 2);
+    posterText(ctx, '在山与湖之间 · 一路同行', 74, 875, 930, 29, '#f1f4dc', 550);
+    ctx.fillStyle = '#24513b';
+    ctx.fillRect(0, 1040, 1080, 490);
+    posterFacts(ctx, model, 74, 1120, '#ffffff', 205);
+    drawRule(ctx, 74, 1210, 1000, 1210, '#8fac8a', 2);
+    posterText(ctx, [model.date, model.time].filter(Boolean).join('   ·   '), 74, 1243,
+      625, 36, '#fffdf5', 700);
+    posterText(ctx, model.meetingPlace || model.location || '集合地点待公布',
+      74, 1315, 655, 25, '#f1f4dc', 600, 2);
+    posterText(ctx, '集合地点', 74, 1277, 200, 16, '#bbd1bd', 500);
+    posterRegistration(ctx, model, state, assets, true);
+    posterText(ctx, '步道  ·  budao.org', 74, 1460, 555, 25, '#ffffff', 650);
+  }
+
+  function renderNaturalPoster(ctx, model, state, assets) {
+    ctx.fillStyle = '#fff5df';
+    ctx.fillRect(0, 0, ARTIFACT_WIDTH, ARTIFACT_HEIGHT);
+    // Fixed illustrated vocabulary: sunny sky, cloud-like circles, hills, plants.
+    ctx.fillStyle = '#dceff0';
+    ctx.fillRect(0, 0, 1080, 720);
+    drawCircle(ctx, 129, 135, 59, '#f5b93b');
+    drawCircle(ctx, 860, 155, 135, '#f6fbf7');
+    drawCircle(ctx, 975, 190, 90, '#f6fbf7');
+    ctx.fillStyle = '#a9c5a7';
+    ctx.fillRect(0, 515, 1080, 190);
+    ctx.fillStyle = '#7da47b';
+    ctx.fillRect(0, 660, 1080, 120);
+    // The route photograph remains authentic, placed within an art-directed scene.
+    ctx.fillStyle = '#fffdf4';
+    ctx.fillRect(120, 278, 840, 438);
+    if (!drawCoverAsset(ctx, assets.destinationImage,
+      { x: 138, y: 296, width: 804, height: 398 })) {
+      ctx.fillStyle = '#bdcfb0';
+      ctx.fillRect(138, 296, 804, 398);
+    }
+    posterText(ctx, '一起走进自然 · 一起成为同行的人', 126, 101, 820,
+      27, '#376640', 650);
+    posterText(ctx, model.title || '步道同行', 121, 223, 900, 66, '#265631', 800, 2);
+    ctx.fillStyle = '#fff6e8';
+    ctx.fillRect(74, 775, 932, 640);
+    posterText(ctx, '在美好的相聚中，走出一段值得记得的路', 112, 848,
+      825, 27, '#486a3d', 650, 2);
+    drawRule(ctx, 112, 887, 953, 887, '#b8c994', 2);
+    posterText(ctx, [model.date, model.time].filter(Boolean).join('   ·   '),
+      112, 953, 825, 38, '#2b5435', 700);
+    posterText(ctx, model.meetingPlace || model.location || '集合地点待公布',
+      112, 1008, 825, 25, '#365b3d', 600, 2);
+    posterFacts(ctx, model, 112, 1135, '#2b5435', 190);
+    drawRule(ctx, 112, 1224, 720, 1224, '#b8c994', 2);
+    posterText(ctx, '相聚 · 同行 · 看见', 112, 1285, 620, 29, '#386342', 700);
+    posterText(ctx, '步道  /  budao.org', 112, 1404, 620, 23, '#386342', 650);
+    posterRegistration(ctx, model, state, assets, false);
+    // Corner botanical motif built from fixed vector shapes.
+    drawCircle(ctx, 50, 1368, 24, '#84ae72');
+    drawCircle(ctx, 65, 1415, 17, '#d7a353');
+    drawCircle(ctx, 1006, 1432, 30, '#84ae72');
+  }
+
   function renderModeBShareArtifact(ctx, viewModel, renderState, assets) {
     if (!ctx || typeof ctx.fillRect !== 'function' || typeof ctx.fillText !== 'function' ||
         typeof ctx.strokeRect !== 'function') {
@@ -614,9 +752,38 @@
     const normalizedState = normalizeArtifactRenderState(renderState, model.key);
     const suppliedAssets = assets && typeof assets === 'object' ? assets : {};
     const completedStages = [];
+    const selectedTheme = model.theme === 'landscape' || model.theme === 'natural' ? model.theme : 'classic';
+    if (selectedTheme !== 'classic') {
+      if (selectedTheme === 'landscape') renderOutdoorPoster(ctx, model, normalizedState, suppliedAssets);
+      else renderNaturalPoster(ctx, model, normalizedState, suppliedAssets);
+      return { width: ARTIFACT_WIDTH, height: ARTIFACT_HEIGHT, renderState: normalizedState,
+        stages: ['paper', 'destination', 'intent', 'schedule', 'meeting', 'primaryFacts', 'participation', 'footer'],
+        layout: ARTIFACT_LAYOUT, textLimits: TEXT_LIMITS };
+    }
 
+    const theme = Object.prototype.hasOwnProperty.call(THEME_PALETTES, model.theme)
+      ? model.theme : 'classic';
+    const palette = THEME_PALETTES[theme];
     DRAWING_STAGE_ORDER.forEach(function (stageName) {
       STAGE_DRAWERS[stageName](ctx, model, normalizedState, suppliedAssets);
+      if (stageName === 'paper' && theme !== 'classic') {
+        ctx.fillStyle = palette.paper;
+        ctx.fillRect(0, 0, ARTIFACT_WIDTH, ARTIFACT_HEIGHT);
+      }
+      if (stageName === 'destination' && theme !== 'classic') {
+        const heading = ARTIFACT_LAYOUT.destination;
+        ctx.fillStyle = theme === 'landscape' ? '#193e30' : '#466d3d';
+        ctx.fillRect(heading.x + 20, heading.y + heading.height - 64, 220, 41);
+        drawBoundedText(ctx, theme === 'landscape' ? '山野风景 · BUDAO' : '自然生活 · BUDAO', heading.x + 34, heading.y + heading.height - 36, 198, {
+          color: '#fffdf7', size: 18, weight: 650, maxLines: 1
+        });
+      }
+      if (stageName === 'intent' && theme !== 'classic') {
+        const box = ARTIFACT_LAYOUT.intent;
+        drawBoundedText(ctx, theme === 'landscape' ? '山野同行 · 一路探索' : '相聚自然 · 温暖同行', box.x, box.y + 140, box.width, {
+          color: palette.color, size: 24, weight: 600, maxLines: 1
+        });
+      }
       completedStages.push(stageName);
     });
 

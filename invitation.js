@@ -48,6 +48,32 @@
       return;
     }
     const viewModel = modeB.snapshotToModeBViewModel(inv);
+    const themes = [
+      { key: 'classic', name: '经典邀请函' },
+      { key: 'landscape', name: '山野风景' },
+      { key: 'natural', name: '自然生活' }
+    ];
+    const controls = document.createElement('nav');
+    controls.className = 'invitation-style-picker';
+    controls.setAttribute('aria-label', '请柬视觉风格预览');
+    const buttons = themes.map(function (item) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = item.name;
+      button.addEventListener('click', function () {
+        viewModel.theme = item.key;
+        modeB.renderModeB(invitationRoot, viewModel);
+        buttons.forEach(function (control) {
+          control.setAttribute('aria-pressed', String(control === button));
+        });
+      });
+      controls.appendChild(button);
+      return button;
+    });
+    buttons[themes.findIndex(function (item) { return item.key === viewModel.theme; }) >= 0
+      ? themes.findIndex(function (item) { return item.key === viewModel.theme; }) : 0]
+      .setAttribute('aria-pressed', 'true');
+    invitationRoot.parentNode.insertBefore(controls, invitationRoot);
     modeB.renderModeB(invitationRoot, viewModel);
     invitationRoot.hidden = false;
   }

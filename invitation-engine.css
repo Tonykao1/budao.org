@@ -613,3 +613,33 @@ body.invitation-open footer {
         padding:6.2% 6.8% 4.6%;
     }
 }
+
+/* Invitation 2.0 — theme picker in the share-image dialog. */
+.invitation-theme-options {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px auto 18px;
+}
+.invitation-theme-options button {
+  appearance: none;
+  border: 1px solid rgba(49,70,51,.28);
+  background: #f8f6ee;
+  border-radius: 999px;
+  color: #344737;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.invitation-theme-options button[aria-pressed="true"] {
+  background: #2c4e36;
+  color: #fff;
+  border-color: #2c4e36;
+}
+.invitation-theme-options button:focus-visible {
+  outline: 3px solid #d4a94a;
+  outline-offset: 2px;
+}

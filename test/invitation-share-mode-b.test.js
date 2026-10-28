@@ -192,11 +192,11 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.deepStrictEqual(first, second);
   });
 
-  it('20. leaves the existing Mode B ViewModel schema unchanged', () => {
+  it('20. extends Mode B ViewModel with invitation theme without changing participation state', () => {
     const keys = Object.keys(viewModel()).sort();
     assert.deepStrictEqual(keys, [
       'date', 'description', 'key', 'location', 'meetingPlace', 'participation',
-      'pills', 'time', 'timezone', 'title', 'visual'
+      'pills', 'theme', 'time', 'timezone', 'title', 'visual'
     ]);
     assert.ok(!keys.includes('registrationOpen'));
     assert.ok(!keys.includes('closedVariant'));
@@ -408,6 +408,28 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     const participation = artifact.ARTIFACT_LAYOUT.participation;
     const footer = artifact.ARTIFACT_LAYOUT.footer;
     assert.ok(footer.y - (participation.y + participation.height) >= 24);
+  });
+
+  it('Invitation 2.0 keeps PNG dimensions and visually distinguishes each theme', () => {
+    const themes = ['classic', 'landscape', 'natural'];
+    const outputs = themes.map((theme) => rendered({
+      viewModel: { ...viewModel(), theme }
+    }));
+    outputs.forEach(({ result }) => {
+      assert.strictEqual(result.width, 1080);
+      assert.strictEqual(result.height, 1530);
+    });
+    const texts = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'fillText').map(call => call[1]));
+    assert.ok(texts[1].some(value => value.includes('山野同行')));
+    assert.ok(texts[2].some(value => value.includes('一起走进自然')));
+    assert.ok(!texts[0].some(value => value.includes('山野同行')));
+    assert.ok(!texts[0].some(value => value.includes('一起走进自然')));
+    const photographs = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'drawImage'));
+    assert.notDeepStrictEqual(texts[0], texts[1]);
+    assert.notDeepStrictEqual(texts[1], texts[2]);
+    // Independent poster compositions must not inherit the editorial layout.
+    assert.ok(outputs[1].result.stages.length < outputs[0].result.stages.length);
+    assert.ok(outputs[2].result.stages.length < outputs[0].result.stages.length);
   });
 
   it('41. keeps the renderer usable with a lightweight Canvas mock', () => {

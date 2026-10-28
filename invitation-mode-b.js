@@ -14,6 +14,10 @@
     ['equipmentMinimum', '装备'],
     ['weather', '天气']
   ];
+  const INVITATION_THEMES = Object.freeze(['classic', 'landscape', 'natural']);
+  function normalizeTheme(value) {
+    return INVITATION_THEMES.includes(value) ? value : 'classic';
+  }
   const PRIMARY_FACT_KEYS = new Set(['distance', 'duration', 'difficulty', 'suitableFor']);
 
   function text(value) {
@@ -93,6 +97,7 @@
       : pillsFrom(source);
 
     return {
+      theme: normalizeTheme(source.theme),
       key: text(source.key),
       title: text(source.title) || '步道同行',
       location: text(source.location),
@@ -117,6 +122,7 @@
       : {};
 
     return makeViewModel({
+      theme: invitation.theme,
       key: invitation.id,
       title: facts.title,
       location: facts.location,
@@ -148,6 +154,7 @@
       value.activityQrCode || value.qrImage || value.qr || '';
 
     return makeViewModel({
+      theme: value.invitationTheme,
       key: value.id || value.routeId || value.slot || value.title || value.date,
       title: value.title,
       location: locationParts.join(' · ') || value.location,
@@ -207,7 +214,7 @@
     const documentRef = container.ownerDocument;
     const viewModel = makeViewModel(input || {});
     const card = documentRef.createElement('article');
-    card.className = 'mode-b-card';
+    card.className = 'mode-b-card mode-b-theme-' + viewModel.theme;
     card.setAttribute('data-mode-b-key', viewModel.key);
     card.setAttribute('aria-label', viewModel.title + ' 同行邀请');
 
@@ -243,6 +250,11 @@
     appendText(documentRef, postmark, 'strong', '', 'BUDAO');
     appendText(documentRef, postmark, 'small', '', viewModel.date || 'POST');
     destination.appendChild(postmark);
+    const journeyMark = documentRef.createElement('figcaption');
+    journeyMark.className = 'mode-b-journey-mark';
+    appendText(documentRef, journeyMark, 'span', '', '步道同行');
+    appendText(documentRef, journeyMark, 'small', '', 'A JOURNEY TOGETHER');
+    destination.appendChild(journeyMark);
     card.appendChild(destination);
 
     const intent = documentRef.createElement('section');
@@ -333,6 +345,8 @@
     snapshotToModeBViewModel,
     routeToModeBViewModel,
     renderModeB,
+    normalizeTheme,
+    INVITATION_THEMES,
     safeHttpsUrl
   };
 }));
