@@ -179,7 +179,7 @@ describe('Phase 2D.3 existing share flow integration', () => {
     const h = harness(); await h.engine.createArtifact(h.route);
     assert.notStrictEqual(h.calls.renderer[0].viewModel, h.route);
     assert.deepStrictEqual(Object.keys(h.calls.renderer[0].viewModel).sort(),
-      ['date','description','key','location','meetingPlace','participation','pills','time','timezone','title','visual']);
+      ['date','description','key','location','meetingPlace','participation','pills','theme','time','timezone','title','visual']);
   });
   it('5. creates a 1080 × 1530 Canvas', async () => {
     const h = harness(); const result = await h.engine.createArtifact(h.route);
