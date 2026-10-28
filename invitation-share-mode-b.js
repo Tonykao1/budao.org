@@ -363,6 +363,18 @@
       ctx.lineWidth = 1;
       ctx.strokeRect(box.x, box.y, box.width, box.height);
       drawPostmark(ctx, viewModel);
+      // Invitation 2.0: a concise, legible identity label shared with the web invitation.
+      // Keep it away from the postmark and preserve the destination photograph.
+      const tagX = box.x + 24;
+      const tagY = box.y + box.height - 74;
+      ctx.fillStyle = 'rgba(24, 42, 32, 0.88)';
+      ctx.fillRect(tagX, tagY, 218, 50);
+      drawBoundedText(ctx, '步道同行', tagX + 16, tagY + 32, 112, {
+        color: '#fffdf7', size: 23, weight: 650, maxLines: 1
+      });
+      drawBoundedText(ctx, 'BUDAO', tagX + 134, tagY + 31, 72, {
+        color: '#eee4c6', size: 13, weight: 700, maxLines: 1
+      });
     },
 
     intent: function (ctx, viewModel) {
