@@ -32,15 +32,6 @@
   function moonEphemeris({timeMs,latitude,longitude}){if(!Number.isFinite(timeMs)||!validLatLon(latitude,longitude))return{altitudeDeg:NaN,azimuthDeg:NaN,ra:NaN,dec:NaN,phase:NaN,illumination:NaN,lightX:NaN,lightY:NaN};const d=daysSinceJ2000(timeMs),moon=moonEquatorial(timeMs),sun=sunEquatorial(timeMs);const h=equatorialToHorizontal({ra:moon.ra,dec:moon.dec,timeMs,latitude,longitude});const moonVec=unitVector(moon.ra,moon.dec),sunVec=unitVector(sun.ra,sun.dec);const elongation=Math.acos(clamp(dot(moonVec,sunVec),-1,1));const illumination=(1-Math.cos(elongation))/2;const phase=((moon.longitude-sun.longitude)/(Math.PI*2)%1+1)%1;const phi=latitude*DEG,theta=siderealTime(d,longitude);const zenith=[Math.cos(phi)*Math.cos(theta),Math.cos(phi)*Math.sin(theta),Math.sin(phi)];const bright=normalize(subProjection(sunVec,moonVec));const up=normalize(subProjection(zenith,moonVec));const right=normalize(cross(moonVec,up));return{...h,ra:moon.ra,dec:moon.dec,phase,illumination,lightX:dot(bright,right),lightY:-dot(bright,up)};}
   function computeStarHorizontals({timeMs,latitude,longitude,stars}){if(!Array.isArray(stars))return[];return stars.map(star=>Object.assign({},star,equatorialToHorizontal({ra:star.ra,dec:star.dec,timeMs,latitude,longitude})));}
   function smoothstep(a,b,x){if(a===b)return x>=b?1:0;const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);}
-  // A single solar-altitude profile governs landscape and portrait lighting.
-  // The blend is continuous across sunrise/sunset; cloud and moon visibility
-  // are separate from whether the Sun is above the horizon.
-  function solarLightProfile(sunAltitudeDeg){
-    if(!Number.isFinite(sunAltitudeDeg))return null;
-    const darkness=.62*smoothstep(-1,-12,sunAltitudeDeg);
-    const glow=.085*smoothstep(-10,-1,sunAltitudeDeg)*(1-smoothstep(-1,10,sunAltitudeDeg));
-    return{darkness,glow};
-  }
   function moonVisualProfile(sunAltitudeDeg){if(!Number.isFinite(sunAltitudeDeg))return{brightAlpha:1,darkAlpha:1};if(sunAltitudeDeg>=0)return{brightAlpha:.45,darkAlpha:0};if(sunAltitudeDeg<=-12)return{brightAlpha:1,darkAlpha:1};if(sunAltitudeDeg>-6){const t=smoothstep(0,-6,sunAltitudeDeg);return{brightAlpha:.45+.30*t,darkAlpha:.18*t};}const t=smoothstep(-6,-12,sunAltitudeDeg);return{brightAlpha:.75+.25*t,darkAlpha:.18+.82*t};}
   function twilightFactor(sunAltitudeDeg,visualMagnitude){if(!Number.isFinite(sunAltitudeDeg)||!Number.isFinite(visualMagnitude))return 0;if(sunAltitudeDeg>-4)return 0;const m=visualMagnitude<=0?0:visualMagnitude<=1?1:visualMagnitude<=2?2:3;const starts=[-4,-6,-9,-12],ends=[-6,-9,-12,-15];if(sunAltitudeDeg<=ends[m])return 1;if(sunAltitudeDeg>=starts[m])return 0;return smoothstep(starts[m],ends[m],sunAltitudeDeg);}
   function atmosphericFactor(altitudeDeg){if(!Number.isFinite(altitudeDeg)||altitudeDeg<=0)return 0;if(altitudeDeg<5)return .12+.23*(altitudeDeg/5);if(altitudeDeg<12)return .35+.30*((altitudeDeg-5)/7);if(altitudeDeg<25)return .65+.35*((altitudeDeg-12)/13);return 1;}
@@ -48,18 +39,6 @@
   function moonlightFactor({visualMagnitude,starAltitudeDeg,starAzimuthDeg,moon}){if(!moon||!Number.isFinite(moon.altitudeDeg)||!Number.isFinite(moon.azimuthDeg)||!Number.isFinite(moon.illumination)||moon.altitudeDeg<=0||moon.illumination<=.02)return 1;const sep=angularSeparationDeg(starAltitudeDeg,starAzimuthDeg,moon.altitudeDeg,moon.azimuthDeg);const proximity=Math.exp(-sep/38);const moonHeight=smoothstep(0,25,moon.altitudeDeg);const faintness=clamp((visualMagnitude+.5)/3.5,.12,1);const suppression=.78*moon.illumination*moonHeight*proximity*faintness;return clamp(1-suppression,.08,1);}
   function effectiveCloudCover(cloudCover,weatherCode){let c=clamp(Number(cloudCover)||0,0,100),code=Number(weatherCode)||0;if(code===45||code===48)c=Math.max(c,92);else if((code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99)||(code>=71&&code<=77)||(code>=85&&code<=86))c=Math.max(c,88);else if(code===3)c=Math.max(c,85);else if(code===2)c=Math.max(c,55);else if(code===1)c=Math.max(c,25);return c;}
   function cloudOpacityAt({xNorm,yNorm,cloudCover,weatherCode,timeMs}){const cover=effectiveCloudCover(cloudCover,weatherCode)/100;if(cover<=0)return 0;const x=Number(xNorm)||0,y=Number(yNorm)||0,t=(Number(timeMs)||0)/60000;const n=(Math.sin((x*7.1+t*.017)*Math.PI*2)+Math.sin((y*5.3-x*1.7+t*.011)*Math.PI*2)*.65+Math.sin(((x+y)*3.2-t*.007)*Math.PI*2)*.45)/2.1;const field=clamp(.5+.5*n,0,1);const shaped=Math.pow(field,1.35);return clamp(cover*(.08+.92*shaped),0,1);}
-  // Moonlight is obscured by local clouds just like other celestial objects.
-  // The Moon can still be visible during daytime; weather is not a day/night gate.
-  function moonCloudVisibility({weatherCode=0,cloudCover=0,timeMs=0,xNorm=.5,yNorm=.5}){
-    const code=Number(weatherCode)||0;
-    if(code===3||code===45||code===48||(code>=51&&code<=67)||
-       (code>=71&&code<=77)||(code>=80&&code<=82)||
-       (code>=85&&code<=86)||(code>=95&&code<=99))return 0;
-    const cover=effectiveCloudCover(cloudCover,code);
-    if(cover>=95)return 0;
-    const local=cloudOpacityAt({xNorm,yNorm,cloudCover:cover,weatherCode:code,timeMs});
-    return clamp((1-local)*(1-.9*smoothstep(60,95,cover)),0,1);
-  }
   function starVisibility({visualMagnitude,altitudeDeg,azimuthDeg,sunAltitudeDeg,moon,cloudOpacity}){if(!Number.isFinite(visualMagnitude)||visualMagnitude>3||altitudeDeg<=0)return 0;const intrinsic=clamp((3.6-visualMagnitude)/4.1,.12,1);const tw=twilightFactor(sunAltitudeDeg,visualMagnitude);const atm=atmosphericFactor(altitudeDeg);const ml=moonlightFactor({visualMagnitude,starAltitudeDeg:altitudeDeg,starAzimuthDeg:azimuthDeg,moon});const cloud=1-clamp(Number(cloudOpacity)||0,0,1);return clamp(intrinsic*tw*atm*ml*cloud,0,1);}
   function starTwinkle({visibility,altitudeDeg,visualMagnitude,timeMs,seed}){if(!(visibility>0))return 1;const nearHorizon=1-clamp((altitudeDeg-5)/55,0,1);const bright=1-clamp((visualMagnitude+1.5)/4.5,0,1);const amp=.008+.07*nearHorizon*(.45+.55*bright);const phase=(Number(seed)||0)*1.618+(Number(timeMs)||0)/530;return 1+Math.sin(phase)*amp;}
   function projectHorizontal({altitudeDeg,azimuthDeg,centerAzimuthDeg,width,skyTop,skyBottom}){if(![altitudeDeg,azimuthDeg,centerAzimuthDeg,width,skyTop,skyBottom].every(Number.isFinite)||width<=0||skyBottom<=skyTop||altitudeDeg<=0||altitudeDeg>90)return null;const rel=wrapDeg(azimuthDeg-centerAzimuthDeg);if(Math.abs(rel)>90)return null;const u=rel/90;const k=.45;const compressed=Math.tanh(k*u)/Math.tanh(k);const x=width*(.5+.5*compressed);const y=skyBottom-(altitudeDeg/90)*(skyBottom-skyTop);if(!Number.isFinite(x)||!Number.isFinite(y)||y>=skyBottom||y<skyTop-1e-9)return null;return{x,y,relativeAzimuthDeg:rel};}
@@ -85,5 +64,5 @@
     });
     return{timeMs,centerAzimuthDeg,sun,moon,stars:starStates};
   }
-  return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,computeSkyState,solarLightProfile,moonVisualProfile,moonCloudVisibility,twilightFactor,atmosphericFactor,moonlightFactor,cloudOpacityAt,starVisibility,starTwinkle,projectHorizontal,projectDiscHorizontal,meteorDelayMs,createMeteorEvent,meteorFrame,meteorVisibility,wrapDeg,normDeg};
+  return{JERUSALEM,initialBearingDegrees,equatorialToHorizontal,sunEphemeris,moonEphemeris,computeStarHorizontals,computeSkyState,moonVisualProfile,twilightFactor,atmosphericFactor,moonlightFactor,cloudOpacityAt,starVisibility,starTwinkle,projectHorizontal,projectDiscHorizontal,meteorDelayMs,createMeteorEvent,meteorFrame,meteorVisibility,wrapDeg,normDeg};
 });
