@@ -845,9 +845,15 @@ publishedRoutesRequest
 let normalSlotRoutes = [];
 let calendarFocusRequest = 0;
 // Preload once; hovering a footprint must not wait on a new API round-trip.
-const calendarRouteRequest = fetch("/api/routes?scope=calendar&ts="+Date.now(), {cache:"no-store"})
-    .then(response=>response.ok ? response.json() : [])
-    .catch(()=>[]);
+const calendarRouteRequest = Promise.all([
+    fetch("/api/routes?scope=calendar&ts="+Date.now(), {cache:"no-store"})
+        .then(response=>response.ok ? response.json() : []).catch(()=>[]),
+    fetch("/route-history.json?ts="+Date.now(), {cache:"no-store"})
+        .then(response=>response.ok ? response.json() : []).catch(()=>[])
+]).then(([current,history])=>{
+    const ids = new Set(current.map(route=>route.date+"|"+route.title));
+    return current.concat(history.filter(route=>!ids.has(route.date+"|"+route.title)));
+});
 window.BudaoCalendarFocus = async function(date,type){
     const request = ++calendarFocusRequest;
     if(!date){
