@@ -12,24 +12,25 @@ function section(a,b){
  assert.ok(i>=0&&j>i,'required section exists: '+a);
  return source.slice(i,j);
 }
-const model=vm.runInNewContext(section('function soundPathModel(value){','function voiceReunionEntries(){')+';soundPathModel');
+const model=vm.runInNewContext(section('function soundPathModel(value){','function stageReading(){')+';soundPathModel');
 const journey={status:'completed',durationMs:22000,segments:[
  {verse:1,verseId:'JAS.1.1',startMs:0,endMs:8000},
  {verse:2,verseId:'JAS.1.2',startMs:8000,endMs:17000},
  {verse:3,verseId:'JAS.1.3',startMs:17000,endMs:22000}
 ]};
-test('redundant sound-road surface, styles and seeking actions are gone from the right page',()=>{
+test('remove both unproven visual modules; keep 1U recorder and 2U DSP intact',()=>{
  const stage=section('function stageReading(){','const LIGHTS=Object.freeze(');
- assert.match(stage,/voiceYearRingView\(\)/);
+ assert.match(stage,/gs-recorder-console/);
  assert.match(stage,/gs-voice-dsp/);
- assert.doesNotMatch(stage,/soundPathView|gs-sound-|声音之路|sound-seek/);
- assert.doesNotMatch(source,/function soundPathView\(|function seekSoundVerse\(|function updateSoundPathProgress\(/);
- assert.doesNotMatch(source,/data-action="sound-seek"|case 'sound-seek'/);
- assert.doesNotMatch(css,/gs-sound-|SOUND ROAD CALIBRATION/);
- assert.match(css,/\.gs-yearring-head/);
- assert.match(css,/\.gs-yearring-seal/);
+ assert.match(stage,/gs-dsp-denoise/);
+ assert.match(stage,/gs-dsp-eq/);
+ assert.match(stage,/gs-dsp-comp/);
+ assert.match(stage,/gs-dsp-reverb/);
+ assert.doesNotMatch(stage,/voiceYearRingView|gs-voice-yearring|gs-yearring|生命年轮|声迹|声音之路|soundPathView|gs-sound-/);
+ assert.doesNotMatch(source,/function voiceYearRingView\(|function voiceReunionEntries\(|function soundPathView\(|function seekSoundVerse\(/);
+ assert.doesNotMatch(css,/gs-yearring|gs-voice-yearring|gs-sound-/);
 });
-test('authenticated recording journey preserves real verse timing independently of any timeline UI',()=>{
+test('real verse timestamps remain available for the original left page, not a decorative timeline',()=>{
  assert.match(core,/function startReadingJourney\(/);
  assert.match(core,/function advanceReadingJourney\(/);
  assert.match(core,/function completeReadingJourney\(/);
@@ -42,39 +43,46 @@ test('authenticated recording journey preserves real verse timing independently 
  assert.equal(model({...journey,durationMs:23000}),null);
  assert.equal(model({...journey,segments:[{...journey.segments[0],startMs:10},...journey.segments.slice(1)]}),null);
 });
-test('existing left-page playback follow receives calibrated clock rather than unbounded media time',()=>{
+test('the left-page reader still receives calibrated playback time without scripture UI changes',()=>{
  const piece=section('function soundMediaDurationMs(player){','async function togglePlayback(){');
  const f=vm.runInNewContext(piece+';({soundMediaDurationMs,soundMediaToJourneyMs})',{soundPathModel:model,draft:{readingJourney:journey},Number,Math});
  assert.equal(f.soundMediaDurationMs({duration:20}),20000);
  assert.ok(Math.abs(f.soundMediaToJourneyMs(7272.7272727,{duration:20})-8000)<.01);
  assert.equal(f.soundMediaToJourneyMs(20000,{duration:20}),22000);
  assert.equal(f.soundMediaToJourneyMs(5000,{duration:Infinity}),null);
- assert.equal(journey.segments[1].startMs,8000,'saved original timestamps unchanged');
- const broadcast=section('function broadcastReadingAudioProgress(state,player){','function releaseDenoiseMonitor(){');
- assert.match(broadcast,/soundMediaToJourneyMs/);
- assert.match(broadcast,/mygrass:reading-audio-progress/);
+ assert.equal(journey.segments[1].startMs,8000,'original recording metadata is untouched');
+ const broadcaster=section('function broadcastReadingAudioProgress(state,player){','function releaseDenoiseMonitor(){');
+ assert.match(broadcaster,/soundMediaToJourneyMs/);
+ assert.match(broadcaster,/mygrass:reading-audio-progress/);
 });
-test('private year rings only report real overlapping historical recordings',()=>{
- const sandbox={
-  entries:[
-   {id:'history',readingJourney:{status:'completed',book:'雅',chapter:1,translation:'CUV',startVerse:2,endVerse:4,completedAt:'2025-01-01'},reading:{audioId:'actual'}},
-   {id:'no-file',readingJourney:{status:'completed',book:'雅',chapter:1,translation:'CUV',startVerse:2,endVerse:4},reading:{audioId:null}},
-   {id:'other-chapter',readingJourney:{status:'completed',book:'雅',chapter:2,translation:'CUV',startVerse:1,endVerse:3},reading:{audioId:'other'}}
-  ],
-  draft:{id:'current',readingJourney:{book:'雅',chapter:1,translation:'CUV',startVerse:1,endVerse:3}}
- };
- const fn=vm.runInNewContext(section('function voiceReunionEntries(){','function voiceYearRingView(){')+';voiceReunionEntries',sandbox);
- assert.equal(fn().length,1);
- assert.equal(fn()[0].id,'history');
+test('audio export remains a real footer action, not dependent on discarded year rings',()=>{
+ const render=section('function render(){','function audioDatabase(){');
+ assert.match(render,/data-action="download-audio"/);
+ assert.match(render,/保存原声/);
+ assert.match(render,/data-action="export"/);
+ assert.match(render,/data-action="'\+\(archiveOpen\?'return-stage':'archive'\)/);
+ assert.match(source,/case 'download-audio':await exportAudio\(\);break/);
+ const exportFn=section('async function exportAudio(){','async function copyMicro(id){');
+ assert.match(exportFn,/await getAudio\(draft\.reading\.audioId\)/);
+ assert.match(exportFn,/downloadBlob\(blob,/);
+ assert.doesNotMatch(exportFn,/upload|putAudio\(/);
 });
-test('audio privacy, working DSP and active player continue across right-page redraw',()=>{
+test('authentic existing private archive remains, false reunion showcase is removed',()=>{
+ const archive=section('function insertArchiveText(){','function recordingSelectionReady(){');
+ assert.match(archive,/C\.groupByReference\(entries\)/);
+ assert.match(archive,/data-action="open-entry"/);
+ const render=section('function render(){','function audioDatabase(){');
+ assert.match(render,/gs-grid gs-archive-only/);
+ assert.match(render,/insertArchiveText\(\)/);
+ assert.doesNotMatch(render,/经文重逢|每一次真实的领受/);
+ assert.match(css,/\.gs-grid\.gs-archive-only/);
+});
+test('audio privacy and resident-owned player survive redraw without changing DSP monitoring',()=>{
  const render=section('function render(){','function audioDatabase(){');
  assert.match(render,/host\.replaceChildren\(activePlayer\)/);
- assert.doesNotMatch(render,/updateSoundPathProgress|soundPathView/);
  const restore=section('async function restoreAudio(id){','async function deleteAudio(id){');
  assert.match(restore,/token!==audioRestoreToken/);
  assert.match(restore,/scope!==owner/);
  assert.match(source,/denoiseEnabled\|\|eqEnabled\|\|compEnabled\|\|reverbEnabled/);
- const stage=section('function stageReading(){','const LIGHTS=Object.freeze(');
- assert.doesNotMatch(stage,/<select/);
+ assert.doesNotMatch(render,/voiceYearRingView|voiceReunionEntries/);
 });
