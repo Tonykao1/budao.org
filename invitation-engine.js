@@ -19,6 +19,8 @@
         "5": "budao-dalong-5.png?v=20260812"
     });
     let currentInvitation = null;
+    let activeRoute = null;
+    let chosenTheme = 'classic';
     let activeTrigger = null;
     let generationId = 0;
     let installed = false;
@@ -73,6 +75,10 @@
         const frame = preview.querySelector(".invitation-frame");
         const requestId = ++generationId;
         activeTrigger = trigger || runtime.document.activeElement || null;
+        activeRoute = route;
+        chosenTheme = 'classic';
+        const themeButtons = preview.querySelectorAll('[data-invitation-theme]');
+        themeButtons.forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.invitationTheme === chosenTheme)); });
         releaseCurrentInvitation();
         setPreviewState(preview, "generating", "请柬正在安静预备。", "请柬正在生成。", true);
         preview.classList.add("open");
@@ -99,6 +105,30 @@
         }
     }
 
+    async function openInvitationForTheme(route) {
+        const preview = ensurePreview();
+        const frame = preview.querySelector(".invitation-frame");
+        const requestId = ++generationId;
+        setPreviewState(preview, "generating", "正在生成所选风格…", "正在更新请柬预览。", true);
+        try {
+            const generated = await createInvitation(route);
+            if (requestId !== generationId || !preview.classList.contains("open")) return;
+            const url = runtime.URL.createObjectURL(generated.blob);
+            releaseCurrentInvitation();
+            currentInvitation = Object.assign({}, generated, { url });
+            const image = runtime.document.createElement("img");
+            image.src = url;
+            image.alt = (generated.viewModel.title || "步道同行") + " 分享请柬";
+            frame.replaceChildren(image);
+            setPreviewState(preview, "ready", "", "所选风格已生成，可以下载或分享。", false);
+            configureReadyActions(preview);
+        } catch (error) {
+            if (requestId !== generationId) return;
+            releaseCurrentInvitation();
+            setPreviewState(preview, "failure", "请柬暂时无法生成。", "请重试其他风格。", true);
+        }
+    }
+
     async function createInvitation(route) {
         const modeB = runtime.BudaoInvitationModeB;
         const artifact = runtime.BudaoInvitationShareModeB;
@@ -111,7 +141,8 @@
 
         const viewModel = modeB.routeToModeBViewModel(Object.assign({}, route, {
             image: imageSource(route),
-            qrCode: qrSource(route)
+            qrCode: qrSource(route),
+            invitationTheme: chosenTheme
         }));
         const internalParticipation = viewModel.participation && viewModel.participation.availability === "internal";
         const registrationOpen = internalParticipation ? true : isRegistrationOpen(route);
@@ -224,6 +255,7 @@
         releaseCurrentInvitation();
         if (activeTrigger && typeof activeTrigger.focus === "function") activeTrigger.focus();
         activeTrigger = null;
+        activeRoute = null;
     }
 
     function releaseCurrentInvitation() {
@@ -241,6 +273,11 @@
         preview.innerHTML =
             '<div class="invitation-shell" role="dialog" aria-modal="true" aria-labelledby="budaoInvitationTitle">' +
                 '<h2 id="budaoInvitationTitle" class="invitation-dialog-title">活动请柬预览</h2>' +
+                '<div class="invitation-theme-options" role="group" aria-label="选择请柬风格">' +
+                    '<button type="button" data-invitation-theme="classic" aria-pressed="true">经典邀请函</button>' +
+                    '<button type="button" data-invitation-theme="landscape" aria-pressed="false">山野风景</button>' +
+                    '<button type="button" data-invitation-theme="natural" aria-pressed="false">自然生活</button>' +
+                '</div>' +
                 '<div class="invitation-frame"></div>' +
                 '<div class="invitation-actions">' +
                     '<button type="button" data-invitation-close aria-label="关闭活动请柬预览">返回</button>' +
@@ -251,6 +288,18 @@
             '</div>';
         preview.addEventListener("click", function (event) {
             if (event.target === preview || event.target.closest("[data-invitation-close]")) closeInvitation();
+            else if (event.target.closest("[data-invitation-theme]")) {
+                const selected = event.target.closest("[data-invitation-theme]");
+                const theme = selected.dataset.invitationTheme;
+                if (!['classic', 'landscape', 'natural'].includes(theme) || !activeRoute) return;
+                chosenTheme = theme;
+                preview.querySelectorAll("[data-invitation-theme]").forEach(function (button) {
+                    button.setAttribute("aria-pressed", String(button === selected));
+                });
+                generationId += 1;
+                releaseCurrentInvitation();
+                openInvitationForTheme(activeRoute);
+            }
             else if (event.target.closest("[data-invitation-share]")) shareInvitation();
             else if (event.target.closest("[data-invitation-download]")) downloadInvitation();
         });
