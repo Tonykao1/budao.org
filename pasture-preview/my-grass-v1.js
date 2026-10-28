@@ -269,8 +269,8 @@ function stageReading(){
   '<div class="gs-scripture-controls"><button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
   '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div></div>'+
   '<textarea data-field="scriptureText" maxlength="10000" hidden>'+escape(draft.scripture.text)+'</textarea></section>'+
-  '<section class="gs-panel gs-recording-panel gs-voice-station" aria-label="今日读经原声">'+
-  '<header class="gs-voice-heading"><span>ORIGINAL VOICE STATION</span><h3>原声读经工作站</h3></header>'+
+  '<section class="gs-panel gs-recording-panel gs-voice-station" aria-label="今日读经原声"><h3>今日读经</h3>'+
+  '<header class="gs-voice-heading"><span>ORIGINAL VOICE STATION</span><h4>原声读经工作站</h4></header>'+
   '<div class="gs-voice-scripture">'+escape(draft.scripture.reference||'请选择经文')+'</div>'+
   '<div class="gs-recorder-console gs-voice-tape-deck" data-state="'+state+'">'+
   '<div class="gs-voice-cassette" aria-hidden="true"><div class="gs-voice-tape-quote">愿祢的话，在我口中有声音</div><div class="gs-voice-tape-window"><span></span><i></i><span></span></div><small>ORIGINAL VOICE · PERSONAL TAPE</small></div>'+
