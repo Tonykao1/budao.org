@@ -16,6 +16,7 @@ const residentAvatar=document.getElementById('residentAvatar');
 const toast=document.getElementById('residentToast');
 let resident=null,emailDraft='',pendingArrival=false,coreEngineReady=false,makerState=null;
 let DNA=null,Renderer=null,I18n=null;
+let environmentGateRaf=0;
 const BASE_DIMS=['woolColor','faceColor','woolShape','bodyShape'];
 const FEATURE_DIMS=['ears','expression','marking','forelock'];
 
@@ -33,6 +34,8 @@ function updateResidentUi(){if(residentName)residentName.textContent='牧场居�
 function sendResidentToCore(arrival=false){if(!coreEngineReady||!resident?.sheep||!core.contentWindow)return;core.contentWindow.postMessage({type:'tonglu-resident-v1',resident:{id:resident.id,sheep:resident.sheep},arrival:!!arrival},location.origin);pendingArrival=false}
 function wantsMakerReview(){return new URLSearchParams(location.search).get('sheepMakerReview')==='1'}
 function wantsArrivalReview(){return location.hostname.endsWith('.vercel.app')&&new URLSearchParams(location.search).get('sheepArrivalReview')==='1'}
+function coreEnvironmentReady(){try{const d=core.contentDocument;if(!d)return false;const landscape=d.getElementById('pastureFrame');if(!landscape?.contentWindow?.__tongluWeather)return false;const portrait=d.getElementById('portraitFrame');if(portrait?.style.display==='block'){if(!portrait.dataset.initialized||portrait.contentDocument?.readyState!=='complete')return false}return landscape.style.opacity==='1'}catch(_){return false}}
+function revealCoreWhenEnvironmentReady(){if(document.body.classList.contains('pasture-environment-ready'))return true;if(coreEnvironmentReady()){document.body.classList.add('pasture-environment-ready');if(environmentGateRaf)cancelAnimationFrame(environmentGateRaf);environmentGateRaf=0;return true}if(environmentGateRaf)cancelAnimationFrame(environmentGateRaf);environmentGateRaf=requestAnimationFrame(revealCoreWhenEnvironmentReady);return false}
 
 function loadScriptIn(doc,id,src,ready){return new Promise((resolve,reject)=>{if(ready()){resolve();return}const existing=doc.getElementById(id);if(existing){existing.addEventListener('load',()=>resolve(),{once:true});existing.addEventListener('error',reject,{once:true});return}const s=doc.createElement('script');s.id=id;s.src=src;s.onload=()=>resolve();s.onerror=reject;doc.body.appendChild(s)})}
 async function ensureMakerModules(){
@@ -78,10 +81,11 @@ function renderMaker(){title.textContent='';copy.textContent='';error.textConten
 async function confirmMaker(e){const btn=e?.currentTarget;if(!makerState||!DNA.validateV2(makerState.dna))return;if(makerState.review){resetCard();hideLayer();makerState=null;applyResident(false);return}if(btn)btn.disabled=true;error.textContent='';try{const data=await request({action:'saveSheep',appearanceVersion:2,appearance:makerState.dna});resident=data.user;clearDraft();makerState=null;resetCard();applyResident(!!data.created)}catch(err){showError(err.reason);if(btn)btn.disabled=false}}
 function showMaker(review=false){makerState={screen:1,dna:makerInitialDna(review),activeDimension:null,review:!!review};card.classList.add('maker-card','maker-v2-card');showLayer();renderMaker()}
 
-core.addEventListener('load',()=>{coreEngineReady=false;ensureCoreEngine()});
+core.addEventListener('load',()=>{coreEngineReady=false;ensureCoreEngine();revealCoreWhenEnvironmentReady()});
 window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='tonglu-resident-ready-v1'){coreEngineReady=true;sendResidentToCore(pendingArrival)}});
 window.addEventListener('resize',()=>{if(makerState)requestAnimationFrame(drawMakerCanvases)});
 window.PastureSheepMaker=Object.freeze({openReview:()=>{if(resident?.sheep)showMaker(true)}});
 async function boot(){try{await ensureMakerModules();const data=await request(null,'GET');resident=data.user;ensureCoreEngine();if(!resident)return showEmail();if(!resident.sheep)return showMaker(false);if(wantsMakerReview())return showMaker(true);if(wantsArrivalReview())return applyResident(true);applyResident(false)}catch(err){showEmail();showError(err.reason)}}
+revealCoreWhenEnvironmentReady();
 boot();
 })();
