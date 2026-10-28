@@ -681,7 +681,7 @@ aria-hidden="true">
     </div>
 </div>
 
-<script src="budao-calendar.js?v=20261028-route-focus"></script>
+<script src="budao-calendar.js?v=20261028-route-focus-2"></script>
 
 <script>
 
@@ -871,21 +871,24 @@ function prepareEvents(routes){
 function fixedRoutesOnly(routes){
     const source = Array.isArray(routes) ? routes : [];
 
-    return fixedRouteSlots
+    const fixed = fixedRouteSlots
     .map(slot=>{
         const route = source.find(item=>item.slot === slot);
-
-        if(route){
-            return route;
-        }
-
-        if(slot === "HD"){
-            return defaultRoutes.find(item=>item.slot === "HD");
-        }
-
+        if(route) return route;
+        if(slot === "HD") return defaultRoutes.find(item=>item.slot === "HD");
         return null;
     })
     .filter(Boolean);
+
+    // Published leader routes have an empty presentation slot. They must
+    // remain in the card collection for calendar footprints to locate them.
+    const fixedIds = new Set(fixed.map(route=>String(route.routeId || route.id || "")));
+    const leaderRoutes = source.filter(route=>{
+        if(!route || route.slot && fixedRouteSlots.includes(route.slot)) return false;
+        const id = String(route.routeId || route.id || "");
+        return !id || !fixedIds.has(id);
+    });
+    return fixed.concat(leaderRoutes);
 }
 
 function routeStartTimestamp(route){
