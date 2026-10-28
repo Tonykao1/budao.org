@@ -624,6 +624,12 @@
     }
   };
 
+  const THEME_PALETTES = Object.freeze({
+    classic: { paper: '#fbfaf7', color: '#17130f', tint: '#eee8dc' },
+    landscape: { paper: '#e7eee7', color: '#193e30', tint: '#d5e4d5' },
+    natural: { paper: '#fff8e8', color: '#365d39', tint: '#ffedcd' }
+  });
+
   function renderModeBShareArtifact(ctx, viewModel, renderState, assets) {
     if (!ctx || typeof ctx.fillRect !== 'function' || typeof ctx.fillText !== 'function' ||
         typeof ctx.strokeRect !== 'function') {
@@ -635,8 +641,29 @@
     const suppliedAssets = assets && typeof assets === 'object' ? assets : {};
     const completedStages = [];
 
+    const theme = Object.prototype.hasOwnProperty.call(THEME_PALETTES, model.theme)
+      ? model.theme : 'classic';
+    const palette = THEME_PALETTES[theme];
     DRAWING_STAGE_ORDER.forEach(function (stageName) {
       STAGE_DRAWERS[stageName](ctx, model, normalizedState, suppliedAssets);
+      if (stageName === 'paper' && theme !== 'classic') {
+        ctx.fillStyle = palette.paper;
+        ctx.fillRect(0, 0, ARTIFACT_WIDTH, ARTIFACT_HEIGHT);
+      }
+      if (stageName === 'destination' && theme !== 'classic') {
+        const heading = ARTIFACT_LAYOUT.destination;
+        ctx.fillStyle = theme === 'landscape' ? '#193e30' : '#466d3d';
+        ctx.fillRect(heading.x + 20, heading.y + heading.height - 64, 220, 41);
+        drawBoundedText(ctx, theme === 'landscape' ? '山野风景 · BUDAO' : '自然生活 · BUDAO', heading.x + 34, heading.y + heading.height - 36, 198, {
+          color: '#fffdf7', size: 18, weight: 650, maxLines: 1
+        });
+      }
+      if (stageName === 'intent' && theme !== 'classic') {
+        const box = ARTIFACT_LAYOUT.intent;
+        drawBoundedText(ctx, theme === 'landscape' ? '山野同行 · 一路探索' : '相聚自然 · 温暖同行', box.x, box.y + 140, box.width, {
+          color: palette.color, size: 24, weight: 600, maxLines: 1
+        });
+      }
       completedStages.push(stageName);
     });
 
