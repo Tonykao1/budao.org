@@ -39,7 +39,9 @@ test('no invented road if recording incomplete or boundaries invalid',()=>{
 test('clicking a sound mark seeks only an existing recorded start, without altering archives',()=>{
  const seek=section('async function seekSoundVerse(ms){','async function togglePlayback(){');
  assert.match(seek,/model\.segments\.some\(s=>s\.start===ms\)/);
- assert.match(seek,/player\.currentTime=ms\/1000/);
+ assert.match(seek,/await waitSoundMetadata\(player\)/);
+ assert.match(seek,/player\.currentTime=target\/1000/);
+ assert.match(seek,/token!==soundSeekToken/);
  assert.match(seek,/await player\.play\(\)/);
  assert.match(seek,/scope!==owner/);
  assert.doesNotMatch(seek,/deleteAudio|saveEntry|putAudio|writeJson/);
@@ -70,4 +72,76 @@ test('year-ring and road remain right-page-only with no new dropdown or social p
  assert.match(css,/\.gs-sound-marker\.is-audible/);
  assert.match(css,/\.gs-yearring-seal/);
  assert.doesNotMatch(section('function soundPathView(){','function stageReading(){'),/data-action="publish"|<select/);
+});
+
+
+test('calibration maps saved verse clock to playable media clock and back without changing the archive',()=>{
+ const piece=section('function soundMediaDurationMs(player){','async function seekSoundVerse(ms){');
+ const sandbox={soundPathModel:math.soundPathModel,draft:{readingJourney:journey},Number,Promise,setTimeout,clearTimeout};
+ const result=vm.runInNewContext(piece+';({soundMediaDurationMs,soundJourneyToMediaMs,soundMediaToJourneyMs})',sandbox);
+ const audio={duration:20,readyState:1};
+ assert.equal(result.soundMediaDurationMs(audio),20000);
+ assert.ok(Math.abs(result.soundJourneyToMediaMs(8000,audio)-7272.7272727)<.01);
+ assert.ok(Math.abs(result.soundMediaToJourneyMs(7272.7272727,audio)-8000)<.01);
+ assert.equal(result.soundJourneyToMediaMs(22000,audio),20000);
+ assert.equal(result.soundMediaToJourneyMs(20000,audio),22000);
+ assert.equal(result.soundJourneyToMediaMs(8000,{duration:Infinity}),null);
+ assert.equal(journey.segments[1].startMs,8000,'original journey boundary untouched');
+});
+test('sound path progress shows real moving playhead, current verse, clock and pause without false glow',()=>{
+ const piece=section('function updateSoundPathProgress(ms,playing){','async function togglePlayback(){');
+ const makeNode=(verse,marker=true)=>{
+  const states=new Set();const attrs={};
+  return {dataset:{verse:String(verse)},attrs,
+   classList:{toggle(k,on){if(on)states.add(k);else states.delete(k)},contains(k){return marker&&k==='gs-sound-marker'},has(k){return states.has(k)}},
+   setAttribute(k,v){attrs[k]=v},removeAttribute(k){delete attrs[k]}};
+ };
+ const nodes=[makeNode(1),makeNode(2),makeNode(3),makeNode(1,false),makeNode(2,false),makeNode(3,false)];
+ const current={textContent:''},clock={textContent:''},lane={styles:{},states:new Set(),style:{setProperty(k,v){lane.styles[k]=v}},classList:{toggle(k,on){if(on)lane.states.add(k);else lane.states.delete(k)}}};
+ const root={querySelectorAll(){return nodes},querySelector(s){return s==='.gs-sound-current'?current:s==='.gs-sound-clock'?clock:s==='.gs-sound-lane'?lane:null}};
+ const sandbox={draft:{readingJourney:journey},soundPathModel:math.soundPathModel,soundTime:math.soundTime,root,Number,Math};
+ const tick=vm.runInNewContext(piece+';updateSoundPathProgress',sandbox);
+ tick(8000,true);
+ assert.equal(nodes[1].attrs['aria-current'],'true');
+ assert.equal(nodes[0].attrs['aria-current'],undefined);
+ assert.equal(current.textContent,'第 2 节 · 00:08—00:17');
+ assert.equal(clock.textContent,'00:08 / 00:22');
+ assert.equal(lane.styles['--sound-progress'],'36.3636%');
+ assert.ok(lane.states.has('is-moving'));
+ tick(10000,false);
+ assert.equal(nodes[1].attrs['aria-current'],undefined);
+ assert.ok(!lane.states.has('is-moving'));
+ assert.equal(clock.textContent,'00:10 / 00:22');
+ tick(22000,false);
+ assert.equal(clock.textContent,'00:22 / 00:22');
+ assert.equal(nodes[2].attrs['aria-current'],undefined);
+});
+test('range validation rejects misleading nonzero starts and time gaps',()=>{
+ const bogus=[journey.segments[0],{...journey.segments[1],startMs:8100},journey.segments[2]];
+ assert.equal(math.soundPathModel({...journey,segments:bogus}),null);
+ assert.equal(math.soundPathModel({...journey,segments:[{...journey.segments[0],startMs:1},...journey.segments.slice(1)]}),null);
+ assert.equal(math.soundPathModel({...journey,segments:journey.segments.map((s,i)=>i===2?{...s,verse:7}:s)}),null);
+ assert.equal(math.soundPathModel({...journey,durationMs:23000}),null);
+});
+test('async player restoration respects current resident and reuses active audio across redraw',()=>{
+ const restore=section('async function restoreAudio(id){','async function deleteAudio(id){');
+ assert.match(restore,/token!==audioRestoreToken/);
+ assert.match(restore,/scope!==owner/);
+ assert.match(restore,/host!==\$\('#gsAudioHost'\)/);
+ assert.match(restore,/audioRestorePending\?\.id===id/);
+ assert.match(restore,/player\.dataset\.ownerScope=owner/);
+ const render=section('function render(){','function audioDatabase(){');
+ assert.match(render,/host\.replaceChildren\(activePlayer\)/);
+ assert.match(render,/soundMediaToJourneyMs\(activePlayer\.currentTime\*1000,activePlayer\)/);
+ const clear=section('function clearPlayer(){','async function restoreAudio(id){');
+ assert.match(clear,/audioRestoreToken\+\+/);
+});
+test('left page receives calibrated verse clock with no modifications to scripture renderer',()=>{
+ const bridge=section('function broadcastReadingAudioProgress(state,player){','function releaseDenoiseMonitor(){');
+ assert.match(bridge,/soundMediaToJourneyMs/);
+ assert.match(bridge,/currentTime:calibrated==null/);
+ const ui=section('function soundPathView(){','function voiceReunionEntries(){');
+ assert.match(ui,/gs-sound-playhead/);
+ assert.match(ui,/gs-sound-clock/);
+ assert.match(css,/\.gs-sound-lane\.is-moving \.gs-sound-playhead i/);
 });
