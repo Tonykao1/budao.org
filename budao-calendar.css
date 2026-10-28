@@ -256,3 +256,21 @@
 .budao-calendar-step-mark--fellowship{
     background-color:#8B56C7;
 }
+
+/* Calendar footprints temporarily reveal the corresponding route slot. */
+.budao-calendar-step-mark {
+    border:0;
+    padding:0;
+    border-radius:0;
+    cursor:pointer;
+    appearance:none;
+    -webkit-appearance:none;
+}
+.budao-calendar-step-stack { pointer-events:auto; }
+.budao-calendar-step-mark:focus-visible {
+    outline:2px solid #845e38;
+    outline-offset:3px;
+}
+.route-grid.is-calendar-focused .route-card.is-calendar-filtered-out {
+    display:none;
+}
