@@ -662,8 +662,10 @@
       const fact = facts.get(key);
       if (!fact) return;
       const col = x + index * (width + 15);
-      posterText(ctx, fact.value, col, y, width, 26, color, 750, 1);
-      posterText(ctx, fact.label, col, y + 29, width, 15, color, 500, 1);
+      ctx.fillStyle = color === '#ffffff' ? '#153b2e' : '#edf2da';
+      ctx.fillRect(col - 8, y - 36, width + 8, 112);
+      posterText(ctx, fact.value, col + 10, y + 45, width - 20, 36, color, 800, 1);
+      posterText(ctx, fact.label, col + 10, y - 10, width - 20, 18, color, 650, 1);
     });
   }
 
