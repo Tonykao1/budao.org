@@ -161,8 +161,8 @@ test('landscape and portrait share the solar and lunar atmospheric policies', ()
   const fs=require('node:fs'),path=require('node:path');
   for(const filename of ['tonglu-core.html','tonglu-pasture-portrait.html']){
     const source=fs.readFileSync(path.join(__dirname,'..',filename),'utf8');
-    assert.match(source,/\.solarLightProfile\(/);
-    assert.match(source,/\.moonCloudVisibility\(/);
+    assert.match(source,/\.solarLightProfile\?\.\(/);
+    assert.match(source,/\.moonCloudVisibility\?\.\(/);
     assert.doesNotMatch(source,/const day=sunrise&&sunset&&now>=sunrise&&now<=sunset/);
   }
 });
