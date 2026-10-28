@@ -543,3 +543,24 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-dsp-coming .gs-voice-knob{filter:grayscale(.65)}
 #grassWorkspace .gs-dsp-coming small{font-size:9px!important;text-align:center}
 #grassWorkspace #gsDspStatus{font-size:9px;line-height:1.5;min-height:14px;margin:7px 0 0;color:#d9bd8a}
+
+
+/* DSP 2/4 — three-band vintage EQ: LOW 180 Hz, MID 1.8 kHz, HIGH 6 kHz */
+#grassWorkspace .gs-voice-dsp-channel.gs-dsp-eq{gap:5px;min-width:0}
+#grassWorkspace .gs-eq-three{display:flex;width:100%;justify-content:space-evenly;align-items:start;gap:1px;padding:1px 0 2px}
+#grassWorkspace .gs-eq-control{width:29px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;color:#d9bc8b}
+#grassWorkspace .gs-eq-dial{width:24px;height:24px;border:2px ridge #c8aa78;position:relative;pointer-events:none;border-radius:50%;background:conic-gradient(#73512e,#d5b281,#81603a,#eed2a1,#73512e);box-shadow:inset 0 0 0 5px rgba(83,56,35,.29),1px 2px 2px #1f160c}
+#grassWorkspace .gs-eq-dial:before{content:"";position:absolute;left:calc(50% - 1px);top:1px;width:2px;height:8px;background:#f7e8c9;transform:rotate(var(--knob-angle,0deg));transform-origin:50% 10px}
+#grassWorkspace input[data-dsp-eq-band]{appearance:none;-webkit-appearance:none;position:absolute;inset:0 0 auto 0;width:29px;height:28px;margin:0;opacity:0;cursor:ew-resize;touch-action:none}
+#grassWorkspace .gs-eq-control:focus-within .gs-eq-dial{outline:2px solid #f2d6a0;outline-offset:2px}
+#grassWorkspace .gs-eq-band-label{font:700 8px/1.3 ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap}
+#grassWorkspace .gs-dsp-eq button[data-action="dsp-eq"]{
+ min-width:43px;min-height:24px;padding:2px 8px;border:2px outset #bea075;
+ background:linear-gradient(#d6bd92,#ac8759);color:#3c2a1a;border-radius:2px;box-shadow:0 2px 0 #392718,inset 1px 1px #f0d9ab;
+ font:800 10px ui-monospace,monospace;cursor:pointer}
+#grassWorkspace .gs-dsp-eq[data-enabled="true"] button[data-action="dsp-eq"]{
+ background:linear-gradient(#c2a666,#86633c);border-style:inset;color:#fff2bd;box-shadow:inset 0 2px 4px #3c2a1c}
+#grassWorkspace .gs-dsp-eq button:focus-visible{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-dsp-eq button:disabled{opacity:.45;cursor:default}
+#grassWorkspace .gs-eq-values{display:block;max-width:100%;text-align:center;line-height:1.35!important;font-size:8px!important;color:#e3c997;overflow-wrap:anywhere}
+@media(max-width:600px){#grassWorkspace .gs-eq-control{width:23px}#grassWorkspace .gs-eq-dial{width:20px;height:20px}#grassWorkspace input[data-dsp-eq-band]{width:23px;height:24px}#grassWorkspace .gs-eq-band-label{font-size:7px}}
