@@ -64,6 +64,7 @@
   let denoisePending=null;
   // EQ is a temporary listening preference, never stored with the voice master.
   let eqEnabled=false,eqBands={low:0,mid:0,high:0};
+  let compEnabled=false,compThreshold=-24,compRatio=2.5; // transient monitoring only
   let rerecordOriginal=null; // Keep original audio until replacement is fully saved.
   let journeyAttemptToken=0; // A discarded take cannot revive itself through late recorder events.
   let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
@@ -171,7 +172,7 @@
    if(!current)return false;
    if(current===scope&&draft)return true;
    if(recorder&&recorder.state==='recording'){try{recorder.stop()}catch(_){}}
-   if(scope&&scope!==current){clearPlayer();denoiseEnabled=false;denoiseStrength=35;eqEnabled=false;eqBands={low:0,mid:0,high:0};}
+   if(scope&&scope!==current){clearPlayer();denoiseEnabled=false;denoiseStrength=35;eqEnabled=false;eqBands={low:0,mid:0,high:0};compEnabled=false;compThreshold=-24;compRatio=2.5;}
    scope=current;key=PREFIX+'.'+scope;
    const names=persistentKeys();
    entries=getJson(names.entries,[]);if(!Array.isArray(entries))entries=[];
@@ -370,8 +371,19 @@ function stageReading(){
            '<span class="gs-eq-band-label">'+['LOW','MID','HIGH'][i]+'</span></label>').join('')+'</div>'+
         '<button type="button" data-action="dsp-eq" aria-pressed="'+eqEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(eqEnabled?'ON':'OFF')+'</button>'+
         '<small class="gs-eq-values">低 '+(eqBands.low>0?'+':'')+eqBands.low+' / 中 '+(eqBands.mid>0?'+':'')+eqBands.mid+' / 高 '+(eqBands.high>0?'+':'')+eqBands.high+' dB</small></div>'+
-      ['COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel gs-dsp-coming"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['压缩','混响'][i]+' · 待接入</small></div>').join('')+
-    '</div><p id="gsDspStatus" role="status">'+((denoiseEnabled||eqEnabled)?[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null].filter(Boolean).join(' + ')+' · 仅试听，原声母本不变':'降噪和三段均衡可试听 · 压缩与混响待接入')+'</p></div>'+
+      '<div class="gs-voice-dsp-channel gs-dsp-comp" data-enabled="'+(compEnabled?'true':'false')+'"><b>COMP</b>'+
+        '<div class="gs-comp-pair">'+
+          '<label class="gs-comp-control" style="--knob-angle:'+(-135+(compThreshold+48)*5.625)+'deg" title="Threshold · 压缩阈值">'+
+            '<span class="gs-comp-dial" aria-hidden="true"></span><input type="range" data-dsp-comp-control="threshold" min="-48" max="0" step="1" value="'+compThreshold+'" aria-label="压缩阈值，负48至0分贝" '+(!hasAudio?'disabled':'')+'>'+
+            '<span>THR</span></label>'+
+          '<label class="gs-comp-control" style="--knob-angle:'+(-135+(compRatio-1)*38.5714)+'deg" title="Ratio · 压缩比">'+
+            '<span class="gs-comp-dial" aria-hidden="true"></span><input type="range" data-dsp-comp-control="ratio" min="1" max="8" step="0.5" value="'+compRatio+'" aria-label="压缩比，1比1至8比1" '+(!hasAudio?'disabled':'')+'>'+
+            '<span>RATIO</span></label></div>'+
+        '<button type="button" data-action="dsp-comp" aria-pressed="'+compEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(compEnabled?'ON':'OFF')+'</button>'+
+        '<small class="gs-comp-values">'+compThreshold+' dB · '+compRatio+':1</small>'+
+        '<span class="gs-comp-reduction" aria-label="实时增益压缩量"><i class="gs-comp-reduction-bar" aria-hidden="true"></i><output id="gsCompReduction">— dB</output></span></div>'+
+      '<div class="gs-voice-dsp-channel gs-dsp-coming"><b>REVERB</b><span class="gs-voice-knob" aria-hidden="true"></span><small>混响 · 待接入</small></div>'+
+    '</div><p id="gsDspStatus" role="status">'+((denoiseEnabled||eqEnabled)?[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null].filter(Boolean).join(' + ')+' · 仅试听，原声母本不变':'降噪、EQ、COMP 可试听 · 混响待接入')+'</p></div>'+
   soundPathView()+voiceYearRingView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
@@ -547,7 +559,7 @@ function stageReading(){
    denoiseRequest++;
    const m=denoiseMonitor;denoiseMonitor=null;denoisePending=null;
    if(!m)return;
-   for(const node of [m.source,m.dry,m.wet,m.cleanFeed,m.noiseFeed,m.highpass,m.effect,m.low,m.mid,m.high]){
+   for(const node of [m.source,m.dry,m.wet,m.cleanFeed,m.noiseFeed,m.highpass,m.effect,m.low,m.mid,m.high,m.compressor,m.compBypass,m.compWet]){
     try{node?.disconnect()}catch(_){}
    }
    if(m.context?.state!=='closed')m.context?.close?.().catch(()=>{});
@@ -559,9 +571,12 @@ function stageReading(){
    const eqButton=root.querySelector('[data-action="dsp-eq"]');
    if(eqButton){eqButton.textContent=eqEnabled?'ON':'OFF';eqButton.setAttribute('aria-pressed',String(eqEnabled))}
    const eqBox=root.querySelector('.gs-dsp-eq');if(eqBox)eqBox.dataset.enabled=String(eqEnabled);
+   const compButton=root.querySelector('[data-action="dsp-comp"]');
+   if(compButton){compButton.textContent=compEnabled?'ON':'OFF';compButton.setAttribute('aria-pressed',String(compEnabled))}
+   const compBox=root.querySelector('.gs-dsp-comp');if(compBox)compBox.dataset.enabled=String(compEnabled);
    const status=root.querySelector('#gsDspStatus');
    if(status){
-    const active=[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null].filter(Boolean);
+    const active=[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null].filter(Boolean);
     status.textContent=active.length?active.join(' + ')+' · 仅试听，原声母本不变':'DSP 已旁路 · 正在聆听原声';
    }
   }
@@ -569,7 +584,7 @@ function stageReading(){
    const m=denoiseMonitor;if(!m?.source)return;
    const now=m.context.currentTime;
    const useDenoise=denoiseEnabled&&!!m.effect;
-   const processed=useDenoise||eqEnabled;
+   const processed=useDenoise||eqEnabled||compEnabled;
    m.dry.gain.setTargetAtTime(processed?0:1,now,.012);
    m.wet.gain.setTargetAtTime(processed?1:0,now,.012);
    m.cleanFeed.gain.setTargetAtTime(processed&&!useDenoise?1:0,now,.012);
@@ -577,6 +592,12 @@ function stageReading(){
    if(m.effect)m.effect.port.postMessage({type:'strength',strength:denoiseStrength});
    for(const band of ['low','mid','high']){
     m[band].gain.setTargetAtTime(eqEnabled?eqBands[band]:0,now,.012);
+   }
+   if(m.compressor){
+    m.compressor.threshold.setTargetAtTime(compThreshold,now,.012);
+    m.compressor.ratio.setTargetAtTime(compRatio,now,.012);
+    m.compBypass.gain.setTargetAtTime(compEnabled?0:1,now,.012);
+    m.compWet.gain.setTargetAtTime(compEnabled?1:0,now,.012);
    }
   }
   function applyDenoiseSetting(){applyDspSettings()}
@@ -610,16 +631,16 @@ function stageReading(){
    try{return await task}finally{if(m.workletPending===task)m.workletPending=null}
   }
   async function connectDspMonitor(player){
-   if(!(denoiseEnabled||eqEnabled)||!player||player!==activePlayer)return false;
+   if(!(denoiseEnabled||eqEnabled||compEnabled)||!player||player!==activePlayer)return false;
    if(denoiseMonitor?.player===player&&denoiseMonitor.source){
     await denoiseMonitor.context.resume();
     const m=denoiseMonitor;
     if(denoiseEnabled&&!m.effect)await loadDenoiseWorklet(m,denoiseRequest,scope,player.dataset.audioId);
-    applyDspSettings();return !!(denoiseEnabled||eqEnabled);
+    applyDspSettings();return !!(denoiseEnabled||eqEnabled||compEnabled);
    }
    if(denoisePending)return denoisePending;
    const AudioCtor=window.AudioContext||window.webkitAudioContext;
-   if(!AudioCtor){denoiseEnabled=false;eqEnabled=false;updateDenoiseControls();tell('当前浏览器不支持 Web Audio，已保留原声回听。');return false}
+   if(!AudioCtor){denoiseEnabled=false;eqEnabled=false;compEnabled=false;updateDenoiseControls();tell('当前浏览器不支持 Web Audio，已保留原声回听。');return false}
    const request=++denoiseRequest,owner=scope,audioId=player.dataset.audioId;
    const task=(async()=>{
     let context=null,source=null,m=null;
@@ -630,6 +651,11 @@ function stageReading(){
        audioId!==draft?.reading?.audioId||!residentAccess()){await context.close();return false}
      const dry=context.createGain(),wet=context.createGain(),cleanFeed=context.createGain();
      const low=context.createBiquadFilter(),mid=context.createBiquadFilter(),high=context.createBiquadFilter();
+     const compressor=context.createDynamicsCompressor();
+     compressor.threshold.value=-24;compressor.ratio.value=2.5;
+     compressor.knee.value=12;compressor.attack.value=.012;compressor.release.value=.20;
+     const compBypass=context.createGain(),compWet=context.createGain();
+     compBypass.gain.value=1;compWet.gain.value=0;
      low.type='lowshelf';low.frequency.value=180;
      mid.type='peaking';mid.frequency.value=1800;mid.Q.value=.9;
      high.type='highshelf';high.frequency.value=6000;
@@ -639,8 +665,10 @@ function stageReading(){
      // Dry route is wired first. Processing failures cannot erase the original file.
      source.connect(dry);dry.connect(context.destination);
      source.connect(cleanFeed);cleanFeed.connect(low);low.connect(mid);mid.connect(high);
-     high.connect(wet);wet.connect(context.destination);
-     m={context,player,source,dry,wet,cleanFeed,low,mid,high,effect:null,noiseFeed:null,highpass:null};
+     high.connect(wet);
+     wet.connect(compBypass);compBypass.connect(context.destination);
+     wet.connect(compressor);compressor.connect(compWet);compWet.connect(context.destination);
+     m={context,player,source,dry,wet,cleanFeed,low,mid,high,compressor,compBypass,compWet,effect:null,noiseFeed:null,highpass:null};
      denoiseMonitor=m;
      applyDspSettings();
      if(denoiseEnabled)await loadDenoiseWorklet(m,request,owner,audioId);
@@ -649,7 +677,7 @@ function stageReading(){
     }catch(e){
      // If MediaElementSourceNode exists, keep its dry audio route alive.
      if(m&&m===denoiseMonitor){
-      denoiseEnabled=false;eqEnabled=false;updateDenoiseControls();applyDspSettings();
+      denoiseEnabled=false;eqEnabled=false;compEnabled=false;updateDenoiseControls();applyDspSettings();
      }else if(source&&context){
       try{source.connect(context.destination)}catch(_){}
       denoiseMonitor={context,player,source};
@@ -660,6 +688,16 @@ function stageReading(){
    })();
    denoisePending=task;
    try{return await task}finally{if(denoisePending===task)denoisePending=null}
+  }
+  function updateCompReduction(player){
+   const output=root.querySelector('#gsCompReduction');if(!output)return;
+   const m=denoiseMonitor;
+   const reduction=m?.compressor?.reduction;
+   const valid=compEnabled&&player===activePlayer&&!player.paused&&!player.ended&&typeof reduction==='number'&&Number.isFinite(reduction);
+   const db=valid?Math.max(0,Math.min(24,-reduction)):null;
+   output.textContent=db==null?'— dB':db.toFixed(1)+' dB';
+   const bar=root.querySelector('.gs-comp-reduction-bar');
+   if(bar)bar.style.width=(db==null?0:(db/24)*100)+'%';
   }
   async function connectDenoiseMonitor(player){return connectDspMonitor(player)}
   async function toggleDenoisePreview(){
@@ -689,6 +727,20 @@ function stageReading(){
    }
   }
 
+  async function toggleCompPreview(){
+   if(!draft.reading.audioId||rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase)){
+    tell('请先完成读经，才可以试听动态压缩。');return;
+   }
+   compEnabled=!compEnabled;updateDenoiseControls();
+   if(!compEnabled){applyDspSettings();updateCompReduction(activePlayer);return}
+   let player=activePlayer;
+   if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
+   if(!player){compEnabled=false;updateDenoiseControls();return}
+   if(await connectDspMonitor(player)){
+    try{if(player.paused)await player.play()}catch(e){tell('压缩器已就绪，请点击回听开始试听。')}
+   }
+  }
+
   function clearPlayer(){
    releaseDenoiseMonitor();
    if(activePlayer)broadcastReadingAudioProgress('cleared',activePlayer);
@@ -712,7 +764,7 @@ function stageReading(){
    if(status)status.textContent=state==='playing'?'PLAY · 正在回听':'LINKED · 已与 '+draft.scripture.reference+' 绑定';
   };
   player.addEventListener('play',()=>{sync();broadcastReadingAudioProgress('playing',player)});
-  player.addEventListener('timeupdate',()=>broadcastReadingAudioProgress(player.ended?'ended':player.paused?'paused':'playing',player));
+  player.addEventListener('timeupdate',()=>{broadcastReadingAudioProgress(player.ended?'ended':player.paused?'paused':'playing',player);updateCompReduction(player)});
   player.addEventListener('pause',()=>{sync();if(!player.ended)broadcastReadingAudioProgress('paused',player)});
   player.addEventListener('ended',()=>{sync();broadcastReadingAudioProgress('ended',player)});
   return player;
@@ -740,7 +792,7 @@ async function deleteAudio(id){
    if(!player||id!==draft?.reading?.audioId||scope!==owner||!residentAccess())return;
    try{
     player.currentTime=ms/1000;
-    if(denoiseEnabled||eqEnabled)await connectDspMonitor(player);
+    if(denoiseEnabled||eqEnabled||compEnabled)await connectDspMonitor(player);
     await player.play();
     updateSoundPathProgress(ms,true);
    }catch(e){tell('原声定位暂不可用：'+String(e?.message||e))}
@@ -1140,6 +1192,19 @@ async function startOrStopRecording(){
    if(label)label.textContent='低 '+(eqBands.low>0?'+':'')+eqBands.low+' / 中 '+(eqBands.mid>0?'+':'')+eqBands.mid+' / 高 '+(eqBands.high>0?'+':'')+eqBands.high+' dB';
    applyDspSettings();
   });
+  root.addEventListener('input',e=>{
+   const knob=e.target?.dataset?.dspCompControl;
+   if(knob!=='threshold'&&knob!=='ratio')return;
+   const number=Number(e.target.value);
+   if(!Number.isFinite(number))return;
+   if(knob==='threshold')compThreshold=Math.max(-48,Math.min(0,Math.round(number)));
+   else compRatio=Math.max(1,Math.min(8,Math.round(number*2)/2));
+   const container=e.target.closest('.gs-comp-control');
+   if(container)container.style.setProperty('--knob-angle',(knob==='threshold'?-135+(compThreshold+48)*5.625:-135+(compRatio-1)*38.5714)+'deg');
+   const label=root.querySelector('.gs-comp-values');
+   if(label)label.textContent=compThreshold+' dB · '+compRatio+':1';
+   applyDspSettings();
+  });
   root.addEventListener('click',async e=>{
    const b=e.target.closest('button[data-action]');
    if(!b){if(e.target?.classList?.contains('gs-light-orbit')&&focusLight){focusLight=null;render()}return}
@@ -1150,6 +1215,7 @@ async function startOrStopRecording(){
     case 'play':await togglePlayback();break;
     case 'dsp-denoise':await toggleDenoisePreview();break;
     case 'dsp-eq':await toggleEqPreview();break;
+    case 'dsp-comp':await toggleCompPreview();break;
     case 'sound-seek':await seekSoundVerse(Number(b.dataset.startMs));break;
     case 'rerecord':rerecordAudio();break;
     case 'cancel-rerecord':cancelRerecord();break;
