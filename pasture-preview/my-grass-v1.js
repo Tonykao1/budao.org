@@ -477,8 +477,7 @@ function stageReading(){
     '<nav class="gs-steps" aria-label="我的牧草三个阶段">'+tabs.map(([id,name])=>
       '<button type="button" data-action="tab" data-tab="'+id+'" aria-selected="'+(tab===id)+'">'+name+'</button>').join('')+'</nav></header>'+
     '<main class="gs-stage">'+(archiveOpen?
-      '<div class="gs-grid"><section class="gs-panel"><h3>个人古卷</h3>'+insertArchiveText()+'</section>'+
-      '<section class="gs-panel"><h3>经文重逢</h3><div class="gs-empty">每一次真实的领受，都有自己的时间与声音。</div></section></div>':
+      '<div class="gs-grid gs-archive-only"><section class="gs-panel"><h3>个人古卷</h3>'+insertArchiveText()+'</section></div>':
       tab==='reading'?stageReading():tab==='reflection'?stageReflection():stageSharing())+'</main>'+
     '<footer class="gs-foot"><span>本机私密 · 文字与当前稿可导出 · 原声另存</span>'+
     '<div class="gs-actions">'+
