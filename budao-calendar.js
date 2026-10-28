@@ -237,7 +237,7 @@
 
     const marks = steps.map(function (type) {
       const cancelled = cancelledSteps.indexOf(type) >= 0;
-      return "<span class=\"budao-calendar-step-mark budao-calendar-step-mark--" + escapeHtml(type) + (cancelled ? " is-cancelled" : "") + "\" aria-hidden=\"true\"></span>";
+      return "<button type=\"button\" class=\"budao-calendar-step-mark budao-calendar-step-mark--" + escapeHtml(type) + (cancelled ? " is-cancelled" : "") + "\" data-route-date=\"" + escapeHtml(day.dateKey) + "\" data-route-type=\"" + escapeHtml(type) + "\" aria-label=\"查看" + escapeHtml(day.dateKey + " " + (stepTypeLabels[type] || type)) + "路线\"></button>";
     }).join("");
 
     return "<div class=\"budao-calendar-step-stack\" data-count=\"" + steps.length + "\" aria-label=\"" + escapeHtml(label) + "\">" + marks + "</div>";
@@ -320,6 +320,61 @@
     return model;
   }
 
+  // Temporary calendar-to-card focus. Never destroy/recreate cards, because
+  // QR, invitation, countdown and cancellation handlers own those elements.
+  function installRouteFocus(host) {
+    const grid = document.getElementById("routeGrid");
+    if (!grid || !host) return;
+    let focused = null;
+
+    function show(date, type) {
+      const routes = window.BudaoActiveRoutes || [];
+      const cards = Array.from(grid.querySelectorAll(".route-card"));
+      const matches = cards.filter(function (card) {
+        const marker = card.querySelector("[data-route-index]");
+        const route = marker && routes[Number(marker.dataset.routeIndex)];
+        return route && route.date === date && routeType(route.calendarType) === type;
+      });
+      // Historical calendar dates may not have a currently displayed card.
+      if (!matches.length) { clear(); return; }
+      focused = date + "|" + type;
+      cards.forEach(function (card) { card.classList.toggle("is-calendar-filtered-out", matches.indexOf(card) < 0); });
+      grid.classList.add("is-calendar-focused");
+    }
+
+    function clear() {
+      focused = null;
+      grid.classList.remove("is-calendar-focused");
+      grid.querySelectorAll(".route-card.is-calendar-filtered-out").forEach(function (card) {
+        card.classList.remove("is-calendar-filtered-out");
+      });
+    }
+
+    host.addEventListener("pointerover", function (event) {
+      if (event.pointerType === "touch") return;
+      const mark = event.target.closest("[data-route-date]");
+      if (mark && host.contains(mark)) show(mark.dataset.routeDate, mark.dataset.routeType);
+    });
+    host.addEventListener("pointerout", function (event) {
+      if (event.pointerType === "touch") return;
+      const mark = event.target.closest("[data-route-date]");
+      if (mark && !mark.contains(event.relatedTarget)) clear();
+    });
+    host.addEventListener("click", function (event) {
+      const mark = event.target.closest("[data-route-date]");
+      if (!mark || !host.contains(mark)) return;
+      const key = mark.dataset.routeDate + "|" + mark.dataset.routeType;
+      if (focused === key && event.detail !== 0) clear();
+      else show(mark.dataset.routeDate, mark.dataset.routeType);
+    });
+    document.addEventListener("click", function (event) {
+      if (!host.contains(event.target)) clear();
+    });
+    host.addEventListener("focusout", function (event) {
+      if (!host.contains(event.relatedTarget)) clear();
+    });
+  }
+
   function loadJson(url) {
     if (typeof fetch !== "function") {
       return Promise.resolve([]);
@@ -384,6 +439,7 @@
     const mountedAt = now || new Date();
     const model = renderCalendar(host, mountedAt, baseStepSchedule, {});
     refreshPublishedSteps(host, mountedAt);
+    installRouteFocus(host);
     return model;
   }
 
