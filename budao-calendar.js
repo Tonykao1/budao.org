@@ -326,6 +326,7 @@
     const grid = document.getElementById("routeGrid");
     if (!grid || !host) return;
     let focused = null;
+    let lastPointerType = "";
 
     function show(date, type) {
       const routes = window.BudaoActiveRoutes || [];
@@ -360,11 +361,14 @@
       const mark = event.target.closest("[data-route-date]");
       if (mark && !mark.contains(event.relatedTarget)) clear();
     });
+    host.addEventListener("pointerdown", function (event) {
+      lastPointerType = event.pointerType;
+    });
     host.addEventListener("click", function (event) {
       const mark = event.target.closest("[data-route-date]");
       if (!mark || !host.contains(mark)) return;
       const key = mark.dataset.routeDate + "|" + mark.dataset.routeType;
-      if (focused === key && event.detail !== 0) clear();
+      if (focused === key && lastPointerType === "touch") clear();
       else show(mark.dataset.routeDate, mark.dataset.routeType);
     });
     document.addEventListener("click", function (event) {
