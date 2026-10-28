@@ -269,7 +269,7 @@ function stageReading(){
   '<div class="gs-scripture-controls"><button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
   '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div></div>'+
   '<textarea data-field="scriptureText" maxlength="10000" hidden>'+escape(draft.scripture.text)+'</textarea></section>'+
-  '<section class="gs-panel gs-recording-panel gs-voice-station" aria-label="今日读经原声">'+
+  '<section class="gs-panel gs-recording-panel gs-voice-station" aria-label="今日读经原声"><h3>今日读经</h3><span class="gs-voice-hidden-brand" aria-hidden="true">ORIGINAL VOICE</span>'+
 
   '<div class="gs-voice-scripture">'+escape(draft.scripture.reference||'请选择经文')+'</div>'+
   '<div class="gs-recorder-console gs-voice-tape-deck" data-state="'+state+'">'+
