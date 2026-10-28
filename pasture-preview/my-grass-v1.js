@@ -534,7 +534,15 @@ function stageReading(){
     '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
     '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回':'翻阅档案')+'</button></div></footer>'+
     '<div class="gs-status" id="gsStatus" role="status" aria-live="polite">'+escape(notice)+'</div>';
-   if(tab==='reading'&&!archiveOpen&&!rerecordOriginal&&draft.reading.audioId&&(draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed'))restoreAudio(draft.reading.audioId);
+   if(tab==='reading'&&!archiveOpen&&!rerecordOriginal&&draft.reading.audioId&&(draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed')){
+    const host=$('#gsAudioHost');
+    if(host&&activePlayer&&activePlayer.dataset.audioId===draft.reading.audioId&&
+       activePlayer.dataset.entryId===draft.id&&activePlayer.dataset.ownerScope===scope){
+     host.replaceChildren(activePlayer); // Preserve ongoing playback across right-page redraws.
+     const ms=soundMediaToJourneyMs(activePlayer.currentTime*1000,activePlayer);
+     if(ms!=null)updateSoundPathProgress(ms,!activePlayer.paused&&!activePlayer.ended);
+    }else void restoreAudio(draft.reading.audioId);
+   }else if(activePlayer)clearPlayer();
   }
   // The sound blob is a separate original asset; it is NEVER treated as voice-model consent.
   function audioDatabase(){
@@ -818,6 +826,8 @@ function stageReading(){
   }
 
   function clearPlayer(){
+   // Cancel late IndexedDB reads before changing accounts, drafts or recording takes.
+   audioRestoreToken++;audioRestorePending=null;
    releaseDenoiseMonitor();
    if(activePlayer)broadcastReadingAudioProgress('cleared',activePlayer);
    try{activePlayer?.pause?.()}catch(_){}
@@ -825,27 +835,63 @@ function stageReading(){
    if(activeAudioURL){URL.revokeObjectURL(activeAudioURL);activeAudioURL=null}
   }
   async function restoreAudio(id){
- const host=$('#gsAudioHost');if(!host||!id)return null;
- try{
-  const blob=await getAudio(id);
-  if(!$('#gsAudioHost')||draft?.reading?.audioId!==id||rerecordOriginal)return null;
-  if(!blob){host.textContent='本机没有找到对应原声。请重新录制。';return null}
-  clearPlayer();activeAudioURL=URL.createObjectURL(blob);
-  const player=document.createElement('audio');player.preload='metadata';player.src=activeAudioURL;player.hidden=true;player.dataset.audioId=id;
-  activePlayer=player;host.replaceChildren(player);
-  const sync=()=>{
-   const state=player.ended||player.paused?'linked':'playing';
-   const consoleNode=$('.gs-recorder-console'),screen=$('#gsRecorderScreen'),status=$('#gsRecorderStatus');
-   if(consoleNode)consoleNode.dataset.state=state;if(screen)screen.dataset.state=state;
-   if(status)status.textContent=state==='playing'?'PLAY · 正在回听':'LINKED · 已与 '+draft.scripture.reference+' 绑定';
-  };
-  player.addEventListener('play',()=>{sync();broadcastReadingAudioProgress('playing',player)});
-  player.addEventListener('timeupdate',()=>{broadcastReadingAudioProgress(player.ended?'ended':player.paused?'paused':'playing',player);updateCompReduction(player)});
-  player.addEventListener('pause',()=>{sync();if(!player.ended)broadcastReadingAudioProgress('paused',player)});
-  player.addEventListener('ended',()=>{sync();broadcastReadingAudioProgress('ended',player)});
-  return player;
- }catch(e){host.textContent='无法读取本机原声：'+String(e.message||e);return null}
-}
+   const host=$('#gsAudioHost'),entryId=draft?.id,owner=scope;
+   if(!host||!id||!residentAccess())return null;
+   if(activePlayer?.dataset.audioId===id&&activePlayer.dataset.entryId===entryId&&
+      activePlayer.dataset.ownerScope===owner&&activePlayer.isConnected)return activePlayer;
+   if(audioRestorePending?.id===id&&audioRestorePending.host===host&&
+      audioRestorePending.owner===owner&&audioRestorePending.entryId===entryId)return audioRestorePending.promise;
+   const token=++audioRestoreToken;
+   const pending={id,host,owner,entryId,promise:null};
+   pending.promise=(async()=>{
+    try{
+     const blob=await getAudio(id);
+     if(token!==audioRestoreToken||!residentAccess()||scope!==owner||draft?.id!==entryId||
+        draft?.reading?.audioId!==id||rerecordOriginal||host!==$('#gsAudioHost'))return null;
+     if(!blob){host.textContent='本机没有找到对应原声。请重新录制。';return null}
+     clearPlayer();
+     activeAudioURL=URL.createObjectURL(blob);
+     const player=document.createElement('audio');
+     player.preload='metadata';player.src=activeAudioURL;player.hidden=true;
+     player.dataset.audioId=id;player.dataset.entryId=entryId;player.dataset.ownerScope=owner;
+     activePlayer=player;host.replaceChildren(player);
+     const sync=()=>{
+      if(player!==activePlayer)return;
+      const state=player.ended||player.paused?'linked':'playing';
+      const consoleNode=$('.gs-recorder-console'),screen=$('#gsRecorderScreen'),status=$('#gsRecorderStatus');
+      if(consoleNode)consoleNode.dataset.state=state;if(screen)screen.dataset.state=state;
+      if(status)status.textContent=state==='playing'?'PLAY · 正在回听':'LINKED · 已与 '+draft.scripture.reference+' 绑定';
+     };
+     player.addEventListener('play',()=>{
+      if(player!==activePlayer)return;
+      sync();broadcastReadingAudioProgress('playing',player);
+      const ms=soundMediaToJourneyMs(player.currentTime*1000,player);
+      if(ms!=null)updateSoundPathProgress(ms,true);
+     });
+     player.addEventListener('timeupdate',()=>{
+      if(player!==activePlayer)return;
+      broadcastReadingAudioProgress(player.ended?'ended':player.paused?'paused':'playing',player);
+      updateCompReduction(player);
+     });
+     player.addEventListener('pause',()=>{if(player!==activePlayer)return;sync();if(!player.ended)broadcastReadingAudioProgress('paused',player)});
+     player.addEventListener('ended',()=>{if(player!==activePlayer)return;sync();broadcastReadingAudioProgress('ended',player)});
+     player.addEventListener('loadedmetadata',()=>{
+      if(player!==activePlayer)return;
+      const ms=soundMediaToJourneyMs(player.currentTime*1000,player);
+      if(ms!=null)updateSoundPathProgress(ms,false);
+     });
+     return player;
+    }catch(e){
+     if(host===$('#gsAudioHost')&&scope===owner&&draft?.id===entryId)
+      host.textContent='无法读取本机原声：'+String(e.message||e);
+     return null;
+    }
+   })();
+   audioRestorePending=pending;
+   try{return await pending.promise}finally{
+    if(audioRestorePending===pending)audioRestorePending=null;
+   }
+  }
 async function deleteAudio(id){
  if(!id)return;
  const db=await audioDatabase();
@@ -949,7 +995,11 @@ async function togglePlayback(){
  let player=activePlayer;
  if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
  if(!player)return;
- if(player.paused||player.ended){if(player.ended)player.currentTime=0;if(denoiseEnabled)await connectDenoiseMonitor(player);await player.play().catch(()=>{})}
+ if(player.paused||player.ended){
+  if(player.ended)player.currentTime=0;
+  if(denoiseEnabled||eqEnabled||compEnabled||reverbEnabled)await connectDspMonitor(player);
+  await player.play().catch(()=>{tell('原声暂无法播放，请检查浏览器音频权限。')});
+ }
  else player.pause();
 }
 function linkRecording(){
@@ -1028,7 +1078,7 @@ async function startOrStopRecording(){
   function openSavedEntry(id){
    const found=entries.find(e=>e.id===id);if(!found)return;
    if(recorder?.state==='recording'||['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经，再翻阅档案。');return}
-   rerecordOriginal=null;draft={id:found.id,scripture:{...found.scripture},reading:{...found.reading},readingJourney:found.readingJourney||null,
+   clearPlayer();rerecordOriginal=null;draft={id:found.id,scripture:{...found.scripture},reading:{...found.reading},readingJourney:found.readingJourney||null,
     reflection:found.reflection?.text||'',insightRecord:found.insightRecord||null,
     insightDraft:found.insightRecord?{heardText:found.insightRecord.heard_text,todayText:found.insightRecord.today_text}:{heardText:'',todayText:''},lightDraft:{}};
    focusLight=null;
