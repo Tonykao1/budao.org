@@ -62,6 +62,8 @@
   // DSP controls are transient audition settings, never archive mutations.
   let denoiseEnabled=false,denoiseStrength=35,denoiseMonitor=null,denoiseRequest=0;
   let denoisePending=null;
+  // EQ is a temporary listening preference, never stored with the voice master.
+  let eqEnabled=false,eqBands={low:0,mid:0,high:0};
   let rerecordOriginal=null; // Keep original audio until replacement is fully saved.
   let journeyAttemptToken=0; // A discarded take cannot revive itself through late recorder events.
   let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
@@ -169,7 +171,7 @@
    if(!current)return false;
    if(current===scope&&draft)return true;
    if(recorder&&recorder.state==='recording'){try{recorder.stop()}catch(_){}}
-   if(scope&&scope!==current){clearPlayer();denoiseEnabled=false;denoiseStrength=35;}
+   if(scope&&scope!==current){clearPlayer();denoiseEnabled=false;denoiseStrength=35;eqEnabled=false;eqBands={low:0,mid:0,high:0};}
    scope=current;key=PREFIX+'.'+scope;
    const names=persistentKeys();
    entries=getJson(names.entries,[]);if(!Array.isArray(entries))entries=[];
@@ -360,7 +362,15 @@ function stageReading(){
           '<input data-dsp-denoise-strength type="range" min="0" max="100" step="5" value="'+denoiseStrength+'" aria-label="降噪强度，0至100" '+(!hasAudio?'disabled':'')+'></div>'+
         '<button type="button" data-action="dsp-denoise" aria-pressed="'+denoiseEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(denoiseEnabled?'ON':'OFF')+'</button>'+
         '<small class="gs-dsp-denoise-value">基础降噪 · '+denoiseStrength+'%</small></div>'+
-      ['EQ','COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel gs-dsp-coming"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['均衡','压缩','混响'][i]+' · 待接入</small></div>').join('')+
+      '<div class="gs-voice-dsp-channel gs-dsp-eq" data-enabled="'+(eqEnabled?'true':'false')+'"><b>EQ</b>'+
+        '<div class="gs-eq-three">'+['low','mid','high'].map((band,i)=>
+          '<label class="gs-eq-control" style="--knob-angle:'+(-135+(eqBands[band]+12)*11.25)+'deg" title="'+['低频 180 Hz','中频 1.8 kHz','高频 6 kHz'][i]+'">'+
+           '<span class="gs-eq-dial" aria-hidden="true"></span>'+
+           '<input type="range" data-dsp-eq-band="'+band+'" min="-12" max="12" step="1" value="'+eqBands[band]+'" aria-label="'+['低频','中频','高频'][i]+'均衡增益（分贝）" '+(!hasAudio?'disabled':'')+'>'+
+           '<span class="gs-eq-band-label">'+['LOW','MID','HIGH'][i]+'</span></label>').join('')+'</div>'+
+        '<button type="button" data-action="dsp-eq" aria-pressed="'+eqEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(eqEnabled?'ON':'OFF')+'</button>'+
+        '<small class="gs-eq-values">低 '+(eqBands.low>0?'+':'')+eqBands.low+' / 中 '+(eqBands.mid>0?'+':'')+eqBands.mid+' / 高 '+(eqBands.high>0?'+':'')+eqBands.high+' dB</small></div>'+
+      ['COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel gs-dsp-coming"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['压缩','混响'][i]+' · 待接入</small></div>').join('')+
     '</div><p id="gsDspStatus" role="status">'+(denoiseEnabled?'降噪试听已选择 · 原声文件不受影响':'第 1 模块：降噪试听可启用 · 其余模块待接入')+'</p></div>'+
   soundPathView()+voiceYearRingView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
@@ -531,94 +541,151 @@ function stageReading(){
    document.dispatchEvent(new CustomEvent('mygrass:reading-audio-progress',{detail:{state,currentTime:Number.isFinite(currentTime)?currentTime:0,duration:Number.isFinite(duration)?duration:0,audioId:draft.reading.audioId||null}}));
   }
 
+  // Both audition effects share a single media element and a single Web Audio graph.
+  // The original audio blob is never altered, rendered or uploaded here.
   function releaseDenoiseMonitor(){
    denoiseRequest++;
-   const previous=denoiseMonitor;
-   denoiseMonitor=null;denoisePending=null;
-   if(!previous)return;
-   try{previous.source?.disconnect()}catch(_){}
-   try{previous.highpass?.disconnect()}catch(_){}
-   try{previous.effect?.disconnect()}catch(_){}
-   try{previous.dry?.disconnect()}catch(_){}
-   try{previous.wet?.disconnect()}catch(_){}
-   if(previous.context?.state!=='closed')previous.context?.close?.().catch(()=>{});
+   const m=denoiseMonitor;denoiseMonitor=null;denoisePending=null;
+   if(!m)return;
+   for(const node of [m.source,m.dry,m.wet,m.cleanFeed,m.noiseFeed,m.highpass,m.effect,m.low,m.mid,m.high]){
+    try{node?.disconnect()}catch(_){}
+   }
+   if(m.context?.state!=='closed')m.context?.close?.().catch(()=>{});
   }
   function updateDenoiseControls(){
    const button=root.querySelector('[data-action="dsp-denoise"]');
    if(button){button.textContent=denoiseEnabled?'ON':'OFF';button.setAttribute('aria-pressed',String(denoiseEnabled))}
    const box=root.querySelector('.gs-dsp-denoise');if(box)box.dataset.enabled=String(denoiseEnabled);
+   const eqButton=root.querySelector('[data-action="dsp-eq"]');
+   if(eqButton){eqButton.textContent=eqEnabled?'ON':'OFF';eqButton.setAttribute('aria-pressed',String(eqEnabled))}
+   const eqBox=root.querySelector('.gs-dsp-eq');if(eqBox)eqBox.dataset.enabled=String(eqEnabled);
    const status=root.querySelector('#gsDspStatus');
-   if(status)status.textContent=denoiseEnabled?'基础降噪试听开启 · 原声母本保持不变':'基础降噪已旁路 · 当前回听原声';
+   if(status){
+    const active=[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null].filter(Boolean);
+    status.textContent=active.length?active.join(' + ')+' · 仅试听，原声母本不变':'DSP 已旁路 · 正在聆听原声';
+   }
   }
-  function applyDenoiseSetting(){
-   const m=denoiseMonitor;if(!m?.effect)return;
-   m.effect.port.postMessage({type:'strength',strength:denoiseStrength});
+  function applyDspSettings(){
+   const m=denoiseMonitor;if(!m?.source)return;
    const now=m.context.currentTime;
-   m.dry.gain.setTargetAtTime(denoiseEnabled?0:1,now,.012);
-   m.wet.gain.setTargetAtTime(denoiseEnabled?1:0,now,.012);
+   const useDenoise=denoiseEnabled&&!!m.effect;
+   const processed=useDenoise||eqEnabled;
+   m.dry.gain.setTargetAtTime(processed?0:1,now,.012);
+   m.wet.gain.setTargetAtTime(processed?1:0,now,.012);
+   m.cleanFeed.gain.setTargetAtTime(processed&&!useDenoise?1:0,now,.012);
+   if(m.noiseFeed)m.noiseFeed.gain.setTargetAtTime(useDenoise?1:0,now,.012);
+   if(m.effect)m.effect.port.postMessage({type:'strength',strength:denoiseStrength});
+   for(const band of ['low','mid','high']){
+    m[band].gain.setTargetAtTime(eqEnabled?eqBands[band]:0,now,.012);
+   }
   }
-  async function connectDenoiseMonitor(player){
-   if(!denoiseEnabled||!player||player!==activePlayer)return false;
-   if(denoiseMonitor?.player===player&&denoiseMonitor.effect){
+  function applyDenoiseSetting(){applyDspSettings()}
+  async function loadDenoiseWorklet(m,request,owner,audioId){
+   if(!denoiseEnabled||!m||m.effect)return !!m?.effect;
+   if(m.workletPending)return m.workletPending;
+   const task=(async()=>{
+    try{
+     if(!m.context.audioWorklet?.addModule||!window.AudioWorkletNode)throw Error('AudioWorklet 不可用');
+     await m.context.audioWorklet.addModule('/pasture-preview/my-grass-denoise-worklet-v1.js');
+     if(request!==denoiseRequest||m!==denoiseMonitor||m.player!==activePlayer||
+       owner!==scope||audioId!==draft?.reading?.audioId||!residentAccess())return false;
+     const highpass=m.context.createBiquadFilter();
+     highpass.type='highpass';highpass.frequency.value=75;highpass.Q.value=.707;
+     const effect=new AudioWorkletNode(m.context,'my-grass-denoise-v1');
+     const noiseFeed=m.context.createGain();noiseFeed.gain.value=0;
+     m.source.connect(highpass);
+     highpass.connect(effect);effect.connect(noiseFeed);noiseFeed.connect(m.low);
+     m.highpass=highpass;m.effect=effect;m.noiseFeed=noiseFeed;
+     applyDspSettings();return true;
+    }catch(e){
+     // EQ remains usable if only the optional denoiser fails to load.
+     if(request===denoiseRequest&&m===denoiseMonitor){
+      denoiseEnabled=false;updateDenoiseControls();applyDspSettings();
+      tell('降噪不可用，已保留原声与均衡试听：'+String(e?.message||e));
+     }
+     return false;
+    }
+   })();
+   m.workletPending=task;
+   try{return await task}finally{if(m.workletPending===task)m.workletPending=null}
+  }
+  async function connectDspMonitor(player){
+   if(!(denoiseEnabled||eqEnabled)||!player||player!==activePlayer)return false;
+   if(denoiseMonitor?.player===player&&denoiseMonitor.source){
     await denoiseMonitor.context.resume();
-    applyDenoiseSetting();return true;
+    const m=denoiseMonitor;
+    if(denoiseEnabled&&!m.effect)await loadDenoiseWorklet(m,denoiseRequest,scope,player.dataset.audioId);
+    applyDspSettings();return !!(denoiseEnabled||eqEnabled);
    }
    if(denoisePending)return denoisePending;
    const AudioCtor=window.AudioContext||window.webkitAudioContext;
-   if(!AudioCtor||!window.AudioWorkletNode){
-    denoiseEnabled=false;updateDenoiseControls();
-    tell('本浏览器不支持所需的 AudioWorklet，已自动保留原声回听。');return false;
-   }
+   if(!AudioCtor){denoiseEnabled=false;eqEnabled=false;updateDenoiseControls();tell('当前浏览器不支持 Web Audio，已保留原声回听。');return false}
    const request=++denoiseRequest,owner=scope,audioId=player.dataset.audioId;
    const task=(async()=>{
-    let context=null,source=null,dry=null,highpass=null,effect=null,wet=null;
+    let context=null,source=null,m=null;
     try{
      context=new AudioCtor();
-     // Resume during user-triggered interaction before fetching any worklet script.
      await context.resume();
-     if(!context.audioWorklet?.addModule)throw Error('AudioWorklet 不可用');
-     await context.audioWorklet.addModule('/pasture-preview/my-grass-denoise-worklet-v1.js');
-     if(request!==denoiseRequest||!denoiseEnabled||player!==activePlayer||
-        owner!==scope||audioId!==draft.reading.audioId||!residentAccess()){
-      await context.close();return false;
-     }
-     highpass=context.createBiquadFilter();highpass.type='highpass';highpass.frequency.value=75;highpass.Q.value=.707;
-     effect=new AudioWorkletNode(context,'my-grass-denoise-v1');
-     dry=context.createGain();wet=context.createGain();
-     dry.gain.value=1;wet.gain.value=0;
+     if(request!==denoiseRequest||player!==activePlayer||owner!==scope||
+       audioId!==draft?.reading?.audioId||!residentAccess()){await context.close();return false}
+     const dry=context.createGain(),wet=context.createGain(),cleanFeed=context.createGain();
+     const low=context.createBiquadFilter(),mid=context.createBiquadFilter(),high=context.createBiquadFilter();
+     low.type='lowshelf';low.frequency.value=180;
+     mid.type='peaking';mid.frequency.value=1800;mid.Q.value=.9;
+     high.type='highshelf';high.frequency.value=6000;
+     dry.gain.value=1;wet.gain.value=0;cleanFeed.gain.value=0;
+     for(const node of [low,mid,high])node.gain.value=0;
      source=context.createMediaElementSource(player);
-     // Always keep a dry route before connecting the processing path.
+     // Dry route is wired first. Processing failures cannot erase the original file.
      source.connect(dry);dry.connect(context.destination);
-     source.connect(highpass);highpass.connect(effect);effect.connect(wet);wet.connect(context.destination);
-     denoiseMonitor={context,player,source,highpass,effect,dry,wet};
-     applyDenoiseSetting();
-     return true;
+     source.connect(cleanFeed);cleanFeed.connect(low);low.connect(mid);mid.connect(high);
+     high.connect(wet);wet.connect(context.destination);
+     m={context,player,source,dry,wet,cleanFeed,low,mid,high,effect:null,noiseFeed:null,highpass:null};
+     denoiseMonitor=m;
+     applyDspSettings();
+     if(denoiseEnabled)await loadDenoiseWorklet(m,request,owner,audioId);
+     if(request!==denoiseRequest||m!==denoiseMonitor)return false;
+     applyDspSettings();return true;
     }catch(e){
-     // If the element was routed already, leave its dry path connected.
-     if(source&&dry&&context){
-      try{source.connect(dry);dry.connect(context.destination)}catch(_){}
-      denoiseMonitor={context,player,source,dry,highpass,effect,wet};
+     // If MediaElementSourceNode exists, keep its dry audio route alive.
+     if(m&&m===denoiseMonitor){
+      denoiseEnabled=false;eqEnabled=false;updateDenoiseControls();applyDspSettings();
+     }else if(source&&context){
+      try{source.connect(context.destination)}catch(_){}
+      denoiseMonitor={context,player,source};
      }else if(context){context.close().catch(()=>{})}
-     denoiseEnabled=false;updateDenoiseControls();
-     tell('降噪未能开启，已回到原声试听：'+String(e?.message||e));
+     tell('DSP 试听失败，已切回原声：'+String(e?.message||e));
      return false;
     }
    })();
    denoisePending=task;
    try{return await task}finally{if(denoisePending===task)denoisePending=null}
   }
+  async function connectDenoiseMonitor(player){return connectDspMonitor(player)}
   async function toggleDenoisePreview(){
    if(!draft.reading.audioId||rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase)){
     tell('请先完成这次原声朗读，才可以试听降噪。');return;
    }
    denoiseEnabled=!denoiseEnabled;updateDenoiseControls();
-   if(!denoiseEnabled){applyDenoiseSetting();tell('已切回未经 DSP 处理的原声试听。');return}
+   if(!denoiseEnabled){applyDspSettings();return}
    let player=activePlayer;
    if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
    if(!player){denoiseEnabled=false;updateDenoiseControls();return}
-   if(await connectDenoiseMonitor(player)){
-    // Turning the effect on is an intentional audition action, not export or publication.
-    try{if(player.paused)await player.play()}catch(e){tell('降噪已就绪，请点击回听开始试听。')}
+   if(await connectDspMonitor(player)){
+    try{if(player.paused)await player.play()}catch(e){tell('降噪已就绪，请点击回听试听。')}
+   }
+  }
+  async function toggleEqPreview(){
+   if(!draft.reading.audioId||rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase)){
+    tell('请先完成本次读经，才可以试听 EQ。');return;
+   }
+   eqEnabled=!eqEnabled;updateDenoiseControls();
+   if(!eqEnabled){applyDspSettings();return}
+   let player=activePlayer;
+   if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
+   if(!player){eqEnabled=false;updateDenoiseControls();return}
+   if(await connectDspMonitor(player)){
+    try{if(player.paused)await player.play()}catch(e){tell('EQ 已就绪，请点击回听试听。')}
    }
   }
 
@@ -673,7 +740,7 @@ async function deleteAudio(id){
    if(!player||id!==draft?.reading?.audioId||scope!==owner||!residentAccess())return;
    try{
     player.currentTime=ms/1000;
-    if(denoiseEnabled)await connectDenoiseMonitor(player);
+    if(denoiseEnabled||eqEnabled)await connectDspMonitor(player);
     await player.play();
     updateSoundPathProgress(ms,true);
    }catch(e){tell('原声定位暂不可用：'+String(e?.message||e))}
@@ -1061,6 +1128,18 @@ async function startOrStopRecording(){
    if(label)label.textContent='基础降噪 · '+denoiseStrength+'%';
    applyDenoiseSetting();
   });
+  root.addEventListener('input',e=>{
+   const band=e.target?.dataset?.dspEqBand;
+   if(!['low','mid','high'].includes(band))return;
+   const value=Number(e.target.value);
+   if(!Number.isFinite(value))return;
+   eqBands[band]=Math.max(-12,Math.min(12,value));
+   const control=e.target.closest('.gs-eq-control');
+   if(control)control.style.setProperty('--knob-angle',(-135+(eqBands[band]+12)*11.25)+'deg');
+   const label=root.querySelector('.gs-eq-values');
+   if(label)label.textContent='低 '+(eqBands.low>0?'+':'')+eqBands.low+' / 中 '+(eqBands.mid>0?'+':'')+eqBands.mid+' / 高 '+(eqBands.high>0?'+':'')+eqBands.high+' dB';
+   applyDspSettings();
+  });
   root.addEventListener('click',async e=>{
    const b=e.target.closest('button[data-action]');
    if(!b){if(e.target?.classList?.contains('gs-light-orbit')&&focusLight){focusLight=null;render()}return}
@@ -1070,6 +1149,7 @@ async function startOrStopRecording(){
     case 'record':await startOrStopRecording();break;
     case 'play':await togglePlayback();break;
     case 'dsp-denoise':await toggleDenoisePreview();break;
+    case 'dsp-eq':await toggleEqPreview();break;
     case 'sound-seek':await seekSoundVerse(Number(b.dataset.startMs));break;
     case 'rerecord':rerecordAudio();break;
     case 'cancel-rerecord':cancelRerecord();break;
