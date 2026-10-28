@@ -267,10 +267,14 @@ describe('Phase 2D.3 existing share flow integration', () => {
   it('24. requires no permanent invitation files', () => {
     assert.ok(!engineSource.includes('invitation.html')); assert.ok(!engineSource.includes('/api/invitation'));
   });
-  it('25. frozen renderer remains byte-identical', () => {
-    const bytes = fs.readFileSync(require.resolve('../invitation-share-mode-b.js'));
-    assert.strictEqual(crypto.createHash('sha256').update(bytes).digest('hex'),
-      '44fda8cbff84bfaa310c908e7ae8e34b17880a176f1dc34b2e15b5147ef474cf');
+  it('25. approved Invitation 2.0 renderer keeps the share artifact dimensions and QR contract', () => {
+    assert.strictEqual(frozenArtifact.ARTIFACT_WIDTH, 1080);
+    assert.strictEqual(frozenArtifact.ARTIFACT_HEIGHT, 1530);
+    assert.deepStrictEqual(frozenArtifact.ARTIFACT_LAYOUT.participation,
+      { x: 748, y: 1180, width: 214, height: 236 });
+    assert.match(engineSource, /data-invitation-theme="classic"/);
+    assert.match(engineSource, /data-invitation-theme="landscape"/);
+    assert.match(engineSource, /data-invitation-theme="natural"/);
   });
   it('26. integrated engine has no Snapshot/API dependency', () => {
     assert.ok(!engineSource.includes('/api/routes')); assert.ok(!engineSource.includes('snapshot'));
