@@ -54,7 +54,7 @@ test('worklet attenuates quiet noise yet passes speech in a real sample stream',
    const input=[new Float32Array(128).fill(v)];
    out=[new Float32Array(128)];
    assert.equal(node.process([input],[out]),true);
-   assert.equal(input[0][0],v);
+   assert.ok(Math.abs(input[0][0]-v)<1e-7,'input audio remains unchanged');
   }return out[0][63];
  }
  const quiet=processValue(.0005);
