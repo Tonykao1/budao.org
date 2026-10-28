@@ -41,6 +41,11 @@ module.exports = async function handler(request, response) {
 
     response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
 
+    if (scope === "calendar") {
+      const supervisionRoutes = await publicSupervision;
+      return sendJson(response, 200, projectCalendarRoutes(routes, supervisionRoutes));
+    }
+
     if (scope === "mine") {
       const publisher = getAuthenticatedPublisher(request);
       if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
@@ -263,6 +268,15 @@ function projectPublicRoutes(routes, now = new Date(), supervisionRoutes = {}) {
 
   return selected.map(function (item, index) {
     return { ...item.route, slot: presentationSlots[index] };
+  });
+}
+
+function projectCalendarRoutes(routes, supervisionRoutes = {}) {
+  return (Array.isArray(routes) ? routes : []).filter(function (route) {
+    const supervision = routeSupervision({ routes: supervisionRoutes, audit: [] }, route && (route.routeId || route.id));
+    return Number.isFinite(eventTimeMs(route)) && supervision.status === "active";
+  }).map(function (route) {
+    return { ...route, slot: "" };
   });
 }
 
