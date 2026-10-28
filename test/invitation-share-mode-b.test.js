@@ -410,6 +410,22 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.ok(footer.y - (participation.y + participation.height) >= 24);
   });
 
+  it('Invitation 2.0 keeps PNG dimensions and visually distinguishes each theme', () => {
+    const themes = ['classic', 'landscape', 'natural'];
+    const outputs = themes.map((theme) => rendered({
+      viewModel: { ...viewModel(), theme }
+    }));
+    outputs.forEach(({ result }) => {
+      assert.strictEqual(result.width, 1080);
+      assert.strictEqual(result.height, 1530);
+    });
+    const texts = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'fillText').map(call => call[1]));
+    assert.ok(texts[1].includes('山野风景 · BUDAO'));
+    assert.ok(texts[2].includes('自然生活 · BUDAO'));
+    assert.ok(!texts[0].includes('山野风景 · BUDAO'));
+    assert.ok(!texts[0].includes('自然生活 · BUDAO'));
+  });
+
   it('41. keeps the renderer usable with a lightweight Canvas mock', () => {
     const ctx = {
       fillRect() {},
