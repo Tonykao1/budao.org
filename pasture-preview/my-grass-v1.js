@@ -59,6 +59,9 @@
   let scope='',key='',draft,entries=[],micros=[],tab='reading',archiveOpen=false,editingSavedId=null;
   let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordLimit=null,activeAudioURL=null,activePlayer=null;
   let audioPending=false,notice='',lightGraph={relations:[],events:[]},focusLight=null;
+  // DSP controls are transient audition settings, never archive mutations.
+  let denoiseEnabled=false,denoiseStrength=35,denoiseMonitor=null,denoiseRequest=0;
+  let denoisePending=null;
   let rerecordOriginal=null; // Keep original audio until replacement is fully saved.
   let journeyAttemptToken=0; // A discarded take cannot revive itself through late recorder events.
   let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
@@ -348,9 +351,16 @@ function stageReading(){
       '<div class="gs-recorder-status" id="gsRecorderStatus">'+recorderStatusText()+'</div></div>'+
     '</div>'+
   '</div>'+
-  '<div class="gs-voice-dsp" aria-label="DSP 设计预览，尚未启用音频处理"><div class="gs-voice-dsp-heading"><strong>VOICE DSP / 4-IN-1</strong><small>仅试听｜分享时生成</small></div><div class="gs-voice-dsp-channels">'+
-     ['DENOISE','EQ','COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['降噪','均衡','压缩','混响'][i]+'</small></div>').join('')+
-     '</div><p>DSP 效果尚未接通 · 当前不会修改原声</p></div>'+
+  '<div class="gs-voice-dsp" aria-label="四合一音频机架">'+
+    '<div class="gs-voice-dsp-heading"><strong>VOICE DSP / 4-IN-1</strong><small>仅试听 · 分享时生成</small></div>'+
+    '<div class="gs-voice-dsp-channels">'+
+      '<div class="gs-voice-dsp-channel gs-dsp-denoise" data-enabled="'+(denoiseEnabled?'true':'false')+'"><b>DENOISE</b>'+
+        '<div class="gs-dsp-knob-wrap" style="--knob-angle:'+(-135+denoiseStrength*2.7)+'deg"><span class="gs-dsp-knob-face" aria-hidden="true"></span>'+
+          '<input data-dsp-denoise-strength type="range" min="0" max="100" step="5" value="'+denoiseStrength+'" aria-label="降噪强度，0至100" '+(!hasAudio?'disabled':'')+'></div>'+
+        '<button type="button" data-action="dsp-denoise" aria-pressed="'+denoiseEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(denoiseEnabled?'ON':'OFF')+'</button>'+
+        '<small class="gs-dsp-denoise-value">基础降噪 · '+denoiseStrength+'%</small></div>'+
+      ['EQ','COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel gs-dsp-coming"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['均衡','压缩','混响'][i]+' · 待接入</small></div>').join('')+
+    '</div><p id="gsDspStatus" role="status">'+(denoiseEnabled?'降噪试听已选择 · 原声文件不受影响':'第 1 模块：降噪试听可启用 · 其余模块待接入')+'</p></div>'+
   soundPathView()+voiceYearRingView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
@@ -519,7 +529,100 @@ function stageReading(){
    const duration=Number(player?.duration),currentTime=Number(player?.currentTime);
    document.dispatchEvent(new CustomEvent('mygrass:reading-audio-progress',{detail:{state,currentTime:Number.isFinite(currentTime)?currentTime:0,duration:Number.isFinite(duration)?duration:0,audioId:draft.reading.audioId||null}}));
   }
+
+  function releaseDenoiseMonitor(){
+   denoiseRequest++;
+   const previous=denoiseMonitor;
+   denoiseMonitor=null;denoisePending=null;
+   if(!previous)return;
+   try{previous.source?.disconnect()}catch(_){}
+   try{previous.highpass?.disconnect()}catch(_){}
+   try{previous.effect?.disconnect()}catch(_){}
+   try{previous.dry?.disconnect()}catch(_){}
+   try{previous.wet?.disconnect()}catch(_){}
+   if(previous.context?.state!=='closed')previous.context?.close?.().catch(()=>{});
+  }
+  function updateDenoiseControls(){
+   const button=root.querySelector('[data-action="dsp-denoise"]');
+   if(button){button.textContent=denoiseEnabled?'ON':'OFF';button.setAttribute('aria-pressed',String(denoiseEnabled))}
+   const box=root.querySelector('.gs-dsp-denoise');if(box)box.dataset.enabled=String(denoiseEnabled);
+   const status=root.querySelector('#gsDspStatus');
+   if(status)status.textContent=denoiseEnabled?'基础降噪试听开启 · 原声母本保持不变':'基础降噪已旁路 · 当前回听原声';
+  }
+  function applyDenoiseSetting(){
+   const m=denoiseMonitor;if(!m?.effect)return;
+   m.effect.port.postMessage({type:'strength',strength:denoiseStrength});
+   const now=m.context.currentTime;
+   m.dry.gain.setTargetAtTime(denoiseEnabled?0:1,now,.012);
+   m.wet.gain.setTargetAtTime(denoiseEnabled?1:0,now,.012);
+  }
+  async function connectDenoiseMonitor(player){
+   if(!denoiseEnabled||!player||player!==activePlayer)return false;
+   if(denoiseMonitor?.player===player&&denoiseMonitor.effect){
+    await denoiseMonitor.context.resume();
+    applyDenoiseSetting();return true;
+   }
+   if(denoisePending)return denoisePending;
+   const AudioCtor=window.AudioContext||window.webkitAudioContext;
+   if(!AudioCtor||!window.AudioWorkletNode){
+    denoiseEnabled=false;updateDenoiseControls();
+    tell('本浏览器不支持所需的 AudioWorklet，已自动保留原声回听。');return false;
+   }
+   const request=++denoiseRequest,owner=scope,audioId=player.dataset.audioId;
+   const task=(async()=>{
+    let context=null,source=null,dry=null,highpass=null,effect=null,wet=null;
+    try{
+     context=new AudioCtor();
+     // Resume during user-triggered interaction before fetching any worklet script.
+     await context.resume();
+     if(!context.audioWorklet?.addModule)throw Error('AudioWorklet 不可用');
+     await context.audioWorklet.addModule('/pasture-preview/my-grass-denoise-worklet-v1.js');
+     if(request!==denoiseRequest||!denoiseEnabled||player!==activePlayer||
+        owner!==scope||audioId!==draft.reading.audioId||!residentAccess()){
+      await context.close();return false;
+     }
+     highpass=context.createBiquadFilter();highpass.type='highpass';highpass.frequency.value=75;highpass.Q.value=.707;
+     effect=new AudioWorkletNode(context,'my-grass-denoise-v1');
+     dry=context.createGain();wet=context.createGain();
+     dry.gain.value=1;wet.gain.value=0;
+     source=context.createMediaElementSource(player);
+     // Always keep a dry route before connecting the processing path.
+     source.connect(dry);dry.connect(context.destination);
+     source.connect(highpass);highpass.connect(effect);effect.connect(wet);wet.connect(context.destination);
+     denoiseMonitor={context,player,source,highpass,effect,dry,wet};
+     applyDenoiseSetting();
+     return true;
+    }catch(e){
+     // If the element was routed already, leave its dry path connected.
+     if(source&&dry&&context){
+      try{source.connect(dry);dry.connect(context.destination)}catch(_){}
+      denoiseMonitor={context,player,source,dry,highpass,effect,wet};
+     }else if(context){context.close().catch(()=>{})}
+     denoiseEnabled=false;updateDenoiseControls();
+     tell('降噪未能开启，已回到原声试听：'+String(e?.message||e));
+     return false;
+    }
+   })();
+   denoisePending=task;
+   try{return await task}finally{if(denoisePending===task)denoisePending=null}
+  }
+  async function toggleDenoisePreview(){
+   if(!draft.reading.audioId||rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase)){
+    tell('请先完成这次原声朗读，才可以试听降噪。');return;
+   }
+   denoiseEnabled=!denoiseEnabled;updateDenoiseControls();
+   if(!denoiseEnabled){applyDenoiseSetting();tell('已切回未经 DSP 处理的原声试听。');return}
+   let player=activePlayer;
+   if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
+   if(!player){denoiseEnabled=false;updateDenoiseControls();return}
+   if(await connectDenoiseMonitor(player)){
+    // Turning the effect on is an intentional audition action, not export or publication.
+    try{if(player.paused)await player.play()}catch(e){tell('降噪已就绪，请点击回听开始试听。')}
+   }
+  }
+
   function clearPlayer(){
+   releaseDenoiseMonitor();
    if(activePlayer)broadcastReadingAudioProgress('cleared',activePlayer);
    try{activePlayer?.pause?.()}catch(_){}
    activePlayer=null;
@@ -569,6 +672,7 @@ async function deleteAudio(id){
    if(!player||id!==draft?.reading?.audioId||scope!==owner||!residentAccess())return;
    try{
     player.currentTime=ms/1000;
+    if(denoiseEnabled)await connectDenoiseMonitor(player);
     await player.play();
     updateSoundPathProgress(ms,true);
    }catch(e){tell('原声定位暂不可用：'+String(e?.message||e))}
@@ -592,7 +696,7 @@ async function togglePlayback(){
  let player=activePlayer;
  if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
  if(!player)return;
- if(player.paused||player.ended){if(player.ended)player.currentTime=0;await player.play().catch(()=>{})}
+ if(player.paused||player.ended){if(player.ended)player.currentTime=0;if(denoiseEnabled)await connectDenoiseMonitor(player);await player.play().catch(()=>{})}
  else player.pause();
 }
 function linkRecording(){
@@ -945,6 +1049,17 @@ async function startOrStopRecording(){
     microDraft=v;const node=$('#gsMicroCount');if(node)node.textContent=C.count(v)+' / 80字';
    }
   });
+  root.addEventListener('input',e=>{
+   if(!e.target?.matches?.('[data-dsp-denoise-strength]'))return;
+   const value=Number(e.target.value);
+   if(!Number.isFinite(value))return;
+   denoiseStrength=Math.max(0,Math.min(100,value));
+   const wrap=e.target.closest('.gs-dsp-knob-wrap');
+   if(wrap)wrap.style.setProperty('--knob-angle',(-135+denoiseStrength*2.7)+'deg');
+   const label=root.querySelector('.gs-dsp-denoise-value');
+   if(label)label.textContent='基础降噪 · '+denoiseStrength+'%';
+   applyDenoiseSetting();
+  });
   root.addEventListener('click',async e=>{
    const b=e.target.closest('button[data-action]');
    if(!b){if(e.target?.classList?.contains('gs-light-orbit')&&focusLight){focusLight=null;render()}return}
@@ -953,6 +1068,7 @@ async function startOrStopRecording(){
     case 'scripture-nav': showBibleNav();break;
     case 'record':await startOrStopRecording();break;
     case 'play':await togglePlayback();break;
+    case 'dsp-denoise':await toggleDenoisePreview();break;
     case 'sound-seek':await seekSoundVerse(Number(b.dataset.startMs));break;
     case 'rerecord':rerecordAudio();break;
     case 'cancel-rerecord':cancelRerecord();break;
