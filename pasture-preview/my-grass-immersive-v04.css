@@ -370,3 +370,63 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-light-node.is-pulsing{animation:gsLightPulse 1.2s ease-in-out 1}
 @keyframes gsLightPulse{0%,100%{filter:brightness(1)}45%{filter:brightness(1.22);box-shadow:0 0 20px rgba(160,195,113,.65)}}
 @media(prefers-reduced-motion:reduce){#grassWorkspace .gs-light-node.is-pulsing{animation:none}}
+
+
+/* ORIGINAL VOICE STATION — parchment and classic analog visual layout V0.2 */
+#grassWorkspace .gs-voice-station{overflow-y:auto;min-height:0;max-height:100%;padding:8px 12px 18px!important;scrollbar-width:thin}
+#grassWorkspace .gs-voice-heading{text-align:center;padding:3px 8px 8px;margin:0 0 7px;border:2px double #aa8051;border-radius:3px;background:linear-gradient(90deg,rgba(151,101,50,.1),rgba(252,235,194,.35),rgba(151,101,50,.1));box-shadow:inset 0 0 0 2px rgba(248,227,182,.48)}
+#grassWorkspace .gs-voice-heading>span{display:block;font:700 13px/1.4 Georgia,serif;letter-spacing:.12em;color:#533723}
+#grassWorkspace .gs-voice-heading h3{font:700 15px/1.4 STKaiti,KaiTi,serif!important;letter-spacing:.25em;color:#573d25!important;margin:2px 0 0!important;padding:0!important;border:0!important}
+#grassWorkspace .gs-voice-scripture{font:700 12px/1.4 STKaiti,KaiTi,serif;color:#62482b;border-bottom:1px solid #ba9666;padding:3px 3px 8px;margin-bottom:12px}
+#grassWorkspace .gs-voice-tape-deck{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:12px 10px 11px;margin-bottom:10px;border:3px ridge #77522f;border-radius:6px;background:linear-gradient(140deg,#4a3020,#2a1e17 53%,#533926);color:#efd4a2;box-shadow:0 0 0 2px #b18a56,inset 0 0 0 1px rgba(237,194,109,.45),3px 5px 7px #5f3b2240}
+#grassWorkspace .gs-voice-cassette{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:9px 7px;background:linear-gradient(135deg,#c8a574,#a67d4f);border:2px solid #4d3420;box-shadow:inset 1px 1px #f4dbab,inset -2px -2px #7b5537}
+#grassWorkspace .gs-voice-tape-quote{font:600 11px/1.35 STKaiti,KaiTi,serif;text-align:center;color:#573a22}
+#grassWorkspace .gs-voice-tape-window{height:63px;border:3px ridge #38281b;background:repeating-linear-gradient(0deg,#271b16 0 2px,#35251d 2px 4px);display:flex;justify-content:space-around;align-items:center;overflow:hidden}
+#grassWorkspace .gs-voice-tape-window span{width:52px;height:52px;border-radius:50%;border:7px solid #bda27d;box-shadow:inset 0 0 0 5px #34291e,0 0 0 2px #654f3d;background:repeating-conic-gradient(#bd9a69 0deg 23deg,#4e3b29 23deg 45deg)}
+#grassWorkspace .gs-voice-tape-window i{display:block;height:8px;flex:1;background:repeating-linear-gradient(90deg,#493025 0 2px,#2b1a14 2px 4px)}
+#grassWorkspace .gs-voice-cassette small{font:600 8px/1.3 Georgia,serif;letter-spacing:.05em;color:#4a301d;text-align:center}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-deck{grid-column:2;grid-row:1;justify-content:center}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:2;grid-row:1;align-self:start;transform:translateY(16px);pointer-events:none}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-brand{display:none}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-screen{min-height:44px;padding:5px;border:2px solid #241a13;background:linear-gradient(#e3bd77,#b18a50);box-shadow:inset 1px 2px 5px #63431e}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-wave{height:20px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-wave span{background:#80522c;opacity:.75;width:3px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-status{color:#3a2718;font-size:8px}
+#grassWorkspace .gs-voice-tape-deck .gs-journey-keys{align-self:end;grid-template-columns:repeat(3,minmax(0,1fr));padding-top:77px;gap:4px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-key{min-height:47px;padding:4px 2px;font-size:9px;border-color:#4b311f;background:linear-gradient(#ead7ae,#b89a70);box-shadow:inset 1px 1px #fdf0cc,0 2px #573c28}
+#grassWorkspace .gs-voice-dsp{margin:5px 0 11px;background:linear-gradient(145deg,#463021,#2b1f19 60%,#5a3d2a);border:3px ridge #8e653d;border-radius:5px;padding:8px;color:#e5c99c;box-shadow:0 0 0 2px #c19c66,inset 0 0 0 1px #b18c58}
+#grassWorkspace .gs-voice-dsp-heading{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:0 2px 6px;border-bottom:1px solid #af895c}
+#grassWorkspace .gs-voice-dsp-heading strong{font:700 11px Georgia,serif;letter-spacing:.08em}
+#grassWorkspace .gs-voice-dsp-heading small{font:500 9px STKaiti,KaiTi,serif}
+#grassWorkspace .gs-voice-dsp-channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:8px 0 4px}
+#grassWorkspace .gs-voice-dsp-channel{display:flex;flex-direction:column;align-items:center;gap:6px;border-right:1px solid #8f6b46}
+#grassWorkspace .gs-voice-dsp-channel:last-child{border-right:0}
+#grassWorkspace .gs-voice-dsp-channel b{font:700 10px Georgia,serif;letter-spacing:.02em}
+#grassWorkspace .gs-voice-knob{width:33px;height:33px;border-radius:50%;border:3px ridge #a98a5a;background:conic-gradient(from 25deg,#c7a564,#6b4b29,#dfb974,#8b683d,#c7a564);box-shadow:0 2px 3px #140d09,inset 0 0 0 6px #80613a;position:relative}
+#grassWorkspace .gs-voice-knob:before{content:"";position:absolute;width:2px;height:12px;background:#f9e5b4;top:0;left:calc(50% - 1px)}
+#grassWorkspace .gs-voice-dsp-channel small{font:600 10px STKaiti,KaiTi,serif}
+#grassWorkspace .gs-voice-dsp>p{margin:8px 0 0;text-align:center;color:#d4b78b;font-size:9px}
+#grassWorkspace .gs-voice-tracks,#grassWorkspace .gs-voice-archive{margin:9px 0}
+#grassWorkspace .gs-voice-tracks h4,#grassWorkspace .gs-voice-archive h4{font:700 15px STKaiti,KaiTi,serif;color:#624021;margin:0 0 8px;border-bottom:1px solid #b49160;padding-bottom:4px}
+#grassWorkspace .gs-voice-track{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;margin:3px 0;border:1px solid #c09b6c;background:linear-gradient(90deg,#efd6a5,#e3c38e);font:700 12px STKaiti,KaiTi,serif;color:#523820}
+#grassWorkspace .gs-voice-track time{font:600 11px ui-monospace,monospace}
+#grassWorkspace .gs-voice-empty{font:12px/1.6 STKaiti,KaiTi,serif;color:#775e3e}
+#grassWorkspace .gs-voice-archive-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;border:1px solid #b68b57;padding:8px 4px;background:rgba(249,229,190,.25)}
+#grassWorkspace .gs-voice-archive-row span{font:10px/1.55 STKaiti,KaiTi,serif;text-align:center;color:#63492e}
+#grassWorkspace .gs-voice-archive-row b{display:block}
+#grassWorkspace .gs-voice-archive-row button{min-width:0;font:700 10px STKaiti,KaiTi,serif;border:1px solid #957046;color:#50331c;background:#ebd0a0;cursor:pointer}
+#grassWorkspace .gs-voice-archive-row button:disabled{opacity:.5;cursor:default}
+#grassWorkspace .gs-voice-station .gs-actions{justify-content:center}
+#grassWorkspace .gs-voice-station .gs-actions .gs-small{display:none}
+@media(max-width:1100px){
+ #grassWorkspace .gs-voice-tape-deck{grid-template-columns:1fr 1fr!important}
+ #grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:2!important}
+}
+@media(max-width:600px){
+ #grassWorkspace .gs-voice-station{padding:7px!important}
+ #grassWorkspace .gs-voice-tape-deck{gap:5px;padding:7px}
+ #grassWorkspace .gs-voice-tape-window span{width:37px;height:37px}
+ #grassWorkspace .gs-voice-tape-window{height:52px}
+ #grassWorkspace .gs-voice-dsp-channel b{font-size:8px}
+ #grassWorkspace .gs-voice-knob{height:25px;width:25px}
+}
