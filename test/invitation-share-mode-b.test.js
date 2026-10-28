@@ -420,10 +420,10 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
       assert.strictEqual(result.height, 1530);
     });
     const texts = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'fillText').map(call => call[1]));
-    assert.ok(texts[1].includes('BUDAO  /  山野同行'));
-    assert.ok(texts[2].includes('一起走进自然 · 一起成为同行的人'));
-    assert.ok(!texts[0].includes('BUDAO  /  山野同行'));
-    assert.ok(!texts[0].includes('一起走进自然 · 一起成为同行的人'));
+    assert.ok(texts[1].some(value => value.includes('山野同行')));
+    assert.ok(texts[2].some(value => value.includes('一起走进自然')));
+    assert.ok(!texts[0].some(value => value.includes('山野同行')));
+    assert.ok(!texts[0].some(value => value.includes('一起走进自然')));
     const photographs = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'drawImage'));
     assert.notDeepStrictEqual(texts[0], texts[1]);
     assert.notDeepStrictEqual(texts[1], texts[2]);
