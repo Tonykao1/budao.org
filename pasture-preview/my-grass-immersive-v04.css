@@ -608,3 +608,18 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-dsp-reverb button:disabled,#grassWorkspace input[data-dsp-reverb-control]:disabled{opacity:.48;cursor:default}
 #grassWorkspace .gs-reverb-values{font:600 9px/1.25 ui-monospace,monospace!important;color:#e5caa2;text-align:center;white-space:nowrap}
 @media(max-width:600px){#grassWorkspace .gs-reverb-control{width:25px}#grassWorkspace .gs-reverb-dial{width:21px;height:21px}#grassWorkspace input[data-dsp-reverb-control]{width:25px;height:25px}#grassWorkspace .gs-reverb-values{font-size:8px!important}}
+
+
+/* SOUND ROAD CALIBRATION V1 — actual media time moves one continuous golden playhead */
+#grassWorkspace .gs-sound-lane{--sound-progress:0%}
+#grassWorkspace .gs-sound-traveled{position:absolute;top:36px;left:0;height:5px;width:var(--sound-progress);background:linear-gradient(90deg,#bb955e,#e2b65d,#ffe4a0);box-shadow:0 0 5px #c3954499;pointer-events:none;z-index:1;transition:width .12s linear}
+#grassWorkspace .gs-sound-playhead{position:absolute;left:var(--sound-progress);top:24px;display:block;z-index:3;width:1px;height:36px;pointer-events:none;border-left:1px solid #ad8145;transform:translateX(-50%);transition:left .12s linear}
+#grassWorkspace .gs-sound-playhead i{position:absolute;top:8px;left:-5px;display:block;width:10px;height:10px;transform:rotate(45deg);background:#e4c17e;border:1px solid #fff4cf;box-shadow:0 0 4px 2px #b68a4580;transition:box-shadow .2s ease}
+#grassWorkspace .gs-sound-lane.is-moving .gs-sound-playhead i{background:#fff6bd;box-shadow:0 0 8px 4px #ffcb6799,0 0 19px 6px #e5ad5355}
+#grassWorkspace .gs-sound-marker.is-audible{z-index:4}
+#grassWorkspace .gs-sound-marker.is-audible .gs-sound-pin{box-shadow:0 0 10px 4px #f4c65d,0 0 23px 5px rgba(237,163,49,.53)}
+#grassWorkspace .gs-sound-clock{font:700 11px ui-monospace,monospace;color:#70502d;white-space:nowrap}
+#grassWorkspace .gs-sound-marker:focus-visible{z-index:5}
+@media(prefers-reduced-motion:reduce){
+ #grassWorkspace .gs-sound-traveled,#grassWorkspace .gs-sound-playhead,#grassWorkspace .gs-sound-playhead i{transition:none!important}
+}
