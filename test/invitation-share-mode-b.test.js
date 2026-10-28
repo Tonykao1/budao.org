@@ -192,11 +192,11 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.deepStrictEqual(first, second);
   });
 
-  it('20. leaves the existing Mode B ViewModel schema unchanged', () => {
+  it('20. extends Mode B ViewModel with invitation theme without changing participation state', () => {
     const keys = Object.keys(viewModel()).sort();
     assert.deepStrictEqual(keys, [
       'date', 'description', 'key', 'location', 'meetingPlace', 'participation',
-      'pills', 'time', 'timezone', 'title', 'visual'
+      'pills', 'theme', 'time', 'timezone', 'title', 'visual'
     ]);
     assert.ok(!keys.includes('registrationOpen'));
     assert.ok(!keys.includes('closedVariant'));
