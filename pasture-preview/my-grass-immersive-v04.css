@@ -430,3 +430,21 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
  #grassWorkspace .gs-voice-dsp-channel b{font-size:8px}
  #grassWorkspace .gs-voice-knob{height:25px;width:25px}
 }
+
+/* Voice station compact hardware / genuine verse signal styling */
+#grassWorkspace .gs-voice-tape-deck{display:grid!important;grid-template-columns:1fr 1.12fr!important;gap:9px;padding:10px!important;align-items:center}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-deck{grid-column:1!important;grid-row:1!important}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:2!important;grid-row:1!important;transform:none!important;align-self:center!important;pointer-events:auto!important}
+#grassWorkspace .gs-voice-tape-deck .gs-journey-keys{padding-top:0!important;gap:4px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-screen{min-height:59px!important;background:linear-gradient(#68735d,#364536)!important}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-status{color:#e7dcab!important}
+#grassWorkspace .gs-voice-tracks h4{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#grassWorkspace .gs-voice-tracks h4 small{font-size:10px;font-weight:400;color:#80613b}
+#grassWorkspace .gs-voice-track{display:grid!important;grid-template-columns:19px 60px 1fr 100px;align-items:center;gap:6px!important;border-left:3px solid #987249!important;padding:8px 9px!important;transition:box-shadow .2s}
+#grassWorkspace .gs-voice-track-seal{font-size:16px;color:#987249}
+#grassWorkspace .gs-voice-track-light{position:relative;border-top:1px dotted #9e7747;height:3px}
+#grassWorkspace .gs-voice-track-light i{position:absolute;top:-6px;width:10px;height:10px;transform:rotate(45deg);background:#a7834b;border:1px solid #f9e9ba}
+#grassWorkspace .gs-voice-track time{font-size:10px!important;white-space:nowrap;text-align:right}
+#grassWorkspace .gs-voice-track.is-audible{border-color:#e7b755!important;background:linear-gradient(90deg,#ffefb6,#e8c987)!important;box-shadow:0 0 14px #eab24f88,inset 0 0 12px #fff2bd!important}
+#grassWorkspace .gs-voice-track.is-audible .gs-voice-track-light i{background:#fff9c7;box-shadow:0 0 10px 4px #ffd66a}
+@media(max-width:570px){#grassWorkspace .gs-voice-tape-deck{grid-template-columns:1fr!important}#grassWorkspace .gs-voice-tape-deck .gs-recorder-deck{grid-column:1!important;grid-row:2!important}#grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:1!important;grid-row:1!important}#grassWorkspace .gs-voice-track{grid-template-columns:14px 50px 1fr 92px;gap:3px!important}}
