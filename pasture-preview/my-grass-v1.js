@@ -65,6 +65,7 @@
   // EQ is a temporary listening preference, never stored with the voice master.
   let eqEnabled=false,eqBands={low:0,mid:0,high:0};
   let compEnabled=false,compThreshold=-24,compRatio=2.5; // transient monitoring only
+  let reverbEnabled=false,reverbRoom=40,reverbMix=16; // speech-sized room, % wet
   let rerecordOriginal=null; // Keep original audio until replacement is fully saved.
   let journeyAttemptToken=0; // A discarded take cannot revive itself through late recorder events.
   let journey=null,journeyPhase='idle',journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='';
@@ -172,7 +173,7 @@
    if(!current)return false;
    if(current===scope&&draft)return true;
    if(recorder&&recorder.state==='recording'){try{recorder.stop()}catch(_){}}
-   if(scope&&scope!==current){clearPlayer();denoiseEnabled=false;denoiseStrength=35;eqEnabled=false;eqBands={low:0,mid:0,high:0};compEnabled=false;compThreshold=-24;compRatio=2.5;}
+   if(scope&&scope!==current){clearPlayer();denoiseEnabled=false;denoiseStrength=35;eqEnabled=false;eqBands={low:0,mid:0,high:0};compEnabled=false;compThreshold=-24;compRatio=2.5;reverbEnabled=false;reverbRoom=40;reverbMix=16;}
    scope=current;key=PREFIX+'.'+scope;
    const names=persistentKeys();
    entries=getJson(names.entries,[]);if(!Array.isArray(entries))entries=[];
@@ -382,8 +383,17 @@ function stageReading(){
         '<button type="button" data-action="dsp-comp" aria-pressed="'+compEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(compEnabled?'ON':'OFF')+'</button>'+
         '<small class="gs-comp-values">'+compThreshold+' dB · '+compRatio+':1</small>'+
         '<span class="gs-comp-reduction" aria-label="实时增益压缩量"><i class="gs-comp-reduction-bar" aria-hidden="true"></i><output id="gsCompReduction">— dB</output></span></div>'+
-      '<div class="gs-voice-dsp-channel gs-dsp-coming"><b>REVERB</b><span class="gs-voice-knob" aria-hidden="true"></span><small>混响 · 待接入</small></div>'+
-    '</div><p id="gsDspStatus" role="status">'+((denoiseEnabled||eqEnabled)?[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null].filter(Boolean).join(' + ')+' · 仅试听，原声母本不变':'降噪、EQ、COMP 可试听 · 混响待接入')+'</p></div>'+
+      '<div class="gs-voice-dsp-channel gs-dsp-reverb" data-enabled="'+(reverbEnabled?'true':'false')+'"><b>REVERB</b>'+
+        '<div class="gs-reverb-pair">'+
+          '<label class="gs-reverb-control" style="--knob-angle:'+(-135+reverbRoom*2.7)+'deg" title="ROOM · 房间大小">'+
+            '<span class="gs-reverb-dial" aria-hidden="true"></span>'+
+            '<input type="range" data-dsp-reverb-control="room" min="0" max="100" step="5" value="'+reverbRoom+'" aria-label="混响空间大小，0至100" '+(!hasAudio?'disabled':'')+'><span>ROOM</span></label>'+
+          '<label class="gs-reverb-control" style="--knob-angle:'+(-135+reverbMix*6.75)+'deg" title="MIX · 湿声比例">'+
+            '<span class="gs-reverb-dial" aria-hidden="true"></span>'+
+            '<input type="range" data-dsp-reverb-control="mix" min="0" max="40" step="2" value="'+reverbMix+'" aria-label="混响比例，0至40%" '+(!hasAudio?'disabled':'')+'><span>MIX</span></label></div>'+
+        '<button type="button" data-action="dsp-reverb" aria-pressed="'+reverbEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(reverbEnabled?'ON':'OFF')+'</button>'+
+        '<small class="gs-reverb-values">ROOM '+reverbRoom+' · MIX '+reverbMix+'%</small></div>'+
+    '</div><p id="gsDspStatus" role="status">'+((denoiseEnabled||eqEnabled||compEnabled||reverbEnabled)?[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null,reverbEnabled?'空间混响':null].filter(Boolean).join(' + ')+' · 仅试听，原声母本不变':'四模块可独立试听 · 全旁路即原声')+'</p></div>'+
   soundPathView()+voiceYearRingView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
@@ -559,7 +569,7 @@ function stageReading(){
    denoiseRequest++;
    const m=denoiseMonitor;denoiseMonitor=null;denoisePending=null;
    if(!m)return;
-   for(const node of [m.source,m.dry,m.wet,m.cleanFeed,m.noiseFeed,m.highpass,m.effect,m.low,m.mid,m.high,m.compressor,m.compBypass,m.compWet]){
+   for(const node of [m.source,m.dry,m.wet,m.cleanFeed,m.noiseFeed,m.highpass,m.effect,m.low,m.mid,m.high,m.compressor,m.compBypass,m.compWet,m.compOutput,m.reverbDry,m.reverbWet,m.reverbLowpass,m.convolver]){
     try{node?.disconnect()}catch(_){}
    }
    if(m.context?.state!=='closed')m.context?.close?.().catch(()=>{});
@@ -574,9 +584,12 @@ function stageReading(){
    const compButton=root.querySelector('[data-action="dsp-comp"]');
    if(compButton){compButton.textContent=compEnabled?'ON':'OFF';compButton.setAttribute('aria-pressed',String(compEnabled))}
    const compBox=root.querySelector('.gs-dsp-comp');if(compBox)compBox.dataset.enabled=String(compEnabled);
+   const reverbButton=root.querySelector('[data-action="dsp-reverb"]');
+   if(reverbButton){reverbButton.textContent=reverbEnabled?'ON':'OFF';reverbButton.setAttribute('aria-pressed',String(reverbEnabled))}
+   const reverbBox=root.querySelector('.gs-dsp-reverb');if(reverbBox)reverbBox.dataset.enabled=String(reverbEnabled);
    const status=root.querySelector('#gsDspStatus');
    if(status){
-    const active=[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null].filter(Boolean);
+    const active=[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null,reverbEnabled?'空间混响':null].filter(Boolean);
     status.textContent=active.length?active.join(' + ')+' · 仅试听，原声母本不变':'DSP 已旁路 · 正在聆听原声';
    }
   }
@@ -584,7 +597,7 @@ function stageReading(){
    const m=denoiseMonitor;if(!m?.source)return;
    const now=m.context.currentTime;
    const useDenoise=denoiseEnabled&&!!m.effect;
-   const processed=useDenoise||eqEnabled||compEnabled;
+   const processed=useDenoise||eqEnabled||compEnabled||reverbEnabled;
    m.dry.gain.setTargetAtTime(processed?0:1,now,.012);
    m.wet.gain.setTargetAtTime(processed?1:0,now,.012);
    m.cleanFeed.gain.setTargetAtTime(processed&&!useDenoise?1:0,now,.012);
@@ -599,6 +612,35 @@ function stageReading(){
     m.compBypass.gain.setTargetAtTime(compEnabled?0:1,now,.012);
     m.compWet.gain.setTargetAtTime(compEnabled?1:0,now,.012);
    }
+   if(m.reverbWet&&m.reverbDry){
+    m.reverbDry.gain.setTargetAtTime(1,now,.018);
+    m.reverbWet.gain.setTargetAtTime(reverbEnabled?reverbMix/100:0,now,.025);
+   }
+  }
+  // Deterministically generated room impulse: no uploads, files, random meter or presets.
+  function makeVoiceRoomImpulse(context,room){
+   const scale=Math.max(0,Math.min(100,Number(room)||0))/100;
+   const seconds=.22+scale*1.38;
+   const sampleCount=Math.max(1,Math.ceil(context.sampleRate*seconds));
+   const buffer=context.createBuffer(2,sampleCount,context.sampleRate);
+   const amplitude=.6/Math.sqrt(context.sampleRate*.14);
+   for(let channel=0;channel<2;channel++){
+    let seed=(channel?71237:15937)+Math.round(scale*1000);
+    const values=buffer.getChannelData(channel);
+    for(let i=0;i<sampleCount;i++){
+     seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+     const noise=(seed/2147483648)-1;
+     const progress=i/sampleCount;
+     const fade=Math.pow(1-progress,2)*Math.exp(-3*progress);
+     values[i]=noise*fade*amplitude;
+    }
+    // Small early reflections make a room feel present without producing an echo.
+    for(const [delay,gain] of [[.018,.095],[.033,.065],[.058,.035]]){
+     const position=Math.floor((delay+channel*.0015)*context.sampleRate);
+     if(position<sampleCount)values[position]+=gain;
+    }
+   }
+   return buffer;
   }
   function applyDenoiseSetting(){applyDspSettings()}
   async function loadDenoiseWorklet(m,request,owner,audioId){
@@ -631,16 +673,16 @@ function stageReading(){
    try{return await task}finally{if(m.workletPending===task)m.workletPending=null}
   }
   async function connectDspMonitor(player){
-   if(!(denoiseEnabled||eqEnabled||compEnabled)||!player||player!==activePlayer)return false;
+   if(!(denoiseEnabled||eqEnabled||compEnabled||reverbEnabled)||!player||player!==activePlayer)return false;
    if(denoiseMonitor?.player===player&&denoiseMonitor.source){
     await denoiseMonitor.context.resume();
     const m=denoiseMonitor;
     if(denoiseEnabled&&!m.effect)await loadDenoiseWorklet(m,denoiseRequest,scope,player.dataset.audioId);
-    applyDspSettings();return !!(denoiseEnabled||eqEnabled||compEnabled);
+    applyDspSettings();return !!(denoiseEnabled||eqEnabled||compEnabled||reverbEnabled);
    }
    if(denoisePending)return denoisePending;
    const AudioCtor=window.AudioContext||window.webkitAudioContext;
-   if(!AudioCtor){denoiseEnabled=false;eqEnabled=false;compEnabled=false;updateDenoiseControls();tell('当前浏览器不支持 Web Audio，已保留原声回听。');return false}
+   if(!AudioCtor){denoiseEnabled=false;eqEnabled=false;compEnabled=false;reverbEnabled=false;updateDenoiseControls();tell('当前浏览器不支持 Web Audio，已保留原声回听。');return false}
    const request=++denoiseRequest,owner=scope,audioId=player.dataset.audioId;
    const task=(async()=>{
     let context=null,source=null,m=null;
@@ -656,6 +698,12 @@ function stageReading(){
      compressor.knee.value=12;compressor.attack.value=.012;compressor.release.value=.20;
      const compBypass=context.createGain(),compWet=context.createGain();
      compBypass.gain.value=1;compWet.gain.value=0;
+     const compOutput=context.createGain(),reverbDry=context.createGain(),reverbWet=context.createGain();
+     const convolver=context.createConvolver(),reverbLowpass=context.createBiquadFilter();
+     convolver.normalize=false;
+     convolver.buffer=makeVoiceRoomImpulse(context,reverbRoom);
+     reverbLowpass.type='lowpass';reverbLowpass.frequency.value=4200;reverbLowpass.Q.value=.707;
+     reverbDry.gain.value=1;reverbWet.gain.value=0;
      low.type='lowshelf';low.frequency.value=180;
      mid.type='peaking';mid.frequency.value=1800;mid.Q.value=.9;
      high.type='highshelf';high.frequency.value=6000;
@@ -666,9 +714,13 @@ function stageReading(){
      source.connect(dry);dry.connect(context.destination);
      source.connect(cleanFeed);cleanFeed.connect(low);low.connect(mid);mid.connect(high);
      high.connect(wet);
-     wet.connect(compBypass);compBypass.connect(context.destination);
-     wet.connect(compressor);compressor.connect(compWet);compWet.connect(context.destination);
-     m={context,player,source,dry,wet,cleanFeed,low,mid,high,compressor,compBypass,compWet,effect:null,noiseFeed:null,highpass:null};
+     wet.connect(compBypass);compBypass.connect(compOutput);
+     wet.connect(compressor);compressor.connect(compWet);compWet.connect(compOutput);
+     // Post-COMP room: intact speech goes direct; only a filtered room tail is mixed back.
+     compOutput.connect(reverbDry);reverbDry.connect(context.destination);
+     compOutput.connect(convolver);convolver.connect(reverbLowpass);
+     reverbLowpass.connect(reverbWet);reverbWet.connect(context.destination);
+     m={context,player,source,dry,wet,cleanFeed,low,mid,high,compressor,compBypass,compWet,compOutput,reverbDry,reverbWet,convolver,reverbLowpass,effect:null,noiseFeed:null,highpass:null};
      denoiseMonitor=m;
      applyDspSettings();
      if(denoiseEnabled)await loadDenoiseWorklet(m,request,owner,audioId);
@@ -677,7 +729,7 @@ function stageReading(){
     }catch(e){
      // If MediaElementSourceNode exists, keep its dry audio route alive.
      if(m&&m===denoiseMonitor){
-      denoiseEnabled=false;eqEnabled=false;compEnabled=false;updateDenoiseControls();applyDspSettings();
+      denoiseEnabled=false;eqEnabled=false;compEnabled=false;reverbEnabled=false;updateDenoiseControls();applyDspSettings();
      }else if(source&&context){
       try{source.connect(context.destination)}catch(_){}
       denoiseMonitor={context,player,source};
@@ -741,6 +793,20 @@ function stageReading(){
    }
   }
 
+  async function toggleReverbPreview(){
+   if(!draft.reading.audioId||rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase)){
+    tell('请先完成原声朗读，才能试听空间混响。');return;
+   }
+   reverbEnabled=!reverbEnabled;updateDenoiseControls();
+   if(!reverbEnabled){applyDspSettings();return}
+   let player=activePlayer;
+   if(!player||player.dataset.audioId!==draft.reading.audioId)player=await restoreAudio(draft.reading.audioId);
+   if(!player){reverbEnabled=false;updateDenoiseControls();return}
+   if(await connectDspMonitor(player)){
+    try{if(player.paused)await player.play()}catch(_){tell('混响已就绪，请点击回听试听。')}
+   }
+  }
+
   function clearPlayer(){
    releaseDenoiseMonitor();
    if(activePlayer)broadcastReadingAudioProgress('cleared',activePlayer);
@@ -792,7 +858,7 @@ async function deleteAudio(id){
    if(!player||id!==draft?.reading?.audioId||scope!==owner||!residentAccess())return;
    try{
     player.currentTime=ms/1000;
-    if(denoiseEnabled||eqEnabled||compEnabled)await connectDspMonitor(player);
+    if(denoiseEnabled||eqEnabled||compEnabled||reverbEnabled)await connectDspMonitor(player);
     await player.play();
     updateSoundPathProgress(ms,true);
    }catch(e){tell('原声定位暂不可用：'+String(e?.message||e))}
@@ -1205,6 +1271,24 @@ async function startOrStopRecording(){
    if(label)label.textContent=compThreshold+' dB · '+compRatio+':1';
    applyDspSettings();
   });
+  root.addEventListener('input',e=>{
+   const control=e.target?.dataset?.dspReverbControl;
+   if(control!=='room'&&control!=='mix')return;
+   const value=Number(e.target.value);
+   if(!Number.isFinite(value))return;
+   if(control==='room')reverbRoom=Math.max(0,Math.min(100,Math.round(value/5)*5));
+   else reverbMix=Math.max(0,Math.min(40,Math.round(value/2)*2));
+   const wrapper=e.target.closest('.gs-reverb-control');
+   if(wrapper)wrapper.style.setProperty('--knob-angle',(control==='room'?-135+reverbRoom*2.7:-135+reverbMix*6.75)+'deg');
+   const label=root.querySelector('.gs-reverb-values');
+   if(label)label.textContent='ROOM '+reverbRoom+' · MIX '+reverbMix+'%';
+   const m=denoiseMonitor;
+   if(control==='room'&&m?.convolver&&m.context?.state!=='closed'){
+    try{m.convolver.buffer=makeVoiceRoomImpulse(m.context,reverbRoom)}
+    catch(e){tell('混响空间更新失败，原声未受影响：'+String(e?.message||e))}
+   }
+   applyDspSettings();
+  });
   root.addEventListener('click',async e=>{
    const b=e.target.closest('button[data-action]');
    if(!b){if(e.target?.classList?.contains('gs-light-orbit')&&focusLight){focusLight=null;render()}return}
@@ -1216,6 +1300,7 @@ async function startOrStopRecording(){
     case 'dsp-denoise':await toggleDenoisePreview();break;
     case 'dsp-eq':await toggleEqPreview();break;
     case 'dsp-comp':await toggleCompPreview();break;
+    case 'dsp-reverb':await toggleReverbPreview();break;
     case 'sound-seek':await seekSoundVerse(Number(b.dataset.startMs));break;
     case 'rerecord':rerecordAudio();break;
     case 'cancel-rerecord':cancelRerecord();break;
