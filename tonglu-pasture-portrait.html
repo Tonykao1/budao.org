@@ -15,6 +15,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 <body>
 <canvas id="pasture" aria-label="牧场"></canvas>
 <script src="/pasture-sky-engine.js"></script>
+<script src="/pasture-sun-moon-track.js"></script>
 <script>
 (()=>{
 const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');
@@ -483,7 +484,10 @@ function drawSharedCelestial(now,cloud,c){
  const skyBottom=portraitSkyBottom();
  const project=o=>sky.projectHorizontal({altitudeDeg:o.altitudeDeg,azimuthDeg:o.azimuthDeg,centerAzimuthDeg:shared.centerAzimuthDeg,width:W,skyTop:0,skyBottom});
  ctx.save();ctx.beginPath();ctx.rect(0,0,W,skyBottom);ctx.clip();
- const sunXY=project(shared.sun),sa=sunAlpha(c.weatherCode,cloud);
+ const segment=window.BudaoPastureTrack?.segmentAt(now,state.astronomy);
+ const sunXY=segment?.body==='sun'?window.BudaoPastureTrack.positionAt({
+  progress:segment.progress,width:W,skyBottom,radiusPx:13
+ }):null,sa=sunAlpha(c.weatherCode,cloud);
  if(sunXY&&sa>0){ctx.save();ctx.globalAlpha=sa;rect(sunXY.x-13,sunXY.y-13,26,26,'rgba(255,248,199,.72)');rect(sunXY.x-9,sunXY.y-9,18,18,C.sun);ctx.restore()}
  for(const star of shared.stars||[]){
   if(!(star.visibility>0.015))continue;
@@ -495,7 +499,10 @@ function drawSharedCelestial(now,cloud,c){
  }
  const mf=sky.meteorFrame(state?.meteorEvent,now);
  if(mf){const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});const visibility=sky.meteorVisibility({sunAltitudeDeg:shared.sun.altitudeDeg,cloudOpacity,moon:shared.moon});const alpha=mf.alpha*visibility;if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*W,mf.tailY*skyBottom);ctx.lineTo(mf.x*W,mf.y*skyBottom);ctx.stroke();rect(mf.x*W,mf.y*skyBottom,1,1,'#ffffff');ctx.restore()}}
- const moonXY=sky.projectDiscHorizontal({altitudeDeg:shared.moon.altitudeDeg,azimuthDeg:shared.moon.azimuthDeg,centerAzimuthDeg:shared.centerAzimuthDeg,width:W,skyTop:0,skyBottom,radiusPx:8});if(moonXY){const mv=sky.moonVisualProfile(shared.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon,mv)}
+ const moonXY=segment?.body==='moon'?window.BudaoPastureTrack.positionAt({
+  progress:segment.progress,width:W,skyBottom,radiusPx:8
+ }):null;
+ if(moonXY){const mv=sky.moonVisualProfile(shared.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon,mv)}
  ctx.restore();
 }
 function weatherOverlay(){
