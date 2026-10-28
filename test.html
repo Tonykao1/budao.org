@@ -639,7 +639,18 @@ body.modal-open .super-container{
 
     <section class="budao-calendar" id="budaoCalendar" aria-label="步道日历"></section>
 
-   <div
+   <style>
+.route-history-placeholder{
+  grid-column:1/-1;min-height:320px;padding:64px 48px;
+  border:1px solid rgba(120,99,67,.23);border-radius:26px;
+  background:linear-gradient(145deg,#f7f1e6,#efe5d4);
+  text-align:center;color:#594a35;box-shadow:0 12px 36px rgba(0,0,0,.05);
+}
+.route-history-kicker{font-size:13px;letter-spacing:.24em;color:#986e43;margin-bottom:22px}
+.route-history-placeholder h2{font-size:28px;letter-spacing:.06em;margin:0 0 24px}
+.route-history-placeholder p{font-size:15px;line-height:1.9;max-width:470px;margin:0 auto}
+</style>
+<div
 class="route-grid"
 id="routeGrid"></div>
 
@@ -844,6 +855,21 @@ publishedRoutesRequest
 
 let normalSlotRoutes = [];
 let calendarFocusRequest = 0;
+const historicCalendarEventsRequest = fetch("/calendar-events.json?archive="+Date.now(), {cache:"no-store"})
+    .then(response=>response.ok ? response.json() : [])
+    .catch(()=>[]);
+function renderHistoricFootprint(date, type) {
+    const grid = document.getElementById("routeGrid");
+    if(!grid) return;
+    const stamp = date.split("-");
+    const label = stamp.length === 3 ? Number(stamp[1])+"月"+Number(stamp[2])+"日" : date;
+    grid.innerHTML = '<div class="route-history-placeholder" role="status">' +
+        '<div class="route-history-kicker">足迹时光 · '+escapeHtml(label)+'</div>' +
+        '<h2>这一天，我们曾在路上</h2>' +
+        '<p>这一天已留下同行的足迹。完整的路线图文档案尚未收录，正在逐步整理。</p>' +
+        '</div>';
+}
+
 // Preload once; hovering a footprint must not wait on a new API round-trip.
 const calendarRouteRequest = fetch("/api/routes?scope=calendar&ts="+Date.now(), {cache:"no-store"})
     .then(response=>response.ok ? response.json() : [])
@@ -859,7 +885,14 @@ window.BudaoCalendarFocus = async function(date,type){
         if(request !== calendarFocusRequest) return;
         const selected = routes.filter(route=>route.date === date &&
             String(route.calendarType || "budao").toLowerCase() === type);
-        if(selected.length) renderActiveRoutes(selected);
+        if(selected.length) {
+            renderActiveRoutes(selected);
+        } else {
+            const events = await historicCalendarEventsRequest;
+            if(request !== calendarFocusRequest) return;
+            const found = events.some(event=>event && event.date === date && event.type === type);
+            if(found) renderHistoricFootprint(date, type);
+        }
     } catch(error) {
         // Preserve current presentation on a temporary data failure.
     }
