@@ -553,3 +553,6 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-dsp-reverb button:disabled,#grassWorkspace input[data-dsp-reverb-control]:disabled{opacity:.48;cursor:default}
 #grassWorkspace .gs-reverb-values{font:600 9px/1.25 ui-monospace,monospace!important;color:#e5caa2;text-align:center;white-space:nowrap}
 @media(max-width:600px){#grassWorkspace .gs-reverb-control{width:25px}#grassWorkspace .gs-reverb-dial{width:21px;height:21px}#grassWorkspace input[data-dsp-reverb-control]{width:25px;height:25px}#grassWorkspace .gs-reverb-values{font-size:8px!important}}
+
+/* One authentic private archive; remove the empty "reunion" showcase pane. */
+#grassWorkspace .gs-grid.gs-archive-only{grid-template-columns:minmax(0,1fr);gap:0}
