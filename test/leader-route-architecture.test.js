@@ -185,6 +185,25 @@ test("leo login alias reuses the shared leader credential but keeps Leo identity
   assert.equal(auth.authenticateCredentials("leo", "wrong-password"), null);
 });
 
+test("Andre signs in with Moses credentials and inherits exactly Moses identity", () => {
+  const moses = { id: "leader-moses", username: "moses", passwordHash: passwordHash("moses-secret", "moses-salt"), slot: "IMS" };
+  const tony = { id: "leader-tony", username: "tony", passwordHash: passwordHash("tony-secret", "tony-salt") };
+  let auth = freshAuth([moses, tony]);
+
+  const direct = auth.authenticateCredentials("moses", "moses-secret");
+  const aliased = auth.authenticateCredentials("Andre", "moses-secret");
+  assert.ok(direct);
+  assert.deepEqual(aliased, direct);
+  assert.equal(aliased.id, "leader-moses");
+  assert.equal(aliased.username, "moses");
+  assert.equal(auth.authenticateCredentials("ANDRE", "wrong-password"), null);
+  assert.equal(auth.authenticateCredentials("andre", "tony-secret"), null);
+
+  // An alias must not make a deleted or disabled Moses account usable.
+  auth = freshAuth([tony]);
+  assert.equal(auth.authenticateCredentials("andre", "moses-secret"), null);
+});
+
 test("Tent activity nature exposes the five calendar systems and route schema restricts calendarType", () => {
   const html = fs.readFileSync(path.join(__dirname, "..", "tent.html"), "utf8");
   assert.match(html, /<select name="calendarType">[\s\S]*value="budao"[\s\S]*value="pioneer"[\s\S]*value="march"[\s\S]*value="camp"[\s\S]*value="fellowship"[\s\S]*<\/select>/);
