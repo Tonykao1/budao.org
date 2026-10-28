@@ -15,6 +15,9 @@ const LOGIN_ALIASES = {
     sourceUsername: "tony",
     id: "leader-leo",
     username: "leo"
+  },
+  "andre": {
+    sourceUsername: "moses"
   }
 };
 
@@ -83,10 +86,10 @@ function authenticateCredentials(identifier, password) {
 
   if (expected.length !== actual.length || !crypto.timingSafeEqual(actual, expected)) return null;
   return {
-    id: alias ? alias.id : user.id,
-    username: alias ? alias.username : user.username,
+    id: alias && alias.id ? alias.id : user.id,
+    username: alias && alias.username ? alias.username : user.username,
     role: "publisher",
-    slot: alias ? alias.slot : user.slot || "IMS"
+    slot: alias && alias.slot ? alias.slot : user.slot || "IMS"
   };
 }
 
