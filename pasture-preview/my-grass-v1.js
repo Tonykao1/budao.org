@@ -62,6 +62,8 @@
   // DSP controls are transient audition settings, never archive mutations.
   let denoiseEnabled=false,denoiseStrength=35,denoiseMonitor=null,denoiseRequest=0;
   let denoisePending=null;
+  let soundSeekToken=0; // discard obsolete rapid verse-seek requests
+  let audioRestoreToken=0,audioRestorePending=null; // single active private recording load
   // EQ is a temporary listening preference, never stored with the voice master.
   let eqEnabled=false,eqBands={low:0,mid:0,high:0};
   let compEnabled=false,compThreshold=-24,compRatio=2.5; // transient monitoring only
@@ -273,8 +275,9 @@ function recorderStatusText(){
     verse:Number(s.verse),start:Number(s.startMs),end:Number(s.endMs),
     verseId:String(s.verseId||'')
    }));
-   if(segments.some((s,i)=>!Number.isInteger(s.verse)||!Number.isFinite(s.start)||!Number.isFinite(s.end)||
-     s.start<0||s.end<=s.start||s.end>total||(i>0&&s.start!==segments[i-1].end)))return null;
+   if(segments[0].start!==0||Math.abs(segments.at(-1).end-total)>1||
+      segments.some((s,i)=>!Number.isInteger(s.verse)||s.verse<1||!Number.isFinite(s.start)||!Number.isFinite(s.end)||
+       s.start<0||s.end<=s.start||s.end>total||(i>0&&(s.start!==segments[i-1].end||s.verse!==segments[i-1].verse+1))))return null;
    return {total,segments:segments.map(s=>({...s,left:s.start/total*100,width:(s.end-s.start)/total*100}))};
   }
   function soundTime(ms){
@@ -290,9 +293,11 @@ function recorderStatusText(){
    return '<section class="gs-sound-path" aria-label="声音之路 · 逐节原声轨迹"><div class="gs-sound-title"><h4>声音之路</h4><small>分秒里的经节</small></div>'+
     '<p class="gs-sound-intro">每一个刻痕，都来自你真实的读经时间。</p>'+
     '<div class="gs-sound-viewport"><div class="gs-sound-lane" style="min-width:max(100%,'+(data.segments.length*47)+'px)">'+
-       '<div class="gs-sound-baseline" aria-hidden="true"></div>'+lengths+markers+
+       '<div class="gs-sound-baseline" aria-hidden="true"></div>'+
+       '<span class="gs-sound-traveled" aria-hidden="true"></span>'+lengths+markers+
+       '<span class="gs-sound-playhead" aria-hidden="true"><i></i></span>'+
        '<span class="gs-sound-finish" title="本次朗读结束" aria-hidden="true">◆</span></div></div>'+
-    '<div class="gs-sound-axis"><span>00:00</span><span>'+soundTime(data.total)+'</span></div>'+
+    '<div class="gs-sound-axis"><span>00:00</span><span class="gs-sound-clock" aria-label="回听位置与总时长">00:00 / '+soundTime(data.total)+'</span><span>'+soundTime(data.total)+'</span></div>'+
     '<div class="gs-sound-readout" aria-live="off"><span class="gs-sound-current">第 '+first.verse+' 节 · '+soundTime(first.start)+'—'+soundTime(first.end)+'</span><span class="gs-sound-hint">点击经节刻痕，即可回到那一刻</span></div></section>';
   }
   function voiceReunionEntries(){
@@ -560,7 +565,12 @@ function stageReading(){
   }
   function broadcastReadingAudioProgress(state,player){
    const duration=Number(player?.duration),currentTime=Number(player?.currentTime);
-   document.dispatchEvent(new CustomEvent('mygrass:reading-audio-progress',{detail:{state,currentTime:Number.isFinite(currentTime)?currentTime:0,duration:Number.isFinite(duration)?duration:0,audioId:draft.reading.audioId||null}}));
+   // Keep the existing left-page reader unchanged: broadcast calibrated journey time.
+   const calibrated=soundMediaToJourneyMs(Number.isFinite(currentTime)?currentTime*1000:0,player);
+   document.dispatchEvent(new CustomEvent('mygrass:reading-audio-progress',{detail:{
+    state,currentTime:calibrated==null?(Number.isFinite(currentTime)?currentTime:0):calibrated/1000,
+    duration:Number.isFinite(duration)?duration:0,audioId:draft.reading.audioId||null
+   }}));
   }
 
   // Both audition effects share a single media element and a single Web Audio graph.
@@ -845,6 +855,44 @@ async function deleteAudio(id){
  })}finally{db.close()}
 }
 
+  // Audio encoders can pad or trim durations. Map saved verse clock to real media clock
+  // only for audition, leaving saved original boundaries and recordings unchanged.
+  function soundMediaDurationMs(player){
+   const seconds=Number(player?.duration);
+   return Number.isFinite(seconds)&&seconds>0?seconds*1000:null;
+  }
+  function soundJourneyToMediaMs(journeyMs,player,model=soundPathModel(draft?.readingJourney)){
+   const duration=soundMediaDurationMs(player);
+   if(!model||!duration)return null;
+   return Math.max(0,Math.min(duration,Number(journeyMs)/model.total*duration));
+  }
+  function soundMediaToJourneyMs(mediaMs,player,model=soundPathModel(draft?.readingJourney)){
+   const duration=soundMediaDurationMs(player);
+   if(!model||!duration||!Number.isFinite(mediaMs))return null;
+   return Math.max(0,Math.min(model.total,mediaMs/duration*model.total));
+  }
+  function waitSoundMetadata(player){
+   if(soundMediaDurationMs(player))return Promise.resolve(true);
+   return new Promise(resolve=>{
+    let done=false;
+    const finish=ok=>{
+     if(done)return;done=true;
+     clearTimeout(timeout);
+     player.removeEventListener('loadedmetadata',onReady);
+     player.removeEventListener('durationchange',onReady);
+     player.removeEventListener('error',onFailure);
+     resolve(ok);
+    };
+    const onReady=()=>{if(soundMediaDurationMs(player))finish(true)};
+    const onFailure=()=>finish(false);
+    const timeout=setTimeout(()=>finish(false),8000);
+    player.addEventListener('loadedmetadata',onReady);
+    player.addEventListener('durationchange',onReady);
+    player.addEventListener('error',onFailure);
+    onReady();
+    try{if(player.networkState===0)player.load()}catch(_){}
+   });
+  }
   async function seekSoundVerse(ms){
    if(!residentAccess()||!draft?.reading?.audioId||draft.readingJourney?.status!=='completed'||rerecordOriginal||
       ['arming','recording','paused','finalizing'].includes(journeyPhase)){
@@ -852,28 +900,47 @@ async function deleteAudio(id){
    }
    const model=soundPathModel(draft.readingJourney);
    if(!model||!model.segments.some(s=>s.start===ms)){tell('这一节没有有效的原声时间坐标。');return}
-   const id=draft.reading.audioId,owner=scope;
+   const token=++soundSeekToken,id=draft.reading.audioId,owner=scope,entryId=draft.id;
    let player=activePlayer;
-   if(!player||player.dataset.audioId!==id)player=await restoreAudio(id);
-   if(!player||id!==draft?.reading?.audioId||scope!==owner||!residentAccess())return;
+   if(!player||player.dataset.audioId!==id||!player.isConnected)player=await restoreAudio(id);
+   if(!player||token!==soundSeekToken||id!==draft?.reading?.audioId||entryId!==draft.id||scope!==owner||!residentAccess())return;
+   if(!await waitSoundMetadata(player)){
+    if(token===soundSeekToken)tell('录音元数据尚未就绪，无法安全定位；请重试回听。');
+    return;
+   }
+   if(token!==soundSeekToken||player!==activePlayer||id!==draft?.reading?.audioId||scope!==owner||!residentAccess())return;
+   const target=soundJourneyToMediaMs(ms,player,model);
+   if(target==null){tell('无法确认原声时长，未执行定位。');return}
    try{
-    player.currentTime=ms/1000;
+    player.currentTime=target/1000;
     if(denoiseEnabled||eqEnabled||compEnabled||reverbEnabled)await connectDspMonitor(player);
+    if(token!==soundSeekToken||player!==activePlayer||scope!==owner||!residentAccess())return;
     await player.play();
-    updateSoundPathProgress(ms,true);
-   }catch(e){tell('原声定位暂不可用：'+String(e?.message||e))}
+    updateSoundPathProgress(soundMediaToJourneyMs(player.currentTime*1000,player,model),true);
+   }catch(e){if(token===soundSeekToken)tell('原声定位暂不可用：'+String(e?.message||e))}
   }
   function updateSoundPathProgress(ms,playing){
    const model=soundPathModel(draft?.readingJourney);
    if(!model)return;
-   const segment=model.segments.find(s=>ms>=s.start&&ms<s.end)|| (ms>=model.total?model.segments.at(-1):null);
+   const time=Number.isFinite(ms)?Math.max(0,Math.min(model.total,ms)):0;
+   const complete=time>=model.total;
+   const segment=complete?model.segments.at(-1):model.segments.find(s=>time>=s.start&&time<s.end);
    root.querySelectorAll('.gs-sound-marker,.gs-sound-length').forEach(node=>{
-    node.classList.toggle('is-audible',!!playing&&!!segment&&Number(node.dataset.verse)===segment.verse);
+    const active=!!playing&&!complete&&!!segment&&Number(node.dataset.verse)===segment.verse;
+    node.classList.toggle('is-audible',active);
+    if(node.classList.contains('gs-sound-marker')){
+     if(active)node.setAttribute('aria-current','true');else node.removeAttribute('aria-current');
+    }
    });
    const line=root.querySelector('.gs-sound-current');
    if(line&&segment)line.textContent='第 '+segment.verse+' 节 · '+soundTime(segment.start)+'—'+soundTime(segment.end);
+   const clock=root.querySelector('.gs-sound-clock');
+   if(clock)clock.textContent=soundTime(time)+' / '+soundTime(model.total);
    const lane=root.querySelector('.gs-sound-lane');
-   if(lane)lane.style.setProperty('--sound-progress',Math.max(0,Math.min(100,ms/model.total*100))+'%');
+   if(lane){
+    lane.style.setProperty('--sound-progress',(time/model.total*100).toFixed(4)+'%');
+    lane.classList.toggle('is-moving',!!playing&&!complete);
+   }
   }
 
 async function togglePlayback(){
@@ -1331,16 +1398,22 @@ async function startOrStopRecording(){
   });
   // Keep the sound path illuminated only during actual audio playback.
   root.addEventListener('timeupdate',e=>{
-   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer)
-    updateSoundPathProgress(e.target.currentTime*1000,!e.target.paused&&!e.target.ended);
+   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer){
+    const time=soundMediaToJourneyMs(e.target.currentTime*1000,e.target);
+    if(time!=null)updateSoundPathProgress(time,!e.target.paused&&!e.target.ended);
+   }
   },true);
   root.addEventListener('pause',e=>{
-   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer)
-    updateSoundPathProgress(e.target.currentTime*1000,false);
+   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer){
+    const time=soundMediaToJourneyMs(e.target.currentTime*1000,e.target);
+    if(time!=null)updateSoundPathProgress(time,false);
+   }
   },true);
   root.addEventListener('ended',e=>{
-   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer)
-    updateSoundPathProgress(e.target.duration*1000,false);
+   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer){
+    const total=soundPathModel(draft?.readingJourney)?.total;
+    if(total!=null)updateSoundPathProgress(total,false);
+   }
   },true);
   // Do not introduce a fourth main module: history/new entry are utilities in the footer.
   function addNewEntryControl(){
