@@ -169,6 +169,7 @@
    if(!current)return false;
    if(current===scope&&draft)return true;
    if(recorder&&recorder.state==='recording'){try{recorder.stop()}catch(_){}}
+   if(scope&&scope!==current){clearPlayer();denoiseEnabled=false;denoiseStrength=35;}
    scope=current;key=PREFIX+'.'+scope;
    const names=persistentKeys();
    entries=getJson(names.entries,[]);if(!Array.isArray(entries))entries=[];
