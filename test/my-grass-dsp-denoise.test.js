@@ -18,7 +18,7 @@ test('DENOISE is real adjustable monitoring control, while other modules remain 
  assert.match(stage,/data-action="dsp-denoise"/);
  assert.match(stage,/data-dsp-denoise-strength/);
  assert.match(stage,/aria-pressed/);
- assert.match(stage,/EQ','COMP','REVERB/);
+ assert.match(stage,/gs-dsp-eq/);
  assert.match(stage,/待接入/);
  assert.match(css,/gs-dsp-knob-face/);
  assert.match(css,/gs-dsp-denoise\[data-enabled="true"\]/);
@@ -37,10 +37,11 @@ test('processed monitoring does not render, export, store, or overwrite any proc
 });
 test('on browser capability error, denoise automatically fails open to original listening',()=>{
  const effect=section('function releaseDenoiseMonitor(){','function clearPlayer(){');
- assert.match(effect,/!AudioCtor\|\|!window\.AudioWorkletNode/);
+ assert.match(effect,/!m\.context\.audioWorklet\?\.addModule\|\|!window\.AudioWorkletNode/);
  assert.match(effect,/denoiseEnabled=false;updateDenoiseControls\(\)/);
  assert.match(effect,/source\.connect\(dry\);dry\.connect\(context\.destination\)/);
- assert.match(effect,/source\.connect\(highpass\);highpass\.connect\(effect\);effect\.connect\(wet\);wet\.connect\(context\.destination\)/);
+ assert.match(effect,/m\.source\.connect\(highpass\)/);
+ assert.match(effect,/effect\.connect\(noiseFeed\);noiseFeed\.connect\(m\.low\)/);
 });
 test('worklet attenuates quiet noise yet passes speech in a real sample stream',()=>{
  let Klass=null,processorName='';
