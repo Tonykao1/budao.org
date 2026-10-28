@@ -329,26 +329,16 @@
     let lastPointerType = "";
 
     function show(date, type) {
-      const routes = window.BudaoActiveRoutes || [];
-      const cards = Array.from(grid.querySelectorAll(".route-card"));
-      const matches = cards.filter(function (card) {
-        const marker = card.querySelector("[data-route-index]");
-        const route = marker && routes[Number(marker.dataset.routeIndex)];
-        return route && route.date === date && routeType(route.calendarType) === type;
-      });
-      // Historical calendar dates may not have a currently displayed card.
-      if (!matches.length) { clear(); return; }
-      focused = date + "|" + type;
-      cards.forEach(function (card) { card.classList.toggle("is-calendar-filtered-out", matches.indexOf(card) < 0); });
-      grid.classList.add("is-calendar-focused");
+      const key = date + "|" + type;
+      if (focused === key) return;
+      focused = key;
+      if (typeof window.BudaoCalendarFocus === "function") window.BudaoCalendarFocus(date, type);
     }
 
     function clear() {
+      if (!focused) return;
       focused = null;
-      grid.classList.remove("is-calendar-focused");
-      grid.querySelectorAll(".route-card.is-calendar-filtered-out").forEach(function (card) {
-        card.classList.remove("is-calendar-filtered-out");
-      });
+      if (typeof window.BudaoCalendarFocus === "function") window.BudaoCalendarFocus(null, null);
     }
 
     host.addEventListener("pointerover", function (event) {
