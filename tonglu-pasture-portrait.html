@@ -495,19 +495,22 @@ function drawSharedCelestial(now,cloud,c){
  }
  const mf=sky.meteorFrame(state?.meteorEvent,now);
  if(mf){const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});const visibility=sky.meteorVisibility({sunAltitudeDeg:shared.sun.altitudeDeg,cloudOpacity,moon:shared.moon});const alpha=mf.alpha*visibility;if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*W,mf.tailY*skyBottom);ctx.lineTo(mf.x*W,mf.y*skyBottom);ctx.stroke();rect(mf.x*W,mf.y*skyBottom,1,1,'#ffffff');ctx.restore()}}
- const moonXY=sky.projectDiscHorizontal({altitudeDeg:shared.moon.altitudeDeg,azimuthDeg:shared.moon.azimuthDeg,centerAzimuthDeg:shared.centerAzimuthDeg,width:W,skyTop:0,skyBottom,radiusPx:8});if(moonXY){const mv=sky.moonVisualProfile(shared.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon,mv)}
+ const moonXY=sky.projectDiscHorizontal({altitudeDeg:shared.moon.altitudeDeg,azimuthDeg:shared.moon.azimuthDeg,centerAzimuthDeg:shared.centerAzimuthDeg,width:W,skyTop:0,skyBottom,radiusPx:8});if(moonXY){
+  const visibility=sky.moonCloudVisibility({weatherCode:c.weatherCode,cloudCover:cloud,timeMs:now,
+   xNorm:moonXY.x/W,yNorm:moonXY.y/skyBottom});
+  if(visibility>.02){const mv=sky.moonVisualProfile(shared.sun.altitudeDeg);
+   moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon,
+    {brightAlpha:mv.brightAlpha*visibility,darkAlpha:mv.darkAlpha*visibility});}
+ }
  ctx.restore();
 }
 function weatherOverlay(){
  if(!state)return;
- const now=Date.now(),a=state.astronomy,c=state.current;
- const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
- const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;let darkness=0,progress=.5;
- if(day){progress=Math.max(0,Math.min(1,(now-sunrise)/(sunset-sunrise)));const edge=Math.min(progress,1-progress);if(edge<.12)rect(0,0,W,H,'rgba(244,177,112,'+((.12-edge)*.75)+')')}
- else{
-  let ns,ne;if(now<sunrise){ns=prev;ne=sunrise}else{ns=sunset;ne=next}
-  if(ns&&ne&&ne>ns){progress=Math.max(0,Math.min(1,(now-ns)/(ne-ns)));const edge=Math.min(progress,1-progress);darkness=Math.max(.20,Math.min(.62,.62*(edge/.22)))}else darkness=.52;
-  rect(0,0,W,H,'rgba(18,34,70,'+darkness+')');
+ const now=Date.now(),c=state.current;
+ const light=window.BudaoPastureSky?.solarLightProfile(state?.skyState?.sun?.altitudeDeg);
+ if(light){
+  if(light.darkness>.001)rect(0,0,W,H,'rgba(18,34,70,'+light.darkness+')');
+  if(light.glow>.001)rect(0,0,W,H,'rgba(244,177,112,'+light.glow+')');
  }
  const cloud=effectiveCloudCover();
  const skyBottom=portraitSkyBottom();
