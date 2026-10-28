@@ -450,6 +450,42 @@ body {
   letter-spacing: -.02em;
 }
 
+/* Invitation 2.0 / information hierarchy: purpose-first, mobile-friendly. */
+.mode-b-preface { max-width: 34em; }
+.mode-b-occasion {
+  background: linear-gradient(95deg, rgba(245,239,224,.72), rgba(251,250,247,0) 84%);
+  padding: 28px 22px;
+  border-top: 1px solid rgba(117,91,55,.22);
+  border-bottom: 1px solid rgba(117,91,55,.22);
+}
+.mode-b-occasion dt { color: #756047; font-size: 12px; letter-spacing: .12em; }
+.mode-b-occasion dd { color: #211b14; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mode-b-occasion-date dd, .mode-b-occasion-time dd { font-size: 21px; }
+.mode-b-meeting { border-color: rgba(66,91,70,.3); background: #f3f5ee; }
+.mode-b-meeting-label { color: #4f6a52; }
+.mode-b-meeting-value { font-weight: 700; }
+.mode-b-primary-facts { gap: 12px; border: 0; }
+.mode-b-primary-facts .mode-b-fact {
+  border: 1px solid rgba(62,76,56,.14);
+  border-radius: 10px;
+  background: #f3f4ed;
+  padding: 20px 16px 22px;
+}
+.mode-b-primary-facts dd { font-size: 19px; font-weight: 700; color: #253a2b; }
+.mode-b-primary-facts dt { color: #596e5b; }
+.mode-b-participation-copy { font-weight: 700; }
+@media (max-width: 680px) {
+  .mode-b-journey-mark { left: 21px; bottom: 22px; gap: 7px; padding: 7px 10px; }
+  .mode-b-journey-mark span { font-size: 12px; }
+  .mode-b-journey-mark small { font-size: 7px; }
+  .mode-b-occasion { padding: 22px 14px; }
+  .mode-b-occasion-date dd, .mode-b-occasion-time dd { font-size: 18px; }
+  .mode-b-primary-facts { gap: 9px; }
+  .mode-b-primary-facts .mode-b-fact { padding: 15px 12px; border: 1px solid rgba(62,76,56,.14); }
+  .mode-b-primary-facts .mode-b-fact:nth-last-child(-n + 2) { border-bottom: 1px solid rgba(62,76,56,.14); }
+  .mode-b-primary-facts dd { font-size: 16px; }
+}
+
 @media (max-width: 680px) {
   .mode-b-card {
     width: 100%;
