@@ -375,8 +375,8 @@ function drawCelestial(now,cloud,c){
 
   const moonXY=sky.projectDiscHorizontal({altitudeDeg:skyState.moon.altitudeDeg,azimuthDeg:skyState.moon.azimuthDeg,centerAzimuthDeg:skyState.centerAzimuthDeg,width:480,skyTop:0,skyBottom:LANDSCAPE_SKY_BOTTOM,radiusPx:8});
   if(moonXY){
-    const visibility=sky.moonCloudVisibility({weatherCode:c.weatherCode,cloudCover:cloud,timeMs:now,
-      xNorm:moonXY.x/480,yNorm:moonXY.y/LANDSCAPE_SKY_BOTTOM});
+    const visibility=sky.moonCloudVisibility?.({weatherCode:c.weatherCode,cloudCover:cloud,timeMs:now,
+      xNorm:moonXY.x/480,yNorm:moonXY.y/LANDSCAPE_SKY_BOTTOM})??1;
     if(visibility>.02){
       const mv=sky.moonVisualProfile(skyState.sun.altitudeDeg);
       moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(skyState.moon.phase)||0,skyState.moon,
@@ -436,7 +436,7 @@ function draw(){
   if(pastureReady){drawDesktopLambs();drawReturnTwig();}
   if(!state)return;
   const now=Date.now(),c=state.current;
-  const light=window.BudaoPastureSky?.solarLightProfile(skyState?.sun?.altitudeDeg);
+  const light=window.BudaoPastureSky?.solarLightProfile?.(skyState?.sun?.altitudeDeg);
   if(light){
     if(light.darkness>.001){ctx.fillStyle='rgba(18,34,70,'+light.darkness+')';ctx.fillRect(0,0,480,300)}
     if(light.glow>.001){ctx.fillStyle='rgba(244,177,112,'+light.glow+')';ctx.fillRect(0,0,480,300)}
