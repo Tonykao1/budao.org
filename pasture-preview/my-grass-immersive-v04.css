@@ -448,3 +448,5 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-voice-track.is-audible{border-color:#e7b755!important;background:linear-gradient(90deg,#ffefb6,#e8c987)!important;box-shadow:0 0 14px #eab24f88,inset 0 0 12px #fff2bd!important}
 #grassWorkspace .gs-voice-track.is-audible .gs-voice-track-light i{background:#fff9c7;box-shadow:0 0 10px 4px #ffd66a}
 @media(max-width:570px){#grassWorkspace .gs-voice-tape-deck{grid-template-columns:1fr!important}#grassWorkspace .gs-voice-tape-deck .gs-recorder-deck{grid-column:1!important;grid-row:2!important}#grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:1!important;grid-row:1!important}#grassWorkspace .gs-voice-track{grid-template-columns:14px 50px 1fr 92px;gap:3px!important}}
+
+#grassWorkspace .gs-voice-station>h3,#grassWorkspace .gs-voice-hidden-brand{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;margin:0!important;padding:0!important;border:0!important}
