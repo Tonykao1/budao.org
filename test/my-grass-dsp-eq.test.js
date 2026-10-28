@@ -29,12 +29,14 @@ test('EQ builds one media-element source with sequential shelving and peaking fi
  assert.match(effect,/mid.type='peaking';mid.frequency.value=1800;mid.Q.value=.9/);
  assert.match(effect,/high.type='highshelf';high.frequency.value=6000/);
  assert.match(effect,/source.connect\(cleanFeed\);cleanFeed.connect\(low\);low.connect\(mid\);mid.connect\(high\)/);
- assert.match(effect,/high.connect\(wet\);wet.connect\(context.destination\)/);
+ assert.match(effect,/high.connect\(wet\)/);
+ assert.match(effect,/wet.connect\(compBypass\);compBypass.connect\(context.destination\)/);
+ assert.match(effect,/wet.connect\(compressor\);compressor.connect\(compWet\);compWet.connect\(context.destination\)/);
  assert.match(effect,/noiseFeed.connect\(m.low\)/);
  assert.equal((effect.match(/createMediaElementSource\(player\)/g)||[]).length,1);
  assert.doesNotMatch(effect,/new Blob|putAudio\(|writeJson\(|downloadBlob\(|MediaRecorder\(/);
  assert.match(src,/case 'dsp-eq':await toggleEqPreview\(\);break/);
- assert.match(src,/if\(denoiseEnabled\|\|eqEnabled\)await connectDspMonitor\(player\)/);
+ assert.match(src,/if\(denoiseEnabled\|\|eqEnabled\|\|compEnabled\)await connectDspMonitor\(player\)/);
 });
 test('EQ routing follows bypass, DENOISE+EQ, and EQ-only listening in real parameter state',()=>{
  const makeParam=()=>{
@@ -49,7 +51,7 @@ test('EQ routing follows bypass, DENOISE+EQ, and EQ-only listening in real param
   low:makeGain(),mid:makeGain(),high:makeGain()
  };
  const state={
-  denoiseMonitor:m,denoiseEnabled:false,eqEnabled:true,
+  denoiseMonitor:m,denoiseEnabled:false,eqEnabled:true,compEnabled:false,
   denoiseStrength:45,eqBands:{low:3,mid:-4,high:2}
  };
  const script=section('function applyDspSettings(){','function applyDenoiseSetting(){')+'; applyDspSettings()';
