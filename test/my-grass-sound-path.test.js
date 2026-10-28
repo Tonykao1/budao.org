@@ -45,7 +45,7 @@ test('clicking a sound mark seeks only an existing recorded start, without alter
  assert.doesNotMatch(seek,/deleteAudio|saveEntry|putAudio|writeJson/);
  const pathView=section('function soundPathView(){','function voiceReunionEntries(){');
  assert.match(pathView,/data-action="sound-seek"/);
- assert.match(pathView,/start\/total\*100/);
+ assert.match(pathView,/s\.left\.toFixed\(4\)/);
 });
 test('voice reunions only name actual same-chapter overlapping private history',()=>{
  const context={
