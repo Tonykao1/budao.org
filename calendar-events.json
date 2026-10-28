@@ -134,12 +134,12 @@
     "cancelCode": ""
   },
   {
-    "date": "2026-11-01",
-    "type": "fellowship",
+    "date": "2026-10-31",
+    "type": "march",
     "source": "tent",
     "slot": "",
     "routeId": "budao-leader-tony",
-    "title": "晨星·步道半日营",
+    "title": "鹿皮关·领袖行军",
     "status": "scheduled",
     "cancelCode": ""
   }
