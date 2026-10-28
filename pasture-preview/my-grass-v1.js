@@ -269,8 +269,11 @@ function stageReading(){
   '<div class="gs-scripture-controls"><button class="gs-action secondary gs-scripture-nav-button" type="button" data-action="scripture-nav" aria-label="旧约新约、书卷和章节导航">选经文</button>'+
   '<input data-field="translation" maxlength="64" value="'+escape(draft.scripture.translation)+'" hidden></div></div>'+
   '<textarea data-field="scriptureText" maxlength="10000" hidden>'+escape(draft.scripture.text)+'</textarea></section>'+
-  '<section class="gs-panel gs-recording-panel" aria-label="今日读经原声"><h3>今日读经</h3>'+
-  '<div class="gs-recorder-console" data-state="'+state+'">'+
+  '<section class="gs-panel gs-recording-panel gs-voice-station" aria-label="今日读经原声">'+
+  '<header class="gs-voice-heading"><span>ORIGINAL VOICE STATION</span><h3>原声读经工作站</h3></header>'+
+  '<div class="gs-voice-scripture">'+escape(draft.scripture.reference||'请选择经文')+'</div>'+
+  '<div class="gs-recorder-console gs-voice-tape-deck" data-state="'+state+'">'+
+  '<div class="gs-voice-cassette" aria-hidden="true"><div class="gs-voice-tape-quote">愿祢的话，在我口中有声音</div><div class="gs-voice-tape-window"><span></span><i></i><span></span></div><small>ORIGINAL VOICE · PERSONAL TAPE</small></div>'+
     '<div class="gs-recorder-deck"><div class="gs-recorder-brand"><strong>ORIGINAL VOICE</strong><span>LOCAL RECORDER</span></div>'+
      '<div class="gs-recorder-keys gs-journey-keys"><span class="gs-recorder-key gs-journey-rec-indicator" aria-live="off"><span class="gs-recorder-key-icon">●</span><span>REC</span></span>'+
       '<button class="gs-recorder-key" type="button" data-action="play" '+(playDisabled?'disabled':'')+' aria-label="回听本人今日读经"><span class="gs-recorder-key-icon">▶Ⅱ</span><span>回听/暂停</span></button>'+
@@ -285,11 +288,18 @@ function stageReading(){
       '<div class="gs-recorder-status" id="gsRecorderStatus">'+recorderStatusText()+'</div></div>'+
     '</div>'+
   '</div>'+
+  '<div class="gs-voice-dsp" aria-label="DSP 设计预览，尚未启用音频处理"><div class="gs-voice-dsp-heading"><strong>VOICE DSP / 4-IN-1</strong><small>仅试听｜分享时生成</small></div><div class="gs-voice-dsp-channels">'+
+     ['DENOISE','EQ','COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['降噪','均衡','压缩','混响'][i]+'</small></div>').join('')+
+     '</div><p>DSP 效果尚未接通 · 当前不会修改原声</p></div>'+
+  '<div class="gs-voice-tracks"><h4>逐节原声轨迹</h4>'+
+    ((draft.readingJourney?.segments||[]).filter(s=>Number.isFinite(s.startMs)).map(s=>'<div class="gs-voice-track"><span>第 '+escape(s.verse)+' 节</span><time>'+String(Math.floor(s.startMs/60000)).padStart(2,'0')+':'+String(Math.floor(s.startMs/1000)%60).padStart(2,'0')+' — '+(Number.isFinite(s.endMs)?String(Math.floor(s.endMs/60000)).padStart(2,'0')+':'+String(Math.floor(s.endMs/1000)%60).padStart(2,'0'):'进行中')+'</time></div>').join('')||'<p class="gs-voice-empty">录制并逐节推进后，这里显示真实时间记录。</p>')+
+  '</div>'+
+  '<div class="gs-voice-archive"><h4>原声档案</h4><div class="gs-voice-archive-row"><span>录音状态 <b>'+(hasAudio?'已录制':'尚未录制')+'</b></span><span>存储位置 <b>当前浏览器</b></span><button type="button" data-action="download-audio" '+(!hasAudio?'disabled':'')+'>导出原声</button></div></div>'+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
   '<div class="gs-rule"></div><div class="gs-actions">'+
   '<span class="gs-small">原声完成后自动归档；领受在下一页形成。</span>'+
-  '<button class="gs-action secondary" type="button" data-action="next-reflection">继续默想 →</button></div></section></div>';
+  '<button class="gs-action secondary" type="button" data-action="next-reflection">读经结束 · 进入领受 →</button></div></section></div>';
 }
 
   // All six directions remain relationships surrounding one durable center;
