@@ -591,3 +591,20 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-comp-reduction output{position:relative;z-index:1;display:block;text-align:center;font:700 9px/15px ui-monospace,monospace;color:#f5e1b9;text-shadow:0 1px 2px #171912}
 @media(max-width:600px){#grassWorkspace .gs-comp-control{width:25px}#grassWorkspace .gs-comp-dial{width:21px;height:21px}#grassWorkspace input[data-dsp-comp-control]{width:25px;height:25px}#grassWorkspace .gs-comp-reduction{min-width:45px}#grassWorkspace .gs-comp-values{font-size:8px!important}}
 @media(prefers-reduced-motion:reduce){#grassWorkspace .gs-comp-reduction-bar{transition:none}}
+
+
+/* DSP 4/4 — true room convolution, ROOM and MIX engraved brass controls */
+#grassWorkspace .gs-dsp-reverb{gap:5px;min-width:0;align-self:stretch}
+#grassWorkspace .gs-reverb-pair{display:flex;width:100%;align-items:flex-start;justify-content:space-evenly;gap:2px;padding:1px 0 2px}
+#grassWorkspace .gs-reverb-control{width:32px;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
+#grassWorkspace .gs-reverb-dial{position:relative;width:26px;height:26px;border:2px ridge #c8a779;border-radius:50%;background:conic-gradient(#72512f,#d6ba87,#9a744a,#eac58e,#72512f);box-shadow:inset 0 0 0 5px #73563872,1px 2px 2px #1f160e;pointer-events:none}
+#grassWorkspace .gs-reverb-dial:after{content:"";position:absolute;top:1px;left:calc(50% - 1px);height:9px;width:2px;background:#fff0c6;transform:rotate(var(--knob-angle,0deg));transform-origin:50% 11px}
+#grassWorkspace input[data-dsp-reverb-control]{appearance:none;-webkit-appearance:none;position:absolute;top:0;left:0;height:31px;width:32px;opacity:0;margin:0;cursor:ew-resize;touch-action:none}
+#grassWorkspace .gs-reverb-control:focus-within .gs-reverb-dial{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-reverb-control>span:last-child{font:700 8px/1.25 ui-monospace,monospace;color:#dcc8a5;white-space:nowrap}
+#grassWorkspace .gs-dsp-reverb button[data-action="dsp-reverb"]{min-height:24px;min-width:44px;padding:2px 8px;border:2px outset #bea075;border-radius:2px;background:linear-gradient(#d6bd92,#ac8759);color:#3c2a1a;box-shadow:0 2px 0 #392718,inset 1px 1px #f0d9ab;font:800 10px ui-monospace,monospace;cursor:pointer}
+#grassWorkspace .gs-dsp-reverb[data-enabled="true"] button[data-action="dsp-reverb"]{border-style:inset;color:#fff2bd;background:linear-gradient(#c2a666,#86633c);box-shadow:inset 0 2px 4px #3c2a1c}
+#grassWorkspace .gs-dsp-reverb button:focus-visible{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-dsp-reverb button:disabled,#grassWorkspace input[data-dsp-reverb-control]:disabled{opacity:.48;cursor:default}
+#grassWorkspace .gs-reverb-values{font:600 9px/1.25 ui-monospace,monospace!important;color:#e5caa2;text-align:center;white-space:nowrap}
+@media(max-width:600px){#grassWorkspace .gs-reverb-control{width:25px}#grassWorkspace .gs-reverb-dial{width:21px;height:21px}#grassWorkspace input[data-dsp-reverb-control]{width:25px;height:25px}#grassWorkspace .gs-reverb-values{font-size:8px!important}}
