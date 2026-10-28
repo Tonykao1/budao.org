@@ -30,8 +30,8 @@ test('EQ builds one media-element source with sequential shelving and peaking fi
  assert.match(effect,/high.type='highshelf';high.frequency.value=6000/);
  assert.match(effect,/source.connect\(cleanFeed\);cleanFeed.connect\(low\);low.connect\(mid\);mid.connect\(high\)/);
  assert.match(effect,/high.connect\(wet\)/);
- assert.match(effect,/wet.connect\(compBypass\);compBypass.connect\(context.destination\)/);
- assert.match(effect,/wet.connect\(compressor\);compressor.connect\(compWet\);compWet.connect\(context.destination\)/);
+ assert.match(effect,/wet.connect\(compBypass\);compBypass.connect\(compOutput\)/);
+ assert.match(effect,/wet.connect\(compressor\);compressor.connect\(compWet\);compWet.connect\(compOutput\)/);
  assert.match(effect,/noiseFeed.connect\(m.low\)/);
  assert.equal((effect.match(/createMediaElementSource\(player\)/g)||[]).length,1);
  assert.doesNotMatch(effect,/new Blob|putAudio\(|writeJson\(|downloadBlob\(|MediaRecorder\(/);
