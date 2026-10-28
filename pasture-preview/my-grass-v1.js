@@ -255,6 +255,66 @@ function recorderStatusText(){
  if(state==='recorded')return 'RECORDED · 请按右侧链接键';
  return 'READY · 先完成左侧经文阅读';
 }
+
+  // Sound path renders only recorded verse boundaries. Never infer them from text length.
+  function soundPathModel(value){
+   if(value?.status!=='completed'||!Array.isArray(value.segments)||!value.segments.length)return null;
+   const total=Number(value.durationMs ?? value.segments.at(-1)?.endMs);
+   if(!Number.isFinite(total)||total<=0)return null;
+   const segments=value.segments.map(s=>({
+    verse:Number(s.verse),start:Number(s.startMs),end:Number(s.endMs),
+    verseId:String(s.verseId||'')
+   }));
+   if(segments.some((s,i)=>!Number.isInteger(s.verse)||!Number.isFinite(s.start)||!Number.isFinite(s.end)||
+     s.start<0||s.end<=s.start||s.end>total||(i>0&&s.start!==segments[i-1].end)))return null;
+   return {total,segments:segments.map(s=>({...s,left:s.start/total*100,width:(s.end-s.start)/total*100}))};
+  }
+  function soundTime(ms){
+   const s=Math.floor(Math.max(0,Number(ms)||0)/1000);
+   return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  }
+  function soundPathView(){
+   const data=soundPathModel(draft.readingJourney);
+   if(!data)return '<section class="gs-sound-path" aria-label="声音之路"><div class="gs-sound-title"><h4>声音之路</h4><small>分秒里的经节</small></div><p class="gs-sound-empty">完成一次逐节原声朗读后，声音便有了可以重走的路。</p></section>';
+   const markers=data.segments.map((s,i)=>'<button type="button" class="gs-sound-marker" data-action="sound-seek" data-verse="'+s.verse+'" data-verse-id="'+escape(s.verseId)+'" data-start-ms="'+s.start+'" data-end-ms="'+s.end+'" style="left:'+s.left.toFixed(4)+'%" aria-label="从第 '+s.verse+' 节开始回听，'+soundTime(s.start)+' 至 '+soundTime(s.end)+'" title="第 '+s.verse+' 节 · '+soundTime(s.start)+'—'+soundTime(s.end)+'"><span class="gs-sound-pin" aria-hidden="true"></span><span class="gs-sound-verse">'+s.verse+'</span></button>').join('');
+   const lengths=data.segments.map((s,i)=>'<span class="gs-sound-length" data-verse="'+s.verse+'" style="left:'+s.left.toFixed(4)+'%;width:'+s.width.toFixed(4)+'%" aria-hidden="true"></span>').join('');
+   const first=data.segments[0];
+   return '<section class="gs-sound-path" aria-label="声音之路 · 逐节原声轨迹"><div class="gs-sound-title"><h4>声音之路</h4><small>分秒里的经节</small></div>'+
+    '<p class="gs-sound-intro">每一个刻痕，都来自你真实的读经时间。</p>'+
+    '<div class="gs-sound-viewport"><div class="gs-sound-lane" style="min-width:max(100%,'+(data.segments.length*47)+'px)">'+
+       '<div class="gs-sound-baseline" aria-hidden="true"></div>'+lengths+markers+
+       '<span class="gs-sound-finish" title="本次朗读结束" aria-hidden="true">◆</span></div></div>'+
+    '<div class="gs-sound-axis"><span>00:00</span><span>'+soundTime(data.total)+'</span></div>'+
+    '<div class="gs-sound-readout" aria-live="off"><span class="gs-sound-current">第 '+first.verse+' 节 · '+soundTime(first.start)+'—'+soundTime(first.end)+'</span><span class="gs-sound-hint">点击经节刻痕，即可回到那一刻</span></div></section>';
+  }
+  function voiceReunionEntries(){
+   const current=draft.readingJourney;
+   if(!current?.book||!current?.chapter)return [];
+   const first=current.startVerse,last=current.endVerse;
+   return entries.filter(e=>{
+    const j=e.readingJourney;
+    return e.id!==draft.id&&j?.status==='completed'&&!!e.reading?.audioId&&
+      j.book===current.book&&j.chapter===current.chapter&&j.translation===current.translation&&
+      Number(j.startVerse)<=last&&Number(j.endVerse)>=first;
+   }).sort((a,b)=>String(b.readingJourney?.completedAt||b.createdAt||'').localeCompare(String(a.readingJourney?.completedAt||a.createdAt||'')));
+  }
+  function voiceYearRingView(){
+   const saved=!!draft.reading.audioId&&draft.readingJourney?.status==='completed';
+   const prior=saved?voiceReunionEntries():[];
+   const archivedAt=draft.readingJourney?.completedAt||getEntry()?.createdAt||null;
+   return '<section class="gs-voice-yearring" aria-label="生命年轮 · 私人原声档案">'+
+    '<div class="gs-yearring-head"><h4>生命年轮</h4><small>年月里的重逢</small></div>'+
+    '<div class="gs-yearring-content"><div class="gs-yearring-seal" aria-hidden="true"><span>声</span></div>'+
+     '<div class="gs-yearring-summary"><strong>'+(saved?'此刻已留声':'静候第一道声迹')+'</strong>'+
+      '<span>'+(saved?escape(draft.scripture.reference)+' · '+escape(archivedAt?datetime(archivedAt):'本次读经'):'完成本次原声读经，开始你的生命年轮')+'</span>'+
+      '<small>原声仅存于当前浏览器，尚无云端备份</small></div></div>'+
+    (prior.length?'<div class="gs-yearring-reunions"><span>这段经文与 '+prior.length+' 份往昔记录相遇</span>'+
+      prior.slice(0,2).map(e=>'<span class="gs-yearring-memory">'+escape(datetime(e.readingJourney?.completedAt||e.createdAt))+' · '+escape(e.scripture.reference||e.readingJourney.reference)+'</span>').join('')+'</div>':
+     '<p class="gs-yearring-poem">今日留声，来日重逢。历史尚未自动跨设备保存。</p>')+
+    '<div class="gs-yearring-actions"><button type="button" data-action="download-audio" '+(!saved?'disabled':'')+'>单独保存原声</button>'+
+     '<button type="button" data-action="archive">翻阅生命古卷</button></div></section>';
+  }
+
 function stageReading(){
  const barHeights=Array.from({length:22},(_,i)=>10+Math.round(Math.abs(Math.sin(i*1.41)*Math.cos(i*.53))*46));
  const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed';
@@ -291,10 +351,7 @@ function stageReading(){
   '<div class="gs-voice-dsp" aria-label="DSP 设计预览，尚未启用音频处理"><div class="gs-voice-dsp-heading"><strong>VOICE DSP / 4-IN-1</strong><small>仅试听｜分享时生成</small></div><div class="gs-voice-dsp-channels">'+
      ['DENOISE','EQ','COMP','REVERB'].map((name,i)=>'<div class="gs-voice-dsp-channel"><b>'+name+'</b><span class="gs-voice-knob" aria-hidden="true"></span><small>'+['降噪','均衡','压缩','混响'][i]+'</small></div>').join('')+
      '</div><p>DSP 效果尚未接通 · 当前不会修改原声</p></div>'+
-  '<div class="gs-voice-tracks"><h4>逐节原声轨迹 <small>真实经节时间刻痕</small></h4>'+
-    ((draft.readingJourney?.segments||[]).filter(s=>Number.isFinite(s.startMs)).map((s,i)=>'<div class="gs-voice-track" data-verse="'+escape(s.verse)+'" data-start-ms="'+s.startMs+'" data-end-ms="'+(Number.isFinite(s.endMs)?s.endMs:'')+'"><span class="gs-voice-track-seal" aria-hidden="true">✦</span><span class="gs-voice-track-verse">第 '+escape(s.verse)+' 节</span><span class="gs-voice-track-light" aria-hidden="true"><i></i></span><time>'+String(Math.floor(s.startMs/60000)).padStart(2,'0')+':'+String(Math.floor(s.startMs/1000)%60).padStart(2,'0')+' — '+(Number.isFinite(s.endMs)?String(Math.floor(s.endMs/60000)).padStart(2,'0')+':'+String(Math.floor(s.endMs/1000)%60).padStart(2,'0'):'进行中')+'</time></div>').join('')||'<p class="gs-voice-empty">录制并逐节推进后，这里显示真实时间记录。</p>')+
-  '</div>'+
-  '<div class="gs-voice-archive"><h4>原声档案</h4><div class="gs-voice-archive-row"><span>录音状态 <b>'+(hasAudio?'已录制':'尚未录制')+'</b></span><span>存储位置 <b>当前浏览器</b></span><button type="button" data-action="download-audio" '+(!hasAudio?'disabled':'')+'>导出原声</button></div></div>'+
+  soundPathView()+voiceYearRingView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
   '<div class="gs-rule"></div><div class="gs-actions">'+
@@ -498,6 +555,37 @@ async function deleteAudio(id){
   tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
  })}finally{db.close()}
 }
+
+  async function seekSoundVerse(ms){
+   if(!residentAccess()||!draft?.reading?.audioId||draft.readingJourney?.status!=='completed'||rerecordOriginal||
+      ['arming','recording','paused','finalizing'].includes(journeyPhase)){
+    tell('请先完成读经并保留当前原声，再定位到某一节。');return;
+   }
+   const model=soundPathModel(draft.readingJourney);
+   if(!model||!model.segments.some(s=>s.start===ms)){tell('这一节没有有效的原声时间坐标。');return}
+   const id=draft.reading.audioId,owner=scope;
+   let player=activePlayer;
+   if(!player||player.dataset.audioId!==id)player=await restoreAudio(id);
+   if(!player||id!==draft?.reading?.audioId||scope!==owner||!residentAccess())return;
+   try{
+    player.currentTime=ms/1000;
+    await player.play();
+    updateSoundPathProgress(ms,true);
+   }catch(e){tell('原声定位暂不可用：'+String(e?.message||e))}
+  }
+  function updateSoundPathProgress(ms,playing){
+   const model=soundPathModel(draft?.readingJourney);
+   if(!model)return;
+   const segment=model.segments.find(s=>ms>=s.start&&ms<s.end)|| (ms>=model.total?model.segments.at(-1):null);
+   root.querySelectorAll('.gs-sound-marker,.gs-sound-length').forEach(node=>{
+    node.classList.toggle('is-audible',!!playing&&!!segment&&Number(node.dataset.verse)===segment.verse);
+   });
+   const line=root.querySelector('.gs-sound-current');
+   if(line&&segment)line.textContent='第 '+segment.verse+' 节 · '+soundTime(segment.start)+'—'+soundTime(segment.end);
+   const lane=root.querySelector('.gs-sound-lane');
+   if(lane)lane.style.setProperty('--sound-progress',Math.max(0,Math.min(100,ms/model.total*100))+'%');
+  }
+
 async function togglePlayback(){
  if(!draft.reading.audioId){tell('还没有可回听的本人原声。');return}
  if(!draft.scripture.verifiedAgainstRecording&&draft.readingJourney?.status!=='completed'){tell('这份旧版原声尚未与经文绑定。');return}
@@ -865,6 +953,7 @@ async function startOrStopRecording(){
     case 'scripture-nav': showBibleNav();break;
     case 'record':await startOrStopRecording();break;
     case 'play':await togglePlayback();break;
+    case 'sound-seek':await seekSoundVerse(Number(b.dataset.startMs));break;
     case 'rerecord':rerecordAudio();break;
     case 'cancel-rerecord':cancelRerecord();break;
     case 'restart-current-take':restartCurrentTake();break;
@@ -892,17 +981,18 @@ async function startOrStopRecording(){
     case 'copy-micro':await copyMicro(b.dataset.id);break;
    }
   });
-  // Visual-only timeline illumination. Existing playback owns the authoritative time.
+  // Keep the sound path illuminated only during actual audio playback.
   root.addEventListener('timeupdate',e=>{
-    if(e.target?.tagName!=='AUDIO')return;
-    const ms=e.target.currentTime*1000;
-    root.querySelectorAll('.gs-voice-track[data-start-ms]').forEach(node=>{
-      const start=Number(node.dataset.startMs),end=Number(node.dataset.endMs);
-      node.classList.toggle('is-audible',Number.isFinite(start)&&Number.isFinite(end)&&end>start&&ms>=start&&ms<end&&!e.target.paused);
-    });
+   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer)
+    updateSoundPathProgress(e.target.currentTime*1000,!e.target.paused&&!e.target.ended);
   },true);
   root.addEventListener('pause',e=>{
-    if(e.target?.tagName==='AUDIO')root.querySelectorAll('.gs-voice-track.is-audible').forEach(n=>n.classList.remove('is-audible'));
+   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer)
+    updateSoundPathProgress(e.target.currentTime*1000,false);
+  },true);
+  root.addEventListener('ended',e=>{
+   if(e.target?.tagName==='AUDIO'&&e.target===activePlayer)
+    updateSoundPathProgress(e.target.duration*1000,false);
   },true);
   // Do not introduce a fourth main module: history/new entry are utilities in the footer.
   function addNewEntryControl(){
