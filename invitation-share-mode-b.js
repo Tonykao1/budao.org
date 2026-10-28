@@ -402,6 +402,8 @@
         { label: '时间', value: text(viewModel.time) ? text(viewModel.time) + ' 集合' : '待定', x: box.x + 220, width: 190 },
         { label: '地点', value: text(viewModel.location) || '同行地点待定', x: box.x + 440, width: 404 }
       ];
+      ctx.fillStyle = '#f5f1e7';
+      ctx.fillRect(box.x, box.y, box.width, box.height);
       drawRule(ctx, box.x, box.y, box.x + box.width, box.y, 'rgba(61,48,35,0.14)', 1);
       drawRule(ctx, box.x, box.y + box.height, box.x + box.width, box.y + box.height,
         'rgba(61,48,35,0.14)', 1);
@@ -424,6 +426,8 @@
 
     meeting: function (ctx, viewModel) {
       const box = ARTIFACT_LAYOUT.meeting;
+      ctx.fillStyle = '#f3f5ee';
+      ctx.fillRect(box.x - 10, box.y + 1, box.width + 20, box.height - 3);
       drawBoundedText(ctx, 'MEETING POINT', box.x, box.y + 22, 200, {
         color: '#8b7860',
         size: 13,
@@ -472,6 +476,10 @@
       ordered.forEach(function (key, index) {
         const column = index % 2;
         const row = Math.floor(index / 2);
+        if (facts.get(key)) {
+          ctx.fillStyle = '#f3f4ed';
+          ctx.fillRect(box.x + column * 296 - 8, box.y + row * 66 - 8, columnWidth + 15, 60);
+        }
         drawFact(ctx, facts.get(key), box.x + column * 296, box.y + row * 66, columnWidth, {
           labelSize: 13,
           valueSize: 16,
