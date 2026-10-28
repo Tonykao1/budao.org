@@ -420,10 +420,16 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
       assert.strictEqual(result.height, 1530);
     });
     const texts = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'fillText').map(call => call[1]));
-    assert.ok(texts[1].includes('山野风景 · BUDAO'));
-    assert.ok(texts[2].includes('自然生活 · BUDAO'));
-    assert.ok(!texts[0].includes('山野风景 · BUDAO'));
-    assert.ok(!texts[0].includes('自然生活 · BUDAO'));
+    assert.ok(texts[1].includes('BUDAO  /  山野同行'));
+    assert.ok(texts[2].includes('一起走进自然 · 一起成为同行的人'));
+    assert.ok(!texts[0].includes('BUDAO  /  山野同行'));
+    assert.ok(!texts[0].includes('一起走进自然 · 一起成为同行的人'));
+    const photographs = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'drawImage'));
+    assert.notDeepStrictEqual(texts[0], texts[1]);
+    assert.notDeepStrictEqual(texts[1], texts[2]);
+    // Independent poster compositions must not inherit the editorial layout.
+    assert.ok(outputs[1].result.stages.length < outputs[0].result.stages.length);
+    assert.ok(outputs[2].result.stages.length < outputs[0].result.stages.length);
   });
 
   it('41. keeps the renderer usable with a lightweight Canvas mock', () => {
