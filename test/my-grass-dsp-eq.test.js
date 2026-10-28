@@ -36,7 +36,7 @@ test('EQ builds one media-element source with sequential shelving and peaking fi
  assert.equal((effect.match(/createMediaElementSource\(player\)/g)||[]).length,1);
  assert.doesNotMatch(effect,/new Blob|putAudio\(|writeJson\(|downloadBlob\(|MediaRecorder\(/);
  assert.match(src,/case 'dsp-eq':await toggleEqPreview\(\);break/);
- assert.match(src,/if\(denoiseEnabled\|\|eqEnabled\|\|compEnabled\)await connectDspMonitor\(player\)/);
+ assert.match(src,/if\(denoiseEnabled\|\|eqEnabled\|\|compEnabled\|\|reverbEnabled\)await connectDspMonitor\(player\)/);
 });
 test('EQ routing follows bypass, DENOISE+EQ, and EQ-only listening in real parameter state',()=>{
  const makeParam=()=>{
@@ -51,7 +51,7 @@ test('EQ routing follows bypass, DENOISE+EQ, and EQ-only listening in real param
   low:makeGain(),mid:makeGain(),high:makeGain()
  };
  const state={
-  denoiseMonitor:m,denoiseEnabled:false,eqEnabled:true,compEnabled:false,
+  denoiseMonitor:m,denoiseEnabled:false,eqEnabled:true,compEnabled:false,reverbEnabled:false,
   denoiseStrength:45,eqBands:{low:3,mid:-4,high:2}
  };
  const script=section('function applyDspSettings(){','function applyDenoiseSetting(){')+'; applyDspSettings()';
