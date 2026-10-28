@@ -5,6 +5,7 @@ const branch = process.env.GITHUB_PUBLISH_BRANCH || process.env.GITHUB_BRANCH ||
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const routesPath = "routes.json";
 const { getAuthenticatedPublisher } = require("./_security/auth");
+const { createHash } = require("node:crypto");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/http");
 const { clientIp, consume } = require("./_security/rate-limit");
 const { validateRoute } = require("./_security/route-schema");
@@ -28,7 +29,8 @@ module.exports = async function handler(request, response) {
 
   try {
     const current = await readRoutesFile();
-    const existing = findExistingRoute(current.routes, publisher);
+    const existing = findExistingRoute(current.routes, publisher, validated.value);
+    const uniqueId = existing && (existing.routeId || existing.id) || uniqueLeaderRouteId(publisher, validated.value);
 
     if (existing) {
       try {
@@ -42,8 +44,8 @@ module.exports = async function handler(request, response) {
 
     const routeToSave = preserveCancellationState(normalizeRoute({
       ...validated.value,
-      id: existing && (existing.id || existing.routeId) || leaderRouteId(publisher),
-      routeId: existing && (existing.routeId || existing.id) || leaderRouteId(publisher),
+      id: uniqueId,
+      routeId: uniqueId,
       leaderId: publisher.id,
       leader: publisher.username,
       owner: publisher.username,
@@ -73,7 +75,7 @@ module.exports = async function handler(request, response) {
     }
 
     const routes = current.routes
-      .filter(function (item) { return !belongsToLeader(item, publisher); })
+      .filter(function (item) { return !existing || (item.routeId || item.id) !== (existing.routeId || existing.id); })
       .map(function (item) { return normalizeRoute(item); });
     routes.push(routeToSave);
 
@@ -169,8 +171,20 @@ function belongsToLeader(route, publisher) {
   return false;
 }
 
-function findExistingRoute(routes, publisher) {
-  return (Array.isArray(routes) ? routes : []).find((route) => belongsToLeader(route, publisher)) || null;
+function uniqueLeaderRouteId(publisher, value) {
+  const date = normalizeDate(value.date || "") || "undated";
+  const fingerprint = createHash("sha256").update([date, value.time || "", value.title || ""].join("|")).digest("hex").slice(0, 12);
+  return leaderRouteId(publisher) + "-" + date + "-" + fingerprint;
+}
+
+function findExistingRoute(routes, publisher, incoming) {
+  const list = (Array.isArray(routes) ? routes : []).filter((route) => belongsToLeader(route, publisher));
+  // A leader can publish multiple independent events. A legacy leader-scoped
+  // routeId must never cause an unrelated event to be overwritten.
+  return list.find((route) =>
+    normalizeDate(route.date) === normalizeDate(incoming.date) &&
+    String(route.title || "").trim() === String(incoming.title || "").trim()
+  ) || null;
 }
 
 function preserveCancellationState(route, existing) {
