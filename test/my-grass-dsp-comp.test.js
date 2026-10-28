@@ -22,7 +22,7 @@ test('COMP has tactile threshold and ratio sliders plus functional bypass',()=>{
  assert.match(stage,/gsCompReduction/);
  assert.match(style,/\.gs-dsp-comp\[data-enabled="true"\]/);
  assert.match(style,/\.gs-comp-reduction-bar/);
- assert.doesNotMatch(stage,/data-action="dsp-reverb"/);
+ assert.match(stage,/data-action="dsp-reverb"/);
 });
 test('COMP uses real DynamicsCompressor with quiet speech-oriented time constants',()=>{
  const dsp=section('function releaseDenoiseMonitor(){','function clearPlayer(){');
@@ -30,8 +30,8 @@ test('COMP uses real DynamicsCompressor with quiet speech-oriented time constant
  assert.match(dsp,/compressor\.knee\.value=12/);
  assert.match(dsp,/compressor\.attack\.value=\.012/);
  assert.match(dsp,/compressor\.release\.value=\.20/);
- assert.match(dsp,/wet\.connect\(compBypass\);compBypass\.connect\(context\.destination\)/);
- assert.match(dsp,/wet\.connect\(compressor\);compressor\.connect\(compWet\);compWet\.connect\(context\.destination\)/);
+ assert.match(dsp,/wet\.connect\(compBypass\);compBypass\.connect\(compOutput\)/);
+ assert.match(dsp,/wet\.connect\(compressor\);compressor\.connect\(compWet\);compWet\.connect\(compOutput\)/);
  assert.match(dsp,/m\.compressor\.threshold\.setTargetAtTime\(compThreshold,now,\.012\)/);
  assert.match(dsp,/m\.compressor\.ratio\.setTargetAtTime\(compRatio,now,\.012\)/);
  assert.equal((dsp.match(/createMediaElementSource\(player\)/g)||[]).length,1);
@@ -48,7 +48,7 @@ test('COMP-only, EQ+COMP, DENOISE+EQ+COMP, and complete bypass route correctly',
   effect:{port:{postMessage(value){m.message=value}}}
  };
  const ctx={denoiseMonitor:m,denoiseEnabled:false,eqEnabled:false,compEnabled:true,
-  denoiseStrength:35,eqBands:{low:5,mid:-3,high:2},compThreshold:-29,compRatio:3.5};
+  denoiseStrength:35,eqBands:{low:5,mid:-3,high:2},compThreshold:-29,compRatio:3.5,reverbEnabled:false};
  const script=section('function applyDspSettings(){','function applyDenoiseSetting(){')+';applyDspSettings()';
  const val=p=>p.history.at(-1).v;
  vm.runInNewContext(script,ctx);
@@ -93,7 +93,7 @@ test('COMP reduction uses actual browser processor reading rather than fabricate
 });
 test('COMP playback, seeking and account switch keep original voice isolated',()=>{
  assert.match(source,/case 'dsp-comp':await toggleCompPreview\(\);break/);
- assert.match(source,/if\(denoiseEnabled\|\|eqEnabled\|\|compEnabled\)await connectDspMonitor\(player\)/);
+ assert.match(source,/if\(denoiseEnabled\|\|eqEnabled\|\|compEnabled\|\|reverbEnabled\)await connectDspMonitor\(player\)/);
  assert.match(source,/compEnabled=false;compThreshold=-24;compRatio=2\.5/);
  const graph=section('function releaseDenoiseMonitor(){','function clearPlayer(){');
  assert.doesNotMatch(graph,/downloadBlob|putAudio\(|deleteAudio\(|writeJson\(|saveEntry\(/);
