@@ -323,50 +323,38 @@
   // Temporary calendar-to-card focus. Never destroy/recreate cards, because
   // QR, invitation, countdown and cancellation handlers own those elements.
   function installRouteFocus(host) {
-    const grid = document.getElementById("routeGrid");
-    if (!grid || !host) return;
-    let focused = null;
-    let lastPointerType = "";
-
-    function show(date, type) {
-      const key = date + "|" + type;
-      if (focused === key) return;
-      focused = key;
-      if (typeof window.BudaoCalendarFocus === "function") window.BudaoCalendarFocus(date, type);
-    }
+    if (!host || !document.getElementById("routeGrid")) return;
+    let currentKey = "";
 
     function clear() {
-      if (!focused) return;
-      focused = null;
+      if (!currentKey) return;
+      currentKey = "";
       if (typeof window.BudaoCalendarFocus === "function") window.BudaoCalendarFocus(null, null);
+    }
+
+    function show(mark) {
+      if (!mark) return clear();
+      const date = mark.dataset.routeDate;
+      const type = mark.dataset.routeType;
+      // The first release is a historical hover preview only.
+      if (!date || date >= dateKey(new Date())) return clear();
+      const key = date + "|" + type;
+      if (currentKey === key) return;
+      currentKey = key;
+      if (typeof window.BudaoCalendarFocus === "function") window.BudaoCalendarFocus(date, type);
     }
 
     host.addEventListener("pointerover", function (event) {
       if (event.pointerType === "touch") return;
       const mark = event.target.closest("[data-route-date]");
-      if (mark && host.contains(mark)) show(mark.dataset.routeDate, mark.dataset.routeType);
+      if (mark && host.contains(mark)) show(mark);
     });
     host.addEventListener("pointerout", function (event) {
       if (event.pointerType === "touch") return;
       const mark = event.target.closest("[data-route-date]");
       if (mark && !mark.contains(event.relatedTarget)) clear();
     });
-    host.addEventListener("pointerdown", function (event) {
-      lastPointerType = event.pointerType;
-    });
-    host.addEventListener("click", function (event) {
-      const mark = event.target.closest("[data-route-date]");
-      if (!mark || !host.contains(mark)) return;
-      const key = mark.dataset.routeDate + "|" + mark.dataset.routeType;
-      if (focused === key && lastPointerType === "touch") clear();
-      else show(mark.dataset.routeDate, mark.dataset.routeType);
-    });
-    document.addEventListener("click", function (event) {
-      if (!host.contains(event.target)) clear();
-    });
-    host.addEventListener("focusout", function (event) {
-      if (!host.contains(event.relatedTarget)) clear();
-    });
+    host.addEventListener("pointerleave", clear);
   }
 
   function loadJson(url) {
