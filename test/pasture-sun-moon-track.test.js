@@ -49,7 +49,7 @@ test('invalid or stale sunrise sunset data does not invent solar events',()=>{
 });
 
 test('landscape and portrait use same track while preserving star projection and Moon phase renderer',()=>{
-  for(const file of ['tonglu.html','tonglu-pasture-portrait.html']){
+  for(const file of ['tonglu-core.html','tonglu.html','tonglu-pasture-portrait.html']){
     const source=fs.readFileSync(path.join(__dirname,'..',file),'utf8');
     assert.match(source,/<script src="\/pasture-sun-moon-track\.js"><\/script>/);
     assert.match(source,/BudaoPastureTrack\?\.segmentAt\(now,state\.astronomy\)/);
@@ -78,4 +78,11 @@ test('screen trajectories scale with canvas while crossing sky only',()=>{
       }
     }
   }
+});
+
+test('pasture preview bridge loads the updated core, not the unrelated outer shell',()=>{
+  const bridge=fs.readFileSync(path.join(__dirname,'..','pasture-preview/tonglu-final-bridge.html'),'utf8');
+  const core=fs.readFileSync(path.join(__dirname,'..','tonglu-core.html'),'utf8');
+  assert.match(bridge,/src="\/tonglu-core\.html\?/);
+  assert.match(core,/<script src="\/pasture-sun-moon-track\.js"><\/script>/);
 });
