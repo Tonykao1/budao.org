@@ -688,9 +688,9 @@
     ctx.fillStyle = '#24513b';
     ctx.fillRect(0, 1040, 1080, 490);
     posterFacts(ctx, model, 74, 1120, '#ffffff', 205);
-    drawRule(ctx, 74, 1180, 1000, 1180, '#8fac8a', 2);
+    drawRule(ctx, 74, 1210, 1000, 1210, '#8fac8a', 2);
     posterText(ctx, [model.date, model.time].filter(Boolean).join('   ·   '), 74, 1243,
-      625, 30, '#fffdf5', 700);
+      625, 36, '#fffdf5', 700);
     posterText(ctx, model.meetingPlace || model.location || '集合地点待公布',
       74, 1315, 655, 25, '#f1f4dc', 600, 2);
     posterText(ctx, '集合地点', 74, 1277, 200, 16, '#bbd1bd', 500);
@@ -728,11 +728,11 @@
       825, 27, '#486a3d', 650, 2);
     drawRule(ctx, 112, 887, 953, 887, '#b8c994', 2);
     posterText(ctx, [model.date, model.time].filter(Boolean).join('   ·   '),
-      112, 953, 825, 32, '#2b5435', 700);
+      112, 953, 825, 38, '#2b5435', 700);
     posterText(ctx, model.meetingPlace || model.location || '集合地点待公布',
       112, 1008, 825, 25, '#365b3d', 600, 2);
     posterFacts(ctx, model, 112, 1135, '#2b5435', 190);
-    drawRule(ctx, 112, 1201, 720, 1201, '#b8c994', 2);
+    drawRule(ctx, 112, 1224, 720, 1224, '#b8c994', 2);
     posterText(ctx, '相聚 · 同行 · 看见', 112, 1285, 620, 29, '#386342', 700);
     posterText(ctx, '步道  /  budao.org', 112, 1404, 620, 23, '#386342', 650);
     posterRegistration(ctx, model, state, assets, false);
