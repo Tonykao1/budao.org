@@ -130,3 +130,39 @@ test('star visibility stays continuous and twinkle changes brightness only', () 
   assert.ok(Number.isFinite(t1)&&Number.isFinite(t2));
   assert.ok(Math.abs(t1-1)>Math.abs(t2-1));
 });
+
+test('solar lighting blends continuously across sunrise and sunset', () => {
+  const midday=sky.solarLightProfile(40);
+  const horizonAbove=sky.solarLightProfile(-0.99);
+  const horizonBelow=sky.solarLightProfile(-1.01);
+  const dusk=sky.solarLightProfile(-6);
+  const midnight=sky.solarLightProfile(-18);
+  assert.equal(midday.darkness,0);
+  assert.ok(horizonAbove.darkness>=0&&horizonBelow.darkness<.002);
+  assert.ok(Math.abs(horizonAbove.darkness-horizonBelow.darkness)<.003);
+  assert.ok(dusk.darkness>horizonBelow.darkness&&dusk.darkness<midnight.darkness);
+  assert.ok(midnight.darkness>.60&&midnight.darkness<=.62);
+  assert.ok(horizonAbove.glow>0&&midday.glow===0&&midnight.glow===0);
+  assert.equal(sky.solarLightProfile(NaN),null);
+});
+
+test('moon visibility responds to local and severe clouds without forcing nighttime only', () => {
+  const arg={timeMs:Date.UTC(2026,9,28,12),xNorm:.4,yNorm:.3};
+  assert.equal(sky.moonCloudVisibility({...arg,cloudCover:0,weatherCode:0}),1);
+  const partial=sky.moonCloudVisibility({...arg,cloudCover:40,weatherCode:2});
+  assert.ok(partial>0&&partial<1);
+  for(const code of [3,45,61,71,95]){
+    assert.equal(sky.moonCloudVisibility({...arg,cloudCover:70,weatherCode:code}),0);
+  }
+  assert.equal(sky.moonCloudVisibility({...arg,cloudCover:100,weatherCode:0}),0);
+});
+
+test('landscape and portrait share the solar and lunar atmospheric policies', () => {
+  const fs=require('node:fs'),path=require('node:path');
+  for(const filename of ['tonglu-core.html','tonglu-pasture-portrait.html']){
+    const source=fs.readFileSync(path.join(__dirname,'..',filename),'utf8');
+    assert.match(source,/\.solarLightProfile\(/);
+    assert.match(source,/\.moonCloudVisibility\(/);
+    assert.doesNotMatch(source,/const day=sunrise&&sunset&&now>=sunrise&&now<=sunset/);
+  }
+});
