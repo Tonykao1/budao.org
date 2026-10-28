@@ -206,6 +206,7 @@
 }
 
 .budao-calendar-step-mark--budao{
+    background-color:transparent;
     background-image:var(--budao-step-shape);
 }
 
@@ -265,6 +266,10 @@
     cursor:pointer;
     appearance:none;
     -webkit-appearance:none;
+    box-shadow:none;
+    color:inherit;
+    opacity:1;
+    filter:none;
 }
 .budao-calendar-step-stack { pointer-events:auto; }
 .budao-calendar-step-mark:focus-visible {
