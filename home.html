@@ -222,12 +222,13 @@ function loadReferenceBMap() {
         throw new Error("Invalid Reference B loudness map");
       }
       referenceBTracks = data.tracks;
-      applyCurrentTrackGain(true);
+      applyCurrentTrackGain(false);
       return data;
     })
     .catch((error) => {
       console.warn("Reference B loudness map unavailable; using 0 dB track gain", error);
       referenceBTracks = {};
+      referenceBPromise = null; // Allow a later DSP activation to retry a transient fetch failure.
       return null;
     });
 
@@ -299,6 +300,8 @@ const prevBtn = document.getElementById("prevBtn");
 let isPlaying = false;
 let hasStartedPlayback = false;
 let dspEnabled = false;
+let dspSwitchPending = false;
+let audioEngineAttachFailed = false;
 let audioContext = null;
 let sourceNode = null;
 let bypassGain = null;
@@ -376,8 +379,10 @@ function initAudioEngine() {
   if (!audioContext) return;
 
   try {
+    audioEngineAttachFailed = false;
     sourceNode = audioContext.createMediaElementSource(audio);
   } catch (error) {
+    audioEngineAttachFailed = true;
     console.warn("Unable to attach music to Web Audio", error);
     audioContext.close().catch(() => {});
     audioContext = null;
@@ -431,8 +436,11 @@ function initAudioEngine() {
 }
 
 async function ensureAudioEngineReady() {
+  // Called directly from the click handler before its first await, so Safari/iOS
+  // can associate AudioContext creation and resume with a user gesture.
   initAudioEngine();
-  if (audioContext && (audioContext.state === "suspended" || audioContext.state === "interrupted")) {
+  if (!audioContext) return false;
+  if (audioContext.state !== "running") {
     try {
       await audioContext.resume();
       resetClockProbe();
@@ -440,6 +448,7 @@ async function ensureAudioEngineReady() {
       console.debug("AudioContext resume deferred", error);
     }
   }
+  return audioContext.state === "running";
 }
 
 function applyDspState() {
@@ -565,12 +574,14 @@ function waitForMetadata(element) {
 }
 
 /*
- * Safari/WebKit 音频路由变化后的安全重建。
- * MediaElementAudioSourceNode 不能可靠地在旧 AudioContext 上继续承担硬件采样率切换，
- * 因此同时换掉 Audio 元素和 AudioContext，确保新图按当前输出硬件重新协商。
+ * Recreate both the Audio element and its AudioContext when the device route
+ * changes. A MediaElementAudioSourceNode cannot be moved to another context.
+ * The same recovery path also returns to genuine native audio if Web Audio
+ * fails to start, avoiding a silent media element left attached to a closed
+ * or suspended AudioContext.
  */
-async function rebuildSafariAudioPipeline(reason = "route/sample-rate change") {
-  if (!isSafariWebKit()) return;
+async function rebuildAudioPipeline(reason = "audio route change", forceNative = false) {
+  if (!forceNative && !isSafariWebKit()) return;
   if (audioPipelineRecoveryPromise) return audioPipelineRecoveryPromise;
 
   audioPipelineRecoveryPromise = (async () => {
@@ -586,29 +597,39 @@ async function rebuildSafariAudioPipeline(reason = "route/sample-rate change") {
     unbindAudioEvents(oldAudio);
     await closeAudioContext();
 
-    audio = createAudioElement(playlist[currentTrack]);
-    bindAudioEvents(audio);
-    await waitForMetadata(audio);
+    const createReplacement = async () => {
+      audio = createAudioElement(playlist[currentTrack]);
+      bindAudioEvents(audio);
+      audio.load();
+      await waitForMetadata(audio);
+      if (position > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
+        audio.currentTime = Math.min(position, Math.max(0, audio.duration - 0.05));
+      }
+    };
 
-    if (position > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
-      audio.currentTime = Math.min(position, Math.max(0, audio.duration - 0.05));
-    }
+    await createReplacement();
 
+    if (forceNative) dspEnabled = false;
     if (dspEnabled) {
-      await ensureAudioEngineReady();
-      applyCurrentTrackGain(true);
-      applyDspState();
-    } else {
-      /* DSP 关闭时 Safari 回到真正的原生媒体通道。 */
-      dspBtn.classList.remove("dsp-on");
-      dspBtn.setAttribute("aria-pressed", "false");
+      const ready = await ensureAudioEngineReady();
+      if (!ready) {
+        // An attached media element cannot be reused as native playback.
+        await closeAudioContext();
+        unbindAudioEvents(audio);
+        await createReplacement();
+        dspEnabled = false;
+      }
     }
+
+    audioEngineAttachFailed = false;
+    applyDspState();
 
     if (resumeAfterRecovery) {
       try {
         await audio.play();
       } catch (error) {
-        console.debug("Playback resume deferred after Safari audio recovery", reason, error);
+        console.debug("Playback resume deferred after audio recovery", reason, error);
+        syncPlaybackUi();
       }
     } else {
       syncPlaybackUi();
@@ -622,6 +643,14 @@ async function rebuildSafariAudioPipeline(reason = "route/sample-rate change") {
   } finally {
     audioPipelineRecoveryPromise = null;
   }
+}
+
+async function rebuildSafariAudioPipeline(reason = "route/sample-rate change") {
+  return rebuildAudioPipeline(reason);
+}
+
+async function restoreNativeAudioPipeline(reason = "Web Audio unavailable") {
+  return rebuildAudioPipeline(reason, true);
 }
 
 function scheduleSafariAudioRecovery(reason) {
@@ -669,22 +698,38 @@ window.setInterval(() => {
 }, 1000);
 
 async function toggleDsp() {
-  await loadReferenceBMap();
+  // Ignore overlapping clicks and route recoveries: never build two audio
+  // graphs simultaneously or flip the UI before Web Audio is running.
+  if (dspSwitchPending || audioPipelineRecoveryPromise) return;
+  dspSwitchPending = true;
+  try {
+    if (!dspEnabled) {
+      // IMPORTANT: ensureAudioEngineReady calls initAudioEngine synchronously,
+      // before the first await and while the user gesture is still active.
+      const ready = await ensureAudioEngineReady();
+      if (!ready) {
+        if (audioContext || sourceNode || audioEngineAttachFailed) {
+          await restoreNativeAudioPipeline("DSP enable failed");
+        }
+        return;
+      }
+      dspEnabled = true;
+      applyDspState();
+      // The loudness map is prefetched on load; a late response will ramp in.
+      // Never delay activation (and user-gesture permission) on a network fetch.
+      loadReferenceBMap();
+      return;
+    }
 
-  if (!dspEnabled) {
-    await ensureAudioEngineReady();
-    if (!audioContext) return;
-    dspEnabled = true;
+    dspEnabled = false;
     applyDspState();
-    return;
-  }
 
-  dspEnabled = false;
-  applyDspState();
-
-  /* Safari 的 bypass 必须是真正原生，而不是 0 dB Web Audio 旁路。 */
-  if (isSafariWebKit() && audioContext) {
-    await rebuildSafariAudioPipeline("DSP bypass");
+    // Safari bypass must be truly native, not a 0 dB Web Audio bypass.
+    if (isSafariWebKit() && audioContext) {
+      await rebuildSafariAudioPipeline("DSP bypass");
+    }
+  } finally {
+    dspSwitchPending = false;
   }
 }
 
@@ -703,8 +748,9 @@ async function playCurrentTrack() {
   forceUnityPlaybackRate();
 
   if (audioContext) {
-    await ensureAudioEngineReady();
-    applyCurrentTrackGain(true);
+    const ready = await ensureAudioEngineReady();
+    if (!ready) await restoreNativeAudioPipeline("track change: DSP unavailable");
+    else applyCurrentTrackGain(true);
   }
 
   audio.src = playlist[currentTrack];
@@ -717,8 +763,9 @@ async function playCurrentTrack() {
 async function resumeCurrentTrack() {
   forceUnityPlaybackRate();
   if (audioContext) {
-    await ensureAudioEngineReady();
-    applyCurrentTrackGain(true);
+    const ready = await ensureAudioEngineReady();
+    if (!ready) await restoreNativeAudioPipeline("resume: DSP unavailable");
+    else applyCurrentTrackGain(true);
   }
   await audio.play();
   resetClockProbe();
@@ -817,7 +864,9 @@ document.addEventListener("visibilitychange", () => {
   if (isSafariWebKit()) {
     scheduleSafariAudioRecovery("foreground resume");
   } else if (audioContext.state !== "running") {
-    ensureAudioEngineReady();
+    ensureAudioEngineReady().then((ready) => {
+      if (!ready) restoreNativeAudioPipeline("foreground: DSP unavailable");
+    });
   }
 });
 
