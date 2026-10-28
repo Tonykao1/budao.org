@@ -279,34 +279,6 @@ function recorderStatusText(){
        s.start<0||s.end<=s.start||s.end>total||(i>0&&(s.start!==segments[i-1].end||s.verse!==segments[i-1].verse+1))))return null;
    return {total,segments:segments.map(s=>({...s,left:s.start/total*100,width:(s.end-s.start)/total*100}))};
   }
-  function voiceReunionEntries(){
-   const current=draft.readingJourney;
-   if(!current?.book||!current?.chapter)return [];
-   const first=current.startVerse,last=current.endVerse;
-   return entries.filter(e=>{
-    const j=e.readingJourney;
-    return e.id!==draft.id&&j?.status==='completed'&&!!e.reading?.audioId&&
-      j.book===current.book&&j.chapter===current.chapter&&j.translation===current.translation&&
-      Number(j.startVerse)<=last&&Number(j.endVerse)>=first;
-   }).sort((a,b)=>String(b.readingJourney?.completedAt||b.createdAt||'').localeCompare(String(a.readingJourney?.completedAt||a.createdAt||'')));
-  }
-  function voiceYearRingView(){
-   const saved=!!draft.reading.audioId&&draft.readingJourney?.status==='completed';
-   const prior=saved?voiceReunionEntries():[];
-   const archivedAt=draft.readingJourney?.completedAt||getEntry()?.createdAt||null;
-   return '<section class="gs-voice-yearring" aria-label="生命年轮 · 私人原声档案">'+
-    '<div class="gs-yearring-head"><h4>生命年轮</h4><small>年月里的重逢</small></div>'+
-    '<div class="gs-yearring-content"><div class="gs-yearring-seal" aria-hidden="true"><span>声</span></div>'+
-     '<div class="gs-yearring-summary"><strong>'+(saved?'此刻已留声':'静候第一道声迹')+'</strong>'+
-      '<span>'+(saved?escape(draft.scripture.reference)+' · '+escape(archivedAt?datetime(archivedAt):'本次读经'):'完成本次原声读经，开始你的生命年轮')+'</span>'+
-      '<small>原声仅存于当前浏览器，尚无云端备份</small></div></div>'+
-    (prior.length?'<div class="gs-yearring-reunions"><span>这段经文与 '+prior.length+' 份往昔记录相遇</span>'+
-      prior.slice(0,2).map(e=>'<span class="gs-yearring-memory">'+escape(datetime(e.readingJourney?.completedAt||e.createdAt))+' · '+escape(e.scripture.reference||e.readingJourney.reference)+'</span>').join('')+'</div>':
-     '<p class="gs-yearring-poem">今日留声，来日重逢。历史尚未自动跨设备保存。</p>')+
-    '<div class="gs-yearring-actions"><button type="button" data-action="download-audio" '+(!saved?'disabled':'')+'>单独保存原声</button>'+
-     '<button type="button" data-action="archive">翻阅生命古卷</button></div></section>';
-  }
-
 function stageReading(){
  const barHeights=Array.from({length:22},(_,i)=>10+Math.round(Math.abs(Math.sin(i*1.41)*Math.cos(i*.53))*46));
  const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed';
@@ -378,7 +350,6 @@ function stageReading(){
         '<button type="button" data-action="dsp-reverb" aria-pressed="'+reverbEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(reverbEnabled?'ON':'OFF')+'</button>'+
         '<small class="gs-reverb-values">ROOM '+reverbRoom+' · MIX '+reverbMix+'%</small></div>'+
     '</div><p id="gsDspStatus" role="status">'+((denoiseEnabled||eqEnabled||compEnabled||reverbEnabled)?[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null,reverbEnabled?'空间混响':null].filter(Boolean).join(' + ')+' · 仅试听，原声母本不变':'四模块可独立试听 · 全旁路即原声')+'</p></div>'+
-  voiceYearRingView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
   '<div class="gs-rule"></div><div class="gs-actions">'+
@@ -510,7 +481,9 @@ function stageReading(){
       '<section class="gs-panel"><h3>经文重逢</h3><div class="gs-empty">每一次真实的领受，都有自己的时间与声音。</div></section></div>':
       tab==='reading'?stageReading():tab==='reflection'?stageReflection():stageSharing())+'</main>'+
     '<footer class="gs-foot"><span>本机私密 · 文字与当前稿可导出 · 原声另存</span>'+
-    '<div class="gs-actions"><button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
+    '<div class="gs-actions">'+
+    '<button class="gs-smallbutton" type="button" data-action="download-audio" '+(!draft?.reading?.audioId||!!rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase)?'disabled':'')+'>保存原声</button>'+
+    '<button class="gs-smallbutton" type="button" data-action="export">导出档案</button>'+
     '<button class="gs-smallbutton" type="button" data-action="'+(archiveOpen?'return-stage':'archive')+'">'+(archiveOpen?'返回':'翻阅档案')+'</button></div></footer>'+
     '<div class="gs-status" id="gsStatus" role="status" aria-live="polite">'+escape(notice)+'</div>';
    if(tab==='reading'&&!archiveOpen&&!rerecordOriginal&&draft.reading.audioId&&(draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed')){
