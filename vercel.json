@@ -15,6 +15,10 @@
       "destination": "/api/auth/session?view=pasture-residents"
     },
     {
+      "source": "/api/bible-esv",
+      "destination": "/api/routes?service=bible-esv"
+    },
+    {
       "source": "/admin/pasture",
       "destination": "/admin/pasture.html"
     },
