@@ -243,6 +243,11 @@
     appendText(documentRef, postmark, 'strong', '', 'BUDAO');
     appendText(documentRef, postmark, 'small', '', viewModel.date || 'POST');
     destination.appendChild(postmark);
+    const journeyMark = documentRef.createElement('figcaption');
+    journeyMark.className = 'mode-b-journey-mark';
+    appendText(documentRef, journeyMark, 'span', '', '步道同行');
+    appendText(documentRef, journeyMark, 'small', '', 'A JOURNEY TOGETHER');
+    destination.appendChild(journeyMark);
     card.appendChild(destination);
 
     const intent = documentRef.createElement('section');
