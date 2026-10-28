@@ -19,7 +19,7 @@ test('DENOISE is real adjustable monitoring control, while other modules remain 
  assert.match(stage,/data-dsp-denoise-strength/);
  assert.match(stage,/aria-pressed/);
  assert.match(stage,/gs-dsp-eq/);
- assert.match(stage,/待接入/);
+ assert.match(stage,/data-action="dsp-reverb"/);
  assert.match(css,/gs-dsp-knob-face/);
  assert.match(css,/gs-dsp-denoise\[data-enabled="true"\]/);
 });
