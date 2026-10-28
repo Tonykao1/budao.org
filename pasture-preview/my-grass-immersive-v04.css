@@ -482,3 +482,26 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 #grassWorkspace .gs-sound-hint{font:500 10px STKaiti,KaiTi,serif;color:#947348}
 #grassWorkspace .gs-sound-empty{margin:9px 2px 11px;font:12px/1.7 STKaiti,KaiTi,serif;color:#785a39}
 @media(prefers-reduced-motion:reduce){#grassWorkspace .gs-sound-marker *{transition:none!important}}
+
+
+/* PERSONAL FOLIO · voice year rings; identity data is always local and private */
+#grassWorkspace .gs-voice-yearring{margin:13px 1px 7px;padding:0 0 4px;color:#634222}
+#grassWorkspace .gs-yearring-content{display:flex;align-items:center;gap:15px;padding:10px 9px 7px}
+#grassWorkspace .gs-yearring-seal{width:67px;height:67px;flex:0 0 67px;display:grid;place-items:center;border-radius:50%;position:relative;color:#6c4b29;border:1px solid rgba(132,91,43,.6);background:
+ repeating-radial-gradient(circle at center,transparent 0 8px,rgba(153,106,50,.58) 9px 10px,transparent 11px 16px),
+ radial-gradient(circle,#f2d8a6 0%,#d9ae75 68%,#b88953);box-shadow:inset 0 1px 5px #fff2c0,0 2px 6px #83603733}
+#grassWorkspace .gs-yearring-seal:after{content:"";position:absolute;inset:-4px;border:1px dotted rgba(156,101,45,.49);border-radius:50%}
+#grassWorkspace .gs-yearring-seal span{font:700 23px STKaiti,KaiTi,serif;background:#efd5a5;border-radius:50%;width:34px;height:34px;display:grid;place-items:center;box-shadow:inset 0 0 5px rgba(121,80,42,.13)}
+#grassWorkspace .gs-yearring-summary{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font:12px/1.5 STKaiti,KaiTi,serif}
+#grassWorkspace .gs-yearring-summary strong{font:700 15px STKaiti,KaiTi,serif;color:#6b4724}
+#grassWorkspace .gs-yearring-summary>span{color:#76583a;overflow-wrap:anywhere}
+#grassWorkspace .gs-yearring-summary small{font:10px/1.45 STKaiti,KaiTi,serif;color:#996e42}
+#grassWorkspace .gs-yearring-reunions{display:flex;align-items:flex-start;gap:4px;flex-direction:column;margin:1px 7px 8px;padding-left:11px;border-left:2px solid rgba(171,115,53,.55);font:11px/1.5 STKaiti,KaiTi,serif;color:#74512c}
+#grassWorkspace .gs-yearring-reunions>span:first-child{font-weight:700}
+#grassWorkspace .gs-yearring-memory{font-size:10px;color:#86633c}
+#grassWorkspace .gs-yearring-poem{margin:0 8px 9px;text-align:center;font:500 12px/1.6 STKaiti,KaiTi,serif;color:#8a6845;letter-spacing:.08em}
+#grassWorkspace .gs-yearring-actions{display:flex;justify-content:flex-end;gap:9px;padding:7px 5px 3px;border-top:1px solid rgba(132,93,48,.24)}
+#grassWorkspace .gs-yearring-actions button{border:1px solid #9c7849;background:linear-gradient(#f4ddac,#e1c08b);box-shadow:inset 1px 1px rgba(255,249,213,.65),0 2px 0 #aa8055;color:#5b3b20;font:700 11px STKaiti,KaiTi,serif;padding:5px 9px;min-height:31px;cursor:pointer}
+#grassWorkspace .gs-yearring-actions button:disabled{opacity:.45;cursor:default}
+#grassWorkspace .gs-yearring-actions button:focus-visible{outline:2px solid #71532f;outline-offset:3px}
+@media(max-width:650px){#grassWorkspace .gs-sound-hint{display:none}#grassWorkspace .gs-yearring-content{gap:8px;padding:9px 3px 6px}#grassWorkspace .gs-yearring-seal{width:54px;height:54px;flex-basis:54px}}
