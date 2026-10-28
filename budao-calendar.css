@@ -232,6 +232,7 @@
 }
 
 .budao-calendar-step-mark--pioneer,
+.budao-calendar-step-mark--march,
 .budao-calendar-step-mark--fellowship{
     background-image:none;
     -webkit-mask-image:var(--budao-step-shape);
@@ -246,6 +247,10 @@
 
 .budao-calendar-step-mark--pioneer{
     background-color:#D89A08;
+}
+
+.budao-calendar-step-mark--march{
+    background-color:#B45735;
 }
 
 .budao-calendar-step-mark--fellowship{
