@@ -427,6 +427,18 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.strictEqual(results[0].equipmentMinimum, '饮水');
   });
 
+  it('outdoor and natural posters retain duration and participant safety fields', () => {
+    for (const theme of ['landscape', 'natural']) {
+      const ctx = contextMock();
+      artifact.renderModeBShareArtifact(ctx, { ...viewModel(), theme },
+        { registrationOpen: true }, {});
+      const printed = ctx.calls.filter(call => call[0] === 'fillText').map(call => String(call[1])).join(' ');
+      for (const value of ['4 小时', '有步行经验者', '饮水', '山径']) {
+        assert.ok(printed.includes(value), theme + ' omitted ' + value);
+      }
+    }
+  });
+
   it('Invitation 2.0 keeps PNG dimensions and visually distinguishes each theme', () => {
     const themes = ['classic', 'landscape', 'natural'];
     const outputs = themes.map((theme) => rendered({
