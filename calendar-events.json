@@ -152,5 +152,15 @@
     "title": "晨星·步道半日营",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-11-03",
+    "type": "pioneer",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony-2026-11-03-caa5afac2d58",
+    "title": "莲花滩探线",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
