@@ -877,7 +877,16 @@
       const now = new Date().toISOString();
       const previous = findSavedTrail(routeId, routeName, location) ||
         activeTrailFor(routeName, normalizedTrailDate || trailDate, meetingTime, location);
-      const previousQrCode = previous && previous.source ? previous.source.qrCode : "";
+      // Uploaded QR codes belong to one exact event, not the leader's last route.
+      // The Tent form is prefilled from the latest route; changing its identity
+      // must never carry that route's registration QR into a new event.
+      const previousSource = previous && previous.source || {};
+      const sameEvent = previous &&
+        previousSource.routeName === routeName &&
+        normalizeDate(previousSource.trailDate) === normalizedTrailDate &&
+        previousSource.meetingTime === meetingTime &&
+        (previousSource.routeLocation || previousSource.meetingPlace || "") === location;
+      const previousQrCode = sameEvent ? previousSource.qrCode || "" : "";
       const removeExistingImage = activeTrail && activeTrail.source && activeTrail.source.removeExistingImage;
 
       return {

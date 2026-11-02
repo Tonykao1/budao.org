@@ -52,7 +52,9 @@ module.exports = async function handler(request, response) {
       createdAt: existing && existing.createdAt || undefined,
       image: validated.value.image || existing && (existing.image || existing.imageUrl) || "",
       imageAlt: validated.value.imageAlt || existing && existing.imageAlt || validated.value.title || "",
-      qrCode: validated.value.qrCode || existing && existing.qrCode || ""
+      // The submitted QR choice is authoritative. Empty means no QR code.
+      // Never silently inherit an old event's QR from the database.
+      qrCode: validated.value.qrCode || ""
     }), existing);
 
     if (routeToSave.image && existing && routeToSave.image === (existing.image || existing.imageUrl || "")) {
