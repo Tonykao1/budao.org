@@ -352,6 +352,22 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.ok(!ctx.calls.some((call) => call[0] === 'fillText' && call[1] === 'SCAN TO JOIN'));
   });
 
+  it('outdoor and natural styles also render the DALONG closed stamp asset', () => {
+    const stamp = { id: 'dalong-stamp', width: 240, height: 280 };
+    for (const theme of ['landscape', 'natural']) {
+      const { ctx, result } = rendered({
+        viewModel: { ...viewModel(), theme },
+        renderState: { registrationOpen: false, closedVariant: '3' },
+        assets: { closedStampImage: stamp, qrImage: { id: 'qr', width: 200, height: 200 } }
+      });
+      assert.strictEqual(result.renderState.closedVariant, '3');
+      assert.ok(ctx.calls.some(call => call[0] === 'drawImage' && call[1] === stamp),
+        theme + ' failed to display DALONG');
+      assert.ok(!ctx.calls.some(call => call[0] === 'drawImage' && call[1].id === 'qr'),
+        theme + ' unexpectedly displayed signup QR after closing');
+    }
+  });
+
   it('35. renders a stable closed missing-stamp fallback', () => {
     const options = { renderState: { registrationOpen: false } };
     const first = rendered(options);
