@@ -645,7 +645,13 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(x, y, outer, outer);
     if (!state.registrationOpen) {
-      posterText(ctx, '报名已截止', x + 13, y + 98, 168, 23, '#405843', 700);
+      // Match the classic invitation: closed participation uses the actual
+      // deterministic DALONG stamp asset, never a generic status text in its place.
+      if (!drawContainAsset(ctx, assets.closedStampImage, {
+        x: x + 12, y: y + 12, width: outer - 24, height: outer - 24
+      })) {
+        posterText(ctx, '本期报名已截止', x + 10, y + 96, 174, 19, '#405843', 700);
+      }
     } else if (!drawContainAsset(ctx, assets.qrImage, {
       x: x + pad, y: y + pad, width: 154, height: 154
     })) {
