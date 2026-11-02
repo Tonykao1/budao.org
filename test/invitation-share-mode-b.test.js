@@ -410,6 +410,23 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.ok(footer.y - (participation.y + participation.height) >= 24);
   });
 
+  it('Invitation 2.0 exposes one consistent content contract across the three styles', () => {
+    const themes = ['classic', 'landscape', 'natural'];
+    const results = themes.map(theme => artifact.invitationContentContract({
+      ...viewModel(), theme
+    }));
+    assert.deepStrictEqual(results[0], results[1]);
+    assert.deepStrictEqual(results[1], results[2]);
+    for (const key of ['title', 'date', 'time', 'location', 'meetingPlace', 'description',
+      'distance', 'elevation', 'difficulty', 'duration', 'suitableFor',
+      'surface', 'equipmentMinimum', 'weather', 'participation']) {
+      assert.ok(Object.hasOwn(results[0], key), 'missing contract key: ' + key);
+    }
+    assert.strictEqual(results[0].distance, '8 千米');
+    assert.strictEqual(results[0].duration, '4 小时');
+    assert.strictEqual(results[0].equipmentMinimum, '饮水');
+  });
+
   it('Invitation 2.0 keeps PNG dimensions and visually distinguishes each theme', () => {
     const themes = ['classic', 'landscape', 'natural'];
     const outputs = themes.map((theme) => rendered({
