@@ -29,6 +29,11 @@
       color: #b8b8b8;
     }
 
+    /* 倒序播放时仅反转彩虹流动；呼吸节奏保持原样。 */
+    #playBtn.playing.reverse-playback {
+      animation-direction: reverse, normal;
+    }
+
 
     /* 首页白/灰分界线：步道微型物理世界。零高度叠加，不改变原页面排版。 */
     .home-boundary-physics {
@@ -772,6 +777,7 @@ function bindDirectionLongPress(button, direction, shortPressAction) {
       longPressTimer = null;
       longPressTriggered = true;
       playbackDirection = direction;
+      playBtn.classList.toggle("reverse-playback", playbackDirection === -1);
     }, LONG_PRESS_MS);
   });
 
