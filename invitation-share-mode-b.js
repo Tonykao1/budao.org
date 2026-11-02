@@ -742,6 +742,30 @@
     drawCircle(ctx, 1006, 1432, 30, '#84ae72');
   }
 
+  // Stable content contract shared by all three independent visual compositions.
+  function invitationContentContract(viewModel) {
+    const model = viewModel && typeof viewModel === 'object' ? viewModel : {};
+    const keyed = new Map(safeFacts(model).map(function (fact) { return [fact.key, fact.value]; }));
+    const value = function (key) { return keyed.get(key) || ''; };
+    return Object.freeze({
+      title: text(model.title),
+      date: text(model.date),
+      time: text(model.time),
+      location: text(model.location),
+      meetingPlace: text(model.meetingPlace),
+      description: text(model.description),
+      distance: value('distance'),
+      elevation: value('elevation'),
+      difficulty: value('difficulty'),
+      duration: value('duration'),
+      suitableFor: value('suitableFor'),
+      surface: value('surface'),
+      equipmentMinimum: value('equipmentMinimum'),
+      weather: value('weather'),
+      participation: model.participation && model.participation.availability || 'none'
+    });
+  }
+
   function renderModeBShareArtifact(ctx, viewModel, renderState, assets) {
     if (!ctx || typeof ctx.fillRect !== 'function' || typeof ctx.fillText !== 'function' ||
         typeof ctx.strokeRect !== 'function') {
@@ -805,6 +829,7 @@
     DRAWING_STAGE_ORDER,
     normalizeArtifactRenderState,
     selectClosedVariant,
+    invitationContentContract,
     renderModeBShareArtifact
   };
 }));
