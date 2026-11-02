@@ -657,7 +657,7 @@
 
   function posterFacts(ctx, model, x, y, color, width) {
     const facts = factMap(model);
-    const order = ['distance', 'elevation', 'difficulty'];
+    const order = ['distance', 'elevation', 'difficulty', 'duration'];
     order.forEach(function (key, index) {
       const fact = facts.get(key);
       if (!fact) return;
@@ -666,6 +666,23 @@
       ctx.fillRect(col - 8, y - 36, width + 8, 112);
       posterText(ctx, fact.value, col + 10, y + 45, width - 20, 36, color, 800, 1);
       posterText(ctx, fact.label, col + 10, y - 10, width - 20, 18, color, 650, 1);
+    });
+  }
+
+  function posterSafety(ctx, model, x, y, dark) {
+    const facts = factMap(model);
+    const rows = [
+      ['suitableFor', '适合'],
+      ['equipmentMinimum', '装备'],
+      ['surface', '路面'],
+      ['weather', '天气']
+    ].filter(function (entry) { return facts.has(entry[0]); });
+    const ink = dark ? '#f5f5e8' : '#35573d';
+    rows.slice(0, 4).forEach(function (entry, index) {
+      const fact = facts.get(entry[0]);
+      const left = x + (index % 2) * 325;
+      const top = y + Math.floor(index / 2) * 43;
+      posterText(ctx, entry[1] + '：' + fact.value, left, top, 308, 18, ink, 650, 1);
     });
   }
 
@@ -684,16 +701,17 @@
     ctx.fillStyle = 'rgba(4,33,26,0.82)';
     ctx.fillRect(0, 640, 1080, 400);
     posterText(ctx, model.title || '步道同行', 72, 755, 925, 78, '#ffffff', 800, 2);
-    posterText(ctx, '在山与湖之间 · 一路同行', 74, 875, 930, 29, '#f1f4dc', 550);
+    posterText(ctx, model.description || '在山与湖之间 · 一路同行', 74, 875, 930, 25, '#f1f4dc', 550, 2);
     ctx.fillStyle = '#24513b';
     ctx.fillRect(0, 1040, 1080, 490);
-    posterFacts(ctx, model, 74, 1120, '#ffffff', 205);
+    posterFacts(ctx, model, 74, 1120, '#ffffff', 202);
     drawRule(ctx, 74, 1210, 1000, 1210, '#8fac8a', 2);
     posterText(ctx, [model.date, model.time].filter(Boolean).join('   ·   '), 74, 1243,
       625, 36, '#fffdf5', 700);
     posterText(ctx, model.meetingPlace || model.location || '集合地点待公布',
       74, 1315, 655, 25, '#f1f4dc', 600, 2);
     posterText(ctx, '集合地点', 74, 1277, 200, 16, '#bbd1bd', 500);
+    posterSafety(ctx, model, 74, 1384, true);
     posterRegistration(ctx, model, state, assets, true);
     posterText(ctx, '步道  ·  budao.org', 74, 1460, 555, 25, '#ffffff', 650);
   }
@@ -724,8 +742,8 @@
     posterText(ctx, model.title || '步道同行', 121, 223, 900, 66, '#265631', 800, 2);
     ctx.fillStyle = '#fff6e8';
     ctx.fillRect(74, 775, 932, 640);
-    posterText(ctx, '在美好的相聚中，走出一段值得记得的路', 112, 848,
-      825, 27, '#486a3d', 650, 2);
+    posterText(ctx, model.description || '在美好的相聚中，走出一段值得记得的路', 112, 848,
+      825, 23, '#486a3d', 650, 2);
     drawRule(ctx, 112, 887, 953, 887, '#b8c994', 2);
     posterText(ctx, [model.date, model.time].filter(Boolean).join('   ·   '),
       112, 953, 825, 38, '#2b5435', 700);
@@ -733,7 +751,7 @@
       112, 1008, 825, 25, '#365b3d', 600, 2);
     posterFacts(ctx, model, 112, 1135, '#2b5435', 190);
     drawRule(ctx, 112, 1224, 720, 1224, '#b8c994', 2);
-    posterText(ctx, '相聚 · 同行 · 看见', 112, 1285, 620, 29, '#386342', 700);
+    posterSafety(ctx, model, 112, 1285, false);
     posterText(ctx, '步道  /  budao.org', 112, 1404, 620, 23, '#386342', 650);
     posterRegistration(ctx, model, state, assets, false);
     // Corner botanical motif built from fixed vector shapes.
