@@ -1,380 +1,150 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<title>营火之地 | 步道</title>
-<link rel="stylesheet" href="style.css" />
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    background:#050505;
-    color:#f5f1e8;
-    font-family: "PingFang SC", "Helvetica Neue", sans-serif;
-    overflow-x:hidden;
-}
-
-nav{
-    position:relative;
-    z-index:2;
-}
-
-/* 背景星点 */
-.stars{
-    position:fixed;
-    width:100%;
-    height:100%;
-    top:0;
-    left:0;
-    z-index:0;
-    overflow:hidden;
-}
-
-.star{
-    position:absolute;
-    width:2px;
-    height:2px;
-    background:white;
-    border-radius:50%;
-    opacity:0.3;
-    animation:twinkle 4s infinite ease-in-out;
-}
-
-@keyframes twinkle{
-    0%{opacity:0.1;}
-    50%{opacity:0.5;}
-    100%{opacity:0.1;}
-}
-
-/* 中央暖光 */
-.glow{
-    position:fixed;
-    width:800px;
-    height:800px;
-    background:radial-gradient(circle, rgba(255,140,0,0.12), transparent 70%);
-    left:50%;
-    top:200px;
-    transform:translateX(-50%);
-    z-index:0;
-}
-
-/* 内容 */
-.container{
-    position:relative;
-    z-index:2;
-    width:90%;
-    max-width:900px;
-    margin:auto;
-    padding-top:120px;
-    padding-bottom:200px;
-}
-
-/* 标题 */
-.top{
-    text-align:center;
-    margin-bottom:180px;
-}
-
-.top small{
-    letter-spacing:8px;
-    color:#777;
-    font-size:12px;
-}
-
-.top h1{
-    font-size:72px;
-    font-weight:200;
-    margin-top:30px;
-    margin-bottom:40px;
-}
-
-.top p{
-    color:#aaa;
-    line-height:2;
-    font-size:20px;
-}
-
-/* 留言 */
-.message{
-    margin:140px 0;
-    max-width:640px;
-    line-height:1.9;
-    font-size:34px;
-    font-weight:200;
-    opacity:0;
-    transform:translateY(40px);
-    animation:fadeUp 1.5s forwards;
-    word-break: keep-all;
-padding: 0 10px;
-}
-
-.message:nth-child(even){
-    margin-left:auto;
-    text-align:right;
-}
-
-.message small{
-    display:block;
-    margin-top:25px;
-    font-size:12px;
-    letter-spacing:4px;
-    color:#666;
-}
-
-@keyframes fadeUp{
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-/* 尾部 */
-.footer{
-    text-align:center;
-    margin-top:200px;
-    color:#555;
-    letter-spacing:6px;
-    font-size:12px;
-}
-
-/* 手机 */
-@media(max-width:768px){
-
-    .top h1{
-        font-size:48px;
-    }
-
-    .message{
-        font-size:24px;
-        margin:100px 0;
-    }
-
-}
- .spark-link{
-
-    display:block;
-
-    text-align:center;
-
-    margin:140px auto 50px auto;
-
-    color:#666;
-
-    text-decoration:none;
-
-    letter-spacing:5px;
-
-    font-size:16px;
-
-    font-weight:300;
-
-    transition:0.4s;
-
-    animation:
-    sparkBreath 3.5s ease-in-out infinite;
-}
-
-.spark-link:hover{
-
-    color:#111;
-
-    letter-spacing:7px;
-}
-
-/* 星火呼吸 */
-
-@keyframes sparkBreath{
-
-    0%{
-        opacity:0.45;
-        transform:scale(1);
-    }
-
-    50%{
-        opacity:1;
-        transform:scale(1.04);
-    }
-
-    100%{
-        opacity:0.45;
-        transform:scale(1);
-    }
-
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101815">
+  <meta name="description" content="营火之地：步道同行的照片、真实留言与往期线路回顾。照片留下风景，话语留下温度。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="营火之地｜步道影像与同行回响">
+  <meta property="og:description" content="那些一同走过的路，值得被温柔记住。翻阅步道影像与同行者的真实回响。">
+  <meta property="og:url" content="https://budao.org/yhzd.html">
+  <link rel="canonical" href="https://budao.org/yhzd.html">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/campfire.css">
+  <script src="/campfire.js" defer></script>
+  <title>营火之地｜步道影像与同行回响</title>
 </head>
-
-<body>
-
-<nav aria-label="主导航">
-  <a href="/home.html">首页</a>
-  <a href="/test.html">步道</a>
-  <a href="/tongxing.html">童行</a>
-  <a href="/tongdao.html">同道</a>
-  <a href="/what.html">同工</a>
-  <a href="/tonglu.html">牧场</a>
-</nav>
-
-<div class="stars"></div>
-<div class="glow"></div>
-
-<div class="container">
-
-    <div class="top">
-      <a class="spark-link" href="lsxh.html">
-✦ 路上星火
-</a>
-        <h1>营火之地</h1>
-
-        <p>
-            有些话，<br>
-            只有走过的人才会说出来。
-        </p>
+<body class="campfire-page">
+  <a class="camp-skip" href="#camp-main">跳至内容</a>
+  <nav class="camp-nav" aria-label="主导航">
+    <a href="/home.html">首页</a>
+    <a href="/test.html">步道</a>
+    <a href="/tongxing.html">童行</a>
+    <a href="/tongdao.html">同道</a>
+    <a href="/what.html">同工</a>
+    <a href="/tonglu.html">牧场</a>
+  </nav>
+  <main id="camp-main" class="camp-main">
+    <header class="camp-hero">
+      <div class="camp-hero-stars" aria-hidden="true"></div>
+      <div class="camp-container camp-hero-layout">
+        <div class="camp-hero-copy">
+          <p class="camp-kicker">BUDAO · MEMORIES AROUND THE FIRE</p>
+          <h1>营火<span>之地</span></h1>
+          <p class="camp-poem">有些路走过了，<br>却一直留在心里。</p>
+          <p class="camp-hero-note">一张照片，记住山野和相遇。<br>一句留言，记住我们曾经如何同行。<br>这里，只珍藏步道的故事。</p>
+          <div class="camp-hero-links">
+            <a class="camp-button camp-button-gold" href="#camp-gallery">翻阅沿途影像 <span aria-hidden="true">↘</span></a>
+            <a class="camp-text-link" href="#camp-voices">听听同行的人 <span aria-hidden="true">↓</span></a>
+          </div>
+        </div>
+        <div class="camp-hero-gallery" id="camp-hero-gallery" aria-label="步道往期线路影像">
+          <div class="camp-cover-placeholder">
+            <span>✦</span>
+            <p>风景在路上，<br>故事在心里。</p>
+          </div>
+        </div>
+      </div>
+      <a href="#camp-gallery" class="camp-scroll-tip">向下翻阅 <span aria-hidden="true">↓</span></a>
+    </header>
+    <div class="camp-subnav" aria-label="回顾页面导航">
+      <div class="camp-container camp-subnav-links">
+        <span class="camp-subnav-brand">✦ 步道 · 行走记忆</span>
+        <a href="#camp-gallery">影像</a>
+        <a href="#camp-voices">评论</a>
+        <a href="#camp-history">足迹</a>
+        <a href="#camp-contribute">留下回忆</a>
+      </div>
     </div>
-<div id="messages-container"></div>
 
+    <section class="camp-intro camp-container" aria-label="营火之地的心意">
+      <p class="camp-kicker">NOTHING ABOUT THESE MOMENTS IS ORDINARY</p>
+      <h2>不是每一次行走，<br>都需要抵达远方。<br><em>有些相遇，本身就是目的地。</em></h2>
+      <p>营火之地不是新的活动报名页，而是回望来路的地方。照片里有山风、秋叶、脚下的路；留言里有惊喜、感恩、疲惫，也有彼此陪伴的喜乐。时间会过去，但这些真实的瞬间值得留下。</p>
+    </section>
 
+    <section id="camp-gallery" class="camp-section camp-gallery-section" aria-labelledby="camp-gallery-title">
+      <div class="camp-container">
+        <div class="camp-section-heading">
+          <div><p class="camp-kicker">01 / PHOTO JOURNAL</p><h2 id="camp-gallery-title">沿途影像</h2></div>
+          <p>把一段走过的路，翻成一本可以慢慢看的影集。</p>
+        </div>
+        <div class="camp-gallery-controls" id="camp-gallery-controls" role="group" aria-label="选择影像类型">
+          <button type="button" class="camp-filter is-active" data-filter="all" aria-pressed="true">全部影像</button>
+          <button type="button" class="camp-filter" data-filter="moment" aria-pressed="false">现场照片</button>
+          <button type="button" class="camp-filter" data-filter="cover" aria-pressed="false">线路封面</button>
+        </div>
+        <p class="camp-gallery-source-note" id="camp-gallery-source-note">影像注明来源；线路封面不等同于当天活动实拍。现场照片会在确认授权后陆续收入相册。</p>
+        <div class="camp-photo-grid" id="camp-photo-grid" aria-live="polite">
+          <p class="camp-loading">正在翻开沿途影集……</p>
+        </div>
+        <button type="button" class="camp-more" id="camp-photos-more" hidden>再翻开几张照片 <span aria-hidden="true">↓</span></button>
+      </div>
+    </section>
 
+    <section id="camp-voices" class="camp-section camp-voices-section" aria-labelledby="camp-voices-title">
+      <div class="camp-container">
+        <div class="camp-voices-header">
+          <p class="camp-kicker">02 / VOICES FROM THE ROAD</p>
+          <h2 id="camp-voices-title">走过的人，这样说。</h2>
+          <p>这些话来自既有步道留言。保留原话，不虚构姓名，也不把未标注的留言归给某一次具体行程。</p>
+        </div>
+        <div class="camp-voices-grid" id="camp-voices-grid" aria-live="polite">
+          <p class="camp-loading">正在拾起同行的声音……</p>
+        </div>
+        <div class="camp-voice-actions">
+          <button type="button" class="camp-more" id="camp-voices-more" hidden>继续听听他们的话 <span aria-hidden="true">↓</span></button>
+          <button type="button" class="camp-quiet-button" id="camp-voices-reset" hidden>回到最初的几句 ↑</button>
+        </div>
+      </div>
+    </section>
 
-<script>
+    <section id="camp-history" class="camp-section camp-history-section" aria-labelledby="camp-history-title">
+      <div class="camp-container">
+        <div class="camp-section-heading">
+          <div><p class="camp-kicker">03 / TRAIL ARCHIVE</p><h2 id="camp-history-title">时光里的步道</h2></div>
+          <p>从过往发布的线路资料中寻找足迹。<br>这份索引不将“已发布”直接等同于“已完成”。</p>
+        </div>
+        <div id="camp-history-grid" class="camp-history-grid" aria-live="polite">
+          <p class="camp-loading">正在展开往期线路档案……</p>
+        </div>
+        <a class="camp-history-link" href="/test.html">回到步道日历，翻阅更多线路 <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
 
-/* 星点 */
+    <section id="camp-contribute" class="camp-invitation" aria-labelledby="camp-invitation-title">
+      <div class="camp-container camp-invitation-inner">
+        <p class="camp-kicker">ONE MORE MEMORY</p>
+        <h2 id="camp-invitation-title">你的相册里，<br>也有那一天吗？</h2>
+        <p>一张山顶的合影，一片秋叶，一句走完路后的感受。<br>如果愿意分享，让我们一起把真实的步道记忆慢慢补全。</p>
+        <a class="camp-button camp-button-gold" href="mailto:hello@budao.org?subject=%E6%AD%A5%E9%81%93%E8%90%A5%E7%81%AB%E4%B9%8B%E5%9C%B0%EF%BD%9C%E6%8F%90%E4%BA%A4%E6%B4%BB%E5%8A%A8%E7%85%A7%E7%89%87%E4%B8%8E%E5%9B%9E%E5%BF%86">分享一张照片或一段回忆 <span aria-hidden="true">↗</span></a>
+        <p class="camp-consent">照片与留言须经本人或相关权利人同意，核实后才会公开展示。</p>
+        <button type="button" id="camp-share" class="camp-share">分享营火之地 <span aria-hidden="true">↗</span></button>
+        <p id="camp-share-status" class="camp-share-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
 
-const stars = document.querySelector('.stars');
+  <dialog id="camp-lightbox" class="camp-lightbox" aria-label="查看影像">
+    <div class="camp-lightbox-inner">
+      <button type="button" class="camp-lightbox-close" id="camp-lightbox-close" aria-label="关闭照片">×</button>
+      <button type="button" class="camp-lightbox-arrow" id="camp-lightbox-prev" aria-label="上一张">‹</button>
+      <figure class="camp-lightbox-figure">
+        <img id="camp-lightbox-image" alt="">
+        <figcaption><span id="camp-lightbox-name"></span><small id="camp-lightbox-caption"></small></figcaption>
+      </figure>
+      <button type="button" class="camp-lightbox-arrow" id="camp-lightbox-next" aria-label="下一张">›</button>
+    </div>
+  </dialog>
 
-for(let i=0;i<80;i++){
-
-    const star = document.createElement('div');
-
-    star.classList.add('star');
-
-    star.style.left = Math.random()*100 + '%';
-    star.style.top = Math.random()*100 + '%';
-
-    star.style.animationDuration =
-        (2 + Math.random()*5) + 's';
-
-    stars.appendChild(star);
-}
-
-
-/* 留言库 */
-
-const allMessages = [
-
-"一路上都悬念不断......",
-
-"如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！",
-
-"还有整体节奏，何时走动何时休息都计划得很精准啊。",
-
-"恩典多多，收获满满",
-
-"今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！",
-
-"7—88岁的徒步团太壮观了！",
-
-"今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。",
-
-"很巧妙的设计",
-
-"一个老少咸宜，充满喜乐的身心灵快乐之旅！",
-
-"有幸参加了这次活动，都是意外的惊喜。",
-
-"感谢弟兄们搭建的信心之道。",
-
-"经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。",
-
-"可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！",
-
-"认识和不认识人的都在认真听故事。",
-
-"感恩遇见",
-
-"用心带领，详尽的总结复盘，感恩。",
-
-"感恩祂。",
-
-"很棒的经历",
-
-"今天的安排，很舒适又得着。",
-
-"感恩弟兄姐妹们彼此敞开的分享和陪伴！",
-
-"很棒的体验，很有趣的经历",
-
-"当天去时候怕迟到，超速百分之十被罚。",
-
-"强度一点都不大，感觉还没缓过来。",
-
-"113层，2034个台阶，300米......",
-
-"活动太有意义了，身心被滋养，还结识了更多同路人。",
-
-"非常被安慰",
-
-"大家建立了信任而且让这份关系延续。",
-    
-"我期待未来步道同赏京城。",
-
-"顺利找到包了",
-
-"我居然是第一个到的",
-
-"我都期待好久了，哎！祷告我明天生龙活虎！",
-
-"我相信人与人的每一次相遇都是奇迹。",
-    
-"感恩这段相遇与安排，拆掉心墙，看见光。",
-
-"Grateful for this.",
-
-];
-
-
-/* 随机排序 */
-
-const shuffled = allMessages.sort(() => 0.5 - Math.random());
-
-/* 每次显示8条 */
-
-const selected = shuffled.slice(0, 8);
-
-const container =
-document.getElementById('messages-container');
-
-
-selected.forEach((msg, index) => {
-
-    const div = document.createElement('div');
-
-    div.className = 'message';
-
-    if(index % 2 === 1){
-        div.style.marginLeft = 'auto';
-        div.style.textAlign = 'right';
-    }
-
-    div.innerHTML = `
-        “${msg}”
-        <small>一次同行之后</small>
-    `;
-
-    container.appendChild(div);
-
-});
-
-</script>
-<a class="spark-link" href="lsxh.html">
-✦ 路上星火
-</a>
+  <footer class="camp-footer">
+    <div class="camp-container camp-footer-layout">
+      <p><a href="/home.html">步道</a> <span>· 余生行走，不偏左右。</span></p>
+      <a href="/test.html">回到步道 <span aria-hidden="true">↗</span></a>
+    </div>
+    <p class="camp-copyright">© 2026 步道 budao.org</p>
+  </footer>
 </body>
 </html>
