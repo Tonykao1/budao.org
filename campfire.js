@@ -1,246 +1,346 @@
-/* 营火之地：公开内容渲染与未来活动。纯静态读取，不收集访客信息。 */
+/* 营火之地：步道照片、真实评论、往期线路回顾。不展示其他事工。 */
 (() => {
   "use strict";
 
   const $ = (selector) => document.querySelector(selector);
-  const make = (tag, className, content) => {
-    const element = document.createElement(tag);
-    if (className) element.className = className;
-    if (content !== undefined) element.textContent = String(content);
-    return element;
+  const newElement = (tag, className, text) => {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined) el.textContent = String(text);
+    return el;
   };
-  const internalPage = (value) => (
-    typeof value === "string" && /^\/[a-zA-Z0-9/_-]+\.html$/.test(value) ? value : "/home.html"
-  );
-  const localImage = (value) => (
-    typeof value === "string" && /^\/images\/[a-zA-Z0-9._-]+\.(?:jpg|jpeg|png|webp)$/i.test(value) ? value : ""
-  );
-  const setContent = (parent, children) => parent.replaceChildren(...children);
-  const safeText = (value, max = 300) => typeof value === "string" ? value.trim().slice(0, max) : "";
-
-  const FALLBACK_PROGRAMS = [
-    {title:"步道",eyebrow:"山野 · 同行",description:"与人同行，走进山野。",href:"/test.html",cta:"浏览步道",image:"/images/qldyt.jpg"},
-    {title:"童行",eyebrow:"家庭 · 下一代",description:"让孩子自由发现，让家人彼此陪伴。",href:"/tongxing.html",cta:"了解童行",image:"/images/dkd.jpg"},
-    {title:"路上星火",eyebrow:"社区 · 生命关怀",description:"看见真实的社区关怀与服事。",href:"/lsxh.html",cta:"浏览事工",image:"/images/angel-home.jpg"},
-    {title:"牧场",eyebrow:"生命 · 经卷同行",description:"阅读、聆听、记录，每日成长。",href:"/tonglu.html",cta:"进入牧场",glyph:"✧"}
-  ];
-  const FALLBACK_VOICES = [
+  const string = (value, length = 280) => typeof value === "string" ? value.trim().slice(0, length) : "";
+  const isDate = (value) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const isPastOrToday = (date) => isDate(date) && date <= localToday();
+  const fallbackQuotes = [
+    "如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！",
     "今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。",
-    "感恩这段相遇与安排，拆掉心墙，看见光。",
     "我相信人与人的每一次相遇都是奇迹。"
   ];
-  let voiceList = [];
-  let voiceOffset = 0;
+  let quoteList = [];
+  let quoteCount = 6;
+  let gallery = [];
+  let coverRecords = [];
+  let photoLimit = 9;
+  let activeFilter = "all";
+  let visiblePhotos = [];
+  let lightboxIndex = 0;
 
-  function renderPrograms(items) {
-    const root = $("#camp-program-grid");
-    if (!root) return;
-    const cards = items.slice(0, 16).map((item, index) => {
-      const link = make("a", "camp-program");
-      link.href = internalPage(item.href);
-      link.setAttribute("aria-label", safeText(item.title, 100) + " · " + safeText(item.cta, 60));
-      const image = localImage(item.image);
-      if (image) {
-        const img = make("img", "camp-card-photo");
-        img.src = image;
-        img.alt = safeText(item.imageAlt, 120);
-        img.loading = index === 0 ? "eager" : "lazy";
-        img.decoding = "async";
-        link.appendChild(img);
-      } else {
-        link.classList.add("camp-program--graphic");
-        link.appendChild(make("span", "camp-program-icon", safeText(item.glyph || "✧", 2)));
-      }
-      const inner = make("div", "camp-program-content");
-      inner.appendChild(make("span", "camp-program-index", safeText(item.eyebrow, 80)));
-      inner.appendChild(make("h3", "", safeText(item.title, 100)));
-      inner.appendChild(make("p", "", safeText(item.description, 280)));
-      const action = make("span", "camp-program-bottom");
-      action.appendChild(make("span", "", safeText(item.cta || "了解更多", 80)));
-      action.appendChild(make("span", "", "↗"));
-      inner.appendChild(action);
-      link.appendChild(inner);
-      return link;
-    });
-    setContent(root, cards);
-  }
-
-  function renderStories(items) {
-    const root = $("#camp-story-grid");
-    if (!root) return;
-    if (!items.length) {
-      const notice = make("p", "camp-loading", "故事资料暂未加载。欢迎先走进“路上星火”，认识正在服事的人。");
-      const link = make("a", "", "查看路上星火 ↗");
-      link.href = "/lsxh.html";
-      notice.append(" ", link);
-      setContent(root, [notice]);
-      return;
-    }
-    const cards = items.slice(0, 9).map((story) => {
-      const card = make("article", "camp-story");
-      const src = localImage(story.image);
-      if (src) {
-        const cover = make("div", "camp-story-image");
-        const image = make("img");
-        image.src = src;
-        image.alt = safeText(story.imageAlt, 120);
-        image.loading = "lazy";
-        image.decoding = "async";
-        cover.appendChild(image);
-        card.appendChild(cover);
-      }
-      const body = make("div", "camp-story-body");
-      body.appendChild(make("p", "camp-story-place", safeText(story.location, 100)));
-      body.appendChild(make("h3", "", safeText(story.title, 100)));
-      body.appendChild(make("p", "", safeText(story.description, 320)));
-      const link = make("a", "", "走近这个故事 ↗");
-      link.href = internalPage(story.href);
-      link.setAttribute("aria-label", "走近" + safeText(story.title, 100) + "的故事");
-      body.appendChild(link);
-      card.appendChild(body);
-      return card;
-    });
-    setContent(root, cards);
-  }
-
-  function showVoices() {
-    const root = $("#camp-voices-grid");
-    if (!root) return;
-    const count = Math.min(3, voiceList.length);
-    const cards = Array.from({length: count}, (_, index) => {
-      const value = voiceList[(voiceOffset + index) % voiceList.length];
-      const article = make("article", "camp-voice");
-      article.appendChild(make("span", "camp-voice-mark", "“"));
-      article.appendChild(make("blockquote", "", value));
-      article.appendChild(make("span", "camp-voice-label", "一次同行之后"));
-      return article;
-    });
-    setContent(root, cards);
-    const nextButton = $("#camp-next-voices");
-    if (nextButton) nextButton.hidden = voiceList.length <= 3;
-  }
-
-  function setupVoices(items) {
-    voiceList = items.filter((text) => typeof text === "string" && text.trim()).map((text) => text.trim().slice(0, 600));
-    voiceOffset = 0;
-    showVoices();
-  }
-
-  async function loadEditorial() {
+  function localToday() {
     try {
-      const response = await fetch("/data/campfire-content.json", {cache:"no-store"});
-      if (!response.ok) throw new Error("Editorial content HTTP " + response.status);
-      const data = await response.json();
-      if (data.version !== 1 || !Array.isArray(data.programs) || !Array.isArray(data.stories) || !Array.isArray(data.voices)) {
-        throw new Error("Unsupported editorial content schema");
-      }
-      renderPrograms(data.programs.length ? data.programs : FALLBACK_PROGRAMS);
-      renderStories(data.stories);
-      setupVoices(data.voices.length ? data.voices : FALLBACK_VOICES);
-    } catch (error) {
-      console.warn("Campfire editorial content unavailable; showing public entry points.", error);
-      renderPrograms(FALLBACK_PROGRAMS);
-      renderStories([]);
-      setupVoices(FALLBACK_VOICES);
-    }
-  }
-
-  function shanghaiToday() {
-    try {
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit"
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone:"Asia/Shanghai", year:"numeric", month:"2-digit", day:"2-digit"
       }).formatToParts(new Date());
-      const keyed = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-      return keyed.year + "-" + keyed.month + "-" + keyed.day;
+      const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+      return [values.year, values.month, values.day].join("-");
     } catch {
       return new Date().toISOString().slice(0, 10);
     }
   }
 
-  function emptyCalendar(message) {
-    const root = $("#camp-upcoming-list");
-    if (!root) return;
-    const card = make("div", "camp-event-empty");
-    card.appendChild(make("strong", "", "下一段同行，正在预备。"));
-    card.appendChild(make("p", "", message));
-    setContent(root, [card]);
+  function safeImage(value) {
+    if (typeof value !== "string" || value.length > 500) return "";
+    if (/^\/(?:campfire-photos|images|route-assets)\/[a-zA-Z0-9/_\-.]+\.(?:jpg|jpeg|png|webp|avif)$/i.test(value)) return value;
+    // Existing site route images are published as GitHub raw URLs.
+    if (/^https:\/\/raw\.githubusercontent\.com\/Tonykao1\/budao\.org\/main\/route-assets\/[a-zA-Z0-9/_\-.]+\.(?:jpg|jpeg|png|webp)$/i.test(value)) return value;
+    return "";
   }
 
-  async function loadUpcoming() {
-    try {
-      const response = await fetch("/routes.json", {cache:"no-store"});
-      if (!response.ok) throw new Error("Routes HTTP " + response.status);
-      const payload = await response.json();
-      const rows = Array.isArray(payload) ? payload : (Array.isArray(payload.routes) ? payload.routes : []);
-      const today = shanghaiToday();
-      const upcoming = rows.filter((route) => (
-        route && route.status === "scheduled" && !route.cancelledAt &&
-        typeof route.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(route.date) &&
-        route.date >= today && safeText(route.title, 120)
-      )).sort((a, b) => (a.date + " " + (a.time || "")).localeCompare(b.date + " " + (b.time || ""))).slice(0, 3);
-      if (!upcoming.length) {
-        emptyCalendar("目前没有已公布的未来场次。欢迎前往步道日历查看新线路。");
-        return;
+  function normalizeRoutes(groups) {
+    const seen = new Set();
+    const rows = [];
+    for (const group of groups) {
+      if (!Array.isArray(group)) continue;
+      for (const item of group) {
+        if (!item || !isPastOrToday(item.date) || item.status === "cancelled" || item.cancelledAt) continue;
+        const title = string(item.title, 120);
+        if (!title) continue;
+        const key = item.date + "|" + title;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        rows.push({
+          date:item.date, title,
+          location:string(item.location || [item.city,item.region].filter(Boolean).join(" · "), 100),
+          image:safeImage(item.image),
+          alt:string(item.imageAlt, 100)
+        });
       }
-      const nodes = upcoming.map((route) => {
-        const article = make("article", "camp-upcoming-item");
-        const date = make("div", "camp-event-date", route.date.slice(5).replace("-", "."));
-        date.appendChild(make("small", "", route.date.slice(0,4) + " / " + safeText(route.time || "待定", 20)));
-        article.appendChild(date);
-        const detail = make("div");
-        detail.appendChild(make("h3", "", safeText(route.title, 150)));
-        detail.appendChild(make("p", "", safeText(route.location || [route.city, route.region].filter(Boolean).join(" · "), 120)));
-        article.appendChild(detail);
-        const link = make("a", "", "↗");
-        link.href = "/test.html";
-        link.setAttribute("aria-label", "前往步道日历查看" + safeText(route.title, 100));
-        article.appendChild(link);
-        return article;
+    }
+    rows.sort((a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title, "zh"));
+    return rows;
+  }
+
+  function normalizeAlbums(albums) {
+    if (!Array.isArray(albums)) return [];
+    const photos = [];
+    const ids = new Set();
+    for (const album of albums) {
+      // A listed album is not publicly displayed unless its editor has marked it approved.
+      if (!album || album.published !== true || !isPastOrToday(album.date) || !Array.isArray(album.photos)) continue;
+      const title = string(album.title, 120);
+      const location = string(album.location, 100);
+      for (const [index, item] of album.photos.entries()) {
+        if (!item || item.approved !== true) continue;
+        const src = safeImage(item.src);
+        const alt = string(item.alt, 150);
+        const key = (string(album.id, 80) || album.date + title) + ":" + index;
+        if (!src || !alt || ids.has(key)) continue;
+        ids.add(key);
+        photos.push({id:key,kind:"moment",image:src,alt,title,date:album.date,location,
+          caption:string(item.caption, 180) || "步道现场影像"});
+      }
+    }
+    photos.sort((a, b) => b.date.localeCompare(a.date));
+    return photos;
+  }
+
+  function buildCoverGallery(routes) {
+    return routes.filter((route) => route.image).map((route) => ({
+      id:"cover:" + route.date + ":" + route.title,
+      kind:"cover",
+      image:route.image,
+      alt:"往期线路封面：" + route.title,
+      title:route.title,
+      date:route.date,
+      location:route.location,
+      caption:"往期已发布线路的封面图片，非经核实的活动现场照片。"
+    }));
+  }
+
+  function kindName(item) { return item.kind === "moment" ? "步道现场" : "线路封面"; }
+  function renderHero() {
+    const hero = $("#camp-hero-gallery");
+    if (!hero) return;
+    const source = gallery.slice(0, 3);
+    if (!source.length) return;
+    const nodes = source.map((item) => {
+      const shot = newElement("figure", "camp-hero-shot");
+      const img = newElement("img");
+      img.src = item.image;
+      img.alt = item.alt;
+      img.loading = "lazy";
+      img.decoding = "async";
+      shot.appendChild(img);
+      shot.appendChild(newElement("figcaption", "", kindName(item) + " · " + item.title));
+      return shot;
+    });
+    hero.replaceChildren(...nodes);
+  }
+
+  function filteredPhotos() {
+    return gallery.filter((item) => activeFilter === "all" || activeFilter === item.kind);
+  }
+
+  function renderGallery() {
+    const root = $("#camp-photo-grid");
+    if (!root) return;
+    const photos = filteredPhotos();
+    visiblePhotos = photos;
+    if (!photos.length) {
+      const message = activeFilter === "moment"
+        ? "尚未收入经确认授权的步道现场照片。可先查看往期线路封面，真实的活动相册将逐次补入。"
+        : "目前没有可公开展示的这一类影像。";
+      root.replaceChildren(newElement("p", "camp-empty", message));
+    } else {
+      const nodes = photos.slice(0, photoLimit).map((item, index) => {
+        const button = newElement("button", "camp-photo-card");
+        button.type = "button";
+        button.setAttribute("aria-label", "放大查看：" + item.title + "，" + kindName(item));
+        const wrapper = newElement("div", "camp-photo-visual");
+        const image = newElement("img");
+        image.src = item.image;
+        image.alt = item.alt;
+        image.loading = "lazy";
+        image.decoding = "async";
+        wrapper.appendChild(image);
+        wrapper.appendChild(newElement("span", "camp-photo-kind", kindName(item)));
+        const caption = newElement("div", "camp-photo-caption");
+        caption.appendChild(newElement("span", "camp-photo-date", item.date.replace(/-/g, ".") + " · " + kindName(item)));
+        caption.appendChild(newElement("span", "camp-photo-title", item.title));
+        if (item.location) caption.appendChild(newElement("span", "camp-photo-location", item.location));
+        button.append(wrapper, caption);
+        button.addEventListener("click", () => openLightbox(index));
+        return button;
       });
-      setContent($("#camp-upcoming-list"), nodes);
+      root.replaceChildren(...nodes);
+    }
+    const more = $("#camp-photos-more");
+    if (more) more.hidden = photoLimit >= photos.length;
+  }
+
+  function setGalleryFilter(kind) {
+    activeFilter = kind;
+    photoLimit = 9;
+    document.querySelectorAll("[data-filter]").forEach((button) => {
+      const selected = button.dataset.filter === kind;
+      button.classList.toggle("is-active", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    renderGallery();
+  }
+
+  function openLightbox(index) {
+    const dialog = $("#camp-lightbox");
+    if (!dialog || typeof dialog.showModal !== "function" || !visiblePhotos[index]) return;
+    lightboxIndex = index;
+    updateLightbox();
+    if (!dialog.open) dialog.showModal();
+  }
+  function updateLightbox() {
+    const item = visiblePhotos[lightboxIndex];
+    if (!item) return;
+    const image = $("#camp-lightbox-image");
+    if (image) {
+      image.src = item.image;
+      image.alt = item.alt;
+    }
+    $("#camp-lightbox-name").textContent = item.title + " · " + kindName(item);
+    $("#camp-lightbox-caption").textContent = item.date + (item.location ? " · " + item.location : "") + "｜" + item.caption;
+    $("#camp-lightbox-prev").hidden = visiblePhotos.length < 2;
+    $("#camp-lightbox-next").hidden = visiblePhotos.length < 2;
+  }
+  function shiftLightbox(delta) {
+    if (!visiblePhotos.length) return;
+    lightboxIndex = (lightboxIndex + delta + visiblePhotos.length) % visiblePhotos.length;
+    updateLightbox();
+  }
+
+  function renderQuotes() {
+    const root = $("#camp-voices-grid");
+    if (!root) return;
+    const nodes = quoteList.slice(0, quoteCount).map((quote) => {
+      const card = newElement("article", "camp-voice-card");
+      card.appendChild(newElement("span", "camp-voice-mark", "“"));
+      card.appendChild(newElement("blockquote", "", quote));
+      card.appendChild(newElement("span", "camp-voice-foot", "一次同行之后"));
+      return card;
+    });
+    root.replaceChildren(...nodes);
+    $("#camp-voices-more").hidden = quoteCount >= quoteList.length;
+    $("#camp-voices-reset").hidden = quoteCount <= 6;
+  }
+
+  function renderHistory() {
+    const root = $("#camp-history-grid");
+    if (!root) return;
+    if (!coverRecords.length) {
+      root.replaceChildren(newElement("p", "camp-empty", "往期线路资料暂不可用。欢迎先翻阅上方留言。"));
+      return;
+    }
+    const nodes = coverRecords.slice(0, 8).map((route) => {
+      const card = newElement("article", "camp-history-item");
+      if (route.image) {
+        const image = newElement("img", "camp-history-thumb");
+        image.src = route.image;
+        image.alt = "线路封面：" + route.title;
+        image.loading = "lazy";
+        image.decoding = "async";
+        card.appendChild(image);
+      }
+      const detail = newElement("div", "camp-history-detail");
+      detail.appendChild(newElement("span", "camp-history-date", route.date + " · 线路资料"));
+      detail.appendChild(newElement("h3", "", route.title));
+      detail.appendChild(newElement("p", "", route.location || "步道"));
+      card.appendChild(detail);
+      return card;
+    });
+    root.replaceChildren(...nodes);
+  }
+
+  function normalizeQuotes(data) {
+    const original = Array.isArray(data.quotes) ? data.quotes.filter((q) => typeof q === "string" && q.trim()).map((q) => q.trim().slice(0, 500)) : [];
+    if (!original.length) return fallbackQuotes;
+    const selected = Array.isArray(data.featuredQuoteIndexes) ? data.featuredQuoteIndexes : [];
+    const indexes = selected.filter((i) => Number.isInteger(i) && i >= 0 && i < original.length);
+    const order = [...new Set([...indexes, ...original.map((_, i) => i)])];
+    return order.map((index) => original[index]);
+  }
+
+  async function loadArchive() {
+    try {
+      const response = await fetch("/data/campfire-archive.json", {cache:"no-store"});
+      if (!response.ok) throw new Error("Campfire archive HTTP " + response.status);
+      const data = await response.json();
+      if (!data || data.version !== 2) throw new Error("Unsupported trail archive");
+      quoteList = normalizeQuotes(data);
+      // Actual photos must be explicitly approved, not inferred from calendar covers.
+      gallery = normalizeAlbums(data.albums);
     } catch (error) {
-      console.warn("Campfire calendar unavailable.", error);
-      emptyCalendar("暂时未能读取步道日历。你仍可以进入步道页面查看活动。");
+      console.warn("Campfire editorial archive unavailable.", error);
+      quoteList = fallbackQuotes;
+      gallery = [];
+    }
+    renderQuotes();
+  }
+
+  async function loadRoutes() {
+    const sources = ["/routes.json", "/route-history.json"];
+    const responses = await Promise.allSettled(sources.map(async (url) => {
+      const response = await fetch(url, {cache:"no-store"});
+      if (!response.ok) throw new Error("Trail archive HTTP " + response.status);
+      const data = await response.json();
+      return Array.isArray(data) ? data : Array.isArray(data.routes) ? data.routes : [];
+    }));
+    const groups = responses.map((result) => result.status === "fulfilled" ? result.value : []);
+    coverRecords = normalizeRoutes(groups);
+    gallery.push(...buildCoverGallery(coverRecords));
+    renderHero();
+    renderGallery();
+    renderHistory();
+  }
+
+  async function sharePage() {
+    const url = "https://budao.org/yhzd.html";
+    const status = $("#camp-share-status");
+    if (status) status.textContent = "";
+    if (navigator.share) {
+      try {
+        await navigator.share({title:"营火之地 · 步道",text:"一张照片，一句留言，记住我们走过的路。",url});
+        if (status) status.textContent = "谢谢你把这段同行记忆分享出去。";
+        return;
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+      }
+    }
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(url);
+      if (status) status.textContent = "链接已复制，可以分享给朋友。";
+    } catch {
+      window.prompt("复制营火之地的链接：", url);
     }
   }
 
-  function setupShare() {
-    const button = $("#camp-share");
-    const status = $("#camp-share-status");
-    if (!button || !status) return;
-    button.addEventListener("click", async () => {
-      const url = "https://budao.org/yhzd.html";
-      const data = {title:"营火之地｜步道",text:"愿我们在路上相遇，也让爱继续发光。",url};
-      status.textContent = "";
-      if (navigator.share) {
-        try {
-          await navigator.share(data);
-          status.textContent = "感谢你把这束光传递出去。";
-          return;
-        } catch (error) {
-          if (error && error.name === "AbortError") return;
-        }
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        try {
-          await navigator.clipboard.writeText(url);
-          status.textContent = "页面链接已复制，可以分享给朋友。";
-          return;
-        } catch {
-          // 某些浏览器禁用剪贴板，继续提供可复制的链接。
-        }
-      }
-      window.prompt("复制营火之地的页面链接：", url);
-      status.textContent = "你可以复制上面的链接与朋友分享。";
+  function bindEvents() {
+    document.querySelectorAll("[data-filter]").forEach((button) => {
+      button.addEventListener("click", () => setGalleryFilter(button.dataset.filter));
+    });
+    $("#camp-photos-more")?.addEventListener("click", () => {
+      photoLimit += 9;
+      renderGallery();
+    });
+    $("#camp-voices-more")?.addEventListener("click", () => {
+      quoteCount += 6;
+      renderQuotes();
+    });
+    $("#camp-voices-reset")?.addEventListener("click", () => {
+      quoteCount = 6;
+      renderQuotes();
+      $("#camp-voices")?.scrollIntoView({block:"start",behavior:"smooth"});
+    });
+    $("#camp-share")?.addEventListener("click", sharePage);
+    $("#camp-lightbox-close")?.addEventListener("click", () => $("#camp-lightbox").close());
+    $("#camp-lightbox-prev")?.addEventListener("click", () => shiftLightbox(-1));
+    $("#camp-lightbox-next")?.addEventListener("click", () => shiftLightbox(1));
+    const dialog = $("#camp-lightbox");
+    dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+    dialog?.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") { event.preventDefault(); shiftLightbox(-1); }
+      if (event.key === "ArrowRight") { event.preventDefault(); shiftLightbox(1); }
     });
   }
 
-  $("#camp-next-voices")?.addEventListener("click", () => {
-    if (!voiceList.length) return;
-    voiceOffset = (voiceOffset + 3) % voiceList.length;
-    showVoices();
-  });
-  setupShare();
-  loadEditorial();
-  loadUpcoming();
+  bindEvents();
+  // Load approved photos/comments first, then join the published route-cover archive.
+  loadArchive().then(loadRoutes);
 })();
