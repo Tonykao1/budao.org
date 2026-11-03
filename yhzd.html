@@ -1,380 +1,158 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<title>营火之地 | 步道</title>
-<link rel="stylesheet" href="style.css" />
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    background:#050505;
-    color:#f5f1e8;
-    font-family: "PingFang SC", "Helvetica Neue", sans-serif;
-    overflow-x:hidden;
-}
-
-nav{
-    position:relative;
-    z-index:2;
-}
-
-/* 背景星点 */
-.stars{
-    position:fixed;
-    width:100%;
-    height:100%;
-    top:0;
-    left:0;
-    z-index:0;
-    overflow:hidden;
-}
-
-.star{
-    position:absolute;
-    width:2px;
-    height:2px;
-    background:white;
-    border-radius:50%;
-    opacity:0.3;
-    animation:twinkle 4s infinite ease-in-out;
-}
-
-@keyframes twinkle{
-    0%{opacity:0.1;}
-    50%{opacity:0.5;}
-    100%{opacity:0.1;}
-}
-
-/* 中央暖光 */
-.glow{
-    position:fixed;
-    width:800px;
-    height:800px;
-    background:radial-gradient(circle, rgba(255,140,0,0.12), transparent 70%);
-    left:50%;
-    top:200px;
-    transform:translateX(-50%);
-    z-index:0;
-}
-
-/* 内容 */
-.container{
-    position:relative;
-    z-index:2;
-    width:90%;
-    max-width:900px;
-    margin:auto;
-    padding-top:120px;
-    padding-bottom:200px;
-}
-
-/* 标题 */
-.top{
-    text-align:center;
-    margin-bottom:180px;
-}
-
-.top small{
-    letter-spacing:8px;
-    color:#777;
-    font-size:12px;
-}
-
-.top h1{
-    font-size:72px;
-    font-weight:200;
-    margin-top:30px;
-    margin-bottom:40px;
-}
-
-.top p{
-    color:#aaa;
-    line-height:2;
-    font-size:20px;
-}
-
-/* 留言 */
-.message{
-    margin:140px 0;
-    max-width:640px;
-    line-height:1.9;
-    font-size:34px;
-    font-weight:200;
-    opacity:0;
-    transform:translateY(40px);
-    animation:fadeUp 1.5s forwards;
-    word-break: keep-all;
-padding: 0 10px;
-}
-
-.message:nth-child(even){
-    margin-left:auto;
-    text-align:right;
-}
-
-.message small{
-    display:block;
-    margin-top:25px;
-    font-size:12px;
-    letter-spacing:4px;
-    color:#666;
-}
-
-@keyframes fadeUp{
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-/* 尾部 */
-.footer{
-    text-align:center;
-    margin-top:200px;
-    color:#555;
-    letter-spacing:6px;
-    font-size:12px;
-}
-
-/* 手机 */
-@media(max-width:768px){
-
-    .top h1{
-        font-size:48px;
-    }
-
-    .message{
-        font-size:24px;
-        margin:100px 0;
-    }
-
-}
- .spark-link{
-
-    display:block;
-
-    text-align:center;
-
-    margin:140px auto 50px auto;
-
-    color:#666;
-
-    text-decoration:none;
-
-    letter-spacing:5px;
-
-    font-size:16px;
-
-    font-weight:300;
-
-    transition:0.4s;
-
-    animation:
-    sparkBreath 3.5s ease-in-out infinite;
-}
-
-.spark-link:hover{
-
-    color:#111;
-
-    letter-spacing:7px;
-}
-
-/* 星火呼吸 */
-
-@keyframes sparkBreath{
-
-    0%{
-        opacity:0.45;
-        transform:scale(1);
-    }
-
-    50%{
-        opacity:1;
-        transform:scale(1.04);
-    }
-
-    100%{
-        opacity:0.45;
-        transform:scale(1);
-    }
-
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111714">
+  <meta name="description" content="营火之地，记录步道上的同行故事，展示正在发生的事工，邀请更多人与爱同行。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="营火之地｜让爱继续发光">
+  <meta property="og:description" content="从一段步道，到一份关怀。看见真实的事工，听见同行者的回响，找到你的下一步。">
+  <meta property="og:url" content="https://budao.org/yhzd.html">
+  <meta property="og:image" content="https://budao.org/images/angel-home.jpg">
+  <link rel="canonical" href="https://budao.org/yhzd.html">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/campfire.css">
+  <script src="/campfire.js" defer></script>
+  <title>营火之地｜事工与同行故事｜步道</title>
 </head>
+<body class="campfire-page">
+  <a class="camp-skip" href="#main">跳至主要内容</a>
+  <nav class="camp-nav" aria-label="主导航">
+    <a href="/home.html">首页</a>
+    <a href="/test.html">步道</a>
+    <a href="/tongxing.html">童行</a>
+    <a href="/tongdao.html">同道</a>
+    <a href="/what.html">同工</a>
+    <a href="/tonglu.html">牧场</a>
+  </nav>
 
-<body>
+  <main id="main" class="camp-main">
+    <header class="camp-hero">
+      <div class="camp-glow camp-glow-one" aria-hidden="true"></div>
+      <div class="camp-glow camp-glow-two" aria-hidden="true"></div>
+      <div class="camp-hero-inner camp-container">
+        <div class="camp-hero-copy">
+          <p class="camp-overline"><span class="camp-flame" aria-hidden="true">✦</span> BUDAO · THE FIRE IS STILL BURNING</p>
+          <h1>营火<span>之地</span></h1>
+          <p class="camp-hero-statement">走过的路，<br>会成为照亮他人的火。</p>
+          <p class="camp-hero-lede">这里收藏同行后的回响，也让每一份正在发生的服事被看见。愿一段相遇，成为另一段同行的开始。</p>
+          <div class="camp-actions">
+            <a class="camp-button camp-button-primary" href="#ministries">看见正在发生的事工 <span aria-hidden="true">↗</span></a>
+            <a class="camp-button camp-button-quiet" href="#voices">听听同行者怎么说 <span aria-hidden="true">↓</span></a>
+          </div>
+        </div>
+        <div class="camp-hero-visual" aria-label="来自路上星火的真实事工影像">
+          <figure class="camp-hero-photo camp-hero-photo-large">
+            <img src="/images/angel-home.jpg" alt="天使之家小食堂的事工影像" fetchpriority="high">
+            <figcaption>一餐饭，也可以是一束光。<small>长春 · 天使之家小食堂</small></figcaption>
+          </figure>
+          <figure class="camp-hero-photo camp-hero-photo-small">
+            <img src="/images/dalian-elder.jpg" alt="安然期颐养老服务中心的事工影像" loading="lazy">
+            <figcaption>有人，愿意陪伴。<small>大连 · 长者关怀</small></figcaption>
+          </figure>
+          <span class="camp-orbit" aria-hidden="true"></span>
+        </div>
+      </div>
+      <a class="camp-scroll-cue" href="#our-heart">向下 · 看见更多 <span aria-hidden="true">↓</span></a>
+    </header>
 
-<nav aria-label="主导航">
-  <a href="/home.html">首页</a>
-  <a href="/test.html">步道</a>
-  <a href="/tongxing.html">童行</a>
-  <a href="/tongdao.html">同道</a>
-  <a href="/what.html">同工</a>
-  <a href="/tonglu.html">牧场</a>
-</nav>
-
-<div class="stars"></div>
-<div class="glow"></div>
-
-<div class="container">
-
-    <div class="top">
-      <a class="spark-link" href="lsxh.html">
-✦ 路上星火
-</a>
-        <h1>营火之地</h1>
-
-        <p>
-            有些话，<br>
-            只有走过的人才会说出来。
-        </p>
+    <div class="camp-subnav">
+      <div class="camp-container camp-subnav-inner" aria-label="本页导览">
+        <span class="camp-subnav-sign">✦ 营火手记</span>
+        <a href="#our-heart">我们的心意</a>
+        <a href="#ministries">事工现场</a>
+        <a href="#stories">路上星火</a>
+        <a href="#voices">同行回响</a>
+        <a href="#next-steps">下一次同行</a>
+      </div>
     </div>
-<div id="messages-container"></div>
 
+    <section class="camp-intro camp-container" id="our-heart" aria-labelledby="heart-title">
+      <div>
+        <p class="camp-eyebrow">01 / WHY THE FIRE</p>
+        <h2 id="heart-title">不是把火烧得更旺，<br><em>而是让光走得更远。</em></h2>
+      </div>
+      <div class="camp-intro-text">
+        <p>步道始于同行，却不止于行走。我们相信，真实的信仰会进入日常：陪一个孩子长大，照顾一位长者，为陌生人预备热饭，在山野间认真听一个人说话。</p>
+        <p>“营火之地”是一扇窗，让这些安静的行动被看见；也是一处相遇的地方，让愿意分享、参与、同工的人能够找到彼此。</p>
+        <p class="camp-intro-script">火光不属于某一个人。<br>愿我们都成为传递它的人。</p>
+      </div>
+    </section>
 
+    <section class="camp-section camp-section-programs" id="ministries" aria-labelledby="ministries-title">
+      <div class="camp-container">
+        <div class="camp-section-head">
+          <div><p class="camp-eyebrow">02 / OUR MINISTRIES</p><h2 id="ministries-title">看见正在发生的事工</h2></div>
+          <p>从山野到城市，从儿童到长者。<br>不同的现场，同一份愿意同行的心。</p>
+        </div>
+        <div class="camp-program-grid" id="camp-program-grid" aria-live="polite">
+          <p class="camp-loading">正在展开事工画卷……</p>
+        </div>
+        <noscript><p class="camp-nonscript">查看 <a href="/test.html">步道</a>、<a href="/tongxing.html">童行</a>、<a href="/lsxh.html">路上星火</a> 与 <a href="/tonglu.html">牧场</a>，了解我们的事工。</p></noscript>
+      </div>
+    </section>
 
+    <section class="camp-section camp-stories" id="stories" aria-labelledby="stories-title">
+      <div class="camp-container">
+        <div class="camp-section-head">
+          <div><p class="camp-eyebrow">03 / SPARKS ON THE ROAD</p><h2 id="stories-title">路上星火</h2></div>
+          <p>有些服事不在聚光灯下。<br>但每一个生命，都值得被认真对待。</p>
+        </div>
+        <div class="camp-story-grid" id="camp-story-grid" aria-live="polite">
+          <p class="camp-loading">正在寻找路上的星火……</p>
+        </div>
+        <div class="camp-section-more"><a href="/lsxh.html">走进更多真实的事工现场 <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </section>
 
-<script>
+    <section class="camp-voices" id="voices" aria-labelledby="voices-title">
+      <div class="camp-container">
+        <div class="camp-voices-heading">
+          <p class="camp-eyebrow">04 / AFTER THE JOURNEY</p>
+          <h2 id="voices-title">走过的人，留下了光。</h2>
+          <p>这些话，来自一次次同行之后。我们保留它们最初的温度，不替任何人添加姓名。</p>
+        </div>
+        <div class="camp-voices-grid" id="camp-voices-grid" aria-live="polite"><p class="camp-loading">正在拾起同行的回响……</p></div>
+        <button class="camp-text-button" id="camp-next-voices" type="button" hidden>再听几句同行的回响 <span aria-hidden="true">↻</span></button>
+      </div>
+    </section>
 
-/* 星点 */
+    <section class="camp-section camp-upcoming" id="next-steps" aria-labelledby="next-title">
+      <div class="camp-container camp-upcoming-layout">
+        <div class="camp-upcoming-intro">
+          <p class="camp-eyebrow">05 / THE NEXT STEP</p>
+          <h2 id="next-title">下一次，<br>我们在路上相见。</h2>
+          <p>每一次同行，都可能成为一个故事的开头。这里从步道日历读取未来活动；报名与详情以步道页面为准。</p>
+          <a class="camp-button camp-button-outline" href="/test.html">浏览完整步道日历 <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="camp-upcoming-list" id="camp-upcoming-list" aria-live="polite"><p class="camp-loading">正在查看接下来的路……</p></div>
+      </div>
+    </section>
 
-const stars = document.querySelector('.stars');
+    <section class="camp-invitation" id="join" aria-labelledby="join-title">
+      <div class="camp-invitation-glow" aria-hidden="true"></div>
+      <div class="camp-container camp-invitation-inner">
+        <p class="camp-eyebrow">THE FIRE GOES ON</p>
+        <h2 id="join-title">愿你也带来一束光。</h2>
+        <p>想参与一次步道、认识一个事工，或分享你正在做的服事？<br>营火旁，总有一个位置留给愿意同行的人。</p>
+        <div class="camp-actions camp-actions-centered">
+          <a href="/what.html" class="camp-button camp-button-primary">了解同工与参与 <span aria-hidden="true">↗</span></a>
+          <a href="mailto:hello@budao.org?subject=%E8%90%A5%E7%81%AB%E4%B9%8B%E5%9C%B0%C2%B7%E4%BA%8B%E5%B7%A5%E5%88%86%E4%BA%AB" class="camp-button camp-button-outline">向我们介绍你的事工 <span aria-hidden="true">↗</span></a>
+        </div>
+        <button id="camp-share" type="button" class="camp-share">把这束光分享给朋友 <span aria-hidden="true">↗</span></button>
+        <p id="camp-share-status" class="camp-share-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
 
-for(let i=0;i<80;i++){
-
-    const star = document.createElement('div');
-
-    star.classList.add('star');
-
-    star.style.left = Math.random()*100 + '%';
-    star.style.top = Math.random()*100 + '%';
-
-    star.style.animationDuration =
-        (2 + Math.random()*5) + 's';
-
-    stars.appendChild(star);
-}
-
-
-/* 留言库 */
-
-const allMessages = [
-
-"一路上都悬念不断......",
-
-"如此用心，细致又丰富的预备和带领，我们度过了一个美好又丰盛的徒步之旅！",
-
-"还有整体节奏，何时走动何时休息都计划得很精准啊。",
-
-"恩典多多，收获满满",
-
-"今天和弟兄姊妹们一起，感觉特别美好，感受到有祂的同在。感恩！",
-
-"7—88岁的徒步团太壮观了！",
-
-"今天无论是身体还是灵里，都收获满满，感恩弟兄姐妹们的陪伴和分享。",
-
-"很巧妙的设计",
-
-"一个老少咸宜，充满喜乐的身心灵快乐之旅！",
-
-"有幸参加了这次活动，都是意外的惊喜。",
-
-"感谢弟兄们搭建的信心之道。",
-
-"经过这一天，傍晚回来走在城市的水泥路上感觉特别轻盈和踏实。",
-
-"可以看漫山的花，还能直接退回小学生作息九点睡觉，真的太好了！",
-
-"认识和不认识人的都在认真听故事。",
-
-"感恩遇见",
-
-"用心带领，详尽的总结复盘，感恩。",
-
-"感恩祂。",
-
-"很棒的经历",
-
-"今天的安排，很舒适又得着。",
-
-"感恩弟兄姐妹们彼此敞开的分享和陪伴！",
-
-"很棒的体验，很有趣的经历",
-
-"当天去时候怕迟到，超速百分之十被罚。",
-
-"强度一点都不大，感觉还没缓过来。",
-
-"113层，2034个台阶，300米......",
-
-"活动太有意义了，身心被滋养，还结识了更多同路人。",
-
-"非常被安慰",
-
-"大家建立了信任而且让这份关系延续。",
-    
-"我期待未来步道同赏京城。",
-
-"顺利找到包了",
-
-"我居然是第一个到的",
-
-"我都期待好久了，哎！祷告我明天生龙活虎！",
-
-"我相信人与人的每一次相遇都是奇迹。",
-    
-"感恩这段相遇与安排，拆掉心墙，看见光。",
-
-"Grateful for this.",
-
-];
-
-
-/* 随机排序 */
-
-const shuffled = allMessages.sort(() => 0.5 - Math.random());
-
-/* 每次显示8条 */
-
-const selected = shuffled.slice(0, 8);
-
-const container =
-document.getElementById('messages-container');
-
-
-selected.forEach((msg, index) => {
-
-    const div = document.createElement('div');
-
-    div.className = 'message';
-
-    if(index % 2 === 1){
-        div.style.marginLeft = 'auto';
-        div.style.textAlign = 'right';
-    }
-
-    div.innerHTML = `
-        “${msg}”
-        <small>一次同行之后</small>
-    `;
-
-    container.appendChild(div);
-
-});
-
-</script>
-<a class="spark-link" href="lsxh.html">
-✦ 路上星火
-</a>
+  <footer class="camp-footer">
+    <div class="camp-container camp-footer-inner">
+      <div><a href="/home.html" class="camp-footer-brand">步道 <span>BUDAO</span></a><p>健行于天地，相知于彼此。</p></div>
+      <div class="camp-footer-links"><a href="/test.html">步道</a><a href="/lsxh.html">路上星火</a><a href="/what.html">同工</a><a href="/tonglu.html">牧场</a></div>
+    </div>
+    <p class="camp-footer-bottom">© 2026 步道 budao.org · TRUIL MINISTERIUM INTERNATIONAL</p>
+  </footer>
 </body>
 </html>
