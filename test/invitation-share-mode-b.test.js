@@ -192,11 +192,11 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.deepStrictEqual(first, second);
   });
 
-  it('20. leaves the existing Mode B ViewModel schema unchanged', () => {
+  it('20. extends Mode B ViewModel with invitation theme without changing participation state', () => {
     const keys = Object.keys(viewModel()).sort();
     assert.deepStrictEqual(keys, [
       'date', 'description', 'key', 'location', 'meetingPlace', 'participation',
-      'pills', 'time', 'timezone', 'title', 'visual'
+      'pills', 'theme', 'time', 'timezone', 'title', 'visual'
     ]);
     assert.ok(!keys.includes('registrationOpen'));
     assert.ok(!keys.includes('closedVariant'));
@@ -352,6 +352,41 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     assert.ok(!ctx.calls.some((call) => call[0] === 'fillText' && call[1] === 'SCAN TO JOIN'));
   });
 
+  it('outdoor and natural styles also render the DALONG closed stamp asset', () => {
+    const stamp = { id: 'dalong-stamp', width: 240, height: 280 };
+    for (const theme of ['landscape', 'natural']) {
+      const { ctx, result } = rendered({
+        viewModel: { ...viewModel(), theme },
+        renderState: { registrationOpen: false, closedVariant: '3' },
+        assets: { closedStampImage: stamp, qrImage: { id: 'qr', width: 200, height: 200 } }
+      });
+      assert.strictEqual(result.renderState.closedVariant, '3');
+      assert.ok(ctx.calls.some(call => call[0] === 'drawImage' && call[1] === stamp),
+        theme + ' failed to display DALONG');
+      assert.ok(!ctx.calls.some(call => call[0] === 'drawImage' && call[1].id === 'qr'),
+        theme + ' unexpectedly displayed signup QR after closing');
+    }
+  });
+
+  it('closed DALONG tickets have theme-matched backing without a white QR square', () => {
+    const stamp = { id: 'dalong-stamp', width: 240, height: 280 };
+    for (const theme of ['landscape', 'natural']) {
+      const { ctx } = rendered({
+        viewModel: { ...viewModel(), theme },
+        renderState: { registrationOpen: false },
+        assets: { closedStampImage: stamp }
+      });
+      const square = ctx.calls.find(call => call[0] === 'fillRect' &&
+        call[1] === 772 && call[2] === 1210 && call[3] === 190 && call[4] === 190);
+      assert.ok(square, theme + ' must paint a ticket backing');
+      const expected = theme === 'landscape' ? '#193e30' : '#f5e7c8';
+      assert.ok(ctx.calls.some(call => call[0] === 'drawImage' && call[1] === stamp));
+      // The fillStyle is not captured by this mock; the specific palette is
+      // also guarded in source to catch accidental reintroduction of white.
+      assert.ok(source.includes("dark ? '#193e30' : '#f5e7c8'"));
+    }
+  });
+
   it('35. renders a stable closed missing-stamp fallback', () => {
     const options = { renderState: { registrationOpen: false } };
     const first = rendered(options);
@@ -408,6 +443,57 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     const participation = artifact.ARTIFACT_LAYOUT.participation;
     const footer = artifact.ARTIFACT_LAYOUT.footer;
     assert.ok(footer.y - (participation.y + participation.height) >= 24);
+  });
+
+  it('Invitation 2.0 exposes one consistent content contract across the three styles', () => {
+    const themes = ['classic', 'landscape', 'natural'];
+    const results = themes.map(theme => artifact.invitationContentContract({
+      ...viewModel(), theme
+    }));
+    assert.deepStrictEqual(results[0], results[1]);
+    assert.deepStrictEqual(results[1], results[2]);
+    for (const key of ['title', 'date', 'time', 'location', 'meetingPlace', 'description',
+      'distance', 'elevation', 'difficulty', 'duration', 'suitableFor',
+      'surface', 'equipmentMinimum', 'weather', 'participation']) {
+      assert.ok(Object.hasOwn(results[0], key), 'missing contract key: ' + key);
+    }
+    assert.strictEqual(results[0].distance, '8 千米');
+    assert.strictEqual(results[0].duration, '4 小时');
+    assert.strictEqual(results[0].equipmentMinimum, '饮水');
+  });
+
+  it('outdoor and natural posters retain duration and participant safety fields', () => {
+    for (const theme of ['landscape', 'natural']) {
+      const ctx = contextMock();
+      artifact.renderModeBShareArtifact(ctx, { ...viewModel(), theme },
+        { registrationOpen: true }, {});
+      const printed = ctx.calls.filter(call => call[0] === 'fillText').map(call => String(call[1])).join(' ');
+      for (const value of ['4 小时', '有步行经验者', '饮水', '山径']) {
+        assert.ok(printed.includes(value), theme + ' omitted ' + value);
+      }
+    }
+  });
+
+  it('Invitation 2.0 keeps PNG dimensions and visually distinguishes each theme', () => {
+    const themes = ['classic', 'landscape', 'natural'];
+    const outputs = themes.map((theme) => rendered({
+      viewModel: { ...viewModel(), theme }
+    }));
+    outputs.forEach(({ result }) => {
+      assert.strictEqual(result.width, 1080);
+      assert.strictEqual(result.height, 1530);
+    });
+    const texts = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'fillText').map(call => call[1]));
+    assert.ok(texts[1].some(value => value.includes('山野同行')));
+    assert.ok(texts[2].some(value => value.includes('一起走进自然')));
+    assert.ok(!texts[0].some(value => value.includes('山野同行')));
+    assert.ok(!texts[0].some(value => value.includes('一起走进自然')));
+    const photographs = outputs.map(({ ctx }) => ctx.calls.filter(call => call[0] === 'drawImage'));
+    assert.notDeepStrictEqual(texts[0], texts[1]);
+    assert.notDeepStrictEqual(texts[1], texts[2]);
+    // Independent poster compositions must not inherit the editorial layout.
+    assert.ok(outputs[1].result.stages.length < outputs[0].result.stages.length);
+    assert.ok(outputs[2].result.stages.length < outputs[0].result.stages.length);
   });
 
   it('41. keeps the renderer usable with a lightweight Canvas mock', () => {

@@ -1,0 +1,37 @@
+name: Tent Invitation 2.0 Full Project Checks
+on:
+  push:
+    branches:
+      - feat/tent-invitation-2-0-foundation
+  pull_request:
+    paths:
+      - 'invitation*.js'
+      - 'invitation*.css'
+      - 'test/invitation*.test.js'
+      - '.github/workflows/tent-invitation-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-project-checks:
+    name: Lint / Tests / Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout full repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Project lint
+        run: npm run lint
+      - name: Full project tests
+        run: npm test
+      - name: Project build
+        run: npm run build
