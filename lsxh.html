@@ -425,6 +425,43 @@ body{
  .lsxh-carousel .grid { display:flex; gap:20px; grid-template-columns:none; }
  .lsxh-carousel .grid > .card { width:min(82vw,390px); flex-basis:min(82vw,390px); }
 }
+
+/* 路上星火卡片的介绍与见证：统一左对齐，保留页面顶部的居中主标题。 */
+.lsxh-carousel .card-content,
+.lsxh-carousel .card-location,
+.lsxh-carousel .card h2,
+.lsxh-carousel .card-content p {
+    text-align: left;
+}
+.lsxh-carousel .card-content p {
+    line-height: 1.95;
+    letter-spacing: .015em;
+}
+.lsxh-carousel .card-location { line-height: 1.7; }
+.lsxh-carousel .card-overlay {
+    justify-content: flex-start;
+    align-items: flex-start;
+    background: rgba(250, 248, 243, .9);
+    backdrop-filter: blur(7px);
+}
+.lsxh-carousel .card-overlay .overlay-text {
+    width: 100%;
+    text-align: left;
+    border-left: 2px solid #b4a48c;
+    padding: 2px 0 2px 13px;
+    color: #2a2825 !important;
+    text-shadow: none;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.85;
+    letter-spacing: .01em;
+}
+@media (max-width: 900px) {
+    .lsxh-carousel .card-overlay .overlay-text {
+        font-size: 12.5px;
+        line-height: 1.75;
+    }
+}
 </style>
 <script defer>
 /* Place as many .card nodes in .grid as needed; there is no item-count limit. */
@@ -480,8 +517,17 @@ body{
     }
     root.querySelector("[data-spark-prev]")?.addEventListener("click", () => move(-1));
     root.querySelector("[data-spark-next]")?.addEventListener("click", () => move(1));
-    root.addEventListener("mouseenter", () => { hover = true; });
-    root.addEventListener("mouseleave", () => { hover = false; });
+    // Desktop: auto-scroll continues when the pointer is in empty carousel space.
+    // Pause only while the mouse is actually over a story card, so the words can be read.
+    viewport.addEventListener("pointerover", (event) => {
+      if (event.pointerType === "mouse" && event.target.closest(".card")) hover = true;
+    });
+    viewport.addEventListener("pointerout", (event) => {
+      if (event.pointerType === "mouse") {
+        hover = Boolean(event.relatedTarget && event.relatedTarget.closest && event.relatedTarget.closest(".card"));
+      }
+    });
+    viewport.addEventListener("pointerleave", () => { hover = false; });
     root.addEventListener("focusin", () => { focus = true; });
     root.addEventListener("focusout", () => { focus = root.contains(document.activeElement); });
     viewport.addEventListener("touchstart", () => { touching = true; hold(6000); }, {passive:true});
