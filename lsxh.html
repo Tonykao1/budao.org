@@ -367,6 +367,108 @@ body{
 .truil-footer-signature { display: inline-block; margin-inline-start: 1.4em; font-weight: 300; font-size: .95em; letter-spacing: .035em; opacity: .78; }
 @media (max-width: 620px) { .truil-footer-signature { margin-inline-start: .75em; } }
 </style>
+<style>
+/* Only the card arrangement changes; existing card typography and content stay intact. */
+.lsxh-carousel { position:relative; min-width:0; }
+.lsxh-carousel-viewport { overflow-x:auto; overflow-y:hidden; width:100%; scrollbar-width:none; -webkit-overflow-scrolling:touch; overscroll-behavior-inline:contain; }
+.lsxh-carousel-viewport::-webkit-scrollbar { display:none; }
+.lsxh-carousel-viewport:focus-visible { outline:2px solid #9a825e; outline-offset:4px; }
+.lsxh-carousel .grid { display:flex; width:max-content; position:relative; gap:36px; align-items:stretch; grid-template-columns:none; }
+.lsxh-carousel .grid > .card { width:clamp(320px,31vw,390px); flex:0 0 clamp(320px,31vw,390px); max-width:none; height:auto; }
+.lsxh-carousel-actions { display:flex; justify-content:space-between; align-items:center; margin-top:22px; gap:16px; }
+.lsxh-carousel-actions p { margin:0; color:#8d8579; font-size:12px; letter-spacing:1px; }
+.lsxh-carousel-buttons { display:flex; gap:10px; }
+.lsxh-carousel-button { width:44px; height:44px; border:1px solid #d4cbc0; border-radius:50%; background:transparent; cursor:pointer; color:#514b43; font:300 24px/1 sans-serif; }
+.lsxh-carousel-button:hover { background:#26231f; color:white; }
+.lsxh-carousel-button:focus-visible { outline:2px solid #8f795c; outline-offset:3px; }
+@media(max-width:900px) {
+ .lsxh-carousel .grid { display:flex; gap:20px; grid-template-columns:none; }
+ .lsxh-carousel .grid > .card { width:min(82vw,390px); flex-basis:min(82vw,390px); }
+}
+</style>
+<script defer>
+/* Place as many .card nodes in .grid as needed; there is no item-count limit. */
+(() => {
+  "use strict";
+  const start = () => {
+    const viewport = document.querySelector("[data-spark-carousel]");
+    const root = viewport && viewport.closest(".lsxh-carousel");
+    const track = viewport && viewport.querySelector(".grid");
+    if (!root || !track) return;
+    const cards = Array.from(track.children).filter(node => node.classList.contains("card"));
+    if (!cards.length) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let width = 0, middle = 0, previousTime = 0, holdUntil = 0, hover = false, touching = false, focus = false, resizeTimer;
+    const gap = () => parseFloat(getComputedStyle(track).columnGap) || 0;
+    const hold = (ms = 5000) => { holdUntil = performance.now() + ms; };
+    const cloneCard = (card) => {
+      const copy = card.cloneNode(true);
+      copy.dataset.sparkClone = "true";
+      copy.setAttribute("aria-hidden", "true");
+      copy.querySelectorAll("a,button,input,select,textarea,[tabindex]").forEach(el => { el.tabIndex = -1; });
+      return copy;
+    };
+    function wrap() {
+      if (!width) return;
+      const x = viewport.scrollLeft;
+      if (x >= middle + width || x < middle) {
+        viewport.scrollLeft = middle + ((x - middle) % width + width) % width;
+      }
+    }
+    function rebuild() {
+      const ratio = width ? (((viewport.scrollLeft - middle) % width + width) % width) / width : 0;
+      track.querySelectorAll("[data-spark-clone]").forEach(el => el.remove());
+      const first = cards[0], last = cards[cards.length - 1];
+      width = last.offsetLeft + last.offsetWidth - first.offsetLeft + gap();
+      if (!width) return;
+      // Enough duplicate sets for a full viewport, including one-card galleries.
+      const repeats = Math.max(2, Math.ceil(viewport.clientWidth / width) + 1);
+      const before = document.createDocumentFragment(), after = document.createDocumentFragment();
+      for (let n = 0; n < repeats; n++) {
+        cards.forEach(card => before.appendChild(cloneCard(card)));
+        cards.forEach(card => after.appendChild(cloneCard(card)));
+      }
+      track.prepend(before);
+      track.append(after);
+      middle = first.offsetLeft;
+      viewport.scrollLeft = middle + ratio * width;
+    }
+    function move(direction) {
+      hold(6000);
+      viewport.scrollLeft += direction * (cards[0].offsetWidth + gap());
+      wrap();
+    }
+    root.querySelector("[data-spark-prev]")?.addEventListener("click", () => move(-1));
+    root.querySelector("[data-spark-next]")?.addEventListener("click", () => move(1));
+    root.addEventListener("mouseenter", () => { hover = true; });
+    root.addEventListener("mouseleave", () => { hover = false; });
+    root.addEventListener("focusin", () => { focus = true; });
+    root.addEventListener("focusout", () => { focus = root.contains(document.activeElement); });
+    viewport.addEventListener("touchstart", () => { touching = true; hold(6000); }, {passive:true});
+    for (const evt of ["touchend","touchcancel"]) {
+      viewport.addEventListener(evt, () => { touching = false; hold(6000); }, {passive:true});
+    }
+    viewport.addEventListener("wheel", () => hold(), {passive:true});
+    viewport.addEventListener("scroll", wrap, {passive:true});
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(rebuild, 160);
+    }, {passive:true});
+    function animate(now) {
+      if (previousTime && !hover && !focus && !touching && now >= holdUntil && !document.hidden && !reduced.matches) {
+        viewport.scrollLeft += Math.min(now - previousTime, 64) * 0.028;
+        wrap();
+      }
+      previousTime = now;
+      requestAnimationFrame(animate);
+    }
+    rebuild();
+    requestAnimationFrame(animate);
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, {once:true});
+  else start();
+})();
+</script>
 </head>
 
 <body>
@@ -402,7 +504,10 @@ body{
 
     <!-- 卡片区域 -->
 
-    <div class="grid">
+    <!-- Each additional .card is automatically included in the endless loop. -->
+    <section class="lsxh-carousel" aria-label="路上星火横向循环长廊">
+      <div class="lsxh-carousel-viewport" data-spark-carousel tabindex="0" aria-label="横向滚动浏览事工卡片">
+        <div class="grid">
 
         <!-- 卡片1 -->
 
@@ -567,7 +672,16 @@ body{
 
         </div>
 
-    </div>
+        </div>
+      </div>
+      <div class="lsxh-carousel-actions">
+        <p>左右滑动 · 循环探索</p>
+        <div class="lsxh-carousel-buttons">
+          <button type="button" class="lsxh-carousel-button" data-spark-prev aria-label="上一张卡片">‹</button>
+          <button type="button" class="lsxh-carousel-button" data-spark-next aria-label="下一张卡片">›</button>
+        </div>
+      </div>
+    </section>
  <!-- 页脚 -->
 
 <footer>
@@ -588,3 +702,7 @@ body{
     <p>© 2026 步道 budao.org <span class="truil-footer-signature">TRUIL MINISTERIUM INTERNATIONAL</span></p>
 
 </footer>
+
+</div>
+</body>
+</html>
