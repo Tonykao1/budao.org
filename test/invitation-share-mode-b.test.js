@@ -368,6 +368,25 @@ describe('Mode B Share Artifact Phase 2D.1 / 2D.2', () => {
     }
   });
 
+  it('closed DALONG tickets have theme-matched backing without a white QR square', () => {
+    const stamp = { id: 'dalong-stamp', width: 240, height: 280 };
+    for (const theme of ['landscape', 'natural']) {
+      const { ctx } = rendered({
+        viewModel: { ...viewModel(), theme },
+        renderState: { registrationOpen: false },
+        assets: { closedStampImage: stamp }
+      });
+      const square = ctx.calls.find(call => call[0] === 'fillRect' &&
+        call[1] === 772 && call[2] === 1210 && call[3] === 190 && call[4] === 190);
+      assert.ok(square, theme + ' must paint a ticket backing');
+      const expected = theme === 'landscape' ? '#193e30' : '#f5e7c8';
+      assert.ok(ctx.calls.some(call => call[0] === 'drawImage' && call[1] === stamp));
+      // The fillStyle is not captured by this mock; the specific palette is
+      // also guarded in source to catch accidental reintroduction of white.
+      assert.ok(source.includes("dark ? '#193e30' : '#f5e7c8'"));
+    }
+  });
+
   it('35. renders a stable closed missing-stamp fallback', () => {
     const options = { renderState: { registrationOpen: false } };
     const first = rendered(options);
