@@ -1,4 +1,4 @@
-name: Campfire Ministry Showcase
+name: Campfire Trail Memories
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "yhzd.html"
       - "campfire.css"
       - "campfire.js"
-      - "data/campfire-content.json"
+      - "data/campfire-archive.json"
       - "test/campfire-page.test.js"
       - ".github/workflows/campfire-showcase.yml"
   pull_request:
@@ -14,7 +14,7 @@ on:
       - "yhzd.html"
       - "campfire.css"
       - "campfire.js"
-      - "data/campfire-content.json"
+      - "data/campfire-archive.json"
       - "test/campfire-page.test.js"
       - ".github/workflows/campfire-showcase.yml"
 
