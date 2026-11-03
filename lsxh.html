@@ -364,6 +364,46 @@ body{
 
 </style>
 <style>
+/* 小柒私厨：订餐号码初始隐藏，点击后展开；手机端号码可以直接拨打。 */
+.xiaoqi-order {
+    margin-top: auto;
+}
+.xiaoqi-order > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    cursor: pointer;
+    color: #171717;
+    font-size: 12px;
+    letter-spacing: 2px;
+    transition: letter-spacing .3s ease;
+}
+.xiaoqi-order > summary::-webkit-details-marker { display: none; }
+.xiaoqi-order > summary::marker { content: ""; }
+.xiaoqi-order > summary:hover { letter-spacing: 4px; }
+.xiaoqi-order > summary:focus-visible {
+    outline: 2px solid #8f795c;
+    outline-offset: 5px;
+}
+.xiaoqi-order-contact {
+    padding-top: 14px;
+    color: #171717;
+}
+.xiaoqi-order-contact a {
+    display: inline-block;
+    margin-top: 0;
+    color: inherit;
+    letter-spacing: 1px;
+    font-size: 15px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+    .xiaoqi-order > summary { transition: none; }
+}
+</style>
+<style>
 .truil-footer-signature { display: inline-block; margin-inline-start: 1.4em; font-weight: 300; font-size: .95em; letter-spacing: .035em; opacity: .78; }
 @media (max-width: 620px) { .truil-footer-signature { margin-inline-start: .75em; } }
 </style>
@@ -716,9 +756,12 @@ body{
                     也是以诚实、耐心与温暖款待身边的人。
                 </p>
 
-                <a href="tel:+8613911278107" aria-label="致电小柒私厨订餐，13911278107">
-                    订餐咨询 · 13911278107 →
-                </a>
+                <details class="xiaoqi-order">
+                    <summary>订餐请进 <span aria-hidden="true">→</span></summary>
+                    <div class="xiaoqi-order-contact">
+                        <a href="tel:+8613911278107" aria-label="拨打小柒私厨订餐电话 13911278107">13911278107 <span aria-hidden="true">↗</span></a>
+                    </div>
+                </details>
 
             </div>
 
