@@ -1,0 +1,35 @@
+name: Campfire Ministry Showcase
+
+on:
+  push:
+    paths:
+      - "yhzd.html"
+      - "campfire.css"
+      - "campfire.js"
+      - "data/campfire-content.json"
+      - "test/campfire-page.test.js"
+      - ".github/workflows/campfire-showcase.yml"
+  pull_request:
+    paths:
+      - "yhzd.html"
+      - "campfire.css"
+      - "campfire.js"
+      - "data/campfire-content.json"
+      - "test/campfire-page.test.js"
+      - ".github/workflows/campfire-showcase.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate campfire JavaScript
+        run: node --check campfire.js
+      - name: Run campfire regression suite
+        run: node --test test/campfire-page.test.js
