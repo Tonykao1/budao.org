@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - ".github/workflows/audio-reference-b.yml"
+      - "home.html"
+      - "music/*.mp3"
   workflow_dispatch:
 
 permissions:
@@ -28,29 +30,19 @@ jobs:
           import json, pathlib, re, subprocess
           from concurrent.futures import ThreadPoolExecutor
 
-          playlist = [
-              "music/14 Silent Night.mp3",
-              "music/06 The Good, The Bad, And The Ugly.mp3",
-              "music/19 Shalom Chaverim.mp3",
-              "music/Dreaming.mp3",
-              "music/07 Barrios Mangoré_ Un Sueño En La Floresta.mp3",
-              "music/08 Imagine.mp3",
-              "music/08 xindeshijie.mp3",
-              "music/02 Amarantine.mp3",
-              "music/10 Si Quieres Que Te Cortexe.mp3",
-              "music/07 Victory Is Won.mp3",
-              "music/12 Silent Night_Klusa Nakts.mp3",
-              "music/01 Suerte (Whenever, Wherever).mp3",
-              "music/02 La Vie En Rose.mp3",
-              "music/2-08 Blaze Of Glory.mp3",
-              "music/04 Stofnar Falla.mp3",
-              "music/06 You Shouldn't Kiss Me Like This.mp3",
-              "music/08 Fool No More.mp3",
-              "music/11 Sad Eyes.mp3",
-              "music/09 Heal The World.mp3",
-              "music/09 Four To The Floor.mp3",
-              "music/05 Satellite.mp3",
-          ]
+          # The homepage is the single source of truth for the playlist.
+          # Never silently leave new songs without a loudness measurement.
+          home = pathlib.Path("home.html").read_text(encoding="utf-8")
+          playlist_match = re.search(r"const playlist\s*=\s*\[(.*?)\];", home, re.S)
+          if not playlist_match:
+              raise RuntimeError("Could not find homepage playlist")
+          playlist = re.findall(r'"([^"]+\.mp3)"', playlist_match.group(1))
+          if not playlist or len(playlist) != len(set(playlist)):
+              raise RuntimeError("Homepage playlist missing or contains duplicate paths")
+          missing = [path for path in playlist if not pathlib.Path(path).is_file()]
+          if missing:
+              raise RuntimeError("Playlist audio missing: " + ", ".join(missing))
+          print(f"Measuring all {len(playlist)} homepage tracks")
 
           # Reference B prioritizes fidelity over streaming-style loudness.
           # -20 LUFS lets the high-LRA acoustic/classical masters keep their crest factor

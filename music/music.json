@@ -185,14 +185,14 @@
       "result_tp_est": -7.63,
       "peak_limited": false
     },
-    "music/09 Heal The World.mp3": {
-      "integrated_lufs": -12.92,
-      "true_peak_dbtp": 0.02,
-      "lra_lu": 2.6,
-      "threshold_lufs": -23.08,
-      "gain_db": -7.08,
+    "music/05 Satellite.mp3": {
+      "integrated_lufs": -7.36,
+      "true_peak_dbtp": 0.92,
+      "lra_lu": 5.8,
+      "threshold_lufs": -17.44,
+      "gain_db": -12.64,
       "result_lufs_est": -20.0,
-      "result_tp_est": -7.06,
+      "result_tp_est": -11.72,
       "peak_limited": false
     },
     "music/09 Four To The Floor.mp3": {
@@ -205,14 +205,54 @@
       "result_tp_est": -10.74,
       "peak_limited": false
     },
-    "music/05 Satellite.mp3": {
-      "integrated_lufs": -7.36,
-      "true_peak_dbtp": 0.92,
-      "lra_lu": 5.8,
-      "threshold_lufs": -17.44,
-      "gain_db": -12.64,
+    "music/09 Heal The World.mp3": {
+      "integrated_lufs": -12.92,
+      "true_peak_dbtp": 0.02,
+      "lra_lu": 2.6,
+      "threshold_lufs": -23.08,
+      "gain_db": -7.08,
       "result_lufs_est": -20.0,
-      "result_tp_est": -11.72,
+      "result_tp_est": -7.06,
+      "peak_limited": false
+    },
+    "music/1-01 Blowin' In The Wind.mp3": {
+      "integrated_lufs": -10.84,
+      "true_peak_dbtp": -0.1,
+      "lra_lu": 5.2,
+      "threshold_lufs": -20.99,
+      "gain_db": -9.16,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -9.26,
+      "peak_limited": false
+    },
+    "music/2-04 If You Are So Beautiful.mp3": {
+      "integrated_lufs": -16.92,
+      "true_peak_dbtp": -2.9,
+      "lra_lu": 7.4,
+      "threshold_lufs": -27.21,
+      "gain_db": -3.08,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -5.98,
+      "peak_limited": false
+    },
+    "music/02 找自己.mp3": {
+      "integrated_lufs": -8.37,
+      "true_peak_dbtp": 0.63,
+      "lra_lu": 7.0,
+      "threshold_lufs": -18.79,
+      "gain_db": -11.63,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -11.0,
+      "peak_limited": false
+    },
+    "music/09 你記得嗎_.mp3": {
+      "integrated_lufs": -10.61,
+      "true_peak_dbtp": -0.22,
+      "lra_lu": 5.7,
+      "threshold_lufs": -20.71,
+      "gain_db": -9.39,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -9.61,
       "peak_limited": false
     }
   }
