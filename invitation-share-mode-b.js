@@ -642,9 +642,14 @@
 
   function posterRegistration(ctx, model, state, assets, dark) {
     const x = 772, y = 1210, outer = 190, pad = 18;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x, y, outer, outer);
     if (!state.registrationOpen) {
+      // Closed DALONG tickets belong to the poster, not a white QR backing.
+      // Outdoor is an ink-dark permit; natural is a warm journal paper inset.
+      ctx.fillStyle = dark ? '#193e30' : '#f5e7c8';
+      ctx.fillRect(x, y, outer, outer);
+      ctx.strokeStyle = dark ? '#9eb89b' : '#ba9c6c';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x + 2, y + 2, outer - 4, outer - 4);
       // Match the classic invitation: closed participation uses the actual
       // deterministic DALONG stamp asset, never a generic status text in its place.
       if (!drawContainAsset(ctx, assets.closedStampImage, {
@@ -652,10 +657,15 @@
       })) {
         posterText(ctx, '本期报名已截止', x + 10, y + 96, 174, 19, '#405843', 700);
       }
-    } else if (!drawContainAsset(ctx, assets.qrImage, {
-      x: x + pad, y: y + pad, width: 154, height: 154
-    })) {
-      posterText(ctx, '报名码暂未放出', x + 11, y + 95, 168, 18, '#405843', 600);
+    } else {
+      // Genuine QR codes need a white quiet zone for reliable scanning.
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x, y, outer, outer);
+      if (!drawContainAsset(ctx, assets.qrImage, {
+        x: x + pad, y: y + pad, width: 154, height: 154
+      })) {
+        posterText(ctx, '报名码暂未放出', x + 11, y + 95, 168, 18, '#405843', 600);
+      }
     }
     posterText(ctx, state.registrationOpen ? '扫码报名 · 一路同行' : '此程已封缄',
       x - 8, 1437, 235, 18, dark ? '#ffffff' : '#274935', 700);
