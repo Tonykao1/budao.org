@@ -236,6 +236,7 @@
   }
 
   $("#camp-next-voices")?.addEventListener("click", () => {
+    if (!voiceList.length) return;
     voiceOffset = (voiceOffset + 3) % voiceList.length;
     showVoices();
   });
