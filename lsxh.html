@@ -1,590 +1,132 @@
 <!DOCTYPE html>
-<html lang="zh">
-
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>路上星火 - 步道</title>
-
-<link rel="stylesheet" href="style.css">
-
-<style>
-
-*{
-    box-sizing:border-box;
-}
-
-body{
-    margin:0;
-    background:#f5f2eb;
-    color:#171717;
-
-    font-family:
-    "PingFang SC",
-    "Helvetica Neue",
-    sans-serif;
-}
-
-/* 页面主体 */
-
-.container{
-
-    width:92%;
-    max-width:1200px;
-
-    margin:auto;
-
-    padding:80px 20px 180px 20px;
-}
-
-/* 顶部 */
-
-.lsxh-hero{
-
-    text-align:center;
-
-    margin-bottom:90px;
-}
-
-.lsxh-hero small{
-
-    font-size:11px;
-
-    letter-spacing:6px;
-
-    color:#9d968b;
-}
-
-.lsxh-hero h1{
-
-    font-size:56px;
-
-    font-weight:200;
-
-    margin-top:24px;
-    margin-bottom:30px;
-
-    letter-spacing:0.08em;
-}
-
-.lsxh-hero p{
-
-    max-width:720px;
-
-    margin:auto;
-
-    line-height:2.2;
-
-    color:#5f5b55;
-
-    font-size:17px;
-
-    font-weight:300;
-}
-
-/* 卡片区域 */
-
-.grid{
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(auto-fit,minmax(360px,1fr));
-
-    gap:36px;
-
-    align-items:start;
-}
-
-/* 卡片 */
-
-.card{
-
-    background:white;
-
-    border-radius:28px;
-
-    overflow:hidden;
-
-    transition:0.4s;
-
-    display:flex;
-
-    flex-direction:column;
-
-    height:100%;
-
-    box-shadow:
-    0 12px 40px rgba(0,0,0,0.04);
-}
-
-.card:hover{
-
-    transform:translateY(-5px);
-
-    box-shadow:
-    0 24px 70px rgba(0,0,0,0.08);
-}
-
-/* 图片 */
-
-.image-wrapper{
-
-    position:relative;
-
-    overflow:hidden;
-}
-
-.card img{
-
-    width:100%;
-
-    height:160px;
-
-    object-fit:cover;
-
-    display:block;
-
-    border-bottom:
-    1px solid #f0ece6;
-}
-
-/* 磨砂层 */
-
-.card-overlay{
-
-    position:absolute;
-
-    top:0;
-    left:0;
-
-    width:100%;
-    height:100%;
-
-    background:
-    rgba(255,255,255,0.12);
-
-    backdrop-filter:blur(6px);
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:flex-start;
-
-    overflow-y:auto;
-
-    opacity:0;
-
-    transition:0.45s;
-
-    padding:24px;
-
-    padding-top:24px;
-}
-
-/* 只有 hover 图片才出现 */
-
-.image-wrapper:hover .card-overlay{
-
-    opacity:1;
-}
-
-/* overlay文字 */
-
-.overlay-text{
-
-    color:#171717;
-
-    text-align:center;
-
-    line-height:2;
-
-    font-size:14px;
-
-    font-weight:400;
-}
-
-/* 卡片内容 */
-
-.card-content{
-
-    padding:34px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    flex:1;
-}
-
-.card-location{
-
-    font-size:11px;
-
-    letter-spacing:4px;
-
-    color:#a49b90;
-
-    margin-bottom:18px;
-}
-
-.card h2{
-
-    margin:0 0 22px 0;
-
-    font-size:30px;
-
-    font-weight:300;
-
-    color:#171717;
-}
-
-.card p{
-
-    line-height:2.1;
-
-    color:#5f5b55;
-
-    margin-bottom:34px;
-
-    font-size:15px;
-
-    font-weight:300;
-}
-
-.card a{
-
-    margin-top:auto;
-
-    text-decoration:none;
-
-    color:#171717;
-
-    font-size:12px;
-
-    letter-spacing:2px;
-
-    transition:0.3s;
-}
-
-.card a:hover{
-
-    letter-spacing:5px;
-}
-
-/* 页脚 */
-
-.footer-note{
-
-    text-align:center;
-
-    margin-top:140px;
-
-    color:#8d8579;
-
-    line-height:2.3;
-
-    font-size:14px;
-
-    font-weight:300;
-}
-
-/* 营火入口 */
-
-.campfire-link{
-
-    display:block;
-
-    text-align:center;
-
-    margin:120px auto 0 auto;
-
-    color:#8d8579;
-
-    text-decoration:none;
-
-    letter-spacing:5px;
-
-    font-size:12px;
-
-    transition:0.35s;
-}
-
-.campfire-link:hover{
-
-    color:#171717;
-
-    letter-spacing:7px;
-}
-
-/* 手机 */
-
-@media(max-width:900px){
-
-    .container{
-        padding-top:60px;
-    }
-
-    .lsxh-hero{
-        margin-bottom:70px;
-    }
-
-    .lsxh-hero h1{
-        font-size:42px;
-    }
-
-    .lsxh-hero p{
-        font-size:15px;
-        line-height:2;
-    }
-
-    .grid{
-        grid-template-columns:1fr;
-    }
-
-    .card{
-        max-width:100%;
-    }
-
-    .card img{
-        height:150px;
-    }
-
-    .card-content{
-        padding:28px;
-    }
-
-    .card h2{
-        font-size:26px;
-    }
-
-}
-
-</style>
-<style>
-.truil-footer-signature { display: inline-block; margin-inline-start: 1.4em; font-weight: 300; font-size: .95em; letter-spacing: .035em; opacity: .78; }
-@media (max-width: 620px) { .truil-footer-signature { margin-inline-start: .75em; } }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121513">
+  <meta name="description" content="路上星火：看见那些在不同城市默默陪伴孩子、照顾老人、守护社区的人。聆听他们的故事，与他们同行。">
+  <title>路上星火 · 步道</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="lsxh.css">
 </head>
+<body class="lsxh-body">
+  <nav aria-label="主导航">
+    <a href="/home.html">首页</a>
+    <a href="/test.html">步道</a>
+    <a href="/tongxing.html">童行</a>
+    <a href="/tongdao.html">同道</a>
+    <a href="/what.html">同工</a>
+    <a href="/tonglu.html">牧场</a>
+  </nav>
 
-<body>
+  <main class="lsxh">
+    <div class="spark-wrap">
+      <div class="spark-hero">
+        <div class="spark-hero-top">
+          <span class="spark-eyebrow"><span class="spark-point" aria-hidden="true"></span> SPARKS ON THE ROAD</span>
+          <span class="spark-edition">步道 · 同行事工</span>
+        </div>
+        <div class="spark-hero-main">
+          <h1>路上<span>星火</span></h1>
+          <div class="spark-introduction">
+            <p class="spark-intro-lead">不是所有的光，都来自远方。</p>
+            <p>在世界不同角落，仍有人默默用爱同行。他们陪伴孩子、照顾老人，也在一座城市里，为疲惫的心预备歇息之处。</p>
+            <p>这里记录这些微小、真实、持续发亮的火种。</p>
+          </div>
+        </div>
+        <div class="spark-hero-bottom">
+          <span>一处光亮，可以照见另一处。</span>
+          <span aria-hidden="true">✳</span>
+        </div>
+      </div>
 
-<nav aria-label="主导航">
-  <a href="/home.html">首页</a>
-  <a href="/test.html">步道</a>
-  <a href="/tongxing.html">童行</a>
-  <a href="/tongdao.html">同道</a>
-  <a href="/what.html">同工</a>
-  <a href="/tonglu.html">牧场</a>
-</nav>
-
-<div class="container">
-
-    <!-- 顶部 -->
-
-    <div class="lsxh-hero">
-
-        <small>SPARKS ON THE ROAD</small>
-
-        <h1>路上星火</h1>
-
-        <p>
-            在世界不同角落，
-            仍有人默默用爱同行。<br>
-            他们正在陪伴孩子、照顾老人、
-            为陌生人预备热饭，
-            也在黑夜里继续点灯。
-        </p>
-
-    </div>
-
-    <!-- 卡片区域 -->
-
-    <div class="grid">
-
-        <!-- 卡片1 -->
-
-        <div class="card">
-
-            <div class="image-wrapper">
-
-                <img
-                src="images/angel-home.jpg"
-                alt="天使之家">
-
-                <div class="card-overlay">
-
-                    <div class="overlay-text">
-
-                        “很多时候，
-                        我们不是在改变孩子，
-                        而是在学习，
-                        如何真正接纳一个生命。”
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card-content">
-
-                <div class="card-location">
-                    长春 · 自闭症康复融合
-                </div>
-
-                <h2>
-                    天使之家 小食堂
-                </h2>
-
-                <p>
-                    他们，始终搀拉陪伴，
-                    凭着爱心帮助来自“星星”的孩子们。
-                    一间小食堂，
-                    每一口饭菜，
-                    都能品出人间的温暖。
-                </p>
-
-                <a href="mailto:pine707@protonmail.com">
-                    与他们同行 →
-                </a>
-
-            </div>
-
+      <section class="spark-section" aria-labelledby="spark-section-title">
+        <div class="spark-section-heading">
+          <div>
+            <span class="spark-label">PEOPLE &amp; PLACES</span>
+            <h2 id="spark-section-title">正在发光的地方</h2>
+          </div>
+          <p>一间小食堂、一座养老院、一间书房。<br>从平凡的日常，开始真实的陪伴。</p>
         </div>
 
-        <!-- 卡片2 -->
-
-        <div class="card">
-
-            <div class="image-wrapper">
-
-                <img
-                src="images/dalian-elder.jpg"
-                alt="安然期颐养老服务中心">
-
-                <div class="card-overlay">
-
-                    <div class="overlay-text">
-
-                        “我们听从神的呼召建立教会，
-                        传福音的时候就了解到村里的一位老人没有儿女，
-                        我们就把他接到家中免费照顾。
-
-                        因为箴言书说：
-                        怜悯贫穷的，
-                        就是借给耶和华，
-                        他的善行，
-                        耶和华必偿还。
-
-                        这句话成为神给我们的话语和带领，
-                        从此我们开始做家庭式养老院，
-                        接收信主老人。
-
-                        神一步步带领，
-                        我们也不断经历祂的恩典。”
-
-                    </div>
-
-                </div>
-
+        <div class="spark-grid">
+          <article class="spark-card spark-card--featured" aria-labelledby="spark-title-1">
+            <figure class="spark-photo">
+              <img src="images/angel-home.jpg" alt="长春天使之家小食堂" decoding="async" fetchpriority="high">
+              <figcaption><span>01</span><span>长春 · 中国</span></figcaption>
+            </figure>
+            <div class="spark-card-body">
+              <p class="spark-category">自闭症康复融合 · 陪伴儿童</p>
+              <h3 id="spark-title-1">天使之家<span>小食堂</span></h3>
+              <p class="spark-description">他们始终搀拉陪伴，凭着爱心帮助来自“星星”的孩子们。一间小食堂，每一口饭菜，都能品出人间的温暖。</p>
+              <details class="spark-story">
+                <summary><span>听听他们的心声</span><span class="spark-expand" aria-hidden="true"></span></summary>
+                <blockquote>“很多时候，我们不是在改变孩子，而是在学习，如何真正接纳一个生命。”</blockquote>
+              </details>
+              <div class="spark-contact-row">
+                <span class="spark-contact-label">与他们同行</span>
+                <a href="mailto:pine707@protonmail.com" aria-label="写信联系天使之家小食堂">写信联系 <span aria-hidden="true">↗</span></a>
+              </div>
             </div>
+          </article>
 
-            <div class="card-content">
-
-                <div class="card-location">
-                    大连 · 家庭式养老院
-                </div>
-
-                <h2>
-                    安然期颐养老服务中心
-                </h2>
-
-                <p>
-                    他们正在以步行道，
-                    让农村老人不再孤单地老去。
-                    从第一个人开始，
-                    直到如今最多时二十多人，
-                    穷尽所有，
-                    只因祂有数算不尽的恩典与祝福。
-                </p>
-
-                <a href="mailto:renda8023@qq.com">
-                    想了解更多 →
-                </a>
-
+          <article class="spark-card" aria-labelledby="spark-title-2">
+            <figure class="spark-photo">
+              <img src="images/dalian-elder.jpg" alt="大连安然期颐养老服务中心" loading="lazy" decoding="async">
+              <figcaption><span>02</span><span>大连 · 中国</span></figcaption>
+            </figure>
+            <div class="spark-card-body">
+              <p class="spark-category">家庭式养老 · 长者陪伴</p>
+              <h3 id="spark-title-2">安然期颐<span>养老服务中心</span></h3>
+              <p class="spark-description">他们以陪伴让农村老人不再孤单地老去。从照顾第一位老人开始，直到最多时二十多人，穷尽所有，只因祂有数算不尽的恩典与祝福。</p>
+              <details class="spark-story">
+                <summary><span>听听他们的心声</span><span class="spark-expand" aria-hidden="true"></span></summary>
+                <blockquote>
+                  <p>“我们听从神的呼召建立教会，传福音的时候就了解到村里的一位老人没有儿女，我们就把他接到家中免费照顾。</p>
+                  <p>因为箴言书说：怜悯贫穷的，就是借给耶和华；他的善行，耶和华必偿还。</p>
+                  <p>这句话成为神给我们的话语和带领，从此我们开始做家庭式养老院，接收信主老人。</p>
+                  <p>神一步步带领，我们也不断经历祂的恩典。”</p>
+                </blockquote>
+              </details>
+              <div class="spark-contact-row">
+                <span class="spark-contact-label">了解更多</span>
+                <a href="mailto:renda8023@qq.com" aria-label="写信联系安然期颐养老服务中心">写信联系 <span aria-hidden="true">↗</span></a>
+              </div>
             </div>
+          </article>
 
+          <article class="spark-card" aria-labelledby="spark-title-3">
+            <figure class="spark-photo">
+              <img src="images/fjs.jpg" alt="长春房角石咖啡与书" loading="lazy" decoding="async">
+              <figcaption><span>03</span><span>长春 · 中国</span></figcaption>
+            </figure>
+            <div class="spark-card-body">
+              <p class="spark-category">都市第三空间 · 咖啡与阅读</p>
+              <h3 id="spark-title-3">房角石<span>咖啡与书</span></h3>
+              <p class="spark-description">他们在城市的喧嚣中驻足，守候一座走过二十二载的书房。一间咖啡书房，每一缕墨香、每一杯温热，都是相遇与陪伴。</p>
+              <details class="spark-story">
+                <summary><span>听听他们的心声</span><span class="spark-expand" aria-hidden="true"></span></summary>
+                <blockquote>“开始于2004年5月18日的房角石书房，走过22年了。独资商业项目，努力以有限的资源，在合法范围内服务社区。线上线下举办读书会、音乐会、电影会，以咖啡餐饮经营自养。”</blockquote>
+              </details>
+              <div class="spark-contact-row">
+                <span class="spark-contact-label">购书或小坐</span>
+                <a href="mailto:Liumonic@gmail.com" aria-label="写信联系房角石咖啡与书">写信联系 <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+          </article>
         </div>
-    
-   <!-- 卡片3 -->
+      </section>
 
-        <div class="card">
-
-            <div class="image-wrapper">
-
-                <img
-                src="images/fjs.jpg"
-                alt="房角石咖啡与书">
-
-                <div class="card-overlay">
-
-                    <div class="overlay-text">
-
-                       开始于2004年5月18日的房角石书房，走过22年了，独资商业项目。努力有限的资源，合法范围服务社区。线上线下，读书会，音乐会，电影会。经营咖啡餐饮项目自养。
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card-content">
-
-                <div class="card-location">
-                    长春 · 都市第三空间
-                </div>
-
-                <h2>
-                    房角石咖啡与书
-                </h2>
-
-                <p>
-                    他们，在城市的喧嚣中驻足，
-                    凭着微弱却坚韧的光，
-                    守候了一座二十二载的属灵港湾。
-                    一间咖啡书房，每一缕墨香，每一杯温热，
-                    是心灵的共振，也是无声的见证......
-                </p>
-
-                <a href="mailto:Liumonic@gmail.com">
-                    欲购书或小坐 →
-                </a>
-
-            </div>
-
-        </div>
-
+      <div class="spark-closing" aria-label="路上星火寄语">
+        <span class="spark-closing-symbol" aria-hidden="true">✳</span>
+        <p>世界仍有微光。<br><strong>而有人，仍在路上。</strong></p>
+        <a href="yhzd.html">回到营火之地 <span aria-hidden="true">↗</span></a>
+      </div>
     </div>
- <!-- 页脚 -->
-
-<footer>
-
-    <div class="footer-note">
-
-        世界仍有微光。<br>
-        而有人，仍在路上。
-
-    </div>
-
-    <!-- 营火入口 -->
-
-    <a class="campfire-link" href="yhzd.html">
-        ✦ 营火之地
-    </a>
-
-    <p>© 2026 步道 budao.org <span class="truil-footer-signature">TRUIL MINISTERIUM INTERNATIONAL</span></p>
-
-</footer>
+    <footer class="spark-footer">
+      <span>© 2026 步道 budao.org</span>
+      <span>TRUIL MINISTERIUM INTERNATIONAL</span>
+    </footer>
+  </main>
+</body>
+</html>
