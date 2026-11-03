@@ -10,6 +10,7 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body.campfire-page [hidden] { display: none !important; }
 body.campfire-page {
   margin: 0;
   background: var(--camp-ink);
