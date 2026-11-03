@@ -23,6 +23,7 @@ body{touch-action:none}
 <canvas id="residentSheepLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script src="/pasture-stars.js"></script>
 <script src="/pasture-sky-engine.js"></script>
+<script src="/pasture-sun-moon-track.js"></script>
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
@@ -379,7 +380,10 @@ function drawCelestial(now,cloud,c){
   ctx.save();
   ctx.beginPath();ctx.rect(0,0,480,LANDSCAPE_SKY_BOTTOM);ctx.clip();
 
-  const sunXY=project(skyState.sun),sa=sunAlpha(c.weatherCode,cloud);
+  const segment=window.BudaoPastureTrack?.segmentAt(now,state.astronomy);
+  const sunXY=segment?.body==='sun'?window.BudaoPastureTrack.positionAt({
+    progress:segment.progress,width:480,skyBottom:LANDSCAPE_SKY_BOTTOM,radiusPx:13
+  }):null,sa=sunAlpha(c.weatherCode,cloud);
   if(sunXY&&sa>0){
     ctx.save();ctx.globalAlpha=sa;
     rect(sunXY.x-13,sunXY.y-13,26,26,'rgba(255,248,199,.72)');
@@ -410,7 +414,9 @@ function drawCelestial(now,cloud,c){
     if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*480,mf.tailY*LANDSCAPE_SKY_BOTTOM);ctx.lineTo(mf.x*480,mf.y*LANDSCAPE_SKY_BOTTOM);ctx.stroke();rect(mf.x*480,mf.y*LANDSCAPE_SKY_BOTTOM,1,1,'#ffffff');ctx.restore()}
   }
 
-  const moonXY=sky.projectDiscHorizontal({altitudeDeg:skyState.moon.altitudeDeg,azimuthDeg:skyState.moon.azimuthDeg,centerAzimuthDeg:skyState.centerAzimuthDeg,width:480,skyTop:0,skyBottom:LANDSCAPE_SKY_BOTTOM,radiusPx:8});
+  const moonXY=segment?.body==='moon'?window.BudaoPastureTrack.positionAt({
+    progress:segment.progress,width:480,skyBottom:LANDSCAPE_SKY_BOTTOM,radiusPx:8
+  }):null;
   if(moonXY){const mv=sky.moonVisualProfile(skyState.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(skyState.moon.phase)||0,skyState.moon,mv)}
   ctx.restore();
 }
