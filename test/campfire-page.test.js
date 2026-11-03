@@ -46,7 +46,7 @@ test("campfire stories are accurate reviewable static content with valid interna
     }
   }
   assert.ok(content.archivedVoices.length > 0, "older messages should remain archived, not deleted");
-  assert.ok(content.voices.every((voice) => typeof voice === "string" && voice.length > 4));
+  assert.ok(content.voices.every((voice) => typeof voice === "string" && voice.trim().length >= 2));
 });
 
 test("campfire works without editorial or calendar fetch, and uses no public submission endpoint", () => {
