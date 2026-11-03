@@ -1,0 +1,241 @@
+/* 营火之地 · 独立视觉系统，不修改站点其他模块 */
+:root {
+  --camp-ink: #101713;
+  --camp-ink-2: #17211a;
+  --camp-paper: #f5f0e7;
+  --camp-text: #f7f0e2;
+  --camp-muted: #b4b6a9;
+  --camp-gold: #e2a56d;
+  --camp-line: rgba(247, 236, 214, .16);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body.campfire-page {
+  margin: 0;
+  background: var(--camp-ink);
+  color: var(--camp-text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft Yahei", sans-serif;
+  overflow-x: clip;
+}
+.campfire-page a { color: inherit; }
+.campfire-page a:focus-visible,
+.campfire-page button:focus-visible { outline: 2px solid #ffd69f; outline-offset: 5px; }
+.campfire-page p { color: inherit; }
+.campfire-page h1, .campfire-page h2, .campfire-page h3, .campfire-page p { margin-top: 0; }
+.campfire-page h1, .campfire-page h2, .campfire-page h3 { font-weight: 400; }
+.campfire-page img { max-width: 100%; }
+.campfire-page button { font: inherit; }
+.campfire-page main.camp-main { display: block; max-width: none; padding: 0; margin: 0; }
+.campfire-page main.camp-main section { margin-bottom: 0; text-align: left; }
+.camp-container { width: min(1180px, calc(100% - 96px)); margin-inline: auto; }
+.camp-skip { position: absolute; top: -100px; left: 20px; z-index: 100; background: #fff; color: #111 !important; padding: 12px 20px; }
+.camp-skip:focus { top: 12px; }
+.campfire-page nav.camp-nav {
+  position: relative; z-index: 8;
+  min-height: 65px; padding: 17px 24px;
+  background: #080d0b; border-bottom: 1px solid var(--camp-line);
+  display: flex; justify-content: center; flex-wrap: nowrap; gap: clamp(20px, 3.1vw, 44px); overflow-x: auto;
+}
+.campfire-page nav.camp-nav a { color: #e7e7df; font-size: 16px; text-decoration: none; letter-spacing: .09em; flex: 0 0 auto; transition: color .2s; }
+.campfire-page nav.camp-nav a:hover { color: var(--camp-gold); opacity: 1; }
+.campfire-page header.camp-hero {
+  padding: 0; background: radial-gradient(ellipse at 75% 60%, rgba(104,70,40,.2), transparent 38%), linear-gradient(145deg,#0b1410,#101914 53%,#0d120f);
+  min-height: min(780px, calc(100svh - 65px));
+  position: relative; overflow: hidden; text-align: left;
+}
+.camp-hero::after { content: ""; position: absolute; inset: 0; opacity: .15; pointer-events: none;
+  background-image: radial-gradient(#f7eed6 .7px, transparent .8px);
+  background-size: 38px 38px; mask-image: linear-gradient(135deg, transparent 10%,#000 96%);
+}
+.camp-glow { pointer-events: none; position: absolute; border-radius: 50%; filter: blur(10px); }
+.camp-glow-one { width: 600px; height: 600px; right: -180px; top: 12%; background: radial-gradient(circle, rgba(181,92,37,.20) 0, rgba(169,97,42,.06) 40%, transparent 72%); }
+.camp-glow-two { width: 300px; height: 300px; left: 6%; bottom: -180px; background: radial-gradient(circle, rgba(167,91,42,.12), transparent 72%); }
+.camp-hero-inner { position: relative; z-index: 1; min-height: 680px; padding-block: 104px 122px; display: grid; grid-template-columns: minmax(0,1.06fr) minmax(0,.94fr); align-items: center; gap: clamp(42px,5vw,80px); }
+.camp-hero-copy { position: relative; z-index: 2; }
+.camp-overline,.camp-eyebrow { font-size: 11px !important; line-height: 1.7 !important; letter-spacing: .23em; text-transform: uppercase; font-weight: 500; }
+.camp-overline { color: #dcb68e !important; margin-bottom: 36px; }
+.camp-flame { font-size: 20px; margin-right: 9px; color: var(--camp-gold); vertical-align: -2px; }
+.campfire-page .camp-hero h1 {
+  max-width: none; margin: 0 0 24px; font-family: "Songti SC", "Noto Serif CJK SC", "SimSun", serif;
+  font-size: clamp(70px, 7.8vw, 124px); letter-spacing: .06em; line-height: 1.14;
+  font-weight: 500; color: #fff3df;
+}
+.camp-hero h1 span { color: #e1ad7b; }
+.campfire-page .camp-hero-statement {
+  margin-bottom: 22px; font-family: "Songti SC","Noto Serif CJK SC",serif;
+  color: #f4e6d1; line-height: 1.6; font-size: clamp(24px, 2.5vw, 36px); letter-spacing: .07em;
+}
+.campfire-page .camp-hero-lede { max-width: 440px; color: #c5c6b9; font-size: 15px; line-height: 2.1; letter-spacing: .03em; }
+.camp-actions { margin-top: 38px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.camp-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 52px; padding: 14px 20px; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: .04em; transition: transform .2s, background .2s, border-color .2s; }
+.camp-button:hover { transform: translateY(-2px); }
+.camp-button-primary { color: #172017 !important; background: #e8b47e; border: 1px solid #e8b47e; }
+.camp-button-primary:hover { background: #f5c48d; }
+.camp-button-quiet { color: #dbd2c3 !important; border-bottom: 1px solid rgba(247,236,214,.44); padding-inline: 5px; }
+.camp-button-outline { color: #f4e8d4 !important; border: 1px solid rgba(244,232,212,.52); }
+.camp-button-outline:hover { background: rgba(255,255,255,.08); }
+.camp-hero-visual { height: 510px; position: relative; isolation: isolate; }
+.camp-hero-photo { position: absolute; margin: 0; overflow: hidden; background: #293028; border: 1px solid rgba(251,226,188,.15); box-shadow: 0 40px 80px rgba(0,0,0,.25); }
+.camp-hero-photo::after { content: ""; position: absolute; inset: 35% 0 0; background: linear-gradient(transparent, rgba(3,9,6,.84)); pointer-events: none; }
+.camp-hero-photo img { width: 100%; height: 100%; display: block; object-fit: cover; filter: saturate(.8) sepia(.13); }
+.camp-hero-photo-large { left: 0; top: 8px; width: 71%; height: 82%; transform: rotate(-3deg); }
+.camp-hero-photo-small { right: -6px; top: 23%; width: 48%; height: 66%; transform: rotate(5deg); }
+.camp-hero-photo figcaption { position: absolute; z-index: 1; bottom: 20px; left: 20px; right: 18px; font: 19px/1.5 "Songti SC",serif; color: #f9f4e6; text-shadow: 0 2px 10px #000; }
+.camp-hero-photo figcaption small { display: block; color: #e4c5a1; font: 11px/1.6 sans-serif; letter-spacing: .1em; margin-top: 5px; }
+.camp-orbit { position: absolute; z-index: -1; width: 360px; height: 360px; border: 1px solid rgba(222,171,117,.23); border-radius: 50%; right: -9%; top: 0; box-shadow: 0 0 100px rgba(195,110,48,.1); }
+.camp-scroll-cue { position: absolute; z-index: 2; left: 50%; bottom: 28px; transform: translateX(-50%); text-decoration: none; color: #a4a79b !important; font-size: 11px; letter-spacing: .18em; white-space: nowrap; }
+.camp-scroll-cue span { margin-left: 8px; color: var(--camp-gold); }
+.camp-subnav { position: relative; z-index: 2; border-block: 1px solid var(--camp-line); background: #131c16; }
+.camp-subnav-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 76px; }
+.camp-subnav-sign { color: #ddb37d; font: 16px "Songti SC",serif; white-space: nowrap; }
+.camp-subnav a { text-decoration: none; font-size: 12px; letter-spacing: .07em; color: #b6c0b2 !important; white-space: nowrap; }
+.camp-subnav a:hover { color: #f0be83 !important; }
+.camp-intro { padding-block: 144px 157px; display: grid; grid-template-columns: 1fr 1fr; gap: 14%; }
+.camp-eyebrow { color: var(--camp-gold) !important; margin-bottom: 24px; }
+.campfire-page h2 { font-family: "Songti SC","Noto Serif CJK SC",serif; line-height: 1.45; letter-spacing: .04em; }
+.campfire-page .camp-intro h2 { font-size: clamp(30px, 3.3vw, 46px); color: #f9f0de; }
+.camp-intro h2 em { color: #dda56f; font-style: normal; }
+.campfire-page .camp-intro-text p { font-size: 16px; color: #c5c8bc; line-height: 2.25; margin-bottom: 20px; }
+.campfire-page .camp-intro-text .camp-intro-script { margin-top: 25px; color: #ddab76; font: 21px/1.8 "Songti SC",serif; }
+.camp-section { padding-block: 112px 130px; }
+.camp-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; margin-bottom: 44px; }
+.campfire-page .camp-section-head h2 { font-size: clamp(34px, 3.6vw, 52px); color: #fcf3e5; margin-bottom: 0; }
+.campfire-page .camp-section-head > p { font-size: 14px; color: #b3bdb0; line-height: 2; margin: 0 0 5px; }
+.camp-section-programs { background: #1b261d; }
+.camp-program-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 22px; }
+.camp-program { display: flex; flex-direction: column; position: relative; isolation: isolate; border: 1px solid rgba(236,229,207,.13); min-height: 430px; background: #243126; overflow: hidden; text-decoration: none; }
+.camp-program .camp-card-photo { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; filter: brightness(.72) saturate(.76); transition: transform .7s, filter .5s; }
+.camp-program::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(12,22,14,.17) 0, rgba(13,22,15,.34) 26%, rgba(6,17,10,.94) 100%); }
+.camp-program:hover .camp-card-photo { transform: scale(1.05); filter: brightness(.86) saturate(.9); }
+.camp-program--graphic { background: radial-gradient(circle at 78% 19%,rgba(220,159,87,.22),transparent 35%),linear-gradient(135deg,#3a3325,#1c2b22); }
+.camp-program-content { margin-top: auto; padding: 34px 36px; }
+.camp-program-index { font: 11px sans-serif; letter-spacing: .2em; color: #f4c38d; }
+.camp-program-icon { position: absolute; top: 34px; right: 34px; font: 54px "Songti SC",serif; color: #d5a16a; opacity: .6; }
+.campfire-page .camp-program h3 { font: 36px/1.3 "Songti SC",serif; margin: 15px 0 12px; color: #fff6e9; }
+.campfire-page .camp-program p { font-size: 14px; line-height: 1.9; color: #e1e5d9; margin: 0; max-width: 420px; }
+.camp-program-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.27); color: #e8ba8b; font-size: 12px; letter-spacing: .06em; }
+.camp-stories { background: #111b16; }
+.camp-story-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+.camp-story { border: 1px solid var(--camp-line); background: #1b251d; min-width: 0; overflow: hidden; }
+.camp-story-image { height: 220px; overflow: hidden; background: #2b3328; }
+.camp-story-image img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s; }
+.camp-story:hover .camp-story-image img { transform: scale(1.045); }
+.camp-story-body { padding: 25px 25px 30px; }
+.camp-story-place { color: var(--camp-gold) !important; font-size: 11px !important; line-height: 1.8 !important; letter-spacing: .15em; margin-bottom: 12px; }
+.campfire-page .camp-story h3 { color: #f6ead5; font: 25px/1.4 "Songti SC",serif; margin-bottom: 13px; }
+.campfire-page .camp-story-body > p:not(.camp-story-place) { font-size: 13px; line-height: 2.05; color: #b8c0b5; min-height: 80px; }
+.camp-story a { display: inline-flex; gap: 15px; margin-top: 9px; text-decoration: none; color: #e9b57f !important; font-size: 12px; border-bottom: 1px solid #996d49; padding-bottom: 5px; }
+.camp-story a:hover,.camp-section-more a:hover { color: #fff5df !important; }
+.camp-section-more { text-align: right; margin-top: 27px; }
+.camp-section-more a { text-decoration: none; color: #ddb485 !important; border-bottom: 1px solid #8c6b4d; padding-bottom: 8px; font-size: 13px; }
+.camp-voices { padding: 130px 0 120px; background: radial-gradient(ellipse at 50% 0,rgba(172,99,50,.14), transparent 49%), #131a14; }
+.camp-voices-heading { text-align: center; max-width: 680px; margin: 0 auto 62px; }
+.campfire-page .camp-voices-heading h2 { font-size: clamp(33px,3.5vw,50px); color: #f7ead5; }
+.campfire-page .camp-voices-heading > p:last-child { font-size: 13px; line-height: 2; color: #aeb6aa; }
+.camp-voices-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; min-height: 245px; }
+.camp-voice { padding: 33px 29px 26px; border: 1px solid rgba(231,183,127,.2); background: rgba(250,237,209,.035); display: flex; flex-direction: column; min-height: 235px; }
+.camp-voice-mark { color: #d79f66; font: 40px/1 Georgia,serif; }
+.campfire-page .camp-voice blockquote { margin: 15px 0 22px; font: 21px/1.8 "Songti SC",serif; color: #efe4d2; flex: 1; }
+.camp-voice-label { color: #a6a99d; font-size: 11px; letter-spacing: .16em; }
+.camp-text-button { display: block; margin: 35px auto 0; background: none; color: #e9b681; border: none; border-bottom: 1px solid #966e4b; padding: 10px 4px; cursor: pointer; font-size: 13px; }
+.camp-text-button:hover { color: #fff3e0; }
+.camp-upcoming { background: #203025; }
+.camp-upcoming-layout { display: grid; grid-template-columns: .82fr 1.18fr; gap: 9%; }
+.campfire-page .camp-upcoming-intro h2 { font-size: clamp(34px, 4.5vw, 54px); color: #f9eddb; margin-bottom: 24px; }
+.campfire-page .camp-upcoming-intro > p:not(.camp-eyebrow) { font-size: 14px; line-height: 2.1; color: #c7cdbf; }
+.camp-upcoming-intro .camp-button { margin-top: 22px; }
+.camp-upcoming-list { min-width: 0; }
+.camp-upcoming-item { padding: 22px 0; display: grid; grid-template-columns: 87px 1fr auto; gap: 18px; align-items: center; border-bottom: 1px solid var(--camp-line); }
+.camp-upcoming-item:first-child { border-top: 1px solid var(--camp-line); }
+.camp-event-date { font: 25px/1.3 Georgia,serif; color: #e8b67d; }
+.camp-event-date small { display: block; font: 11px sans-serif; color: #a8afa2; margin-top: 4px; letter-spacing: .1em; }
+.campfire-page .camp-upcoming-item h3 { font: 19px/1.5 "Songti SC",serif; color: #f6efdf; margin-bottom: 7px; }
+.campfire-page .camp-upcoming-item p { color: #bbc3b7; font-size: 12px; line-height: 1.6; margin-bottom: 0; }
+.camp-upcoming-item a { font-size: 20px; text-decoration: none; color: #e2b17f; padding: 8px; }
+.camp-event-empty { padding: 45px 30px; background: rgba(0,0,0,.13); border: 1px solid var(--camp-line); }
+.camp-event-empty strong { font: 24px/1.4 "Songti SC",serif; color: #f2dfc5; font-weight: normal; }
+.campfire-page .camp-event-empty p { font-size: 13px; line-height: 2; color: #bcc8ba; margin: 12px 0 0; }
+.camp-invitation { background: #121a15; text-align: center !important; position: relative; overflow: hidden; padding: 136px 0 132px; }
+.camp-invitation-glow { position: absolute; pointer-events: none; width: 650px; height: 650px; top: -250px; left: 50%; transform: translateX(-50%); background: radial-gradient(circle,rgba(196,118,53,.23),transparent 66%); }
+.camp-invitation-inner { position: relative; }
+.campfire-page .camp-invitation h2 { color: #f7ead5; font-size: clamp(38px,5vw,64px); margin-bottom: 21px; }
+.campfire-page .camp-invitation p:not(.camp-eyebrow):not(.camp-share-status) { color: #bfcbbe; font-size: 15px; line-height: 2.2; }
+.camp-actions-centered { justify-content: center; }
+.camp-share { border: none; border-bottom: 1px solid #8f7658; background: none; cursor: pointer; font-size: 12px; color: #d7b284; padding: 10px 2px; margin-top: 25px; }
+.camp-share:hover { color: #fff0d7; }
+.campfire-page .camp-share-status { min-height: 1.5em; font-size: 12px; color: #d7b284; margin: 10px 0 0; }
+.campfire-page footer.camp-footer { background: #080d0a; padding: 55px 0 26px; color: #9ca698; text-align: left; }
+.camp-footer-inner { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; }
+.camp-footer-brand { font: 28px "Songti SC",serif; color: #f4e6cf !important; text-decoration: none; }
+.camp-footer-brand span { font: 11px sans-serif; letter-spacing: .26em; color: #bb9e77; margin-left: 7px; }
+.campfire-page .camp-footer-inner p { font-size: 12px; color: #949f92; margin: 15px 0 0; }
+.camp-footer-links { display: flex; gap: 26px; flex-wrap: wrap; }
+.camp-footer-links a { color: #bcc4b8 !important; font-size: 12px; text-decoration: none; }
+.camp-footer-links a:hover { color: #e8b681 !important; }
+.campfire-page .camp-footer-bottom { text-align: center; font-size: 11px; color: #6d796e; margin: 65px 0 0; letter-spacing: .04em; }
+.camp-loading { color: #b9bbaf !important; grid-column: 1/-1; padding: 36px 0; font-size: 14px !important; }
+.camp-nonscript { padding: 20px; }
+@media (max-width: 970px) {
+  .camp-hero-inner { grid-template-columns: 1fr 0.85fr; min-height: 610px; gap: 18px; padding-block: 90px; }
+  .camp-hero-visual { height: 420px; }
+  .camp-hero-photo figcaption { font-size: 16px; }
+  .camp-intro { gap: 8%; }
+  .camp-container { width: min(100% - 58px,1180px); }
+  .camp-story-grid { gap: 12px; }
+  .camp-story-body { padding: 20px; }
+  .camp-story-image { height: 180px; }
+}
+@media (max-width: 700px) {
+  html { scroll-padding-top: 22px; }
+  .camp-container { width: min(100% - 36px,1180px); }
+  .campfire-page nav.camp-nav { gap: clamp(9px,2.8vw,15px); padding-inline: 8px; }
+  .campfire-page nav.camp-nav a { font-size: clamp(13px,3.5vw,15px); letter-spacing: 0; }
+  .campfire-page header.camp-hero { min-height: unset; }
+  .camp-hero-inner { display: flex; flex-direction: column; align-items: stretch; min-height: 0; padding-block: 76px 87px; gap: 60px; }
+  .campfire-page .camp-hero h1 { font-size: clamp(65px, 14vw, 92px); letter-spacing: .02em; }
+  .camp-overline { font-size: 9px !important; letter-spacing: .14em; margin-bottom: 29px; }
+  .campfire-page .camp-hero-statement { font-size: clamp(25px, 6vw, 33px); }
+  .campfire-page .camp-hero-lede { font-size: 14px; }
+  .camp-hero-visual { height: 300px; margin: 0 12px; }
+  .camp-hero-photo-large { width: 68%; height: 95%; }
+  .camp-hero-photo-small { top: 23%; height: 76%; }
+  .camp-hero-photo figcaption { font-size: 14px; left: 13px; bottom: 13px; }
+  .camp-hero-photo figcaption small { font-size: 9px; }
+  .camp-scroll-cue { bottom: 19px; }
+  .camp-subnav-inner { overflow-x: auto; gap: 25px; min-height: 66px; scrollbar-width: none; }
+  .camp-subnav-sign { flex: 0 0 auto; }
+  .camp-intro { grid-template-columns: 1fr; gap: 24px; padding-block: 95px; }
+  .campfire-page .camp-intro h2 { font-size: clamp(30px,8vw,40px); }
+  .campfire-page .camp-intro-text p { font-size: 14px; }
+  .camp-section { padding-block: 84px 96px; }
+  .camp-section-head { display: block; margin-bottom: 28px; }
+  .campfire-page .camp-section-head h2 { font-size: 36px; }
+  .campfire-page .camp-section-head > p { margin-top: 17px; }
+  .camp-program-grid { grid-template-columns: 1fr; gap: 16px; }
+  .camp-program { min-height: 365px; }
+  .camp-program-content { padding: 27px; }
+  .campfire-page .camp-program h3 { font-size: 31px; }
+  .camp-story-grid { grid-template-columns: 1fr; gap: 19px; }
+  .camp-story-image { height: clamp(200px,55vw,300px); }
+  .camp-story-body { padding: 25px; }
+  .campfire-page .camp-story-body > p:not(.camp-story-place) { min-height: 0; }
+  .camp-voices { padding-block: 90px; }
+  .camp-voices-grid { grid-template-columns: 1fr; min-height: 0; gap: 12px; }
+  .camp-voice { min-height: 0; padding: 22px 23px; }
+  .campfire-page .camp-voice blockquote { font-size: 20px; }
+  .camp-upcoming-layout { grid-template-columns: 1fr; gap: 38px; }
+  .camp-invitation { padding-block: 95px; }
+  .camp-actions-centered { flex-direction: column; align-items: stretch; max-width: 330px; margin-inline: auto; }
+  .camp-footer-inner { flex-direction: column; gap: 35px; }
+  .camp-footer-links { gap: 17px; }
+  .campfire-page .camp-footer-bottom { line-height: 1.8; margin-top: 40px; }
+}
+@media (max-width: 410px) {
+  .camp-actions:not(.camp-actions-centered) { align-items: stretch; flex-direction: column; }
+  .camp-button { width: 100%; }
+  .camp-upcoming-item { grid-template-columns: 75px 1fr auto; gap: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
