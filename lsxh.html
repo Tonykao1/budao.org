@@ -364,6 +364,46 @@ body{
 
 </style>
 <style>
+/* 小柒私厨：订餐号码初始隐藏，点击后展开；手机端号码可以直接拨打。 */
+.xiaoqi-order {
+    margin-top: auto;
+}
+.xiaoqi-order > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    cursor: pointer;
+    color: #171717;
+    font-size: 12px;
+    letter-spacing: 2px;
+    transition: letter-spacing .3s ease;
+}
+.xiaoqi-order > summary::-webkit-details-marker { display: none; }
+.xiaoqi-order > summary::marker { content: ""; }
+.xiaoqi-order > summary:hover { letter-spacing: 4px; }
+.xiaoqi-order > summary:focus-visible {
+    outline: 2px solid #8f795c;
+    outline-offset: 5px;
+}
+.xiaoqi-order-contact {
+    padding-top: 14px;
+    color: #171717;
+}
+.xiaoqi-order-contact a {
+    display: inline-block;
+    margin-top: 0;
+    color: inherit;
+    letter-spacing: 1px;
+    font-size: 15px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+    .xiaoqi-order > summary { transition: none; }
+}
+</style>
+<style>
 .truil-footer-signature { display: inline-block; margin-inline-start: 1.4em; font-weight: 300; font-size: .95em; letter-spacing: .035em; opacity: .78; }
 @media (max-width: 620px) { .truil-footer-signature { margin-inline-start: .75em; } }
 </style>
@@ -384,6 +424,42 @@ body{
 @media(max-width:900px) {
  .lsxh-carousel .grid { display:flex; gap:20px; grid-template-columns:none; }
  .lsxh-carousel .grid > .card { width:min(82vw,390px); flex-basis:min(82vw,390px); }
+}
+
+/* 路上星火卡片的介绍与见证：统一左对齐，保留页面顶部的居中主标题。 */
+.lsxh-carousel .card-content,
+.lsxh-carousel .card-location,
+.lsxh-carousel .card h2,
+.lsxh-carousel .card-content p {
+    text-align: left;
+}
+.lsxh-carousel .card-content p {
+    line-height: 1.95;
+    letter-spacing: .015em;
+}
+.lsxh-carousel .card-location { line-height: 1.7; }
+.lsxh-carousel .card-overlay {
+    justify-content: flex-start;
+    align-items: flex-start;
+    /* Keep the original card-overlay background and blur unchanged. */
+}
+.lsxh-carousel .card-overlay .overlay-text {
+    width: 100%;
+    text-align: left;
+    border-left: 2px solid #b4a48c;
+    padding: 2px 0 2px 13px;
+    color: #2a2825 !important;
+    text-shadow: none;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.85;
+    letter-spacing: .01em;
+}
+@media (max-width: 900px) {
+    .lsxh-carousel .card-overlay .overlay-text {
+        font-size: 12.5px;
+        line-height: 1.75;
+    }
 }
 </style>
 <script defer>
@@ -440,8 +516,17 @@ body{
     }
     root.querySelector("[data-spark-prev]")?.addEventListener("click", () => move(-1));
     root.querySelector("[data-spark-next]")?.addEventListener("click", () => move(1));
-    root.addEventListener("mouseenter", () => { hover = true; });
-    root.addEventListener("mouseleave", () => { hover = false; });
+    // Desktop: auto-scroll continues when the pointer is in empty carousel space.
+    // Pause only while the mouse is actually over a story card, so the words can be read.
+    viewport.addEventListener("pointerover", (event) => {
+      if (event.pointerType === "mouse" && event.target.closest(".card")) hover = true;
+    });
+    viewport.addEventListener("pointerout", (event) => {
+      if (event.pointerType === "mouse") {
+        hover = Boolean(event.relatedTarget && event.relatedTarget.closest && event.relatedTarget.closest(".card"));
+      }
+    });
+    viewport.addEventListener("pointerleave", () => { hover = false; });
     root.addEventListener("focusin", () => { focus = true; });
     root.addEventListener("focusout", () => { focus = root.contains(document.activeElement); });
     viewport.addEventListener("touchstart", () => { touching = true; hold(6000); }, {passive:true});
@@ -667,6 +752,61 @@ body{
                 <a href="mailto:Liumonic@gmail.com">
                     欲购书或小坐 →
                 </a>
+
+            </div>
+
+        </div>
+
+        <!-- 卡片4：北京 · 小柒私厨 -->
+        <div class="card">
+
+            <div class="image-wrapper">
+
+                <img
+                    src="images/xiaoqi-private-kitchen.webp"
+                    alt="北京小柒私厨鲜花环绕的庭院和店门"
+                    loading="lazy"
+                    decoding="async">
+
+                <div class="card-overlay">
+
+                    <div class="overlay-text">
+                        “这是独属于我的一方小天地，能在入世与出世之间自由转换。用心做饭、慢炖牛肉，也读书、听歌、种花。
+                        <br><br>
+                        走过一路才懂：世上本无捷径。脚踏实地做事，光明磊落做人，就是最大的捷径。
+                        <br><br>
+                        我就在这儿，不争不抢，安守本位，用心做好每一碗牛肉饭。
+                        欢迎有缘的你来坐坐，尝一尝每天现炖的大块牛肉。”
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="card-content">
+
+                <div class="card-location">
+                    北京 · 社区私厨与暖心餐食
+                </div>
+
+                <h2>
+                    小柒私厨
+                </h2>
+
+                <p>
+                    在北京的一处社区里，有这样一间小小的私厨。
+                    店主一边用心炒菜、慢炖牛肉，一边读书、听歌、种花。
+                    每天现炖的大块牛肉，配上两样素菜与热米饭。
+                    对她而言，踏实做好每一碗饭，不仅是谋生，
+                    也是以诚实、耐心与温暖款待身边的人。
+                </p>
+
+                <details class="xiaoqi-order">
+                    <summary>订餐请进 <span aria-hidden="true">→</span></summary>
+                    <div class="xiaoqi-order-contact">
+                        <a href="tel:+8613911278107" aria-label="拨打小柒私厨订餐电话 13911278107">13911278107 <span aria-hidden="true">↗</span></a>
+                    </div>
+                </details>
 
             </div>
 
