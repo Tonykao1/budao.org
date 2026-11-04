@@ -84,7 +84,8 @@ test("34 条原版留言全部保留并且不虚构评论归属", () => {
     assert.equal(photo.src, `/campfire-photos/261003/261003-${String(i + 1).padStart(2, "0")}.jpg`);
     assert.ok(exists(photo.src), `261003 photo ${i + 1} must exist in the repo`);
   }
-  assert.equal(baodi.photos.filter((photo) => photo.caption.includes("餐桌")).length, 1, "只保留一张餐食特写");
+  assert.equal(baodi.photos.filter((photo) => photo.alt.includes("螃蟹")).length, 1, "只保留一张餐食特写");
+  assert.ok(baodi.photos.every((photo) => !/窗边|窗外/.test(photo.alt)), "舍弃窗边人物的餐食全景");
   assert.equal(archive.albums.filter((album) => album.published).reduce((n, a) => n + a.photos.length, 0), 22);
   for (const album of archive.albums) {
     if (!album.published) continue;
