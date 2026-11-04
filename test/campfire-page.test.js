@@ -74,15 +74,18 @@ test("34 条原版留言全部保留并且不虚构评论归属", () => {
     assert.ok(exists(photo.src), `261010 photo ${i + 1} must exist in the repo`);
   }
   const baodi = archive.albums.find((album) => album.id === "261003");
-  assert.ok(baodi, "261003 麦浪之约应有预备相册");
+  assert.ok(baodi, "261003 麦浪之约应有相册");
   assert.equal(baodi.date, "2026-10-03");
   assert.equal(baodi.title, "天津·宝坻·麦浪之约");
-  assert.equal(baodi.published, false, "未取得本期明确公开许可前不得上线");
-  assert.equal(baodi.photos.length, 5);
-  assert.ok(baodi.photos.every((photo) => photo.approved === false && photo.alt && photo.caption));
+  assert.equal(baodi.published, true);
+  assert.equal(baodi.photos.length, 4, "两张餐食照片只保留一张");
+  assert.ok(baodi.photos.every((photo) => photo.approved === true && photo.alt && photo.caption));
   for (const [i, photo] of baodi.photos.entries()) {
     assert.equal(photo.src, `/campfire-photos/261003/261003-${String(i + 1).padStart(2, "0")}.jpg`);
+    assert.ok(exists(photo.src), `261003 photo ${i + 1} must exist in the repo`);
   }
+  assert.equal(baodi.photos.filter((photo) => photo.caption.includes("餐桌")).length, 1, "只保留一张餐食特写");
+  assert.equal(archive.albums.filter((album) => album.published).reduce((n, a) => n + a.photos.length, 0), 22);
   for (const album of archive.albums) {
     if (!album.published) continue;
     assert.ok(album.photos.some((photo) => photo.approved && exists(photo.src)), "Published albums need a real approved photo");
