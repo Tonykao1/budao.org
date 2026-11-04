@@ -252,6 +252,66 @@
       ]
     },
     {
+      "id": "260905",
+      "date": "2026-09-05",
+      "title": "聚灵峡勘线",
+      "location": "聚灵峡",
+      "description": "在山林之间寻找一条适合同行的路。沿途踏查林间小径、山坡木阶与山脊地形，远望层峦，细看草木与溪流。每一次认真勘线，都是为下一次相聚做预备。",
+      "published": true,
+      "photos": [
+        {
+          "src": "/campfire-photos/260905/260905-01.webp",
+          "alt": "沿木阶登山的人物，背景是连绵起伏的群山",
+          "caption": "沿木阶向上，认真踏查沿途路况",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260905/260905-02.webp",
+          "alt": "阳光透过林冠洒向山间土石小路",
+          "caption": "穿过林间，阳光照亮前方的小径",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260905/260905-03.webp",
+          "alt": "蓝天白云下，山坡与岩石构成开阔的远景",
+          "caption": "蓝天下的山坡，一朵白云停在峰顶旁",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260905/260905-04.webp",
+          "alt": "岩石山坡与通向山脊的木质栈道",
+          "caption": "岩坡与木阶交错，勾勒出山间道路",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260905/260905-05.webp",
+          "alt": "毛色灰黑的狗站在高处木质观景台上，面朝群山",
+          "caption": "山顶的特别同行者，也在远眺群峰",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260905/260905-06.webp",
+          "alt": "蓝天下远山层叠，群峰延伸至天际",
+          "caption": "登高远眺，层峦在蓝天下渐渐铺开",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260905/260905-07.webp",
+          "alt": "山间碎石地上一只橘红身体、细长足的节肢动物",
+          "caption": "留心脚下，也看见山野里的细小生命",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260905/260905-08.webp",
+          "alt": "林间溪水沿石块和浅滩流淌",
+          "caption": "山林深处，溪水沿着石间缓缓流过",
+          "approved": true
+        }
+      ],
+      "publishedOn": "2026-11-04",
+      "editorialNote": "管理员提供10张勘线实拍照片，去除两组完全重复的照片各1张，精选8张。2026-11-04授权合理排布并继续完成发布。独立勘线记录，不作为已经发布的日历线路处理。照片去除EXIF并优化为WebP。"
+    },
+    {
       "id": "260904",
       "date": "2026-09-04",
       "title": "同道小聚",
