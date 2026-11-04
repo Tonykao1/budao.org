@@ -184,6 +184,72 @@
       ],
       "publishedOn": "2026-11-04",
       "editorialNote": "超级管理员提供本期照片，于2026-11-04同意最终发布，并指示两张餐食照片只保留一张。编辑保留不含窗边人物的餐食特写，未发布另一张餐食全景。"
+    },
+    {
+      "id": "260926",
+      "routeId": "budao-bacbc",
+      "date": "2026-09-26",
+      "title": "月满中秋",
+      "location": "中国·北京·顺义·舞彩浅山",
+      "published": true,
+      "publishedOn": "2026-11-04",
+      "editorialNote": "管理员提供9张当日活动照片并于2026-11-04指示公开上传。已去除EXIF信息并优化网页图片尺寸；封面采用来稿第7张，结尾采用来稿第9张。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260926/260926-01.jpg",
+          "alt": "秋日山野中，多位同行者沿着狭窄山路结伴前行",
+          "caption": "远山为伴，一路同行",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-02.jpg",
+          "alt": "秋日树冠的绿叶与少许黄叶掩映着下方前行的同行者",
+          "caption": "透过树叶，看见同行的身影",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-03.jpg",
+          "alt": "红黄渐染的树叶映衬着延伸向林间的碎石步道",
+          "caption": "秋色渐起，山径蜿蜒",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-04.jpg",
+          "alt": "枝头绿色与金黄色的树叶交错，背景是柔和的山野秋色",
+          "caption": "秋叶在光影中渐渐变黄",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-05.jpg",
+          "alt": "阳光照亮近处红绿相间的羽状叶片，远处树林秋意渐浓",
+          "caption": "红叶映着秋日阳光",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-06.jpg",
+          "alt": "徒步者的脚步跨过木制台阶，石子路上铺满枯叶",
+          "caption": "一步一步，踏过落叶山路",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-07.jpg",
+          "alt": "常绿的针柏枝叶间结满褐色的小球果",
+          "caption": "山间常绿枝叶与球果",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-08.jpg",
+          "alt": "林间铺满落叶的石子小径，木制横阶一路伸向树荫深处",
+          "caption": "安静的林间小径",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260926/260926-09.jpg",
+          "alt": "山间木亭下，两位同行者面对面拥抱，旁边有人休息",
+          "caption": "亭中相拥，温暖地道别",
+          "approved": true
+        }
+      ]
     }
   ],
   "quoteSource": "营火之地旧版公开留言库（未逐条绑定活动场次）",
