@@ -40,7 +40,21 @@ test("34 条原版留言全部保留并且不虚构评论归属", () => {
   assert.ok(archive.featuredQuoteIndexes.every((i) => Number.isInteger(i) && i >= 0 && i < archive.quotes.length));
   assert.equal(new Set(archive.featuredQuoteIndexes).size, archive.featuredQuoteIndexes.length);
   assert.ok(Array.isArray(archive.albums));
-  assert.equal(archive.albums.length, 0, "没有经过确认的活动现场照片时，不能凭空补相册");
+  const march = archive.albums.find((album) => album.id === "261031");
+  assert.ok(march, "261031 活动应有相册记录");
+  assert.equal(march.date, "2026-10-31");
+  assert.equal(march.title, "鹿皮关·领袖行军");
+  assert.equal(march.published, true);
+  assert.equal(march.photos.length, 10);
+  assert.ok(march.photos.every((photo) => photo.approved === true && photo.alt && photo.caption));
+  for (const [i, photo] of march.photos.entries()) {
+    assert.equal(photo.src, `/campfire-photos/261031/261031-${String(i + 1).padStart(2, "0")}.jpg`);
+    assert.ok(exists(photo.src), `261031 photo ${i + 1} must exist in the repo`);
+  }
+  for (const album of archive.albums) {
+    if (!album.published) continue;
+    assert.ok(album.photos.some((photo) => photo.approved && exists(photo.src)), "Published albums need a real approved photo");
+  }
 });
 
 test("画廊明确区分现场照片与往期封面，没有错误宣传", () => {
