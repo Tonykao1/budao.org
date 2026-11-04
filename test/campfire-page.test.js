@@ -62,6 +62,17 @@ test("34 条原版留言全部保留并且不虚构评论归属", () => {
     assert.equal(photo.src, `/campfire-photos/261024/261024-${String(i + 1).padStart(2, "0")}.jpg`);
     assert.ok(exists(photo.src), `261024 photo ${i + 1} must exist in the repo`);
   }
+  const mountain = archive.albums.find((album) => album.id === "261010");
+  assert.ok(mountain, "261010 蟒山·国度·同行应有相册");
+  assert.equal(mountain.date, "2026-10-10");
+  assert.equal(mountain.title, "蟒山·国度·同行");
+  assert.equal(mountain.published, true);
+  assert.equal(mountain.photos.length, 6);
+  assert.ok(mountain.photos.every((photo) => photo.approved === true && photo.alt && photo.caption));
+  for (const [i, photo] of mountain.photos.entries()) {
+    assert.equal(photo.src, `/campfire-photos/261010/261010-${String(i + 1).padStart(2, "0")}.jpg`);
+    assert.ok(exists(photo.src), `261010 photo ${i + 1} must exist in the repo`);
+  }
   for (const album of archive.albums) {
     if (!album.published) continue;
     assert.ok(album.photos.some((photo) => photo.approved && exists(photo.src)), "Published albums need a real approved photo");
