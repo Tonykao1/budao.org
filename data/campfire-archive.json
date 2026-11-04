@@ -155,40 +155,35 @@
       "date": "2026-10-03",
       "title": "天津·宝坻·麦浪之约",
       "location": "中国·天津·宝坻",
-      "published": false,
-      "publicationNote": "2026-11-04用户提供本期5张活动照片及编号与标题。仅完成图像整理与相册资料预备；人物照片公开发布尚待本期明确确认。图片素材尚未加入网站仓库。",
+      "published": true,
       "photos": [
         {
           "src": "/campfire-photos/261003/261003-01.jpg",
           "alt": "林荫步道两侧树木成行，参加者沿道路向前步行",
           "caption": "树林深处，我们一起向前",
-          "approved": false
+          "approved": true
         },
         {
           "src": "/campfire-photos/261003/261003-02.jpg",
           "alt": "阳光穿过林荫道上的树枝，一群同行者结伴步行",
           "caption": "阳光洒在路上，同行的人也在身旁",
-          "approved": false
+          "approved": true
         },
         {
           "src": "/campfire-photos/261003/261003-03.jpg",
           "alt": "两位同行者走在植被繁茂的村间道路上，远处还有其他步行者",
           "caption": "沿着乡间的路，继续同行",
-          "approved": false
+          "approved": true
         },
         {
           "src": "/campfire-photos/261003/261003-04.jpg",
-          "alt": "相聚的餐桌上摆满螃蟹、薄饼、玉米、水果和其他食物，旁边窗外有人",
-          "caption": "走完路后，相聚在丰盛的餐桌前",
-          "approved": false
-        },
-        {
-          "src": "/campfire-photos/261003/261003-05.jpg",
           "alt": "餐桌上摆有熟螃蟹、薄饼、水果、蔬菜和其他食物",
           "caption": "丰盛的食物，记下相聚的时刻",
-          "approved": false
+          "approved": true
         }
-      ]
+      ],
+      "publishedOn": "2026-11-04",
+      "editorialNote": "超级管理员提供本期照片，于2026-11-04同意最终发布，并指示两张餐食照片只保留一张。编辑保留不含窗边人物的餐食特写，未发布另一张餐食全景。"
     }
   ],
   "quoteSource": "营火之地旧版公开留言库（未逐条绑定活动场次）",
