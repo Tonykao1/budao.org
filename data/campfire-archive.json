@@ -3,7 +3,81 @@
   "purpose": "仅用于步道回顾：照片、真实留言、往期线路。不得关联其他事工。",
   "photoPolicy": "所有现场影像需要核实来源、活动对应关系以及可公开展示的授权；旧线路封面不能冒充现场照片。",
   "note": "目前尚无经确认归属到具体步道场次并获公开授权的现场相册，页面会从既有公开线路档案中显示线路封面，并明确标注其性质。",
-  "albums": [],
+  "albums": [
+    {
+      "id": "261031",
+      "routeId": "budao-leader-tony",
+      "date": "2026-10-31",
+      "title": "鹿皮关·领袖行军",
+      "theme": "尊主为大",
+      "location": "中国·北京·密云",
+      "published": true,
+      "photos": [
+        {
+          "src": "/campfire-photos/261031/261031-01.jpg",
+          "alt": "秋日群山间的河流在山谷深处蜿蜒",
+          "caption": "河流穿过群山",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-02.jpg",
+          "alt": "高处眺望，白河沿着山谷弯曲流淌",
+          "caption": "白河秋色",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-03.jpg",
+          "alt": "远眺层叠山峦与水库的秋日全景",
+          "caption": "山野远眺",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-04.jpg",
+          "alt": "多名同行者沿落叶林中的狭窄山脊小路前行",
+          "caption": "沿山脊同行",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-05.jpg",
+          "alt": "身背背包的徒步队伍沿山路向前行进",
+          "caption": "向山而行",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-06.jpg",
+          "alt": "阴云下山间河流与层叠峭壁纵向全景",
+          "caption": "远山与河谷",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-07.jpg",
+          "alt": "同行者依次沿碎石山路攀升",
+          "caption": "山路上的身影",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-08.jpg",
+          "alt": "秋色山林中同行者登上山坡远望水面",
+          "caption": "走在秋色之中",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-09.jpg",
+          "alt": "山坡巨石崖壁与远处湖面",
+          "caption": "岩壁与远湖",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/261031/261031-10.jpg",
+          "alt": "秋叶映衬下远山与山脊上的古关遗迹",
+          "caption": "山谷里的古关",
+          "approved": true
+        }
+      ],
+      "publishedOn": "2026-11-04",
+      "editorialNote": "活动现场照片由主办方提供，并于2026-11-04明确确认公开发布；保留撤回及必要的个别照片下架处理。"
+    }
+  ],
   "quoteSource": "营火之地旧版公开留言库（未逐条绑定活动场次）",
   "featuredQuoteIndexes": [
     1,
