@@ -338,6 +338,114 @@
       ],
       "publishedOn": "2026-11-04",
       "editorialNote": "超级管理员提供本期现场照片，2026-11-04明确确认属于步道事工的同行聚会，并同意纳入营火之地。独立聚会相册，不冒认日历线路。 2026-11-04管理员追加两张同场景实拍湖畔照片，保留原晚霞首图，新增荷塘夕照与林荫水岸，照片已清除元数据并优化为WebP。"
+    },
+    {
+      "id": "260822",
+      "date": "2026-08-22",
+      "title": "宽沟VS窄门",
+      "location": "宽沟",
+      "description": "从树影斑驳的林间石阶到开阔的山野湖光，再到雨雾中的下山路，这一天既有晴空下的远眺，也有风雨里的彼此陪伴。宽阔的风景与窄窄的山径，都成为同行的一部分。",
+      "published": true,
+      "photos": [
+        {
+          "src": "/campfire-photos/260822/260822-01.webp",
+          "alt": "雨中同行者撑着红伞、身穿紫色和黄色雨衣走在山间小径上",
+          "caption": "红伞在雨中撑起一段同行的路",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-02.webp",
+          "alt": "高大的林木之间，石阶穿过绿草与树荫向远方延伸",
+          "caption": "石阶伸向林深处，前路在脚下展开",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-03.webp",
+          "alt": "木柱与铁链围护的石阶通往山坡，周围草木茂盛",
+          "caption": "沿着曲折石阶，一步步向上",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-04.webp",
+          "alt": "一位背包徒步者走在树木交错、铺着落叶的林间道路上",
+          "caption": "林间一段幽静小径，留下独行的背影",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-05.webp",
+          "alt": "一尊失去头部的石质人物像立在草丛与树林之间",
+          "caption": "山林中，一尊残损石像静静伫立",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-06.webp",
+          "alt": "林荫深处，大块石头覆盖着青绿的苔藓",
+          "caption": "覆满青苔的山石，藏着草木的时间",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-07.webp",
+          "alt": "青山绿树与蓝天白云相接，视线延伸至远处平原",
+          "caption": "穿出林荫，远处天空忽然开阔",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-08.webp",
+          "alt": "蓝天下的绿色平原与树林，远处有一座露出岩土的山丘",
+          "caption": "登高远望，山丘与平野尽收眼底",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-09.webp",
+          "alt": "群山树林间隐约可见一片红瓦屋顶建筑群",
+          "caption": "山下的红瓦屋顶，掩映在浓绿之间",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-10.webp",
+          "alt": "松树枝叶围出画框，湖面、群山和岸边建筑尽收眼底",
+          "caption": "借一扇松枝的窗，眺望湖光山色",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-11.webp",
+          "alt": "阴云与薄雾笼罩湖面，近处山脊上有一座亭子",
+          "caption": "阴云渐聚，湖面与小亭蒙上轻雾",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-12.webp",
+          "alt": "一列身穿雨衣的徒步者沿着树林中陡峭的石阶向上走",
+          "caption": "风雨里，同行的队伍继续前行",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-13.webp",
+          "alt": "身披透明雨衣的徒步者走上湿润的森林石阶",
+          "caption": "雨中的每一级石阶，都走得认真",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-14.webp",
+          "alt": "雨中身披不同颜色雨衣的同行者踏着山间石阶前行",
+          "caption": "山雨落下，大家仍沿着石阶向前",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-15.webp",
+          "alt": "撑伞和穿雨衣的徒步者沿着雾中石阶下行",
+          "caption": "雨雾迷蒙，脚下的路依然清楚",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260822/260822-16.webp",
+          "alt": "穿着红色雨披的同行者在山间石阶上伸手指向前方",
+          "caption": "雨中的一抹红色，定格同行的瞬间",
+          "approved": true
+        }
+      ],
+      "publishedOn": "2026-11-04",
+      "editorialNote": "根据管理员提供的260822·宽沟VS窄门活动实拍图片制作。16张均为不同画面，未发现完全重复；WebP优化并清除EXIF，优先呈现雨中同行，穿插林中石阶、晴日远眺、古石像和湖面；无未经核实的具体路线说明。"
     }
   ],
   "quoteSource": "营火之地旧版公开留言库（未逐条绑定活动场次）",
