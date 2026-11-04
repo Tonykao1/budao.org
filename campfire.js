@@ -21,7 +21,7 @@
   let quoteCount = 6;
   let gallery = [];
   let coverRecords = [];
-  let photoLimit = 22;
+  let photoLimit = 36;
   let activeFilter = "all";
   let visiblePhotos = [];
   let lightboxIndex = 0;
@@ -170,7 +170,7 @@
 
   function setGalleryFilter(kind) {
     activeFilter = kind;
-    photoLimit = 22;
+    photoLimit = 36;
     document.querySelectorAll("[data-filter]").forEach((button) => {
       const selected = button.dataset.filter === kind;
       button.classList.toggle("is-active", selected);
