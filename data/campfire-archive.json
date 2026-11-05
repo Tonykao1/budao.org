@@ -446,6 +446,89 @@
       ],
       "publishedOn": "2026-11-04",
       "editorialNote": "根据管理员提供的260822·宽沟VS窄门活动实拍图片制作。16张均为不同画面，未发现完全重复；WebP优化并清除EXIF，优先呈现雨中同行，穿插林中石阶、晴日远眺、古石像和湖面；无未经核实的具体路线说明。"
+    },
+    {
+      "id": "260816",
+      "date": "2026-08-16",
+      "title": "故城记忆",
+      "description": "从彩色廊架与林间绿道出发，穿过夏日的草木与荷塘，迎着晚霞继续同行。暮色落下，弯月升起，大家借着点点灯光走完这段夜路。",
+      "published": true,
+      "photos": [
+        {
+          "src": "/campfire-photos/260816/260816-01.webp",
+          "alt": "彩色廊架下的步道，蓝天与草地相映",
+          "caption": "彩色廊架，开启夏日的行走",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-02.webp",
+          "alt": "落日的光穿过白色树干的林间",
+          "caption": "夕阳在林间洒下金色光点",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-03.webp",
+          "alt": "轻纱覆盖的乡野休憩空间与彩色风车",
+          "caption": "晚霞映照着乡野的一角",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-04.webp",
+          "alt": "树木与绿草围绕的林间步道，几位行人在路上",
+          "caption": "在绿意深处相遇",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-05.webp",
+          "alt": "傍晚林间小径上，一行人结伴走向前方",
+          "caption": "沿着草木间的小径，一起走下去",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-06.webp",
+          "alt": "夕阳下的绿色草甸，小路延伸向远方的同行者",
+          "caption": "暮色渐起，同行的脚步没有停下",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-07.webp",
+          "alt": "晚霞映衬下的林木与静静开放的荷塘",
+          "caption": "荷塘与晚霞，留住这一刻",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-08.webp",
+          "alt": "树林中的编织蘑菇形景观装置",
+          "caption": "走进树林，遇见有趣的风景",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-09.webp",
+          "alt": "荷塘附近的乡野小屋和草木小径",
+          "caption": "暮光中的荷塘与小屋",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-10.webp",
+          "alt": "粉色晚霞下的剪影状花朵雕塑",
+          "caption": "天边的云霞，映出温柔的剪影",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-11.webp",
+          "alt": "夜幕与弯月之下，同行者走在狭窄小径上",
+          "caption": "月色初上，大家仍在路上",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260816/260816-12.webp",
+          "alt": "夜色中同行者借着手电光沿草丛小路行走",
+          "caption": "点点灯光，照亮归途",
+          "approved": true
+        }
+      ],
+      "editorialNote": "超级管理员提供 2026-08-16「故城记忆」12 张现场照片，并于 2026-11-05 确认正式发布。已清除 EXIF 并优化为 WebP；照片全部与档案目录对应。不推断参与者身份或具体地名。",
+      "publishedOn": "2026-11-05"
     }
   ],
   "quoteSource": "营火之地旧版公开留言库（未逐条绑定活动场次）",
