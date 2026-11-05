@@ -1256,16 +1256,22 @@ footer .footer-sister-links a:focus-visible {
  * 营火之地 retains its horizontal rainbow; 路上星火 flows vertically upward.
  */
 footer .footer-sister-links .spark-link {
+  /* Two identical color cycles make the loop boundary seamless. */
   background-image: linear-gradient(
     to top,
-    #ff6b6b,
-    #ffd93d,
-    #6bcb77,
-    #4d96ff,
-    #b983ff,
-    #ff6b6b
+    #ff6b6b 0%,
+    #ffd93d 10%,
+    #6bcb77 20%,
+    #4d96ff 30%,
+    #b983ff 40%,
+    #ff6b6b 50%,
+    #ffd93d 60%,
+    #6bcb77 70%,
+    #4d96ff 80%,
+    #b983ff 90%,
+    #ff6b6b 100%
   );
-  background-size: 100% 300%;
+  background-size: 100% 200%;
   background-position: 50% 0%;
   animation:
     sparkRainbowUp 8s linear infinite,
