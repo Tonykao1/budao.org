@@ -149,3 +149,45 @@ test("现场照片发布后获得永久水印，线路封面保持原图", () =>
   assert.ok(exists("/assets/budao-footprint-watermark.svg"));
   assert.ok(exists("/.github/workflows/campfire-watermark.yml"));
 });
+
+
+test("火光与回响系统坚持匿名无计数、仅对实拍开放及管理员审核", () => {
+  const client = read("campfire-interactions.js");
+  const backend = read("api/_security/campfire-handler.js");
+  const migration = read("db/migrations/20261106_campfire_interactions.sql");
+  const apiRouter = read("api/publish-route.js");
+  const vercel = JSON.parse(read("vercel.json"));
+  const route = vercel.rewrites.find(r => r.source === "/api/campfire");
+  assert.equal(route?.destination, "/api/publish-route?service=campfire");
+  assert.match(apiRouter, /require\('\.\/_security\/campfire-handler'\)/);
+
+  assert.match(html, /camp-conversation/);
+  assert.match(html, /camp-comment-form/);
+  assert.match(html, /camp-photo-spark/);
+  assert.match(html, /campfire-privacy\.html/);
+  assert.match(script, /item\.kind === "moment"/);
+  assert.match(script, /campfire:photo-open/);
+  assert.match(client, /comment:.*c\.id/);
+  assert.match(client, /photoId:photo\.image/);
+  assert.match(client, /camp-moderation-list/);
+  assert.doesNotMatch(client, /\.innerHTML\s*=/);
+
+  assert.match(backend, /guestWritesEnabled/);
+  assert.match(backend, /CAMPFIRE_GUEST_WRITES_ENABLED/);
+  assert.match(backend, /requireSameOrigin/);
+  assert.match(backend, /isSteward/);
+  assert.match(backend, /status='APPROVED'/);
+  assert.match(backend, /"PENDING"/);
+  assert.match(backend, /ON CONFLICT \(visitor_hash,target_kind,target_id\) DO NOTHING/);
+  assert.match(backend, /crypto\.createHmac/);
+  assert.match(backend, /HttpOnly/);
+  assert.match(backend, /SameSite=Lax/);
+  assert.doesNotMatch(backend, /x-vercel-ip-(city|latitude|longitude)/i);
+
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS campfire_comments/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS campfire_reactions/);
+  assert.match(migration, /UNIQUE\(visitor_hash,target_kind,target_id\)/);
+  assert.match(migration, /campfire_moderation_audit/);
+  assert.ok(exists("/campfire-privacy.html"));
+  assert.ok(exists("/campfire-interactions.js"));
+});
