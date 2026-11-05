@@ -162,6 +162,7 @@ async function handler(req,res) {
   const u=new URL(req.url||"/api/campfire","https://budao.org");
   try {
     if (req.method==="GET") {
+      if (u.searchParams.get("view")==="config") return sendJson(res,200,{ok:true,guestWritesEnabled:guestWritesEnabled()});
       if (u.searchParams.get("view")==="moderation") return await moderationQueue(req,res);
       return await thread(req,res,u.searchParams.get("photoId"));
     }
