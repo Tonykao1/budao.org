@@ -283,3 +283,29 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
     transform: none;
   }
 }
+
+
+/* Live watermark fallback while newly approved photos are being baked.
+   Normal images already contain permanent watermarks as WebP pixels. */
+.camp-lightbox-image-wrap {
+  display:inline-block;
+  max-width:100%;
+  vertical-align:top;
+  position:relative;
+}
+.camp-watermark-fallback { position:relative; }
+.camp-watermark-fallback::after {
+  content:"";
+  position:absolute;
+  right:3%;
+  bottom:3%;
+  width:7%;
+  aspect-ratio:133 / 312;
+  z-index:2;
+  pointer-events:none;
+  background:#fff;
+  -webkit-mask:url("/assets/budao-footprint-watermark.svg") center / contain no-repeat;
+  mask:url("/assets/budao-footprint-watermark.svg") center / contain no-repeat;
+  mix-blend-mode:difference;
+  opacity:.60;
+}
