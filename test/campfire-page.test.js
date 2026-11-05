@@ -132,3 +132,20 @@ test("引导链接仅是步道日历与分享历史照片的联系入口", () =>
   assert.match(html, /mailto:hello@budao\.org/);
   assert.match(html, /照片与留言须经本人或相关权利人同意/);
 });
+
+test("现场照片发布后获得永久水印，线路封面保持原图", () => {
+  assert.match(script, /campfire-watermarked/);
+  assert.match(script, /item\.kind === "moment"/);
+  assert.match(script, /setCampfirePhoto\(img, item, shot\)/);
+  assert.match(script, /setCampfirePhoto\(image, item, wrapper\)/);
+  assert.match(script, /setCampfirePhoto\(image, item, image\.parentElement\)/);
+  assert.match(css, /camp-watermark-fallback/);
+  assert.match(html, /camp-lightbox-image-wrap/);
+  const processor = read("scripts/campfire-watermark.py");
+  assert.match(processor, /album\.get\("published"\) is not True/);
+  assert.match(processor, /photo\.get\("approved"\) is not True/);
+  assert.match(processor, /original = source_root \/ relative/);
+  assert.match(processor, /campfire-watermarked/);
+  assert.ok(exists("/assets/budao-footprint-watermark.svg"));
+  assert.ok(exists("/.github/workflows/campfire-watermark.yml"));
+});
