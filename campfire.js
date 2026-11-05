@@ -186,6 +186,7 @@
           const sparkBar = newElement("div", "camp-photo-sparkbar");
           const spark = newElement("button", "camp-card-spark", "✧ 留下一颗火星");
           spark.type = "button";
+          spark.dataset.photoId = item.image;
           spark.setAttribute("aria-label", "为这张步道现场照片留下火光");
           spark.addEventListener("click", (event) => {
             event.stopPropagation();
