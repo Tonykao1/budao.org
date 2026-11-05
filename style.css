@@ -1250,3 +1250,37 @@ footer .footer-sister-links a:focus-visible {
     margin-top: 65px;
   }
 }
+
+/*
+ * Sister links: one shared 3.5s breathing cycle, opposing phases (180°).
+ * 营火之地 retains its horizontal rainbow; 路上星火 flows vertically upward.
+ */
+footer .footer-sister-links .spark-link {
+  background-image: linear-gradient(
+    to top,
+    #ff6b6b,
+    #ffd93d,
+    #6bcb77,
+    #4d96ff,
+    #b983ff,
+    #ff6b6b
+  );
+  background-size: 100% 300%;
+  background-position: 50% 100%;
+  animation:
+    sparkRainbowUp 8s linear infinite,
+    campfireBreath 3.5s ease-in-out -1.75s infinite;
+}
+
+@keyframes sparkRainbowUp {
+  from { background-position: 50% 100%; }
+  to { background-position: 50% 0%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  footer .footer-sister-links .campfire-link {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
