@@ -36,7 +36,8 @@ const clean = (v,max) => {
 let connection;
 function query(text,params=[]) {
   if (!connection) connection = neon(getDatabaseUrl());
-  return connection.query(text,params);
+  // The site's pinned Neon 0.10.4 accepts numbered placeholders via the callable client.
+  return connection(text,params);
 }
 function guestHash(req,res,create) {
   let token = String(req.headers?.cookie || "").split(";").map(x=>x.trim())
