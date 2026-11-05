@@ -191,3 +191,30 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
   html { scroll-behavior:auto; }
   .campfire-page *, .campfire-page *::before, .campfire-page *::after { transition-duration:.01ms!important; animation-duration:.01ms!important; }
 }
+
+/* Two independent and equal entry points in the campfire page footer. */
+.campfire-page .camp-sister-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px 46px;
+  margin: 36px auto 0;
+  padding: 0 16px;
+}
+.campfire-page .camp-sister-links a {
+  color: #d9aa76;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: .22em;
+  white-space: nowrap;
+}
+.campfire-page .camp-sister-links a:hover { color: #f4e3ca; }
+.campfire-page .camp-sister-links a:focus-visible {
+  outline: 2px solid #f4e3ca;
+  outline-offset: 6px;
+}
+@media (max-width: 620px) {
+  .campfire-page .camp-sister-links { gap: 14px 26px; }
+}

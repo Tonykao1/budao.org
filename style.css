@@ -1224,3 +1224,29 @@ opacity:.6;
 .route-countdown{
     filter:none !important;
 }
+
+/* Equal-footing entry points for the trail archive and community ministries. */
+footer .footer-sister-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px 46px;
+  margin: 100px auto 30px;
+  padding: 0 12px;
+}
+footer .footer-sister-links .campfire-link {
+  display: inline-block;
+  margin: 0;
+  white-space: nowrap;
+}
+footer .footer-sister-links a:focus-visible {
+  outline: 2px solid #8e7659;
+  outline-offset: 6px;
+}
+@media (max-width: 620px) {
+  footer .footer-sister-links {
+    gap: 14px 26px;
+    margin-top: 65px;
+  }
+}
