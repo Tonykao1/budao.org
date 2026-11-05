@@ -309,3 +309,108 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
   mix-blend-mode:difference;
   opacity:.60;
 }
+
+
+/* ===== 营火之地 · 火光与回响 (2026-11) =====
+   Sparks are private, never publicly counted or ranked. */
+.camp-interaction-intro {
+  color:#b8c8b8!important;font-size:13px!important;line-height:1.9!important;
+  margin:0 0 22px!important;max-width:730px;
+}
+.camp-photo-card { cursor:zoom-in; }
+.camp-photo-card:focus-visible { outline:2px solid #e1b780;outline-offset:3px; }
+.camp-photo-sparkbar { display:flex;justify-content:flex-end;margin-top:13px; }
+.camp-card-spark,.camp-spark-button {
+  border:1px solid rgba(233,185,119,.48);
+  color:#f2d4a3;background:rgba(118,74,42,.16);
+  padding:8px 14px;font-size:12px;letter-spacing:.06em;cursor:pointer;
+  transition:background .2s,transform .2s,border-color .2s;
+}
+.camp-card-spark:not(:disabled):hover,.camp-spark-button:not(:disabled):hover {
+  border-color:#e4b784;background:rgba(195,124,61,.25);
+  transform:translateY(-1px);
+}
+.camp-card-spark[aria-pressed="true"],.camp-spark-button[aria-pressed="true"] {
+  color:#e6bd79;background:rgba(195,137,61,.09);
+}
+.camp-card-spark:disabled,.camp-spark-button:disabled {cursor:default;opacity:.69;}
+.camp-lightbox {max-width:min(97vw,1470px);width:min(97vw,1400px);}
+.camp-lightbox-inner {gap:8px;justify-content:center;overflow-y:auto;}
+.camp-lightbox-figure {flex:1 1 530px;min-width:0;}
+.camp-lightbox-figure img {max-height:min(71vh,760px);}
+.camp-conversation {
+  flex:0 0 min(345px,28vw);width:min(345px,28vw);
+  max-height:calc(95vh - 78px);overflow:auto;
+  padding:17px 15px 20px;
+  background:linear-gradient(160deg,#1e2a20,#142018 80%);
+  border:1px solid rgba(220,173,110,.2);
+  scrollbar-width:thin;scrollbar-color:#795839 #152219;
+  color:#e8e5d8;
+}
+.camp-conversation[hidden] {display:none;}
+.camp-conversation-heading {margin-bottom:16px;}
+.camp-conversation-heading h3 {
+  font:30px/1.35 "Songti SC",serif;color:#f4e6cb;margin:4px 0 10px;
+}
+.camp-conversation-heading p:last-child {
+  color:#abb9a8;font-size:12px;line-height:1.7;
+}
+.camp-spark-button {display:block;width:100%;text-align:center;padding:12px 10px;}
+.camp-spark-state {font-size:12px;color:#cdb58d;min-height:18px;margin:9px 0 4px;}
+.camp-thread {margin:17px 0 23px;border-top:1px solid rgba(227,180,112,.18);padding-top:12px;}
+.camp-thread-group {padding:11px 0;border-bottom:1px solid rgba(227,180,112,.16);}
+.camp-thread-message {padding:0 0 5px;}
+.camp-thread-reply {padding:13px 11px 6px 13px;margin:10px 0 2px 13px;border-left:2px solid #8c6d44;background:rgba(238,206,137,.045);}
+.camp-thread-meta {display:flex;align-items:center;flex-wrap:wrap;gap:7px;}
+.camp-thread-meta strong {font-size:13px;color:#f5e6ce;font-weight:600;}
+.camp-thread-meta time {margin-left:auto;color:#88998b;font-size:10px;}
+.camp-official {font-size:10px;border:1px solid rgba(239,191,120,.55);border-radius:2px;color:#e5bf86;padding:2px 5px;}
+.camp-thread-body {font-size:13px!important;line-height:1.85!important;color:#d8dfd4!important;margin:9px 0 4px!important;white-space:pre-wrap;overflow-wrap:anywhere;}
+.camp-thread-tools {display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:7px;}
+.camp-thread-tool {border:0;background:none;color:#c7a776;font-size:11px;cursor:pointer;padding:4px 0;}
+.camp-thread-tool:disabled {opacity:.55;cursor:default;}
+.camp-thread-tool:not(:disabled):hover {color:#ffdaad;text-decoration:underline;}
+.camp-manage-tool {color:#dca38e;}
+.camp-thread-empty {color:#adb9a9!important;font-size:12px!important;line-height:1.85!important;}
+.camp-comment-form {border-top:1px solid rgba(221,178,120,.22);padding-top:20px;}
+.camp-comment-form h4,.camp-moderation h4 {font:20px/1.4 "Songti SC",serif;color:#e8d3ad;margin:0 0 13px;}
+.camp-comment-form label:not(.camp-consent-check) {display:block;color:#bcc7b6;font-size:12px;margin:12px 0 6px;}
+.camp-comment-form input:not([type="checkbox"]),.camp-comment-form textarea {
+  display:block;width:100%;box-sizing:border-box;resize:vertical;
+  background:#111c15;border:1px solid rgba(207,176,135,.35);border-radius:2px;
+  padding:10px 11px;color:#f3e9d7;font:13px/1.7 inherit;
+}
+.camp-comment-form input:focus,.camp-comment-form textarea:focus {
+  outline:2px solid #ad8a5a;outline-offset:1px;
+}
+.camp-consent-check {display:flex;gap:8px;align-items:flex-start;color:#b1bbae;font-size:11px;line-height:1.75;margin:12px 0;}
+.camp-consent-check input {flex:0 0 auto;accent-color:#cda56d;margin-top:4px;}
+.camp-comment-form-actions {display:flex;align-items:center;justify-content:flex-end;gap:14px;}
+.camp-comment-form-actions .camp-button {font-size:12px;padding:10px 15px;}
+.camp-comment-form-actions button:disabled {opacity:.4;cursor:not-allowed;}
+#camp-comment-state {min-height:18px;font-size:12px;line-height:1.65;color:#d9bb8a;}
+.camp-comment-policy {font-size:11px!important;line-height:1.85!important;color:#889f8d!important;margin:12px 0 0!important;}
+.camp-comment-policy a {color:#d9b985;text-decoration:underline;text-underline-offset:3px;}
+.camp-moderation {margin-top:20px;border-top:1px solid rgba(219,170,94,.3);padding-top:18px;}
+.camp-moderation-row {padding:12px 0;border-bottom:1px solid rgba(208,177,128,.15);overflow-wrap:anywhere;}
+.camp-moderation-row small {color:#a5ac9a;font-size:10px;}
+.camp-moderation-row p {color:#e3daca;font-size:12px;line-height:1.7;}
+@media(max-width:980px) {
+  .camp-lightbox-inner {flex-wrap:wrap;max-height:93vh;}
+  .camp-conversation {flex:1 1 100%;width:auto;max-height:none;overflow:visible;margin:10px 6px;}
+  .camp-lightbox-figure {flex:1 1 calc(100% - 125px);}
+  .camp-lightbox-figure img {max-height:51vh;}
+}
+@media(max-width:700px) {
+  .camp-lightbox {max-width:100vw;width:100vw;max-height:100dvh;}
+  .camp-lightbox-inner {max-height:100dvh;padding:48px 0 12px;gap:0;}
+  .camp-lightbox-arrow {flex:0 0 34px;font-size:34px!important;}
+  .camp-lightbox-figure {flex:1 1 calc(100% - 68px);}
+  .camp-lightbox-figure img {max-height:42vh;}
+  .camp-conversation {margin:13px 8px 4px;padding:14px;}
+  .camp-photo-sparkbar {margin-top:10px;}
+  .camp-interaction-intro {font-size:12px!important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .camp-card-spark,.camp-spark-button {transition:none;}
+}
