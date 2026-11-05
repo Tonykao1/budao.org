@@ -162,5 +162,15 @@
     "title": "莲花滩探线",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-11-08",
+    "type": "budao",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony-2026-11-08-04eb7e852e5d",
+    "title": "温榆秘境",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
