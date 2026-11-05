@@ -49,6 +49,7 @@
     if(!button)return;
     const on=isCurrent?liked.has("photo:"+targetId):photoLiked.has(targetId);
     button.textContent=on?"✦ 这一刻已点亮":"✧ 留下一颗火星";
+    button.classList.toggle("is-lit",on);
     button.disabled=on||(!enabled&&!admin)||!available;
     button.setAttribute("aria-pressed",String(on));
   }
@@ -221,6 +222,19 @@
       }
     }catch(e){root.replaceChildren(create("p","camp-thread-empty",reason(e)));}
   }
+  function refreshCardButtons(){
+    document.querySelectorAll(".camp-card-spark[data-photo-id]").forEach(button=>{
+      setSparkButton(button,button.dataset.photoId,false);
+    });
+  }
+  async function configure(){
+    try {
+      const config=await get(api+"?view=config");
+      available=true;
+      enabled=config.guestWritesEnabled===true;
+    }catch(e){available=false;enabled=false;}
+    refreshCardButtons();
+  }
   function mount(){
     document.addEventListener("campfire:photo-open",e=>showPhoto(e.detail.item));
     const form=$("camp-comment-form");
@@ -244,7 +258,7 @@
     $("camp-reply-cancel")?.addEventListener("click",resetReply);
     $("camp-photo-spark")?.addEventListener("click",()=>photo&&sparkPhoto(photo.image,$("camp-photo-spark")));
     $("camp-load-moderation")?.addEventListener("click",loadModeration);
-    findAdmin().then(()=>{});
+    Promise.allSettled([findAdmin(),configure()]).then(refreshCardButtons);
   }
   window.CampfireSignals={sparkPhoto,setSparkButton};
   mount();
