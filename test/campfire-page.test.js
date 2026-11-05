@@ -86,7 +86,22 @@ test("34 条原版留言全部保留并且不虚构评论归属", () => {
   }
   assert.equal(baodi.photos.filter((photo) => photo.alt.includes("螃蟹")).length, 1, "只保留一张餐食特写");
   assert.ok(baodi.photos.every((photo) => !/窗边|窗外/.test(photo.alt)), "舍弃窗边人物的餐食全景");
-  assert.equal(archive.albums.filter((album) => album.published).reduce((n, a) => n + a.photos.length, 0), 22);
+  const gucheng = archive.albums.find((album) => album.id === "260816");
+  assert.ok(gucheng, "260816 故城记忆应有相册");
+  assert.equal(gucheng.date, "2026-08-16");
+  assert.equal(gucheng.title, "故城记忆");
+  assert.equal(gucheng.published, true);
+  assert.equal(gucheng.photos.length, 12);
+  for (const [i, photo] of gucheng.photos.entries()) {
+    assert.equal(photo.src, `/campfire-photos/260816/260816-${String(i + 1).padStart(2, "0")}.webp`);
+    assert.equal(photo.approved, true);
+    assert.ok(photo.alt && photo.caption, "每张现场照片应有客观描述和图注");
+    assert.ok(exists(photo.src), `260816 photo ${i + 1} must exist in the repo`);
+  }
+  const publishedPhotoCount = archive.albums
+    .filter((album) => album.published)
+    .reduce((n, a) => n + a.photos.length, 0);
+  assert.ok(publishedPhotoCount >= 34, "原有22张现场照片和260816的12张照片均应保留");
   for (const album of archive.albums) {
     if (!album.published) continue;
     assert.ok(album.photos.some((photo) => photo.approved && exists(photo.src)), "Published albums need a real approved photo");
