@@ -1266,15 +1266,15 @@ footer .footer-sister-links .spark-link {
     #ff6b6b
   );
   background-size: 100% 300%;
-  background-position: 50% 100%;
+  background-position: 50% 0%;
   animation:
     sparkRainbowUp 8s linear infinite,
     campfireBreath 3.5s ease-in-out -1.75s infinite;
 }
 
 @keyframes sparkRainbowUp {
-  from { background-position: 50% 100%; }
-  to { background-position: 50% 0%; }
+  from { background-position: 50% 0%; }
+  to { background-position: 50% 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

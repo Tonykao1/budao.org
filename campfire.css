@@ -253,7 +253,7 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
     #ff6b6b
   );
   background-size: 100% 300%;
-  background-position: 50% 100%;
+  background-position: 50% 0%;
   animation:
     sparkRainbowUp 8s linear infinite,
     campfireBreath 3.5s ease-in-out -1.75s infinite;
@@ -267,8 +267,8 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
   50% { opacity: 1; transform: scale(1.05); }
 }
 @keyframes sparkRainbowUp {
-  from { background-position: 50% 100%; }
-  to { background-position: 50% 0%; }
+  from { background-position: 50% 0%; }
+  to { background-position: 50% 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .campfire-page .camp-sister-links a {
