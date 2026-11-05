@@ -1,0 +1,56 @@
+name: Campfire Footprint Watermarks
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "campfire-photos/**"
+      - "data/campfire-archive.json"
+      - "assets/budao-footprint-watermark.svg"
+      - "scripts/campfire-watermark.py"
+      - ".github/workflows/campfire-watermark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: campfire-footprint-watermarks-main
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout current published photographs
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure image processing
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install image processors
+        run: python -m pip install "Pillow==11.3.0" "CairoSVG==2.8.2"
+
+      - name: Produce approved watermarked display photos
+        run: python scripts/campfire-watermark.py
+
+      - name: Publish generated display files
+        shell: bash
+        run: |
+          git add -A campfire-watermarked/
+          if git diff --cached --quiet; then
+            echo "Display photos are already up to date."
+            exit 0
+          fi
+          git config user.name "budao-campfire-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "chore(campfire): sync watermarked approved photos [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
