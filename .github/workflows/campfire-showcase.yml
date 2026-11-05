@@ -8,6 +8,12 @@ on:
       - "campfire.js"
       - "data/campfire-archive.json"
       - "test/campfire-page.test.js"
+      - "campfire-interactions.js"
+      - "campfire-privacy.html"
+      - "api/_security/campfire-handler.js"
+      - "db/migrations/20261106_campfire_interactions.sql"
+      - "api/publish-route.js"
+      - "vercel.json"
       - ".github/workflows/campfire-showcase.yml"
   pull_request:
     paths:
@@ -16,6 +22,12 @@ on:
       - "campfire.js"
       - "data/campfire-archive.json"
       - "test/campfire-page.test.js"
+      - "campfire-interactions.js"
+      - "campfire-privacy.html"
+      - "api/_security/campfire-handler.js"
+      - "db/migrations/20261106_campfire_interactions.sql"
+      - "api/publish-route.js"
+      - "vercel.json"
       - ".github/workflows/campfire-showcase.yml"
 
 permissions:
@@ -31,5 +43,7 @@ jobs:
           persist-credentials: false
       - name: Validate campfire JavaScript
         run: node --check campfire.js
+      - name: Validate interaction JavaScript
+        run: node --check campfire-interactions.js && node --check api/_security/campfire-handler.js
       - name: Run campfire regression suite
         run: node --test test/campfire-page.test.js
