@@ -108,6 +108,29 @@
   }
 
   function kindName(item) { return item.kind === "moment" ? "步道现场" : "线路封面"; }
+
+  // Every approved on-site photo has an automatically generated, real watermark
+  // in /campfire-watermarked/. The original archive always retains the master
+  // photo path, and route cover images bypass this transformation entirely.
+  function setCampfirePhoto(img, item, holder) {
+    if (holder) holder.classList.remove("camp-watermark-fallback");
+    img.onerror = null;
+    if (item.kind === "moment" && item.image.startsWith("/campfire-photos/")) {
+      const marked = item.image
+        .replace(/^\/campfire-photos\//, "/campfire-watermarked/")
+        .replace(/\.(?:jpe?g|png|webp|avif)$/i, ".webp");
+      img.onerror = () => {
+        // A newly approved photo may briefly precede its automated build.
+        // Maintain an image and overlay the footprint until the next deploy.
+        img.onerror = null;
+        if (holder) holder.classList.add("camp-watermark-fallback");
+        img.src = item.image;
+      };
+      img.src = marked;
+    } else {
+      img.src = item.image;
+    }
+  }
   function renderHero() {
     const hero = $("#camp-hero-gallery");
     if (!hero) return;
@@ -116,7 +139,7 @@
     const nodes = source.map((item) => {
       const shot = newElement("figure", "camp-hero-shot");
       const img = newElement("img");
-      img.src = item.image;
+      setCampfirePhoto(img, item, shot);
       img.alt = item.alt;
       img.loading = "lazy";
       img.decoding = "async";
@@ -148,7 +171,7 @@
         button.setAttribute("aria-label", "放大查看：" + item.title + "，" + kindName(item));
         const wrapper = newElement("div", "camp-photo-visual");
         const image = newElement("img");
-        image.src = item.image;
+        setCampfirePhoto(image, item, wrapper);
         image.alt = item.alt;
         image.loading = "lazy";
         image.decoding = "async";
@@ -191,7 +214,7 @@
     if (!item) return;
     const image = $("#camp-lightbox-image");
     if (image) {
-      image.src = item.image;
+      setCampfirePhoto(image, item, image.parentElement);
       image.alt = item.alt;
     }
     $("#camp-lightbox-name").textContent = item.title + " · " + kindName(item);
