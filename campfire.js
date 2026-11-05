@@ -166,8 +166,9 @@
       root.replaceChildren(newElement("p", "camp-empty", message));
     } else {
       const nodes = photos.slice(0, photoLimit).map((item, index) => {
-        const button = newElement("button", "camp-photo-card");
-        button.type = "button";
+        const button = newElement("article", "camp-photo-card");
+        button.tabIndex = 0;
+        button.setAttribute("role", "button");
         button.setAttribute("aria-label", "放大查看：" + item.title + "，" + kindName(item));
         const wrapper = newElement("div", "camp-photo-visual");
         const image = newElement("img");
@@ -181,8 +182,31 @@
         caption.appendChild(newElement("span", "camp-photo-date", item.date.replace(/-/g, ".") + " · " + kindName(item)));
         caption.appendChild(newElement("span", "camp-photo-title", item.title));
         if (item.location) caption.appendChild(newElement("span", "camp-photo-location", item.location));
+        if (item.kind === "moment") {
+          const sparkBar = newElement("div", "camp-photo-sparkbar");
+          const spark = newElement("button", "camp-card-spark", "✧ 留下一颗火星");
+          spark.type = "button";
+          spark.setAttribute("aria-label", "为这张步道现场照片留下火光");
+          spark.addEventListener("click", (event) => {
+            event.stopPropagation();
+            window.CampfireSignals?.sparkPhoto(item.image, spark);
+          });
+          window.CampfireSignals?.setSparkButton(spark, item.image, false);
+          sparkBar.appendChild(spark);
+          caption.appendChild(sparkBar);
+        }
         button.append(wrapper, caption);
-        button.addEventListener("click", () => openLightbox(index));
+        button.addEventListener("click", (event) => {
+          if (event.target.closest("button")) return;
+          openLightbox(index);
+        });
+        button.addEventListener("keydown", (event) => {
+          if (event.target !== button) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openLightbox(index);
+          }
+        });
         return button;
       });
       root.replaceChildren(...nodes);
@@ -221,6 +245,7 @@
     $("#camp-lightbox-caption").textContent = item.date + (item.location ? " · " + item.location : "") + "｜" + item.caption;
     $("#camp-lightbox-prev").hidden = visiblePhotos.length < 2;
     $("#camp-lightbox-next").hidden = visiblePhotos.length < 2;
+    document.dispatchEvent(new CustomEvent("campfire:photo-open", {detail:{item}}));
   }
   function shiftLightbox(delta) {
     if (!visiblePhotos.length) return;
