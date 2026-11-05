@@ -167,7 +167,7 @@ test("火光与回响系统坚持匿名无计数、仅对实拍开放及管理�
   assert.match(html, /campfire-privacy\.html/);
   assert.match(script, /item\.kind === "moment"/);
   assert.match(script, /campfire:photo-open/);
-  assert.match(client, /comment:.*c\.id/);
+  assert.match(client, /commentId:c\.id/);
   assert.match(client, /photoId:photo\.image/);
   assert.match(client, /camp-moderation-list/);
   assert.doesNotMatch(client, /\.innerHTML\s*=/);
