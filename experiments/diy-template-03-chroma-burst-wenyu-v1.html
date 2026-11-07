@@ -272,8 +272,8 @@ function paintQR(){
  // Original QR bitmap / intrinsic quiet zone: no clipping, tint or scan-line filters.
  // A tiny unframed paper square belongs to the QR itself, not a card/panel.
  ctx.fillStyle="#ffffff";ctx.fillRect(x-4,y-4,side+8,side+8);
- ctx.imageSmoothingEnabled=true;
- ctx.drawImage(qr,x,y,side,side);
+ ctx.save();ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(qr,x,y,side,side);ctx.restore();
 }
 function showPalette(p){
  controls.palette.replaceChildren();
