@@ -304,6 +304,19 @@ async function getImage(url,label){
  if(!resp.ok)throw Error(label+"读取失败：HTTP "+resp.status);
  const file=await resp.blob();
  if(!file.type.startsWith("image/"))throw Error(label+"不是有效图片");
+ if(file.type.includes("svg")){
+  const objectUrl=URL.createObjectURL(file);
+  try{
+   const image=new Image();
+   await new Promise((resolve,reject)=>{
+    image.onload=resolve;
+    image.onerror=()=>reject(Error(label+" SVG 解码失败"));
+    image.src=objectUrl;
+   });
+   if(!image.naturalWidth||!image.naturalHeight)throw Error(label+" SVG 尺寸无效");
+   return image;
+  }finally{URL.revokeObjectURL(objectUrl);}
+ }
  return createImageBitmap(file);
 }
 async function initialize(){
