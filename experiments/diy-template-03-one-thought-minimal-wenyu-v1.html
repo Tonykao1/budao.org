@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>步道 DIY 模板三 V1｜一念·极简｜温榆秘境</title>
+<style>
+*{box-sizing:border-box}
+:root{color-scheme:light}
+body{margin:0;background:#e9ece8;color:#23342f;font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{background:#1b2b26;color:#f4f2eb;padding:28px max(20px,calc((100% - 1400px)/2))}
+header small{font-size:12px;letter-spacing:.18em;color:#b3c2b8}
+header h1{font-size:clamp(26px,3vw,40px);font-weight:650;letter-spacing:-.035em;margin:7px 0 10px}
+header p{max-width:900px;font-size:14px;color:#c3cec6;line-height:1.85;margin:0}
+main{max-width:1390px;margin:auto;padding:24px 17px 60px}
+.layout{display:grid;grid-template-columns:minmax(0,700px) minmax(290px,1fr);gap:25px;align-items:start}
+.poster{background:#fafaf6;box-shadow:0 12px 45px #263b3326;padding:12px;min-width:0}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1080 / 1530;background:#f4f1e9}
+aside{background:#f9faf5;border:1px solid #c7d0c7;padding:24px;border-radius:8px;min-width:0}
+.tag{display:inline-block;background:#e4ece3;color:#345b48;border-radius:3px;padding:6px 9px;font-size:12px;font-weight:650}
+aside h2{font-size:27px;letter-spacing:-.035em;margin:13px 0 8px}
+aside p{font-size:14px;line-height:1.8;color:#57655a;margin:0 0 16px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:16px 0}
+.control{min-width:0}
+label{display:block;margin-bottom:7px;font-size:13px;font-weight:650}
+select{width:100%;padding:12px 9px;border:1px solid #c4cec6;border-radius:5px;background:white;color:#273d34;font:13px system-ui;cursor:pointer}
+.swatches{display:flex;gap:6px;margin:8px 0 20px}
+.swatches span{flex:1;height:26px;border:1px solid #0002;border-radius:3px}
+button{display:block;width:100%;border:0;border-radius:6px;background:#254d3d;color:white;font-size:15px;font-weight:700;padding:15px;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+#status{margin:14px 0 10px;white-space:pre-wrap;color:#42634d;font-size:12.5px;line-height:1.75}
+.note{font-size:12px;color:#67766b;border-top:1px solid #dce2d9;padding-top:14px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}main{padding:12px}.poster,aside{max-width:700px;width:100%;margin:auto}}
+@media(max-width:480px){.controls{grid-template-columns:1fr}aside{padding:20px}}
+</style>
+</head>
+<body>
+<header><small>BUDAO / INVITATION DESIGN LAB / TEMPLATE 03 / V1</small>
+<h1>一念 · 极简</h1>
+<p>让一张真实照片成为安静的切口。对比模板一的动势与模板二的朝圣美学，本版探索留白、字体张力与不对称阅读秩序；艺术排版与活动事实同样重要。</p></header>
+<main><div class="layout">
+<div class="poster"><canvas id="poster" width="1080" height="1530" role="img" aria-label="温榆秘境步道请柬，一念极简第三模板"></canvas></div>
+<aside>
+<span class="tag">独立 V1 · 审美研究 · 未接入正式 Tent</span>
+<h2>安静，也能令人出发。</h2>
+<p>把标题当作画面，把照片当作一道通向未知的窗口。没有装饰性相框、重复的日期或覆盖照片的大型文字底板。</p>
+<div class="controls">
+<div class="control"><label for="palette">01｜艺术配色</label>
+<select id="palette">
+<option value="paper">纸白 · 松墨（默认）</option>
+<option value="clay">秋陶 · 赭朱</option>
+<option value="mist">河雾 · 深蓝</option>
+<option value="moss">苔绿 · 晨光</option>
+</select></div>
+<div class="control"><label for="font">02｜标题字体</label>
+<select id="font">
+<option value="sans">现代黑体（默认）</option>
+<option value="serif">书卷宋体</option>
+<option value="kai">人文楷体</option>
+</select></div>
+</div>
+<div id="swatches" class="swatches" aria-label="当前配色色卡"></div>
+<p>本版展示真实的温榆秘境活动：2026 年 11 月 8 日（周日）15:45，和园景逸大酒店停车场集合；4 千米，爬升小于 50 米，铺装路，约 1.5 小时，适合全年龄段。</p>
+<button id="download" type="button" disabled>导出第三套 V1 · PNG（1080×1530）</button>
+<div id="status" aria-live="polite">正在读取原始照片、二维码与 Logo……</div>
+<p class="note">唯一照片取自已发布路线，二维码读取原始报名图片，不在浏览器外传照片，无 AI、无付费 API。本页暂用真实示例数据，不等于已经完成任意活动的动态数据接入。前两套冻结版本未修改。</p>
+</aside>
+</div></main>
+<script>
+"use strict";
+const SOURCES={
+  photo:"../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg",
+  qr:"../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png",
+  logo:"../budao-logo-mark.png"
+};
+const THEMES=Object.freeze({
+ paper:{name:"纸白 · 松墨",paper:"#f5f3ed",ink:"#1c3028",accent:"#a94f37",muted:"#718179",rule:"#bdc6bc",warm:"#e7e6dd",bright:"#ffffff"},
+ clay:{name:"秋陶 · 赭朱",paper:"#f2e9dd",ink:"#49392f",accent:"#aa513d",muted:"#817164",rule:"#cabbab",warm:"#e4d5c5",bright:"#fff9f0"},
+ mist:{name:"河雾 · 深蓝",paper:"#edf0ef",ink:"#29435b",accent:"#9e594c",muted:"#657c88",rule:"#bcc9cc",warm:"#dfe7e8",bright:"#fff"},
+ moss:{name:"苔绿 · 晨光",paper:"#edf0e6",ink:"#2e4435",accent:"#b07839",muted:"#758877",rule:"#bdcbb8",warm:"#dfe7d5",bright:"#fffef9"}
+});
+const FONTS=Object.freeze({
+ sans:{name:"现代黑体",family:'"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif'},
+ serif:{name:"书卷宋体",family:'"Songti SC","Noto Serif CJK SC","SimSun",serif'},
+ kai:{name:"人文楷体",family:'"Kaiti SC","STKaiti","KaiTi","Songti SC",serif'}
+});
+const cvs=document.getElementById("poster"),ctx=cvs.getContext("2d");
+const palette=document.getElementById("palette"),font=document.getElementById("font"),download=document.getElementById("download"),status=document.getElementById("status"),swatches=document.getElementById("swatches");
+const SANS=FONTS.sans.family, SERIF=FONTS.serif.family;
+const FIXTURE={
+  title:"温榆秘境",subtitle:"走进一座被时光遗忘的花园",
+  date:"11.08",year:"2026",day:"周日",time:"15:45",
+  meeting:"和园景逸大酒店停车场",
+  distance:"4 千米",ascent:"爬升 < 50 米",surface:"铺装路",
+  duration:"约 1.5 小时",suitable:"全年龄段友好",
+  description:"温榆河畔，一座隐秘花园在等待。我们循着深秋的光，去赴一场安静的相遇。"
+};
+let assets=null,ready=false;
+const t=(s,x,y,size,color,weight=500,family=SANS,align="left")=>{
+ ctx.save();ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline="alphabetic";ctx.font=weight+" "+size+"px "+family;ctx.fillText(s,x,y);ctx.restore();
+};
+const ln=(x,y,x2,y2,color,w=1)=>{ctx.save();ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.stroke();ctx.restore();};
+function cover(image,x,y,w,h){
+ const ratio=Math.max(w/image.width,h/image.height),sw=w/ratio,sh=h/ratio;
+ ctx.drawImage(image,(image.width-sw)/2,(image.height-sh)/2,sw,sh,x,y,w,h);
+}
+function fitted(str,x,y,maxWidth,maxSize,family,color,weight=700){
+ ctx.save();ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle=color;
+ ctx.font=weight+" "+maxSize+"px "+family;
+ const measured=ctx.measureText(str).width;
+ const size=Math.min(maxSize,maxSize*maxWidth/Math.max(1,measured));
+ ctx.font=weight+" "+Math.max(16,size).toFixed(2)+"px "+family;
+ ctx.fillText(str,x,y);ctx.restore();
+}
+async function img(url,label){
+ const response=await fetch(url,{cache:"no-cache"});
+ if(!response.ok)throw Error(label+" HTTP "+response.status);
+ const blob=await response.blob();
+ if(!blob.type.startsWith("image/"))throw Error(label+" 类型不正确");
+ return createImageBitmap(blob);
+}
+function draw(){
+ const P=THEMES[palette.value]||THEMES.paper,F=FONTS[font.value]||FONTS.sans;
+ ctx.clearRect(0,0,1080,1530);
+ ctx.fillStyle=P.paper;ctx.fillRect(0,0,1080,1530);
+ // Restrained print mark: sparse deterministic dots, no photographic fabrication.
+ ctx.save();ctx.globalAlpha=.13;ctx.fillStyle=P.muted;
+ for(let i=0;i<1600;i++){ctx.fillRect((i*157.8+9)%1080,(i*221.4+17)%1530,1.2,1.2);}
+ ctx.restore();
+ ctx.drawImage(assets.logo,66,58,49,37);
+ t("余生行走  不偏左右",540,90,29,P.ink,620,SERIF,"center");
+ t("budao.org",1011,89,21,P.muted,500,'Georgia,serif',"right");
+ ln(65,113,1015,113,P.rule,1.5);
+ t("ONE THOUGHT   /   ONE JOURNEY",65,159,23,P.accent,700,'Arial,sans-serif');
+ t("INVITATION  /  003",1013,159,19,P.muted,500,'Arial,sans-serif',"right");
+ // The title is the visual event, with no frame, sticker or heavy overlay.
+ fitted(FIXTURE.title+"。",62,343,962,183,F.family,P.ink,760);
+ t(FIXTURE.subtitle,70,404,31,P.muted,500,F.family);
+ // One real image as a horizontal opening; no artificial geography or people.
+ ctx.save();ctx.beginPath();ctx.rect(65,452,950,428);ctx.clip();cover(assets.photo,65,452,950,428);ctx.restore();
+ // Fine asymmetric registration marks instead of a decorative frame.
+ ctx.fillStyle=P.paper;ctx.fillRect(65,452,9,428);
+ ln(65,906,1015,906,P.rule,1.4);
+ t("一条路，一场不期而遇。",66,981,42,P.ink,600,F.family);
+ t("留一段午后给自然，也留一点时间给彼此。",68,1036,27,P.muted,480,F.family);
+ ln(65,1073,1015,1073,P.rule,1);
+ // Editorial date / time / details: facts never merge into decorative captions.
+ t("2026",66,1130,26,P.muted,600,'Georgia,serif');
+ fitted(FIXTURE.date,61,1251,438,129,'Georgia,Arial,sans-serif',P.accent,700);
+ t(FIXTURE.day,526,1163,28,P.muted,650,F.family);
+ t(FIXTURE.time,526,1236,54,P.ink,700,'Arial,sans-serif');
+ t("集合地点",67,1308,24,P.muted,550,SANS);
+ fitted(FIXTURE.meeting,66,1354,725,34,SANS,P.ink,650);
+ ln(67,1377,783,1377,P.rule,1.2);
+ t(FIXTURE.distance+"   /   "+FIXTURE.ascent+"   /   "+FIXTURE.surface,68,1416,23,P.ink,590,SANS);
+ t(FIXTURE.duration+"   /   "+FIXTURE.suitable,68,1452,23,P.muted,550,SANS);
+ // Actual QR bitmap including its original quiet zone; no arbitrary cropping.
+ t("自由参与",912,1167,23,P.accent,660,SANS,"center");
+ ctx.drawImage(assets.qr,819,1190,185,185);
+ t("扫码同行",912,1415,25,P.accent,650,SANS,"center");
+ t("BUDAO  ·  一念成行",66,1501,19,P.muted,600,SANS);
+ t("03 / V1",1011,1501,19,P.muted,550,'Arial,sans-serif',"right");
+ swatches.replaceChildren();
+ for(const color of [P.paper,P.ink,P.accent,P.muted,P.rule]){
+  const dot=document.createElement("span");dot.style.background=color;dot.title=color;swatches.appendChild(dot);
+ }
+ status.textContent="✓ 活动原始照片已加载："+assets.photo.width+" × "+assets.photo.height+
+  "\n✓ 报名二维码原图已加载："+assets.qr.width+" × "+assets.qr.height+
+  "\n✓ 当前："+P.name+" × "+F.name+
+  "\n✓ 已完成 1080 × 1530 浏览器绘制；可导出 PNG";
+ ready=true;download.disabled=false;
+}
+function rerender(){
+ ready=false;download.disabled=true;
+ try{if(assets)draw();}catch(error){status.textContent="✕ 绘制失败："+String(error.message||error);}
+}
+(async()=>{
+ try{
+  const [photo,qr,logo]=await Promise.all([img(SOURCES.photo,"照片"),img(SOURCES.qr,"报名二维码"),img(SOURCES.logo,"步道标识")]);
+  await document.fonts.ready;
+  assets={photo,qr,logo};rerender();
+ }catch(error){status.textContent="✕ 原始素材读取失败，停止导出："+String(error.message||error);}
+})();
+for(const node of [palette,font])node.addEventListener("change",rerender);
+download.addEventListener("click",()=>{
+ if(!ready)return;
+ cvs.toBlob(blob=>{
+  if(!blob){status.textContent+="\n✕ PNG 生成失败";return;}
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="BUDAO-温榆秘境-一念极简-模板三-V1-"+palette.value+"-"+font.value+".png";
+  a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ },"image/png");
+});
+</script>
+</body>
+</html>
