@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>步道 · 模板二 · 温榆秘境 · 希望之径</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#e9e4d9;color:#44382b;font-family:"Songti SC","Noto Serif CJK SC",serif}
+header{padding:25px max(20px,calc((100% - 1390px)/2));background:#3f4140;color:#f8f2e5}
+header small{font:12px system-ui,sans-serif;letter-spacing:.12em;color:#dbd0bf}
+header h1{font-size:clamp(25px,3vw,36px);margin:9px 0}
+header p{font:14px/1.7 system-ui,sans-serif;max-width:1200px;color:#ddd5c7;margin:0}
+main{max-width:1370px;margin:0 auto;padding:23px 18px 48px}
+.page{display:grid;grid-template-columns:minmax(0,700px) minmax(260px,1fr);gap:24px;align-items:start}
+.poster-card{min-width:0;background:#fff;padding:12px;box-shadow:0 12px 42px #3b322422}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1080/1530;background:#f4efe4}
+aside{border:1px solid #cfc3af;background:#faf7ef;padding:23px;border-radius:7px}
+aside h2{font-size:24px;margin:0 0 13px;color:#713944}
+aside p{font:14px/1.8 system-ui,sans-serif;color:#5b584f;margin:0 0 15px}
+button{border:0;border-radius:5px;cursor:pointer;background:#773d46;color:#fff;font-size:15px;padding:14px 19px;font-weight:700;width:100%}
+button:disabled{opacity:.5;cursor:not-allowed}.stat{margin:15px 0;font:13px/1.8 system-ui,sans-serif;color:#465b55;white-space:pre-wrap}
+.reference{display:block;width:100%;max-width:320px;max-height:220px;object-fit:contain;border:1px solid #d3c6b5;margin-top:11px}
+.tag{display:inline-block;background:#e2e9de;color:#41624e;font:12px system-ui,sans-serif;border-radius:3px;padding:5px 9px}
+.note{font:12px/1.8 system-ui,sans-serif;color:#6d675c}
+@media(max-width:940px){.page{grid-template-columns:1fr}main{padding:12px}.poster-card{max-width:680px;margin:auto}aside{max-width:680px;margin:auto}}
+</style></head><body>
+<header><small>BUDAO / POSTER TEMPLATE 02 / SOURCE-FAITHFUL PROTOTYPE</small><h1>希望之径 · 温榆秘境</h1><p>第二套程序化设计首稿。足迹形状来自你提供的原始线稿，内部照片、活动信息和报名二维码沿用 2026 年 11 月 8 日温榆秘境的真实素材。只借鉴 2025 年禧年的「希望、同行、朝圣」主题与典雅色彩，不复制教廷徽标。</p></header>
+<main><div class="page">
+<div class="poster-card"><canvas id="poster" width="1080" height="1530" aria-label="以原始照片与足迹遮罩绘制的步道温榆秘境活动海报"></canvas></div>
+<aside>
+<span class="tag">仅为模板二首稿，不影响模板一 V9</span>
+<h2>线条足迹 × 希望之径</h2>
+<p>这次没有生成虚构的朝圣者、教堂或风景。左侧足迹是由你上传的黑色透明线稿提取的轮廓，照片与二维码从网站原始资源读取。</p>
+<p>视觉秩序采用象牙米白、金线、禧年红和橄榄绿；标题改用网站已有的古典宋体体系。足迹作为唯一主要的视觉图腾，内部回旋线仍然保留。</p>
+<p><strong>真实活动信息：</strong>11 月 8 日，周日 15:45；和园景逸大酒店停车场；4千米、爬升 &lt;50米、铺装路、1.5小时；全年龄段友好。</p>
+<button id="download" type="button" disabled>导出本稿 PNG（1080 × 1530）</button>
+<div class="stat" id="status">准备读取温榆秘境原始素材……</div>
+<div class="note">当前仅用于审美研究，未来扩展成通用模板时会接入每位带领人的活动数据与个人照片。原始二维码图片保留必要白边，请勿裁除。</div>
+<p class="note">原图参考（同一素材）：</p><img class="reference" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境原始活动照片"/>
+</aside></div></main>
+<script>
+"use strict";
+const FOOT_OUTER="M239,15 214,24 196,41 180,68 174,86 170,110 171,144 177,168 188,191 213,216 229,223 251,224 271,217 295,196 313,161 328,197 360,237 391,260 430,274 453,301 395,267 343,246 305,238 263,238 225,251 192,278 171,313 161,348 159,391 168,448 186,501 227,594 237,628 242,669 239,722 229,768 214,809 187,866 171,917 168,941 171,982 188,1024 217,1055 243,1070 264,1077 312,1081 363,1069 390,1054 414,1032 428,1013 444,982 460,923 502,921 544,909 544,905 540,903 500,914 461,915 469,812 477,773 495,718 545,621 570,545 577,497 577,462 565,398 587,406 597,406 608,401 621,384 626,350 622,331 607,310 586,303 567,309 572,290 569,252 559,233 543,221 524,219 511,224 494,246 489,264 489,290 496,320 468,305 446,284 443,276 466,275 484,261 491,249 498,223 498,196 491,171 480,154 465,144 448,143 436,148 424,160 416,175 411,193 410,220 423,265 391,252 370,237 356,222 375,222 392,214 406,196 414,173 415,134 404,103 393,90 381,83 365,81 349,87 338,97 327,116 321,155 316,99 302,55 287,34 272,22 257,16Z";
+const FOOT_INNER=["M514,334 534,336 555,328 551,344 551,378 528,359 515,341Z","M473,316 501,330 521,361 555,391 568,445 570,494 562,548 547,597 494,702 476,750 459,829 453,914 442,915 401,907 373,897 344,882 312,858 290,834 271,801 265,782 263,754 267,731 277,707 307,671 353,644 426,621 465,603 504,571 518,553 533,525 545,470 543,435 537,410 510,357 471,317Z","M586,310 600,314 609,323 618,345 618,367 614,381 608,391 597,399 583,398 563,387 558,367 558,346 562,330 572,316Z","M268,244 314,246 371,263 419,288 463,319 498,353 518,383 532,418 538,455 535,493 528,518 513,548 490,575 447,605 355,636 320,653 284,684 263,720 256,752 258,783 275,825 295,851 331,882 367,902 396,913 451,923 445,956 435,984 423,1007 402,1034 387,1047 361,1062 333,1071 311,1074 265,1070 245,1063 220,1048 194,1019 180,986 176,964 177,928 185,893 228,794 242,746 248,709 249,664 243,622 233,589 194,501 178,456 167,396 168,354 179,313 199,281 230,256Z","M529,225 542,228 556,242 563,260 565,279 563,296 553,317 538,328 522,329 509,326 504,318 496,289 496,265 506,239 515,230Z","M450,150 463,151 478,163 486,179 491,202 490,225 485,244 472,263 458,270 435,267 422,240 418,218 419,195 424,177 433,161Z","M365,88 380,90 393,100 402,115 408,137 408,162 402,186 393,202 375,215 362,215 345,205 336,190 329,160 330,136 337,113 353,93Z","M243,22 255,23 273,32 293,56 307,95 310,142 303,168 286,195 262,213 235,217 211,206 193,184 181,153 178,113 186,76 200,49 221,29Z"];
+const FOOT_FILL=new Path2D(FOOT_INNER.join(" "));
+const FOOT_INK=new Path2D("M239,15 214,24 196,41 180,68 174,86 170,110 171,144 177,168 188,191 213,216 229,223 251,224 271,217 295,196 313,161 328,197 360,237 391,260 430,274 453,301 395,267 343,246 305,238 263,238 225,251 192,278 171,313 161,348 159,391 168,448 186,501 227,594 237,628 242,669 239,722 229,768 214,809 187,866 171,917 168,941 171,982 188,1024 217,1055 243,1070 264,1077 312,1081 363,1069 390,1054 414,1032 428,1013 444,982 460,923 502,921 544,909 544,905 540,903 500,914 461,915 469,812 477,773 495,718 545,621 570,545 577,497 577,462 565,398 587,406 597,406 608,401 621,384 626,350 622,331 607,310 586,303 567,309 572,290 569,252 559,233 543,221 524,219 511,224 494,246 489,264 489,290 496,320 468,305 446,284 443,276 466,275 484,261 491,249 498,223 498,196 491,171 480,154 465,144 448,143 436,148 424,160 416,175 411,193 410,220 423,265 391,252 370,237 356,222 375,222 392,214 406,196 414,173 415,134 404,103 393,90 381,83 365,81 349,87 338,97 327,116 321,155 316,99 302,55 287,34 272,22 257,16Z M514,334 534,336 555,328 551,344 551,378 528,359 515,341Z M473,316 501,330 521,361 555,391 568,445 570,494 562,548 547,597 494,702 476,750 459,829 453,914 442,915 401,907 373,897 344,882 312,858 290,834 271,801 265,782 263,754 267,731 277,707 307,671 353,644 426,621 465,603 504,571 518,553 533,525 545,470 543,435 537,410 510,357 471,317Z M586,310 600,314 609,323 618,345 618,367 614,381 608,391 597,399 583,398 563,387 558,367 558,346 562,330 572,316Z M268,244 314,246 371,263 419,288 463,319 498,353 518,383 532,418 538,455 535,493 528,518 513,548 490,575 447,605 355,636 320,653 284,684 263,720 256,752 258,783 275,825 295,851 331,882 367,902 396,913 451,923 445,956 435,984 423,1007 402,1034 387,1047 361,1062 333,1071 311,1074 265,1070 245,1063 220,1048 194,1019 180,986 176,964 177,928 185,893 228,794 242,746 248,709 249,664 243,622 233,589 194,501 178,456 167,396 168,354 179,313 199,281 230,256Z M529,225 542,228 556,242 563,260 565,279 563,296 553,317 538,328 522,329 509,326 504,318 496,289 496,265 506,239 515,230Z M450,150 463,151 478,163 486,179 491,202 490,225 485,244 472,263 458,270 435,267 422,240 418,218 419,195 424,177 433,161Z M365,88 380,90 393,100 402,115 408,137 408,162 402,186 393,202 375,215 362,215 345,205 336,190 329,160 330,136 337,113 353,93Z M243,22 255,23 273,32 293,56 307,95 310,142 303,168 286,195 262,213 235,217 211,206 193,184 181,153 178,113 186,76 200,49 221,29Z");
+const DESCRIPTION="温榆河畔藏着一座被时光遗忘的花园。我们循着深秋的光，走进那扇并不存在的门。让孩子追随好奇，让大人重拾宁静。待夕阳落尽，还可寻一池温暖汤泉，与家人共度氤氲时光。至于花园在哪里——河流知道，我们也即将知道。";
+const SOURCE={photo:"../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg",qr:"../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png",logo:"../budao-logo-mark.png"};
+const cvs=document.getElementById("poster"),c=cvs.getContext("2d"),status=document.getElementById("status"),download=document.getElementById("download");
+const CN='"Songti SC","Noto Serif CJK SC","SimSun",serif',SANS='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+const P={paper:"#f3eedf",ink:"#3c403e",wine:"#773d46",olive:"#566b53",gold:"#ac8d51",haze:"#e7ddca",darkGold:"#846e42",pale:"#fffcf4"};
+const line=(x,y,x2,y2,stroke=P.gold,w=1)=>{c.save();c.beginPath();c.moveTo(x,y);c.lineTo(x2,y2);c.strokeStyle=stroke;c.lineWidth=w;c.stroke();c.restore();};
+function title(text,x,y,font,color,align="left"){c.save();c.font=font;c.textAlign=align;c.textBaseline="alphabetic";c.fillStyle=color;c.fillText(text,x,y);c.restore();}
+function ellipse(x,y,rx,ry,color,w=1){c.save();c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.lineWidth=w;c.strokeStyle=color;c.stroke();c.restore();}
+function textWrap(value,x,y,maxWidth,font,lineHeight,color,maxLines=20){
+ c.save();c.font=font;c.fillStyle=color;c.textBaseline="alphabetic";
+ let row="",printed=0;
+ for(const ch of [...value]){if(c.measureText(row+ch).width>maxWidth && row){c.fillText(row,x,y+printed*lineHeight);printed++;row=ch;if(printed>=maxLines)break;}else row+=ch;}
+ if(row&&printed<maxLines){c.fillText(row,x,y+printed*lineHeight);printed++;}
+ c.restore();return printed;
+}
+async function loadImg(url,label){
+ const r=await fetch(url,{cache:"no-cache"});if(!r.ok)throw Error(label+" 读取失败: HTTP "+r.status);
+ const blob=await r.blob();if(!blob.type.startsWith("image/"))throw Error(label+" 内容不是图片");
+ return createImageBitmap(blob);
+}
+function paper(){
+ c.fillStyle=P.paper;c.fillRect(0,0,1080,1530);
+ // Repeatable paper grain uses arithmetic coordinates, not a generated picture.
+ for(let i=0;i<3900;i++){
+  let x=(i*137.13+17)%1080,y=(i*241.73+39)%1530;
+  c.fillStyle=i%3===0?"#ffffff26":"#846e420b";c.fillRect(x,y,1.4,1.4);
+ }
+ // subtle sacred geometry; not a borrowed Vatican logo
+ ellipse(612,530,435,435,"#b29c7151",1.8);
+ ellipse(612,530,390,390,"#b29c7132",1);
+ ellipse(612,530,342,342,"#b29c7125",1);
+ c.save();c.globalAlpha=.6;
+ c.strokeStyle=P.gold;c.lineWidth=1.5;c.strokeRect(28,27,1024,1476);
+ line(45,150,1035,150,"#b5a176",1.6);
+ line(45,1470,1035,1470,"#b5a176",1.5);
+ c.restore();
+ // ceremonial corner indicators, geometric rather than ecclesial seal
+ for(const [x,y,sgnX,sgnY] of [[56,57,1,1],[1024,57,-1,1],[56,1446,1,-1],[1024,1446,-1,-1]]){
+  line(x,y,x+25*sgnX,y,P.gold,2);line(x,y,x,y+25*sgnY,P.gold,2);
+ }
+}
+function fitFootprint(photo){
+ c.save();
+ c.translate(-90,205);c.scale(.82,.82);
+ c.save();
+ c.clip(FOOT_FILL);
+ // Only the actual route photograph is used as the scene; no added people or architecture.
+ c.drawImage(photo,-520,-30,1910,1080);
+ let mix=c.createLinearGradient(100,15,480,1060);
+ mix.addColorStop(0,"#f5e8c528");mix.addColorStop(.47,"#fffaf305");
+ mix.addColorStop(1,"#624f343d");
+ c.fillStyle=mix;c.fillRect(100,0,580,1080);
+ c.restore();
+ // Original photo mask contours and internal winding line retained.
+ c.fillStyle=P.darkGold;
+ c.fill(FOOT_INK,"evenodd");
+ // fine outer glint avoids thick decorative borders
+ c.lineWidth=1.1;c.strokeStyle="#f7e8bc";c.stroke(FOOT_INK);
+ c.restore();
+}
+function metadata(label,value,x,y){
+ title(label,x,y, '600 22px '+SANS,P.olive);
+ title(value,x,y+44,'700 33px '+SANS,P.ink);
+}
+function draw(photo,qr,logo){
+ c.clearRect(0,0,1080,1530);paper();
+ c.save();c.globalAlpha=.88;c.drawImage(logo,64,69,48,35);c.restore();
+ title("余生行走 不偏左右",540,101,'600 32px '+CN,P.ink,"center");
+ title("budao.org",1007,100,'600 21px Georgia,serif',P.wine,"right");
+ fitFootprint(photo);
+ // Right editorial grid; every title and date is from the real route record.
+ title("B U D A O  ·  2026",508,224,'600 22px Georgia,serif',P.olive);
+ line(508,249,978,249,P.gold,2.2);
+ title("温榆秘境",499,365,'700 93px '+CN,P.wine);
+ title("走进一座被时光遗忘的花园",505,430,'600 28px '+CN,P.ink);
+ // Jubilee-inspired rhythm rendered as non-figurative strokes and colored marks.
+ line(508,471,945,471,"#b9a477",1.6);
+ for(let i=0;i<4;i++){c.fillStyle=[P.wine,P.olive,"#be9b5c","#426c7b"][i];c.beginPath();c.arc(516+38*i,472,5.4,0,Math.PI*2);c.fill();}
+ textWrap(DESCRIPTION,507,534,470,'500 21px '+CN,35,P.ink,5);
+ title("11",504,788,'700 126px Georgia,serif',P.wine);
+ title("/",666,781,'400 66px Georgia,serif',P.gold);
+ title("08",720,788,'700 126px Georgia,serif',P.wine);
+ title("2026 · 周日",507,838,'500 26px '+CN,P.olive);
+ title("15:45",789,837,'600 42px Georgia,serif',P.ink);
+ line(507,866,987,866,P.gold,1.8);
+ title("集合地点",508,919,'600 24px '+SANS,P.olive);
+ title("和园景逸大酒店停车场",508,968,'700 30px '+SANS,P.ink);
+ line(508,997,990,997,"#bfac89",1);
+ metadata("距离","4千米",509,1032);
+ metadata("爬升","<50米",766,1032);
+ metadata("路面","铺装路",509,1130);
+ metadata("时长","1.5小时",766,1130);
+ title("适合人群",508,1251,'600 23px '+CN,P.olive);
+ title("全年龄段友好",508,1294,'700 29px '+CN,P.wine);
+ line(508,1322,750,1322,"#ad9b74",1);
+ // QR is always the unmodified original bitmap, quiet zone included.
+ title("自由参与",919,1227,'600 22px '+SANS,P.wine,"center");
+ c.drawImage(qr,838,1255,162,162);
+ title("扫码同行",919,1453,'600 22px '+SANS,P.wine,"center");
+ title("步道  ·  BUDAO",65,1421,'700 28px '+CN,P.wine);
+ title("温榆秘境 · 2026.11.08",65,1452,'500 19px '+CN,P.olive);
+}
+let ready=false;
+(async()=>{
+ try {
+  const [photo,qr,logo]=await Promise.all([loadImg(SOURCE.photo,"原始活动照片"),loadImg(SOURCE.qr,"原始二维码"),loadImg(SOURCE.logo,"步道Logo")]);
+  await document.fonts.ready;
+  draw(photo,qr,logo);
+  ready=true;download.disabled=false;
+  status.textContent="✓ 已读取原始活动照片（"+photo.width+"×"+photo.height+"）\n✓ 已读取原始二维码（"+qr.width+"×"+qr.height+"）\n✓ 使用上传的足迹线稿提取轮廓\n✓ 1080×1530 程序化海报绘制成功";
+ }catch(e){status.textContent="✕ 资源或绘制失败："+String(e.message||e);}
+})();
+download.addEventListener("click",()=>{
+ if(!ready)return;
+ cvs.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement("a");a.download="BUDAO-温榆秘境-模板二-希望之径-首稿.png";a.href=url;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);},"image/png");
+});
+</script></body></html>
