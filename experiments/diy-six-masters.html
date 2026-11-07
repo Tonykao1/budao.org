@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BUDAO DESIGN LAB · 六套请柬母版 V1</title>
+<style>
+:root{--paper:#e8e9e5;--ink:#18221e}*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.hero{background:#131d1b;color:#f2f1e9;padding:34px max(22px,calc((100vw - 1470px)/2)) 30px}
+.hero .eyebrow{font-size:12px;letter-spacing:.24em;color:#9aac9f}
+.hero h1{font-weight:520;letter-spacing:-.035em;font-size:clamp(28px,3.5vw,48px);margin:9px 0 12px}
+.hero p{max-width:970px;line-height:1.8;color:#c5cbc3;font-size:14px;margin:0}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.tags span{border:1px solid #62736b;padding:6px 13px;border-radius:99px;font-size:12px;color:#c6d0c8}
+.content{max-width:1520px;padding:28px 20px 66px;margin:auto}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;font-size:13px;color:#51615a}
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px 24px}
+.cell{min-width:0}
+.stage{border:0;display:block;background:none;width:100%;padding:0;cursor:zoom-in;text-align:left}
+.stage:focus-visible{outline:3px solid #e1a74c;outline-offset:4px}
+.poster{position:relative;width:100%;aspect-ratio:1080/1530;container-type:inline-size;overflow:hidden;isolation:isolate;color:#1d211c;background:#fff;box-shadow:0 18px 38px #17282123}
+.poster .photo{position:absolute;width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
+.poster h2,.poster p{margin:0}
+.poster .brand{position:absolute;z-index:10;display:flex;align-items:center;gap:1.5cqw;line-height:1;color:#1d231d}
+.poster .brand .logo-mark{width:9cqw;height:9cqw;object-fit:contain}
+.poster .brand .brand-words{font-size:2.5cqw;letter-spacing:.16em;font-weight:700;display:flex;flex-direction:column;gap:.6cqw}
+.poster .brand .brand-words span{font-size:2cqw;letter-spacing:.06em;font-weight:400}
+.poster .brand.on-dark{color:#fff}
+.poster .brand.on-dark .logo-mark{filter:brightness(0) invert(1)}
+.poster .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:1cqw;z-index:10}
+.poster .qr-wrap img{width:17cqw;height:17cqw;object-fit:contain;display:block;border:1.5cqw solid #fff;background:#fff}
+.poster .qr-wrap small{font-size:2.3cqw;letter-spacing:.13em;white-space:nowrap}
+.poster .micro{font-family:Arial,sans-serif;font-size:2.25cqw;letter-spacing:.22em}
+.poster .cnserif{font-family:"Noto Serif CJK SC","Songti SC","SimSun",serif}
+.poster .info-line{font-size:2.7cqw;line-height:1.5}
+.poster .date-lock{font-family:Arial,sans-serif;letter-spacing:-.045em}
+.caption{margin:12px 0 3px;display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.caption strong{font-size:17px;font-weight:600}
+.caption span{font-size:12px;color:#63716b;text-align:right}
+.statement{font-size:12px;color:#6e7a73;line-height:1.7;margin:4px 0}
+[data-kind="01"]{background:#14231d;color:#f8f8ec}
+[data-kind="01"] .photo{inset:0 0 auto 0;height:76%;object-position:52% 25%;filter:contrast(1.12) saturate(.78) brightness(.72)}
+[data-kind="01"]:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 10%,#14231d16 40%,#14231d 76%);pointer-events:none}
+[data-kind="01"] .grid-rule{position:absolute;inset:0 7%;border-left:1px solid #fff2;border-right:1px solid #fff2;z-index:2}
+[data-kind="01"] .stripe{position:absolute;width:135%;height:3.6cqw;background:#e5fc52;left:-18%;top:58%;z-index:3;transform:rotate(-17deg)}
+[data-kind="01"] .brand{top:5%;left:7%}
+[data-kind="01"] .series{position:absolute;top:7%;right:7%;z-index:5;color:#f2f4d8}
+[data-kind="01"] .giant{position:absolute;top:16%;right:-1%;z-index:2;font:800 49cqw/.8 Arial,sans-serif;letter-spacing:-.095em;color:#e5fc52;mix-blend-mode:screen;opacity:.92}
+[data-kind="01"] .main-copy{position:absolute;z-index:5;left:8%;right:6%;bottom:16%}
+[data-kind="01"] .main-copy .over{font-size:2.7cqw;letter-spacing:.32em;color:#e5fc52}
+[data-kind="01"] h2{font-size:20.5cqw;letter-spacing:-.075em;line-height:1.06;margin:2cqw 0 1cqw;font-weight:750}
+[data-kind="01"] .main-copy .desc{font-size:3.1cqw;letter-spacing:.11em;line-height:1.55}
+[data-kind="01"] .footer{position:absolute;z-index:6;bottom:4.5%;left:8%;right:8%;border-top:1px solid #ccead344;padding-top:3cqw;display:flex;justify-content:space-between;align-items:end;gap:2cqw}
+[data-kind="01"] .footer .date-lock{font-size:10cqw;color:#e5fc52;line-height:.95}
+[data-kind="01"] .footer .info-line{margin-top:1.2cqw}
+[data-kind="02"]{background:#f6f5f1;color:#18231f}
+[data-kind="02"] .brand{top:5.5%;left:8%}
+[data-kind="02"] .series{position:absolute;top:8%;right:8%;color:#73817a}
+[data-kind="02"] .title{position:absolute;top:19%;left:8%;right:8%;z-index:3}
+[data-kind="02"] .title h2{font-size:19cqw;line-height:1.07;letter-spacing:-.055em;font-weight:600}
+[data-kind="02"] .title .subtitle{margin-top:2.5cqw;font-size:3.3cqw;letter-spacing:.14em}
+[data-kind="02"] .photo-panel{position:absolute;left:8%;right:8%;top:45%;height:25%;overflow:hidden;z-index:2}
+[data-kind="02"] .photo-panel .photo{position:absolute;inset:0;width:100%;height:100%;object-position:50% 56%;filter:saturate(.82) contrast(1.02)}
+[data-kind="02"] .below-photo{position:absolute;top:74%;left:8%;right:8%;font-size:2.8cqw;line-height:1.55;color:#6d7972}
+[data-kind="02"] .footer{position:absolute;bottom:5%;left:8%;right:8%;display:flex;justify-content:space-between;gap:3cqw;align-items:end;border-top:1px solid #aeb8b0;padding-top:3cqw}
+[data-kind="02"] .footer .date-lock{font-size:8.5cqw}
+[data-kind="02"] .footer .info-line{font-size:2.75cqw;margin-top:2cqw}
+[data-kind="03"]{background:#ece8db;color:#32392e}
+[data-kind="03"] .inner{position:absolute;inset:3.5%;border:1px solid #a6a078;pointer-events:none;z-index:7}
+[data-kind="03"] .inner:after{content:"";position:absolute;inset:1.2cqw;border:1px solid #cdc6a7}
+[data-kind="03"] .brand{left:10%;top:6%}
+[data-kind="03"] .num{position:absolute;right:11%;top:8%;font-size:2.5cqw;letter-spacing:.25em}
+[data-kind="03"] .symbol{position:absolute;top:16%;left:50%;transform:translateX(-50%);font-size:8cqw;color:#a89a6b}
+[data-kind="03"] .arch{position:absolute;top:22%;left:16%;width:68%;height:42%;overflow:hidden;border-radius:50% 50% 0 0 / 35% 35% 0 0;border:1.5cqw solid #dfd4b0;box-shadow:0 0 0 1px #a89d72}
+[data-kind="03"] .arch .photo{inset:0;width:100%;height:100%;filter:saturate(.76) sepia(.16) brightness(.93);object-position:50% 40%}
+[data-kind="03"] .invite{position:absolute;top:68.5%;left:10%;right:10%;text-align:center}
+[data-kind="03"] .invite .over{font-size:2.35cqw;letter-spacing:.55em;color:#797253}
+[data-kind="03"] h2{font-size:13.7cqw;line-height:1.2;letter-spacing:.11em;margin:2cqw 0 2.6cqw;font-weight:600}
+[data-kind="03"] .invite .line{width:36%;height:1px;background:#b9ad81;margin:2cqw auto}
+[data-kind="03"] .invite .desc{font-size:2.8cqw;letter-spacing:.12em}
+[data-kind="03"] .footer{position:absolute;bottom:5.5%;left:11%;right:11%;display:flex;align-items:center;justify-content:space-between}
+[data-kind="03"] .footer .date-lock{font-size:5.1cqw}
+[data-kind="03"] .footer .info-line{margin-top:2cqw}
+[data-kind="04"]{background:#e7e0d1;color:#2b2920}
+[data-kind="04"] .brand{left:7%;top:6%}
+[data-kind="04"] .over{position:absolute;right:7%;top:7%;font-size:2.4cqw;letter-spacing:.3em}
+[data-kind="04"] .han{position:absolute;z-index:1;right:-15%;top:8%;font-size:85cqw;font-weight:900;line-height:1;color:#ba3c27;transform:rotate(14deg);opacity:.94}
+[data-kind="04"] .photo-frame{position:absolute;z-index:2;left:8%;top:28%;width:72%;height:37%;transform:rotate(-3deg);box-shadow:1.5cqw 1.5cqw 0 #b63f29;overflow:hidden}
+[data-kind="04"] .photo-frame .photo{inset:0;width:100%;height:100%;object-position:53% 48%;filter:saturate(.72) contrast(1.09)}
+[data-kind="04"] .box{position:absolute;left:9%;right:8%;bottom:5%;z-index:6}
+[data-kind="04"] .seal{background:#b53e29;color:#fff8eb;display:inline-block;padding:1.4cqw 2.4cqw;font-size:2.55cqw;letter-spacing:.18em}
+[data-kind="04"] h2{font-size:13.7cqw;letter-spacing:.015em;margin:2.5cqw 0 1cqw}
+[data-kind="04"] .sub{font-size:2.9cqw;color:#716b5f;margin-bottom:3cqw}
+[data-kind="04"] .footer{display:flex;justify-content:space-between;align-items:end;border-top:1px solid #a5a091;padding-top:2.5cqw}
+[data-kind="04"] .date-lock{font-size:7cqw;font-weight:700;color:#a93c27}
+[data-kind="04"] .info-line{margin-top:1.2cqw}
+[data-kind="05"]{background:#080f1d;color:#f8f7f2}
+[data-kind="05"] .photo{inset:0;filter:brightness(.62) saturate(1.08) contrast(1.2);object-position:44% center}
+[data-kind="05"]:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#07121ac9 0%,transparent 28%,#080f1b30 40%,#080d1bec 80%,#080d1b 100%),radial-gradient(circle at 83% 42%,#71dcea4f,transparent 44%),radial-gradient(circle at 22% 35%,#ca7ec440,transparent 44%)}
+[data-kind="05"] .brand{top:6%;left:8%}
+[data-kind="05"] .topright{position:absolute;top:8%;right:7%;z-index:3;color:#d1e6eb}
+[data-kind="05"] .vertical{position:absolute;left:6%;top:27%;z-index:3;writing-mode:vertical-rl;font-size:2.3cqw;letter-spacing:.3em}
+[data-kind="05"] .main{position:absolute;left:12%;right:8%;top:44%;z-index:3}
+[data-kind="05"] .main .en{font-size:2.7cqw;letter-spacing:.42em;color:#b5e6f1}
+[data-kind="05"] h2{font-size:20cqw;font-weight:680;line-height:1.1;letter-spacing:-.055em;margin:2.4cqw 0}
+[data-kind="05"] .main .desc{font-size:3.4cqw;letter-spacing:.15em;color:#e4d3f0}
+[data-kind="05"] .footer{position:absolute;bottom:5.5%;left:8%;right:8%;z-index:3;border-top:1px solid #d3e8ff80;padding-top:3cqw;display:flex;justify-content:space-between;align-items:end;gap:2cqw}
+[data-kind="05"] .date-lock{font-size:8cqw}
+[data-kind="05"] .info-line{margin-top:1.5cqw;color:#e2ecef}
+[data-kind="06"]{background:#d7ece3;color:#19473e}
+[data-kind="06"] .photo{inset:0 0 auto;height:68%;object-position:50% 41%;filter:saturate(1.14) contrast(1.07)}
+[data-kind="06"] .photo-grad{position:absolute;inset:0 0 30% 0;background:linear-gradient(180deg,#093b3682,transparent 45%,#062d1e60);pointer-events:none}
+[data-kind="06"] .brand{top:5%;left:7%}
+[data-kind="06"] .over{position:absolute;top:7%;right:7%;z-index:5;color:#fff}
+[data-kind="06"] .slogan{position:absolute;top:35%;left:7%;right:5%;z-index:4;color:#fff;font-size:17cqw;line-height:1.05;letter-spacing:-.07em;font-weight:800;text-shadow:0 1cqw 4cqw #132a255c}
+[data-kind="06"] .roundel{position:absolute;right:6%;top:58%;z-index:6;width:25cqw;height:25cqw;border-radius:50%;background:#ffb85b;color:#173f38;transform:rotate(15deg);display:grid;place-items:center;font-weight:740;font-size:3.3cqw;text-align:center;line-height:1.45}
+[data-kind="06"] .lower{position:absolute;bottom:0;left:0;right:0;height:34.5%;background:#d7ece3;padding:5.5% 7%}
+[data-kind="06"] .lower h2{font-size:14cqw;letter-spacing:-.06em;font-weight:790}
+[data-kind="06"] .lower .tagline{font-size:3.2cqw;letter-spacing:.12em;margin:1.4cqw 0 3cqw}
+[data-kind="06"] .lower .footer{display:flex;justify-content:space-between;align-items:end;border-top:1px solid #719789;padding-top:2.5cqw}
+[data-kind="06"] .lower .date-lock{font-size:8cqw;font-weight:730}
+[data-kind="06"] .lower .info-line{margin-top:1cqw}
+.note{margin-top:30px;background:#f6f5ee;padding:18px 20px;border:1px solid #d3d4cb;border-radius:10px;font-size:13px;line-height:1.8;color:#59665d}
+.lightbox{position:fixed;inset:0;z-index:30;background:#111b19f5;display:none;align-items:center;justify-content:center;flex-direction:column;padding:14px}
+.lightbox.open{display:flex}
+.lightbox .panel{height:min(84vh,900px);aspect-ratio:1080/1530;max-width:96vw;overflow:visible}
+.lightbox .panel .poster{height:100%;width:100%}
+.lightbox .close{align-self:flex-end;border:1px solid #adbbb3;background:none;color:#fff;border-radius:100px;padding:8px 15px;cursor:pointer;margin:0 5vw 10px}
+.lightbox .help{color:#bac8bc;font-size:12px;margin:12px 0}
+@media(max-width:980px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}}
+@media(max-width:600px){.gallery{grid-template-columns:1fr;max-width:510px;margin:auto}.caption strong{font-size:18px}.hero{padding:30px 18px}.content{padding:20px 16px 45px}}
+</style></head><body>
+<header class="hero"><div class="eyebrow">BUDAO · INVITATION DESIGN LAB · 2026 / 01</div><h1>一张照片，六种令人出发的表达。</h1>
+<p>六套原创母版 · 同一条温榆秘境活动 · 同一张真实主图。字体、比例、色彩、留白均已预先设计；这不是更换底色的模板合集。点击任意海报放大。</p>
+<div class="tags"><span>唯一照片来源：Tent 已发布主图</span><span>零付费生图 API</span><span>六种独立版式语言</span><span>原发布流程保持不变</span><span>视觉验收版本</span></div></header>
+<main class="content">
+<div class="bar"><span>固定活动信息：2026.11.08（日）15:45 ｜ 北京 · 顺义 ｜ 和园景逸大酒店停车场 ｜ 4千米 · 约1.5小时</span><span id="asset-status" aria-live="polite">照片及二维码资源加载中…</span></div>
+<section class="gallery" aria-label="六种原创母版">
+<div class="cell"><button class="stage" type="button" data-open="01" aria-label="放大 逐梦·动势"><article class="poster" data-kind="01">
+<img class="photo" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境唯一活动主图，秋日园林、树林与石拱桥" loading="eager"><div class="grid-rule"></div><div class="stripe"></div><div class="giant">08</div><div class="brand on-dark"><img src="../budao-logo-mark.png" alt="步道" class="logo-mark"><span class="brand-words">BUDAO<span>budao.org</span></span></div>
+<div class="series micro">FORWARD / 2026</div>
+<div class="main-copy"><div class="over">去探索 · 去发现</div><h2>温榆<br>秘境</h2><div class="desc">循着深秋的光，走进那座花园。</div></div>
+<div class="footer"><div><div class="date-lock">11.08</div><div class="info-line">周日 15:45 · 北京顺义<br>和园景逸大酒店停车场<br>4 千米 · 约 1.5 小时</div></div><div class="qr-wrap"><img class="qr" src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="温榆秘境活动报名二维码" loading="eager"><small>扫码同行</small></div></div>
+</article></button><div class="caption"><strong>01 逐梦 · 动势</strong><span>方向 · 能量 · 精确</span></div><p class="statement">大尺度数字、动力线与影像结构，不为“野”而乱。</p></div>
+<div class="cell"><button class="stage" type="button" data-open="02" aria-label="放大 一念·极简"><article class="poster" data-kind="02">
+<div class="brand "><img src="../budao-logo-mark.png" alt="步道" class="logo-mark"><span class="brand-words">BUDAO<span>budao.org</span></span></div><div class="series micro">A QUIET INVITATION</div>
+<div class="title"><h2>温榆<br>秘境。</h2><div class="subtitle">藏在河畔的一座花园。</div></div>
+<div class="photo-panel"><img class="photo" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境唯一活动主图，秋日园林、树林与石拱桥" loading="eager"></div>
+<div class="below-photo">请把这一段午后，留给一条路。<br>也留给路上的相遇。</div>
+<div class="footer"><div><div class="date-lock">11.08</div><div class="info-line">2026 周日 · 15:45<br>和园景逸大酒店停车场<br>4 千米 · 约 1.5 小时</div></div><div class="qr-wrap"><img class="qr" src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="温榆秘境活动报名二维码" loading="eager"><small>扫码同行</small></div></div>
+</article></button><div class="caption"><strong>02 一念 · 极简</strong><span>留白 · 焦点 · 克制</span></div><p class="statement">让一张照片成为安静的切口，信息精确而简洁。</p></div>
+<div class="cell"><button class="stage" type="button" data-open="03" aria-label="放大 光之礼序"><article class="poster" data-kind="03">
+<div class="inner"></div><div class="brand "><img src="../budao-logo-mark.png" alt="步道" class="logo-mark"><span class="brand-words">BUDAO<span>budao.org</span></span></div><div class="num micro">INVITATION NO. 08</div><div class="symbol">✧</div>
+<div class="arch"><img class="photo" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境唯一活动主图，秋日园林、树林与石拱桥" loading="eager"></div>
+<div class="invite"><div class="over">— 一 封 来 自 深 秋 的 邀 约 —</div><h2 class="cnserif">温榆秘境</h2><div class="line"></div><div class="desc">愿同行的时光，使彼此相遇。</div></div>
+<div class="footer"><div><div class="date-lock">2026 / 11 / 08</div><div class="info-line">周日 15:45<br>和园景逸大酒店停车场<br>4 千米 · 约 1.5 小时</div></div><div class="qr-wrap"><img class="qr" src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="温榆秘境活动报名二维码" loading="eager"><small>扫码同行</small></div></div>
+</article></button><div class="caption"><strong>03 光之礼序</strong><span>秩序 · 象征 · 仪式</span></div><p class="statement">拱券、双细线与正中轴，延展步道的精神气质。</p></div>
+<div class="cell"><button class="stage" type="button" data-open="04" aria-label="放大 东方·盛典"><article class="poster" data-kind="04">
+<div class="brand "><img src="../budao-logo-mark.png" alt="步道" class="logo-mark"><span class="brand-words">BUDAO<span>budao.org</span></span></div><div class="over micro">深 秋 · 河 畔 · 同 行</div><div class="han cnserif">秘</div><div class="photo-frame"><img class="photo" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境唯一活动主图，秋日园林、树林与石拱桥" loading="eager"></div>
+<div class="box"><div class="seal">深秋特别同行</div><h2 class="cnserif">温榆秘境</h2><div class="sub">温榆河畔，寻访那座隐秘的花园。</div>
+<div class="footer"><div><div class="date-lock">11月08日</div><div class="info-line">2026 周日 · 15:45<br>和园景逸大酒店停车场<br>4 千米 · 约 1.5 小时</div></div><div class="qr-wrap"><img class="qr" src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="温榆秘境活动报名二维码" loading="eager"><small>扫码同行</small></div></div>
+</div></article></button><div class="caption"><strong>04 东方 · 盛典</strong><span>汉字 · 文化 · 当代</span></div><p class="statement">以“秘”字作为当期艺术母题，不复制特定活动标识。</p></div>
+<div class="cell"><button class="stage" type="button" data-open="05" aria-label="放大 感官·影像"><article class="poster" data-kind="05">
+<img class="photo" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境唯一活动主图，秋日园林、树林与石拱桥" loading="eager"><div class="brand on-dark"><img src="../budao-logo-mark.png" alt="步道" class="logo-mark"><span class="brand-words">BUDAO<span>budao.org</span></span></div><div class="topright micro">THE UNSEEN / 001</div><div class="vertical">ONE AFTERNOON · ONE HIDDEN GARDEN</div>
+<div class="main"><div class="en">THE HIDDEN GARDEN</div><h2>温榆<br>秘境</h2><div class="desc">沿着光，抵达未曾见过的地方。</div></div>
+<div class="footer"><div><div class="date-lock">NOV. 08</div><div class="info-line">2026 周日 · 15:45<br>和园景逸大酒店停车场<br>4 千米 · 约 1.5 小时</div></div><div class="qr-wrap"><img class="qr" src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="温榆秘境活动报名二维码" loading="eager"><small>扫码同行</small></div></div>
+</article></button><div class="caption"><strong>05 感官 · 影像</strong><span>光影 · 悬念 · 沉浸</span></div><p class="statement">电影主视觉结构，靠视觉叙事而非堆砌效果。</p></div>
+<div class="cell"><button class="stage" type="button" data-open="06" aria-label="放大 远方·召唤"><article class="poster" data-kind="06">
+<img class="photo" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境唯一活动主图，秋日园林、树林与石拱桥" loading="eager"><div class="photo-grad"></div><div class="brand on-dark"><img src="../budao-logo-mark.png" alt="步道" class="logo-mark"><span class="brand-words">BUDAO<span>budao.org</span></span></div><div class="over micro">GO SOMEWHERE NEW</div><div class="slogan">一起去<br>发现。</div><div class="roundel">温榆河畔<br>深秋寻园</div>
+<div class="lower"><h2>温榆秘境</h2><div class="tagline">一座隐秘花园，一程刚好的相遇。</div><div class="footer"><div><div class="date-lock">11.08</div><div class="info-line">2026 周日 · 15:45<br>和园景逸大酒店停车场<br>4 千米 · 约 1.5 小时</div></div><div class="qr-wrap"><img class="qr" src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="温榆秘境活动报名二维码" loading="eager"><small>扫码同行</small></div></div></div>
+</article></button><div class="caption"><strong>06 远方 · 召唤</strong><span>旅行 · 自然 · 相遇</span></div><p class="statement">让真实照片成为邀请，让目的地自己说话。</p></div>
+</section>
+<div class="note"><strong>设计与验收说明：</strong>六套海报只调用路线现有的一张主图，其他图形、字形、色彩与版式均由普通 HTML/CSS 实现，不接入任何收费 AI API。二维码沿用「温榆秘境」现有路线资料，仅供本轮视觉验收。未来接入 Tent 时，活动性质为「同道」的请柬必须自动隐藏二维码并展示「｜小组同行 · 暂不对外｜」。本分支不修改发布、账号、审核或数据存储逻辑。</div>
+</main>
+<div class="lightbox" id="lightbox" role="dialog" aria-label="海报放大预览" aria-modal="true"><button class="close" type="button" id="close">关闭 · ESC</button><div class="panel" id="panel"></div><p class="help">同一张照片 · 六种独立构图 · 当前仅供审美验收</p></div>
+<script>
+(function(){
+ var modal=document.getElementById('lightbox'),panel=document.getElementById('panel');
+ document.querySelectorAll('.stage').forEach(function(b){b.addEventListener('click',function(){var p=b.querySelector('.poster').cloneNode(true);panel.replaceChildren(p);modal.classList.add('open');document.body.style.overflow='hidden';});});
+ function close(){modal.classList.remove('open');panel.replaceChildren();document.body.style.overflow='';}
+ document.getElementById('close').addEventListener('click',close);
+ modal.addEventListener('click',function(e){if(e.target===modal)close();});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+ var source=new Image(),qr=new Image(),status=document.getElementById('asset-status'),state={photo:false,qr:false};
+ function update(){status.textContent='主图：'+(state.photo?'已载入':'待确认')+' · 报名码：'+(state.qr?'已载入':'待确认');}
+ source.onload=function(){state.photo=true;update();};source.onerror=function(){status.textContent='主图未正常载入，请检查同源资源路径';};source.src='../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg';
+ qr.onload=function(){state.qr=true;update();};qr.onerror=function(){status.textContent+=' · 二维码载入异常';};qr.src='../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png';
+})();
+</script></body></html>
