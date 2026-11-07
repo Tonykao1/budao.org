@@ -220,7 +220,7 @@ function paintBackdrop(P,seed){
   const cy=ART.cy+Math.sin(angle)*(dist+(r()-.5)*35);
   splat(cx,cy,71+r()*44,52+r()*44,col,r,angle,11);
   for(let j=0;j<5;j++)shot(cx,cy,angle+(r()-.5)*1.2,90+r()*160,5+r()*14,col,r);
-  spray(cx,cy,122+r()*54,118+r()*65,angle,col,r,240);
+  spray(cx,cy,angle,122+r()*54,118+r()*65,col,r,240);
  }
  // Fine radial ejecta, each starting at a different point of impact.
  for(let i=0;i<165;i++){
