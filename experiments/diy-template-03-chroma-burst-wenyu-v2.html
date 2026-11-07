@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>BUDAO DESIGN LAB — 模板三 · 白底飞溅 V2</title>
+<style>
+:root{--ink:#142022;--edge:#c9cdd3;--muted:#6e7279}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#e9eaed;color:var(--ink);font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.top{background:#15181d;color:white;padding:27px max(20px,calc((100vw - 1420px)/2));display:flex;align-items:flex-end;justify-content:space-between;gap:22px}
+.top h1{font-size:clamp(31px,4vw,53px);letter-spacing:-.045em;line-height:1.15;margin:6px 0 8px}
+.top h1 span{font-weight:300;opacity:.78}
+.top small{font-size:11px;letter-spacing:.19em;color:#a1a8b4}
+.top p{font-size:14px;line-height:1.65;color:#bfc2cb;margin:0;max-width:740px}
+.top .corner{font-family:Arial,sans-serif;letter-spacing:.2em;color:#99a0ac;font-size:12px;text-align:right;white-space:nowrap}
+.workspace{max-width:1450px;margin:auto;padding:25px 18px 56px;display:grid;grid-template-columns:minmax(0,780px) minmax(295px,1fr);gap:30px;align-items:start}
+.preview-wrap{min-width:0}
+.canvas-shell{position:relative;background:#ffffff;padding:10px;box-shadow:0 22px 55px #26314229}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1080/1530;background:#381ac1}
+.caption{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#666c75;font-size:12px;margin:12px 4px}
+.caption strong{color:#242930;font-weight:650}
+.panel{background:#f9f9fb;border:1px solid #d3d6dc;box-shadow:0 5px 24px #252b3520;padding:27px;border-radius:10px}
+.eyebrow{font-size:10px;color:#8d4b62;letter-spacing:.23em;font-weight:750}
+.panel h2{font-size:27px;letter-spacing:-.04em;margin:8px 0 8px}
+.panel p{font-size:13px;line-height:1.85;color:#646975;margin:0 0 14px}
+.upload-label{display:block;font-size:13px;color:#282d33;font-weight:750;margin:16px 0 9px}
+.filebox{position:relative;background:#f0f1f5;border:1px dashed #afb4bd;border-radius:8px;padding:19px 14px;text-align:center;cursor:pointer;transition:background .2s,border-color .2s}
+.filebox:hover,.filebox:focus-within{background:#e8eaff;border-color:#6d67d9}
+.filebox strong{font-size:14px;display:block}
+.filebox span{font-size:12px;color:#7d818b}
+.filebox input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.rowline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 0 10px}
+.rowline .label{font-size:13px;font-weight:700}
+.rowline .value{font-size:12px;color:#757c85}
+.palette{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.palette .swatch{height:45px;border-radius:3px;border:1px solid #0002;position:relative}
+.palette .swatch:first-child:after{content:"CORE";position:absolute;left:2px;right:2px;bottom:5px;text-align:center;font-size:8px;font-weight:900;letter-spacing:.1em;color:white;text-shadow:0 1px 3px #000a}
+.input-label{display:block;margin:21px 0 7px;font-size:13px;font-weight:750}
+.textinput{width:100%;font-size:14px;color:#1e2c33;padding:13px 12px;background:white;border:1px solid #cbd0d9;border-radius:6px;font-family:inherit}
+.textinput:focus{outline:2px solid #696be6;outline-offset:2px}
+.meter{font-size:12px;color:#6e737d;margin-top:7px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:22px}
+button{font-family:inherit;font-weight:750;font-size:13px;cursor:pointer;padding:14px 10px;border-radius:6px;border:1px solid #383c4c;background:white;color:#292d3a}
+button.primary{grid-column:1/-1;color:white;background:#1a1d24;border-color:#1a1d24;font-size:15px}
+button:hover:not(:disabled){filter:brightness(1.12)}
+button:disabled{opacity:.48;cursor:not-allowed}
+.status{font-size:12px;line-height:1.7;color:#4d5a5a;white-space:pre-wrap;margin-top:15px;min-height:40px}
+.note{border-top:1px solid #dfe1e6;margin-top:18px;padding-top:15px;font-size:11.5px;line-height:1.85;color:#787e88}
+.audit{display:flex;align-items:center;gap:8px;margin-top:11px}
+.dot{height:8px;width:8px;background:#27ad75;border-radius:50%}
+@media(max-width:990px){.workspace{grid-template-columns:1fr;gap:18px}.preview-wrap{max-width:660px;margin:auto;width:100%}.panel{max-width:660px;margin:auto;width:100%}.top .corner{display:none}}
+@media(max-width:550px){.top{padding:24px 19px}.workspace{padding:13px 10px 35px}.panel{padding:20px}.canvas-shell{padding:6px}}
+
+canvas{background:#fff}
+.canvas-shell{background:#fff}
+.fact-box{margin-top:19px;padding:15px 17px;border:1px solid #dadde3;background:#fff;border-radius:8px}
+.fact-box strong{font-size:13px;display:block;margin:0 0 7px}
+.fact-box p{margin:0}
+</style>
+</head>
+<body>
+<header class="top">
+<div><small>BUDAO / DIY TENT INVITATION / DESIGN EXPERIMENT 03</small><h1>色彩引爆 <span>/ CHROMA BURST</span></h1>
+<p>一张照片驱动满版鲜亮的白底飞溅，上半部分让颜色真正炸向四周；下半部分以早期 Apple 邀请函的字体秩序排出完整线路事实与唯一二维码。</p></div>
+<div class="corner">FORM 03<br>WHITE SPLATTER / V2</div>
+</header>
+<main class="workspace">
+<section class="preview-wrap">
+  <div class="canvas-shell"><canvas id="poster" width="1080" height="1530" role="img" aria-label="全幅高饱和颜料喷溅，以白色步道脚丫子线稿为中心，底部为简短邀请语和报名二维码"></canvas></div>
+  <div class="caption"><strong>CHROMA BURST · V2 / WHITE SPLATTER</strong><span>1080 × 1530 px ｜ 实际 Canvas 可导出</span></div>
+</section>
+<aside class="panel" aria-label="独立的第三套请柬实验控制台">
+<div class="eyebrow">THE EXPLOSIVE PALETTE ENGINE</div>
+<h2>爆炸，而非堆叠。</h2>
+<p>取出照片可信主色相，在上半幅白色画布上形成有抛射方向的颜料飞溅、碎点和弧形色线。白色负空间必须留在不同彩色爆发体之间；下方所有线路信息保持完整。</p>
+<label class="upload-label" for="photoInput">01 ／ 上传活动照片</label>
+<div class="filebox">
+<strong id="fileName">选择一张照片，重新引爆颜色</strong>
+<span>JPG / PNG / WebP · 本地取色 · 不上传服务器</span>
+<input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" aria-label="上传一张用于自动取色的活动照片">
+</div>
+<div class="rowline"><span class="label">02 ／ 照片主色相 → 激情色域</span><span class="value" id="hueLabel">识别中…</span></div>
+<div class="palette" id="palette" aria-label="自动生成的六个高饱和色块"></div>
+<div class="fact-box"><strong>03 ／ 苹果式关键信息排版</strong><p>线路、日期、时间、难度、距离、爬升、时长、路面、适合人群、装备及集合地点全部来自当前活动。只去掉副标题和路线说明。</p></div>
+<div class="actions">
+<button type="button" id="regenerate" disabled>再甩一次 · 变构图</button>
+<button type="button" id="reset" disabled>恢复照片初始色爆</button>
+<button type="button" class="primary" id="download" disabled>导出当前海报 PNG</button>
+</div>
+<div class="status" id="status" aria-live="polite">正在加载温榆秘境真实活动素材……</div>
+<div class="note">
+<strong>设计与安全边界</strong><br>
+本页为第三套 V2 艺术验收；不修改模板一、模板二，不修改正式 Tent。脚丫子使用步道已确认线条素材，纯白绘制。二维码取自当前演示活动的原始报名图片，无法获取时不允许导出。照片在本地取色；不调用 AI、外部取色 API 或固定典礼色板。扫码后查看完整线路详情与参与须知。
+</div>
+<div class="audit"><span class="dot"></span><small>动态高饱和色域 · 独立算法</small></div>
+</aside>
+</main>
+<script>
+"use strict";
+const ROOT="../";
+const SOURCE={
+ photo:ROOT+"route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg",
+ qr:ROOT+"route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png",
+ foot:ROOT+"assets/budao-footprint-watermark.svg"
+};
+const $=id=>document.getElementById(id);
+const cvs=$("poster"),ctx=cvs.getContext("2d",{alpha:false});
+const controls={photo:$("photoInput"),name:$("fileName"),hue:$("hueLabel"),palette:$("palette"),regen:$("regenerate"),reset:$("reset"),download:$("download"),status:$("status")};
+const FONT='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+let photo=null,qr=null,foot=null,photoInfo=null,variant=0,ready=false;
+let imgStamp=0;
+const clamp=(x,lo,hi)=>Math.min(hi,Math.max(lo,x));
+const mod=(x,n)=>((x%n)+n)%n;
+const hsl=(h,s,l)=>"hsl("+mod(h,360).toFixed(1)+" "+s.toFixed(1)+"% "+l.toFixed(1)+"%)";
+function rng(seed){
+ let v=seed>>>0;return function(){v+=0x6D2B79F5;let t=v;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};
+}
+function rgbToHsl(r,g,b){
+ r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,l=(max+min)/2;
+ if(d<1e-8)return [0,0,l];
+ const s=d/(1-Math.abs(2*l-1));let h=0;
+ if(max===r)h=((g-b)/d)%6;else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;
+ return [mod(h*60,360),s,l];
+}
+function analyze(image){
+ const sample=document.createElement("canvas");sample.width=128;sample.height=128;
+ const sc=sample.getContext("2d",{willReadFrequently:true});sc.drawImage(image,0,0,128,128);
+ const bytes=sc.getImageData(0,0,128,128).data,bins=Array(24).fill(0);
+ let n=0,valid=0,hash=2166136261;
+ const points=[];
+ for(let i=0;i<bytes.length;i+=4){
+   const r=bytes[i],g=bytes[i+1],b=bytes[i+2],a=bytes[i+3];
+   if(a<120)continue;
+   n++;hash=Math.imul(hash^(r+g*3+b*7),16777619)>>>0;
+   const [h,s,l]=rgbToHsl(r,g,b);
+   if(s<.16||l<.095||l>.92)continue;
+   valid++;
+   const w=Math.pow(s,1.55)*(0.55+Math.min(l,1-l)*1.8);
+   bins[Math.floor(h/15)%24]+=w;
+   points.push({h,w});
+ }
+ const chromaRatio=n?valid/n:0;
+ if(chromaRatio<.08||!points.length)return {hue:329,fallback:true,ratio:chromaRatio,hash:hash||1};
+ let best=0,max=-Infinity;
+ for(let i=0;i<24;i++){
+   const score=bins[i]+.32*(bins[mod(i-1,24)]+bins[mod(i+1,24)]);
+   if(score>max){max=score;best=i;}
+ }
+ let sx=0,sy=0;
+ for(const p of points){
+   const diff=Math.abs(mod(p.h-(best*15+7.5)+180,360)-180);
+   if(diff<23){sx+=Math.cos(p.h*Math.PI/180)*p.w;sy+=Math.sin(p.h*Math.PI/180)*p.w;}
+ }
+ return {hue:mod(Math.atan2(sy,sx)*180/Math.PI,360),fallback:false,ratio:chromaRatio,hash:hash||1};
+}
+function paletteFor(core){
+ const offsets=[0,153,-158,76,-83,224,32];
+ const shifts=[0,0,0,0,0,0,0];
+ return offsets.map((d,i)=>({h:mod(core.hue+d+shifts[i],360),s:i===0?98:i%2?99:96,l:i===0?46:[48,57,51,59,50,55][(i-1)%6]}));
+}
+
+const FACTS=Object.freeze({
+ title:"温榆秘境",date:"2026年11月08日",day:"周日",time:"15:45",
+ region:"北京 · 顺义",meeting:"和园景逸大酒店停车场",
+ distance:"4 千米",elevation:"＜ 50 米",difficulty:"简单",
+ duration:"1.5 小时",surface:"铺装路",suitable:"全年龄段友好",equipment:"运动鞋"
+});
+const ART={cx:540,cy:409,bottom:865};
+function splat(x,y,rx,ry,color,r,rotation=0,nsp=13){
+ ctx.save();ctx.translate(x,y);ctx.rotate(rotation);
+ ctx.fillStyle=color;ctx.beginPath();
+ const n=96;
+ for(let i=0;i<n;i++){
+  const a=i*2*Math.PI/n;
+  const barb=i%Math.round(n/nsp)===0&&r()>.17?1.30+r()*1.2:1;
+  const d=(.80+.23*r())*barb;
+  const px=Math.cos(a)*rx*d,py=Math.sin(a)*ry*d;
+  if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+ }
+ ctx.closePath();ctx.fill();ctx.restore();
+}
+function shot(x,y,angle,length,width,color,r){
+ ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+ ctx.fillStyle=color;ctx.beginPath();
+ ctx.moveTo(-width,-width*.35);
+ ctx.bezierCurveTo(length*.20,-width*.60,length*.70,-width*.05,length,0);
+ ctx.bezierCurveTo(length*.62,width*.21,length*.21,width*.44,-width,width*.35);
+ ctx.closePath();ctx.fill();ctx.restore();
+}
+function spray(x,y,theta,Rx,Ry,color,r,count){
+ const ca=Math.cos(theta),sa=Math.sin(theta);
+ ctx.save();ctx.fillStyle=color;
+ for(let i=0;i<count;i++){
+  const a=(r()-.5)*2.9,t=Math.sqrt(r())*(.10+r()*1.85);
+  const u=Math.cos(a)*Rx*t,v=Math.sin(a)*Ry*t;
+  const xx=x+u*ca-v*sa,yy=y+u*sa+v*ca;
+  const z=r()<.92?1+r()*5:6+r()*13;
+  ctx.beginPath();
+  ctx.ellipse(xx,yy,z*(r()>.81?2.4:1),z*(.42+r()*.7),theta,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
+}
+function paintBackdrop(P,seed){
+ const r=rng(seed);
+ ctx.fillStyle="#fff";ctx.fillRect(0,0,1080,1530);
+ ctx.save();ctx.beginPath();ctx.rect(0,0,1080,ART.bottom);ctx.clip();
+ const arms=[
+  [-167,326,1],[-136,335,3],[-103,338,4],[-69,340,2],
+  [-34,348,5],[1,345,6],[35,345,1],[73,336,3],
+  [112,335,5],[152,334,4]
+ ];
+ // The satellite islands are separate: the canvas stays white in between.
+ for(const [d,dist,index] of arms){
+  const angle=(d+(r()-.5)*13)*Math.PI/180;
+  const p=P[index],col=hsl(p.h,99,p.l);
+  const cx=ART.cx+Math.cos(angle)*(dist+(r()-.5)*35);
+  const cy=ART.cy+Math.sin(angle)*(dist+(r()-.5)*35);
+  splat(cx,cy,71+r()*44,52+r()*44,col,r,angle,11);
+  for(let j=0;j<5;j++)shot(cx,cy,angle+(r()-.5)*1.2,90+r()*160,5+r()*14,col,r);
+  spray(cx,cy,angle,122+r()*54,118+r()*65,col,r,240);
+ }
+ // Fine radial ejecta, each starting at a different point of impact.
+ for(let i=0;i<165;i++){
+  const a=(r()*Math.PI*2),p=P[1+i%6],col=hsl(p.h,99,p.l);
+  const dist=155+r()*95;
+  shot(ART.cx+Math.cos(a)*dist,ART.cy+Math.sin(a)*dist,a,130+r()*410,2+r()*11,col,r);
+ }
+ // ONE source color island; white logo lives on the vivid darker center.
+ const center=hsl(P[0].h,99,31);
+ splat(ART.cx,ART.cy,182,269,center,r,-.05,18);
+ for(let i=0;i<42;i++){
+  const a=r()*Math.PI*2,off=137+r()*79;
+  shot(ART.cx+Math.cos(a)*off,ART.cy+Math.sin(a)*off,a,55+r()*155,2+r()*15,hsl(P[0].h,99,35),r);
+ }
+ spray(ART.cx,ART.cy,0,170,173,hsl(P[0].h,99,36),r,510);
+ ctx.restore();
+}
+function whiteFoot(){
+ // Exact original internal spiral, toes and outline, recolored solely to pure white.
+ const height=400,width=height*133/312,left=(1080-width)/2,top=210;
+ const mask=document.createElement("canvas");
+ mask.width=Math.ceil(width*2);mask.height=height*2;
+ const mc=mask.getContext("2d");mc.drawImage(foot,0,0,mask.width,mask.height);
+ mc.globalCompositeOperation="source-in";mc.fillStyle="#fff";mc.fillRect(0,0,mask.width,mask.height);
+ ctx.drawImage(mask,left,top,width,height);
+}
+function txt(value,x,y,size=27,color="#232529",weight=400,align="left"){
+ ctx.save();ctx.textAlign=align;ctx.textBaseline="alphabetic";
+ ctx.fillStyle=color;ctx.font=weight+" "+size+"px "+FONT;
+ ctx.fillText(value,x,y);ctx.restore();
+}
+function fit(value,x,y,maxW,size=32,color="#232529",weight=500,align="left"){
+ ctx.save();ctx.textAlign=align;ctx.textBaseline="alphabetic";ctx.fillStyle=color;
+ ctx.font=weight+" "+size+"px "+FONT;
+ const real=Math.min(size,size*maxW/Math.max(1,ctx.measureText(value).width));
+ ctx.font=weight+" "+Math.max(18,real)+"px "+FONT;ctx.fillText(value,x,y);ctx.restore();
+}
+function renderFacts(){
+ // Apple's restrained invite rhythm: single font, generous spacing, real details.
+ ctx.fillStyle="#fff";ctx.fillRect(0,ART.bottom,1080,1530-ART.bottom);
+ fit(FACTS.title,540,977,905,77,"#1b1b1d",570,"center");
+ txt(FACTS.date+"   ·   "+FACTS.day+"  "+FACTS.time,540,1045,33,"#34363a",420,"center");
+ txt(FACTS.region,540,1093,26,"#717379",420,"center");
+ ctx.beginPath();ctx.moveTo(104,1129);ctx.lineTo(976,1129);
+ ctx.strokeStyle="#dcdde1";ctx.lineWidth=1;ctx.stroke();
+ txt("集合地点",105,1174,23,"#74777e",480);
+ fit(FACTS.meeting,105,1228,685,34,"#222326",540);
+ const grid=[
+  ["距离",FACTS.distance,105,1304],["爬升",FACTS.elevation,333,1304],
+  ["难度",FACTS.difficulty,560,1304],
+  ["时长",FACTS.duration,105,1396],["路面",FACTS.surface,333,1396],
+  ["适合人群",FACTS.suitable,560,1396]
+ ];
+ for(const [label,value,x,y] of grid){
+  txt(label,x,y,21,"#7b7e85",420);fit(value,x,y+39,212,28,"#25262a",530);
+ }
+ txt("装备  ·  "+FACTS.equipment,105,1492,23,"#57595e",420);
+}
+function paintQR(){
+ if(!qr)throw Error("当前活动二维码读取失败");
+ const size=182,x=812,y=1270;
+ ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(qr,x,y,size,size);ctx.restore();
+}
+function showPalette(p){
+ controls.palette.replaceChildren();
+ p.slice(0,6).forEach((v,i)=>{
+  const d=document.createElement("span");d.className="swatch";
+  d.style.background=hsl(v.h,v.s,v.l);d.title=(i===0?"中心色":"爆发色 "+i)+"：色相 "+v.h.toFixed(0)+"°";
+  controls.palette.appendChild(d);
+ });
+}
+function render(){
+ if(!photoInfo||!qr||!foot)return;
+ ready=false;controls.download.disabled=true;
+ try{
+  const P=paletteFor(photoInfo);
+  paintBackdrop(P,(photoInfo.hash ^ Math.imul(variant+1,0x9e3779b9))>>>0);
+  whiteFoot();renderFacts();paintQR();showPalette(P);
+  controls.hue.textContent=photoInfo.fallback?"低彩度 · 高能回退":photoInfo.hue.toFixed(0)+"° 主色相";
+  controls.status.textContent=(photoInfo.fallback?"照片色彩不足，已明确启用默认高能色系。":"已从当前照片提取主色相 "+photoInfo.hue.toFixed(1)+"°。")+
+   "\n✓ 白底颜料飞溅与喷射已重新生成；变体 "+(variant+1)+
+   "\n✓ 原始白色线条脚丫子 + 完整关键信息"+
+   "\n✓ 已载入温榆秘境原始报名二维码"+
+   "\n✓ 画布 1080 × 1530 · 可本地导出 PNG";
+  ready=true;controls.download.disabled=false;
+ }catch(err){controls.status.textContent="✕ "+String(err.message||err);}
+}
+async function getImage(url,label){
+ const resp=await fetch(url,{cache:"no-cache"});
+ if(!resp.ok)throw Error(label+"读取失败：HTTP "+resp.status);
+ const file=await resp.blob();
+ if(!file.type.startsWith("image/"))throw Error(label+"不是有效图片");
+ if(file.type.includes("svg")){
+  const objectUrl=URL.createObjectURL(file);
+  try{
+   const image=new Image();
+   await new Promise((resolve,reject)=>{
+    image.onload=resolve;
+    image.onerror=()=>reject(Error(label+" SVG 解码失败"));
+    image.src=objectUrl;
+   });
+   if(!image.naturalWidth||!image.naturalHeight)throw Error(label+" SVG 尺寸无效");
+   return image;
+  }finally{URL.revokeObjectURL(objectUrl);}
+ }
+ return createImageBitmap(file);
+}
+async function initialize(){
+ try{
+  const [pi,qi,fi]=await Promise.all([
+    getImage(SOURCE.photo,"真实活动照片"),
+    getImage(SOURCE.qr,"真实报名二维码"),
+    getImage(SOURCE.foot,"步道脚丫子线稿")
+  ]);
+  await document.fonts.ready;
+  photo=pi;qr=qi;foot=fi;photoInfo=analyze(photo);
+  controls.regen.disabled=false;controls.reset.disabled=false;
+  render();
+ }catch(err){
+  ready=false;controls.status.textContent="✕ 素材未通过验证，不能导出："+String(err.message||err);
+ }
+}
+controls.photo.addEventListener("change",async()=>{
+ const file=controls.photo.files?.[0];
+ if(!file)return;
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>24*1024*1024){
+   controls.status.textContent="仅接受小于 24MB 的 JPG、PNG、WebP 图片。";return;
+ }
+ const seq=++imgStamp;controls.status.textContent="正在从新照片读取主色相……";
+ try{
+  const next=await createImageBitmap(file);
+  if(seq!==imgStamp){next.close?.();return;}
+  const prev=photo;photo=next;prev?.close?.();
+  photoInfo=analyze(photo);variant=0;controls.name.textContent=file.name;
+  render();
+ }catch(err){controls.status.textContent="✕ 无法读取上传照片："+String(err.message||err);}
+});
+controls.regen.addEventListener("click",()=>{variant=(variant+1)%10000;render();});
+controls.reset.addEventListener("click",()=>{variant=0;render();});
+controls.download.addEventListener("click",()=>{
+ if(!ready)return;
+ cvs.toBlob(blob=>{
+  if(!blob){controls.status.textContent+="\n✕ PNG 导出失败";return;}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="BUDAO-模板三-白底泼彩-V2-"+(variant+1)+".png";
+  a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ },"image/png");
+});
+initialize();
+</script>
+</body>
+</html>
