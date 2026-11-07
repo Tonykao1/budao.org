@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>BUDAO DESIGN LAB — 模板三 · 色彩引爆 V1</title>
+<style>
+:root{--ink:#142022;--edge:#c9cdd3;--muted:#6e7279}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#e9eaed;color:var(--ink);font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.top{background:#15181d;color:white;padding:27px max(20px,calc((100vw - 1420px)/2));display:flex;align-items:flex-end;justify-content:space-between;gap:22px}
+.top h1{font-size:clamp(31px,4vw,53px);letter-spacing:-.045em;line-height:1.15;margin:6px 0 8px}
+.top h1 span{font-weight:300;opacity:.78}
+.top small{font-size:11px;letter-spacing:.19em;color:#a1a8b4}
+.top p{font-size:14px;line-height:1.65;color:#bfc2cb;margin:0;max-width:740px}
+.top .corner{font-family:Arial,sans-serif;letter-spacing:.2em;color:#99a0ac;font-size:12px;text-align:right;white-space:nowrap}
+.workspace{max-width:1450px;margin:auto;padding:25px 18px 56px;display:grid;grid-template-columns:minmax(0,780px) minmax(295px,1fr);gap:30px;align-items:start}
+.preview-wrap{min-width:0}
+.canvas-shell{position:relative;background:#ffffff;padding:10px;box-shadow:0 22px 55px #26314229}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1080/1530;background:#381ac1}
+.caption{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#666c75;font-size:12px;margin:12px 4px}
+.caption strong{color:#242930;font-weight:650}
+.panel{background:#f9f9fb;border:1px solid #d3d6dc;box-shadow:0 5px 24px #252b3520;padding:27px;border-radius:10px}
+.eyebrow{font-size:10px;color:#8d4b62;letter-spacing:.23em;font-weight:750}
+.panel h2{font-size:27px;letter-spacing:-.04em;margin:8px 0 8px}
+.panel p{font-size:13px;line-height:1.85;color:#646975;margin:0 0 14px}
+.upload-label{display:block;font-size:13px;color:#282d33;font-weight:750;margin:16px 0 9px}
+.filebox{position:relative;background:#f0f1f5;border:1px dashed #afb4bd;border-radius:8px;padding:19px 14px;text-align:center;cursor:pointer;transition:background .2s,border-color .2s}
+.filebox:hover,.filebox:focus-within{background:#e8eaff;border-color:#6d67d9}
+.filebox strong{font-size:14px;display:block}
+.filebox span{font-size:12px;color:#7d818b}
+.filebox input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.rowline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 0 10px}
+.rowline .label{font-size:13px;font-weight:700}
+.rowline .value{font-size:12px;color:#757c85}
+.palette{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.palette .swatch{height:45px;border-radius:3px;border:1px solid #0002;position:relative}
+.palette .swatch:first-child:after{content:"CORE";position:absolute;left:2px;right:2px;bottom:5px;text-align:center;font-size:8px;font-weight:900;letter-spacing:.1em;color:white;text-shadow:0 1px 3px #000a}
+.input-label{display:block;margin:21px 0 7px;font-size:13px;font-weight:750}
+.textinput{width:100%;font-size:14px;color:#1e2c33;padding:13px 12px;background:white;border:1px solid #cbd0d9;border-radius:6px;font-family:inherit}
+.textinput:focus{outline:2px solid #696be6;outline-offset:2px}
+.meter{font-size:12px;color:#6e737d;margin-top:7px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:22px}
+button{font-family:inherit;font-weight:750;font-size:13px;cursor:pointer;padding:14px 10px;border-radius:6px;border:1px solid #383c4c;background:white;color:#292d3a}
+button.primary{grid-column:1/-1;color:white;background:#1a1d24;border-color:#1a1d24;font-size:15px}
+button:hover:not(:disabled){filter:brightness(1.12)}
+button:disabled{opacity:.48;cursor:not-allowed}
+.status{font-size:12px;line-height:1.7;color:#4d5a5a;white-space:pre-wrap;margin-top:15px;min-height:40px}
+.note{border-top:1px solid #dfe1e6;margin-top:18px;padding-top:15px;font-size:11.5px;line-height:1.85;color:#787e88}
+.audit{display:flex;align-items:center;gap:8px;margin-top:11px}
+.dot{height:8px;width:8px;background:#27ad75;border-radius:50%}
+@media(max-width:990px){.workspace{grid-template-columns:1fr;gap:18px}.preview-wrap{max-width:660px;margin:auto;width:100%}.panel{max-width:660px;margin:auto;width:100%}.top .corner{display:none}}
+@media(max-width:550px){.top{padding:24px 19px}.workspace{padding:13px 10px 35px}.panel{padding:20px}.canvas-shell{padding:6px}}
+</style>
+</head>
+<body>
+<header class="top">
+<div><small>BUDAO / DIY TENT INVITATION / DESIGN EXPERIMENT 03</small><h1>色彩引爆 <span>/ CHROMA BURST</span></h1>
+<p>一张照片，唤醒一场色彩爆发。中心只保留白色步道足迹、一行邀请、一个二维码。设计取法 2010 年 iPad 发布会的泼彩情绪，但不复制其图形。</p></div>
+<div class="corner">FORM 03<br>ART STUDY / V1</div>
+</header>
+<main class="workspace">
+<section class="preview-wrap">
+  <div class="canvas-shell"><canvas id="poster" width="1080" height="1530" role="img" aria-label="全幅高饱和颜料喷溅，以白色步道脚丫子线稿为中心，底部为简短邀请语和报名二维码"></canvas></div>
+  <div class="caption"><strong>CHROMA BURST · V1</strong><span>1080 × 1530 px ｜ 实际 Canvas 可导出</span></div>
+</section>
+<aside class="panel" aria-label="独立的第三套请柬实验控制台">
+<div class="eyebrow">THE EXPLOSIVE PALETTE ENGINE</div>
+<h2>让照片决定燃点。</h2>
+<p>上传真实活动照片。系统只提取它最可信的主导色相，之后用互补与跳色规则生成放肆、鲜亮的泼彩构图。原图本身不出现在海报上。</p>
+<label class="upload-label" for="photoInput">01 ／ 上传活动照片</label>
+<div class="filebox">
+<strong id="fileName">选择一张照片，重新引爆颜色</strong>
+<span>JPG / PNG / WebP · 本地取色 · 不上传服务器</span>
+<input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" aria-label="上传一张用于自动取色的活动照片">
+</div>
+<div class="rowline"><span class="label">02 ／ 照片主色相 → 激情色域</span><span class="value" id="hueLabel">识别中…</span></div>
+<div class="palette" id="palette" aria-label="自动生成的六个高饱和色块"></div>
+<label class="input-label" for="phrase">03 ／ 海报下方唯一的一行字</label>
+<input class="textinput" id="phrase" type="text" maxlength="22" value="有些相遇，在路上。" autocomplete="off" spellcheck="false" aria-label="一行邀请文案">
+<div class="meter">仅保留一句，使用一种字体；不得加活动说明区。</div>
+<div class="actions">
+<button type="button" id="regenerate" disabled>再甩一次 · 变构图</button>
+<button type="button" id="reset" disabled>恢复照片初始色爆</button>
+<button type="button" class="primary" id="download" disabled>导出当前海报 PNG</button>
+</div>
+<div class="status" id="status" aria-live="polite">正在加载温榆秘境真实活动素材……</div>
+<div class="note">
+<strong>设计与安全边界</strong><br>
+本页只为第三套 V1 艺术验收；不修改模板一、模板二，不修改正式 Tent。脚丫子使用步道已确认线条素材，纯白绘制。二维码取自当前演示活动的原始报名图片，无法获取时不允许导出。照片在本地取色；不调用 AI、外部取色 API 或固定典礼色板。扫码后查看完整线路详情与参与须知。
+</div>
+<div class="audit"><span class="dot"></span><small>动态高饱和色域 · 独立算法</small></div>
+</aside>
+</main>
+<script>
+"use strict";
+const ROOT="../";
+const SOURCE={
+ photo:ROOT+"route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg",
+ qr:ROOT+"route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png",
+ foot:ROOT+"assets/budao-footprint-watermark.svg"
+};
+const $=id=>document.getElementById(id);
+const cvs=$("poster"),ctx=cvs.getContext("2d",{alpha:false});
+const controls={photo:$("photoInput"),name:$("fileName"),hue:$("hueLabel"),palette:$("palette"),phrase:$("phrase"),regen:$("regenerate"),reset:$("reset"),download:$("download"),status:$("status")};
+const FONT='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+let photo=null,qr=null,foot=null,photoInfo=null,variant=0,ready=false;
+let imgStamp=0;
+const clamp=(x,lo,hi)=>Math.min(hi,Math.max(lo,x));
+const mod=(x,n)=>((x%n)+n)%n;
+const hsl=(h,s,l)=>"hsl("+mod(h,360).toFixed(1)+" "+s.toFixed(1)+"% "+l.toFixed(1)+"%)";
+function rng(seed){
+ let v=seed>>>0;return function(){v+=0x6D2B79F5;let t=v;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};
+}
+function rgbToHsl(r,g,b){
+ r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,l=(max+min)/2;
+ if(d<1e-8)return [0,0,l];
+ const s=d/(1-Math.abs(2*l-1));let h=0;
+ if(max===r)h=((g-b)/d)%6;else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;
+ return [mod(h*60,360),s,l];
+}
+function analyze(image){
+ const sample=document.createElement("canvas");sample.width=128;sample.height=128;
+ const sc=sample.getContext("2d",{willReadFrequently:true});sc.drawImage(image,0,0,128,128);
+ const bytes=sc.getImageData(0,0,128,128).data,bins=Array(24).fill(0);
+ let n=0,valid=0,hash=2166136261;
+ const points=[];
+ for(let i=0;i<bytes.length;i+=4){
+   const r=bytes[i],g=bytes[i+1],b=bytes[i+2],a=bytes[i+3];
+   if(a<120)continue;
+   n++;hash=Math.imul(hash^(r+g*3+b*7),16777619)>>>0;
+   const [h,s,l]=rgbToHsl(r,g,b);
+   if(s<.16||l<.095||l>.92)continue;
+   valid++;
+   const w=Math.pow(s,1.55)*(0.55+Math.min(l,1-l)*1.8);
+   bins[Math.floor(h/15)%24]+=w;
+   points.push({h,w});
+ }
+ const chromaRatio=n?valid/n:0;
+ if(chromaRatio<.08||!points.length)return {hue:329,fallback:true,ratio:chromaRatio,hash:hash||1};
+ let best=0,max=-Infinity;
+ for(let i=0;i<24;i++){
+   const score=bins[i]+.32*(bins[mod(i-1,24)]+bins[mod(i+1,24)]);
+   if(score>max){max=score;best=i;}
+ }
+ let sx=0,sy=0;
+ for(const p of points){
+   const diff=Math.abs(mod(p.h-(best*15+7.5)+180,360)-180);
+   if(diff<23){sx+=Math.cos(p.h*Math.PI/180)*p.w;sy+=Math.sin(p.h*Math.PI/180)*p.w;}
+ }
+ return {hue:mod(Math.atan2(sy,sx)*180/Math.PI,360),fallback:false,ratio:chromaRatio,hash:hash||1};
+}
+function paletteFor(core){
+ const offsets=[0,153,-158,76,-83,224,32];
+ const shifts=[0,0,0,0,0,0,0];
+ return offsets.map((d,i)=>({h:mod(core.hue+d+shifts[i],360),s:i===0?98:i%2?99:96,l:i===0?46:[48,57,51,59,50,55][(i-1)%6]}));
+}
+function oneStroke(c,x,y,rx,ry,r,color,rand){
+ c.save();c.translate(x,y);c.rotate(r);c.beginPath();
+ const N=44,points=[];
+ for(let i=0;i<N;i++){
+  const a=i/N*Math.PI*2,spike=rand()<.14?(1.2+rand()*.75):1;
+  const warp=(.69+.44*rand())*spike;
+  points.push([Math.cos(a)*rx*warp,Math.sin(a)*ry*warp]);
+ }
+ let prev=points[points.length-1],next=points[0];
+ c.moveTo((prev[0]+next[0])/2,(prev[1]+next[1])/2);
+ for(let i=0;i<N;i++){
+   const p=points[i],q=points[(i+1)%N];
+   c.quadraticCurveTo(p[0],p[1],(p[0]+q[0])/2,(p[1]+q[1])/2);
+ }
+ c.closePath();c.fillStyle=color;c.fill();c.restore();
+}
+function liquidBurst(x,y,rx,ry,angle,p,r){
+ ctx.save();
+ const hue=p.h,s=p.s,light=p.l;
+ ctx.globalAlpha=.97;
+ oneStroke(ctx,x,y,rx,ry,angle,hsl(hue,s,light),r);
+ // An optical second pass makes the paint feel layered rather than like polygons.
+ ctx.globalAlpha=.46;
+ oneStroke(ctx,x+rx*.055,y+ry*.04,rx*.80,ry*.87,angle+.28,hsl(hue+8,98,clamp(light+7,35,70)),r);
+ ctx.globalAlpha=.94;
+ // Directional splashes and satellites are attached to this same color burst.
+ for(let i=0;i<235;i++){
+   const a=r()*Math.PI*2,d=Math.sqrt(r())*(1.2+r()*.8);
+   const px=x+Math.cos(a)*rx*d,py=y+Math.sin(a)*ry*d;
+   const size=r()<.82?1.5+r()*6:8+r()*22;
+   ctx.fillStyle=hsl(hue+(r()-.5)*15,99,clamp(light+(r()-.5)*18,35,72));
+   ctx.beginPath();ctx.ellipse(px,py,size,size*(.5+r()),a,0,Math.PI*2);ctx.fill();
+ }
+ for(let i=0;i<32;i++){
+   const a=r()*Math.PI*2,k=.52+r()*.48;
+   const sx=x+Math.cos(a)*rx*k,sy=y+Math.sin(a)*ry*k;
+   const ex=x+Math.cos(a)*(rx*(1.1+r()*.8)),ey=y+Math.sin(a)*(ry*(1.1+r()*.8));
+   ctx.strokeStyle=hsl(hue,98,light);ctx.lineWidth=2+r()*14;
+   ctx.lineCap="round";ctx.beginPath();ctx.moveTo(sx,sy);ctx.quadraticCurveTo((sx+ex)/2+r()*42-21,(sy+ey)/2+r()*42-21,ex,ey);ctx.stroke();
+ }
+ ctx.restore();
+}
+function paintBackdrop(P,seed){
+ const r=rng(seed);
+ ctx.fillStyle=hsl(P[0].h+42,96,52);
+ ctx.fillRect(0,0,1080,1530);
+ // Large independent paint masses; not one radial gradient or a preset color scheme.
+ const bursts=[
+  [-80,70,500,420,-.27,P[3]],
+  [995,-30,590,460,.36,P[1]],
+  [115,500,540,400,-.58,P[2]],
+  [1045,500,465,560,.51,P[4]],
+  [-45,1090,550,420,.38,P[5]],
+  [1078,1100,560,490,-.39,P[6]],
+  [460,1510,630,410,.05,P[1]],
+  [520,210,530,330,.19,P[5]],
+ ];
+ for(const b of bursts)liquidBurst(...b,r);
+ // Momentum trails: looping motion instead of a flat color-wheel pattern.
+ ctx.save();ctx.globalAlpha=.72;
+ for(let i=0;i<23;i++){
+   const p=P[1+i%6],a=(i*137.5+25)*Math.PI/180;
+   const from=280+r()*520, reach=550+r()*480;
+   const cx=540+Math.cos(a)*from,cy=695+Math.sin(a)*from;
+   ctx.lineWidth=1.4+r()*12;ctx.strokeStyle=hsl(p.h,p.s,p.l);
+   ctx.beginPath();ctx.moveTo(cx,cy);
+   ctx.bezierCurveTo(cx+Math.cos(a+.4)*90,cy+Math.sin(a+.4)*140,
+    cx+Math.cos(a-.23)*reach*.53,cy+Math.sin(a-.23)*reach*.53,
+    cx+Math.cos(a)*reach,cy+Math.sin(a)*reach);
+   ctx.stroke();
+ }
+ ctx.restore();
+ // Dense source-hue paint beneath the logo, softened into a vivid tonal gradient.
+ liquidBurst(535,700,348,565,-.11,{h:P[0].h,s:98,l:39},r);
+ const glow=ctx.createRadialGradient(542,690,35,542,690,490);
+ glow.addColorStop(0,hsl(P[0].h,95,24));
+ glow.addColorStop(.43,hsl(P[0].h,96,27));
+ glow.addColorStop(.76,hsl(P[0].h,97,37).replace(")", " / 0.68)"));
+ glow.addColorStop(1,hsl(P[0].h,97,41).replace(")", " / 0)"));
+ ctx.fillStyle=glow;ctx.fillRect(40,150,1000,1120);
+ // The bottom is also colorful, but the line and QR must survive.
+ const bottom=ctx.createLinearGradient(0,1050,0,1530);
+ bottom.addColorStop(0,hsl(P[0].h,97,27).replace(")"," / 0)"));
+ bottom.addColorStop(.6,hsl(P[0].h+12,94,22).replace(")"," / .57)"));
+ bottom.addColorStop(1,hsl(P[0].h+9,94,19).replace(")"," / .76)"));
+ ctx.fillStyle=bottom;ctx.fillRect(0,1060,1080,470);
+}
+function whiteFoot(){
+ // Existing approved brand mark is an SVG silhouette with inner transparent openings.
+ // Its alpha becomes a precise white-only mask; no new generic footprint is drawn.
+ const h=610,w=h*133/312,top=295,left=(1080-w)/2;
+ const mask=document.createElement("canvas");
+ mask.width=Math.ceil(w*2);mask.height=Math.ceil(h*2);
+ const mc=mask.getContext("2d");mc.drawImage(foot,0,0,mask.width,mask.height);
+ mc.globalCompositeOperation="source-in";mc.fillStyle="#ffffff";mc.fillRect(0,0,mask.width,mask.height);
+ ctx.drawImage(mask,left,top,w,h);
+}
+function phraseLine(){
+ const phrase=controls.phrase.value.trim();
+ if(!phrase)throw Error("请填写唯一一行邀请文字");
+ const ch=Array.from(phrase);
+ if(ch.length>22)throw Error("邀请文案请控制在 22 字以内");
+ ctx.save();ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.fillStyle="#ffffff";
+ ctx.shadowColor="rgba(0,0,0,.18)";ctx.shadowBlur=8;
+ let size=48;ctx.font="500 "+size+"px "+FONT;
+ while(ctx.measureText(phrase).width>910&&size>26){size-=1;ctx.font="500 "+size+"px "+FONT;}
+ if(ctx.measureText(phrase).width>910)throw Error("一行文字过长，请精简文字");
+ ctx.fillText(phrase,540,1138);ctx.restore();
+}
+function paintQR(){
+ if(!qr)throw Error("当前活动真实二维码尚未加载");
+ const side=214, x=433,y=1257;
+ // Original QR bitmap / intrinsic quiet zone: no clipping, tint or scan-line filters.
+ // A tiny unframed paper square belongs to the QR itself, not a card/panel.
+ ctx.fillStyle="#ffffff";ctx.fillRect(x-4,y-4,side+8,side+8);
+ ctx.save();ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(qr,x,y,side,side);ctx.restore();
+}
+function showPalette(p){
+ controls.palette.replaceChildren();
+ p.slice(0,6).forEach((v,i)=>{
+  const d=document.createElement("span");d.className="swatch";
+  d.style.background=hsl(v.h,v.s,v.l);d.title=(i===0?"中心色":"爆发色 "+i)+"：色相 "+v.h.toFixed(0)+"°";
+  controls.palette.appendChild(d);
+ });
+}
+function render(){
+ if(!photoInfo||!qr||!foot)return;
+ ready=false;controls.download.disabled=true;
+ try{
+  const P=paletteFor(photoInfo);
+  paintBackdrop(P,(photoInfo.hash ^ Math.imul(variant+1,0x9e3779b9))>>>0);
+  whiteFoot();phraseLine();paintQR();showPalette(P);
+  controls.hue.textContent=photoInfo.fallback?"低彩度 · 高能回退":photoInfo.hue.toFixed(0)+"° 主色相";
+  controls.status.textContent=(photoInfo.fallback?"照片色彩不足，已明确启用默认高能色系。":"已从当前照片提取主色相 "+photoInfo.hue.toFixed(1)+"°。")+
+   "\n✓ 高饱和色爆构图已重新生成；变体 "+(variant+1)+
+   "\n✓ 原始白色线条脚丫子 + 唯一一行文字"+
+   "\n✓ 已载入温榆秘境原始报名二维码"+
+   "\n✓ 画布 1080 × 1530 · 可本地导出 PNG";
+  ready=true;controls.download.disabled=false;
+ }catch(err){controls.status.textContent="✕ "+String(err.message||err);}
+}
+async function getImage(url,label){
+ const resp=await fetch(url,{cache:"no-cache"});
+ if(!resp.ok)throw Error(label+"读取失败：HTTP "+resp.status);
+ const file=await resp.blob();
+ if(!file.type.startsWith("image/"))throw Error(label+"不是有效图片");
+ if(file.type.includes("svg")){
+  const objectUrl=URL.createObjectURL(file);
+  try{
+   const image=new Image();
+   await new Promise((resolve,reject)=>{
+    image.onload=resolve;
+    image.onerror=()=>reject(Error(label+" SVG 解码失败"));
+    image.src=objectUrl;
+   });
+   if(!image.naturalWidth||!image.naturalHeight)throw Error(label+" SVG 尺寸无效");
+   return image;
+  }finally{URL.revokeObjectURL(objectUrl);}
+ }
+ return createImageBitmap(file);
+}
+async function initialize(){
+ try{
+  const [pi,qi,fi]=await Promise.all([
+    getImage(SOURCE.photo,"真实活动照片"),
+    getImage(SOURCE.qr,"真实报名二维码"),
+    getImage(SOURCE.foot,"步道脚丫子线稿")
+  ]);
+  await document.fonts.ready;
+  photo=pi;qr=qi;foot=fi;photoInfo=analyze(photo);
+  controls.regen.disabled=false;controls.reset.disabled=false;
+  render();
+ }catch(err){
+  ready=false;controls.status.textContent="✕ 素材未通过验证，不能导出："+String(err.message||err);
+ }
+}
+controls.photo.addEventListener("change",async()=>{
+ const file=controls.photo.files?.[0];
+ if(!file)return;
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>24*1024*1024){
+   controls.status.textContent="仅接受小于 24MB 的 JPG、PNG、WebP 图片。";return;
+ }
+ const seq=++imgStamp;controls.status.textContent="正在从新照片读取主色相……";
+ try{
+  const next=await createImageBitmap(file);
+  if(seq!==imgStamp){next.close?.();return;}
+  const prev=photo;photo=next;prev?.close?.();
+  photoInfo=analyze(photo);variant=0;controls.name.textContent=file.name;
+  render();
+ }catch(err){controls.status.textContent="✕ 无法读取上传照片："+String(err.message||err);}
+});
+controls.phrase.addEventListener("input",()=>render());
+controls.regen.addEventListener("click",()=>{variant=(variant+1)%10000;render();});
+controls.reset.addEventListener("click",()=>{variant=0;render();});
+controls.download.addEventListener("click",()=>{
+ if(!ready)return;
+ cvs.toBlob(blob=>{
+  if(!blob){controls.status.textContent+="\n✕ PNG 导出失败";return;}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="BUDAO-模板三-色彩引爆-V1-"+(variant+1)+".png";
+  a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ },"image/png");
+});
+initialize();
+</script>
+</body>
+</html>
