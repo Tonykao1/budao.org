@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>步道模板一 · V5 安全渲染检测</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#172d37;background:#ecf0ef}
+header{background:#162d37;color:#f4f7f5;padding:27px max(20px,calc((100vw - 1460px)/2))}
+header h1{font-size:clamp(26px,3.4vw,42px);margin:5px 0}header p{color:#b7cccf;line-height:1.8;margin:0;font-size:14px;max-width:1060px}
+main{max-width:1500px;padding:26px 19px 60px;margin:auto}
+.diagnostics{padding:14px 18px;margin-bottom:20px;border:1px solid #b2c7cc;border-radius:9px;background:#fafdfd}
+.diagnostics strong{display:block;font-size:15px;margin-bottom:5px}
+#status{margin:6px 0;font-size:13px;line-height:1.75;color:#47616b;white-space:pre-wrap}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:23px;align-items:start}
+.panel{min-width:0}.label{font-size:15px;font-weight:750;margin-bottom:10px}
+.surface{border:1px solid #bdc9cc;background:#dce7e8;padding:9px}
+.surface img,.surface canvas{display:block;width:100%;height:auto;aspect-ratio:1080/1530;object-fit:contain;background:#d4e1e6}
+.surface canvas{image-rendering:auto}
+.actions{margin-top:15px;display:flex;flex-wrap:wrap;gap:9px}
+button,a.action{border:1px solid #92a9ac;border-radius:7px;padding:12px 16px;background:white;color:#193c48;cursor:pointer;text-decoration:none;font-size:13px;font-weight:600}
+button.primary{background:#1c4655;color:white;border-color:#1c4655}
+button:disabled{opacity:.5;cursor:not-allowed}
+small.notice{display:block;color:#667b80;margin-top:8px;line-height:1.7}
+@media(max-width:850px){.panels{grid-template-columns:1fr;max-width:570px;margin:auto}}
+</style></head><body>
+<header><p>BUDAO · TEMPLATE 01 · V5 / SAFE RASTER PREVIEW</p><h1>改用 Canvas 直接渲染，避免 SVG 图片兼容问题</h1><p>原始照片与二维码先通过文件指纹校验，再绘制。右侧是 Canvas 输出，不是 SVG 外链；可以直接导出固定尺寸 PNG。保时捷原作保持不变。此页为诊断与验收备用页，不影响 Tent。</p></header>
+<main><div class="diagnostics"><strong>素材与渲染校验</strong><div id="status">正在读取原始资源并核对校验值…</div></div>
+<div class="panels">
+<section class="panel"><div class="label">左｜Porsche Rennsport Reunion IV（2011）原作</div><div class="surface">
+<img src="https://cdn.rmsothebys.com/d/1/5/0/e/1/d150e1a50fd8926885362a571bc020c533890792.webp" alt="保时捷第四届活动海报原作，未修改">
+</div><small class="notice">RM Sotheby's 原作图像。若其外链受阻，请从收藏机构原网页查看。</small></section>
+<section class="panel"><div class="label">右｜步道 · 温榆秘境（V5 安全渲染版）</div><div class="surface">
+<canvas id="poster" width="1080" height="1530" role="img" aria-label="步道温榆秘境活动海报，Canvas 稳定渲染稿"></canvas>
+</div><div class="actions"><button id="export" class="primary" disabled type="button">导出 PNG 高清海报</button><button id="retry" type="button">重新验证素材</button><a class="action" href="./diy-template-01-v5.svg" target="_blank" rel="noopener">打开原 V5 SVG</a></div>
+<small class="notice">此版使用已发布路线原图、原始活动二维码及现有步道标识。用户复制或下载的 JPG 若出现彩色断层，不代表原始文件相同；校验状态会给出判定。</small>
+</section></div></main>
+<script>
+"use strict";
+const root="../";
+const fileDefs=[
+ {name:"活动照片",url:root+"route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg",sha:"d3606e85054e180077175ae358ed5a59deba1921",mime:"image/jpeg"},
+ {name:"报名二维码",url:root+"route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png",sha:"b95feaa3513cb215b29c508897e00ca6019dbec6",mime:"image/png"},
+ {name:"步道标识",url:root+"budao-logo-mark.png",sha:"91e792653308c85c567971d436dc4e2d44a4691e",mime:"image/png"},
+ {name:"固定书法走字",url:"./assets/walk-red-brush.svg",mime:"image/svg+xml"}
+];
+const c=document.getElementById("poster"),ctx=c.getContext("2d"),status=document.getElementById("status"),exportBtn=document.getElementById("export");
+const FONT_SANS='"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif';
+const FONT_SERIF='"Noto Serif CJK SC","Songti SC","SimSun",serif';
+function polygon(points){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();}
+function text(value,x,y,style,color,align="left"){ctx.save();ctx.font=style;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline="alphabetic";ctx.fillText(value,x,y);ctx.restore();}
+function line(points,color,width){ctx.save();ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();}
+function curveText(str,points,font='21px '+FONT_SERIF,alpha=.5){
+ const sections=[];let total=0;
+ for(let i=0;i<points.length-1;i++){
+   const dx=points[i+1][0]-points[i][0],dy=points[i+1][1]-points[i][1],length=Math.hypot(dx,dy);
+   sections.push({from:points[i],dx,dy,length,start:total,angle:Math.atan2(dy,dx)});total+=length;
+ }
+ ctx.save();ctx.font=font;ctx.fillStyle="#f8faf9";ctx.globalAlpha=alpha;
+ let at=12;
+ for(const char of Array.from(str)){
+   const advance=Math.max(12,ctx.measureText(char).width)+.5;
+   const midpoint=at+advance/2;
+   const section=sections.find(sec=>midpoint>=sec.start&&midpoint<=sec.start+sec.length);
+   if(!section)break;
+   const t=(midpoint-section.start)/section.length;
+   const x=section.from[0]+section.dx*t,y=section.from[1]+section.dy*t;
+   ctx.save();ctx.translate(x,y);ctx.rotate(section.angle);ctx.fillText(char,-advance/2,-9);ctx.restore();
+   at+=advance;
+ }
+ ctx.restore();return {used:Math.round(at),total:Math.round(total)};
+}
+async function validatedImage(info){
+ const r=await fetch(info.url,{cache:"no-store"});if(!r.ok)throw Error(info.name+" HTTP "+r.status);
+ const bytes=await r.arrayBuffer();
+ if(info.sha && crypto.subtle){
+   const prefix=new TextEncoder().encode("blob "+bytes.byteLength+"\0");
+   const pre=new Uint8Array(prefix.length+bytes.byteLength);
+   pre.set(prefix,0);pre.set(new Uint8Array(bytes),prefix.length);
+   const digest=await crypto.subtle.digest("SHA-1",pre);
+   const sha=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
+   if(sha!==info.sha)throw Error(info.name+" 校验失败，已停止绘制。实际 "+sha+"，应为 "+info.sha);
+ }
+ const bmp=await createImageBitmap(new Blob([bytes],{type:info.mime}));
+ return {bmp,bytes:bytes.byteLength};
+}
+function render([photo,qr,logo,brush]){
+ ctx.clearRect(0,0,1080,1530);
+ const grd=ctx.createLinearGradient(45,0,1040,1530);
+ [[0,"#e4e7e5"],[.26,"#c6d8df"],[.5,"#8db2c2"],[.77,"#4f879e"],[1,"#1d4860"]].forEach(([stop,color])=>grd.addColorStop(stop,color));
+ ctx.fillStyle=grd;ctx.fillRect(0,0,1080,1530);
+ const glow=ctx.createRadialGradient(810,460,10,810,460,720);
+ glow.addColorStop(0,"#f5f6f066");glow.addColorStop(1,"#ffffff00");
+ ctx.fillStyle=glow;ctx.fillRect(0,0,1080,1530);
+ // Top baseline: all bottom positions y=133
+ ctx.drawImage(logo.bmp,56,96,53,37);
+ text("余生行走 不偏左右",540,133,"600 47px "+FONT_SERIF,"#172d3a","center");
+ text("budao.org",1024,133,"650 18px Georgia,Arial,sans-serif","#254254","right");
+ // Original photo; upper fragment
+ ctx.save();polygon([[262,244],[1022,230],[1044,610],[192,750]]);ctx.clip();
+ ctx.drawImage(photo.bmp,185,201,990,558);
+ ctx.fillStyle="#c0dde12a";ctx.fillRect(170,200,1010,640);
+ ctx.restore();
+ // Mirrored duplicate of exactly the same original photo
+ ctx.save();polygon([[-28,601],[790,549],[969,898],[47,1086]]);ctx.clip();
+ ctx.translate(920,0);ctx.scale(-1,1);ctx.filter="saturate(73%)";
+ ctx.drawImage(photo.bmp,-90,515,1070,601);
+ ctx.filter="none";ctx.restore();
+ // Existing Z geometry shared by directional copy
+ const z=[[125,456],[918,429],[264,765],[947,1082]];
+ line(z,"#fff9ed",3.2);
+ line([z[1],z[2]],"#c8382e",5);
+ line([z[2],z[3]],"#cf4033",2.5);
+ // Long description follows all segments including turn, 50% alpha
+ const description="温榆河畔藏着一座被时光遗忘的花园。我们循着深秋的光，走进那扇并不存在的门。让孩子追随好奇，让大人重拾宁静。待夕阳落尽，还可寻一池温暖汤泉，与家人共度氤氲时光。至于花园在哪里——河流知道，我们也即将知道。";
+ const textMeasure=curveText(description,z,'21px '+FONT_SERIF,.5);
+ // One line main title, one line subtitle with same tilt
+ ctx.save();ctx.translate(102,54);ctx.translate(160,827);ctx.rotate(11*Math.PI/180);ctx.translate(-160,-827);
+ text("温榆秘境",124,836,"900 175px "+FONT_SANS,"#152d3e");
+ text("走进一座被时光遗忘的花园",148,941,"750 52px "+FONT_SANS,"#fffdf1");
+ ctx.restore();
+ ctx.drawImage(brush.bmp,60,944,267.3,227.7);
+ // Information hierarchy; no new solid panel
+ text("11 / 08",60,1289,"900 108px Georgia,Arial,sans-serif","#fffdf5");
+ text("周日",512,1277,"800 46px "+FONT_SANS,"#de4436");
+ text("15:45",610,1277,"780 45px Arial,sans-serif","#fffdf4");
+ text("集合地点",65,1352,"640 30px "+FONT_SANS,"#d3e4e8");
+ text("和园景逸大酒店停车场",217,1352,"800 34px "+FONT_SANS,"#fffdf6");
+ function item(lbl,val,x,y,valueX){
+   text(lbl,x,y,"500 23px "+FONT_SANS,"#d0e3e8");
+   text(val,valueX,y,"800 29px "+FONT_SANS,"#fffdf5");
+ }
+ item("距离","4千米",67,1416,138);item("时长","1.5小时",340,1416,410);
+ item("爬升","<50米",67,1470,138);item("路面","铺装路",282,1470,348);
+ item("适合人群","全年龄段友好",480,1470,599);
+ // Unmodified image pixels, including intrinsic white quiet zone
+ ctx.drawImage(qr.bmp,837,1281,184,184);
+ text("扫码同行",929,1500,"700 25px "+FONT_SANS,"#f6f9f9","center");
+ return {textMeasure};
+}
+let ready=false;
+async function run(){
+ ready=false;exportBtn.disabled=true;status.textContent="正在读取并核实原始资源……";
+ try{
+   const files=await Promise.all(fileDefs.map(validatedImage));
+   status.textContent=files.map((f,i)=>"✓ "+fileDefs[i].name+" · "+f.bytes+" 字节 · 加载成功"+(fileDefs[i].sha?" · 文件指纹匹配":"")).join("\n");
+   await document.fonts.ready;
+   const info=render(files);
+   const pixels=ctx.getImageData(0,0,1080,1530).data;
+   let populated=0;
+   for(let i=0;i<pixels.length;i+=4*1000){
+     const r=pixels[i],g=pixels[i+1],b=pixels[i+2];
+     if(r!==g||g!==b)populated++;
+   }
+   if(populated<200)throw Error("画面像素检查异常（几乎全灰），未允许导出");
+   status.textContent+="\n✓ V5 Canvas 画面已绘制，抽样彩色像素："+populated+"，路径文字排布："+info.textMeasure.used+" / "+info.textMeasure.total+" px。";
+   ready=true;exportBtn.disabled=false;
+ }catch(e){status.textContent="✗ 预览未通过校验："+(e.message||e);ready=false;exportBtn.disabled=true;}
+}
+document.getElementById("retry").addEventListener("click",run);
+exportBtn.addEventListener("click",()=>{
+ if(!ready)return;
+ c.toBlob(blob=>{
+   if(!blob){status.textContent+="\n✗ PNG 导出失败";return;}
+   const url=URL.createObjectURL(blob),a=document.createElement("a");
+   a.href=url;a.download="BUDAO-温榆秘境-V5-1080x1530.png";a.click();
+   setTimeout(()=>URL.revokeObjectURL(url),1500);
+ },"image/png");
+});
+run();
+</script></body></html>
