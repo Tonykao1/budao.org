@@ -45,7 +45,14 @@
       if (!entry || typeof value !== 'string' || typeof entry.source !== 'string') { skipped++; continue; }
       const el = document.querySelector(entry.selector);
       if (!el) { skipped++; continue; }
-      if (entry.mode === 'leading-text') {
+      if (entry.mode === 'attribute') {
+        // Accessibility metadata only. Never modify layout, class, style or href.
+        const attribute = entry.attribute;
+        if (!['aria-label', 'title', 'placeholder'].includes(attribute) ||
+            typeof el.getAttribute !== 'function' ||
+            el.getAttribute(attribute) !== entry.source) { skipped++; continue; }
+        el.setAttribute(attribute, value);
+      } else if (entry.mode === 'leading-text') {
         // Changes only an existing text node; preserves interactive child elements.
         const node = Array.from(el.childNodes || []).find(n => n.nodeType === 3 && n.nodeValue.trim() === entry.source);
         if (!node) { skipped++; continue; }
