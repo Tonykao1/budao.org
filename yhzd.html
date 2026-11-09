@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/campfire.css">
   <script src="/campfire.js" defer></script>
   <script src="/campfire-interactions.js" defer></script>
+  <script src="/campfire-sparks-to-steps.js" defer></script>
   <title>营火之地｜步道影像与同行回响</title>
 </head>
 <body class="campfire-page">
@@ -190,6 +191,7 @@
           <button type="button" id="camp-save-footprint" aria-pressed="false">收入我的足迹</button>
           <button type="button" id="camp-view-memories" aria-expanded="false" aria-controls="camp-album-memories">共写这一天</button>
         </div>
+        <p id="camp-s2s-status" role="status" aria-live="polite" class="camp-s2s-status"></p>
         <div id="camp-album-memories" class="camp-album-memories" hidden>
           <h4>这一天，不止一个视角</h4>
           <p class="camp-memory-intro">由同行者自愿留下、经审核公开的回忆；不据此推断谁实际参加过活动。</p>
