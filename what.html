@@ -264,6 +264,63 @@ body {
   color: #2f2a23;
 }
 
+
+/* Calling: inherits the original gray-paper, fine-line and amber-ember language. */
+.calling-trigger { background: transparent; font-family: inherit; cursor: pointer; }
+.calling-responses-section { margin-top: 120px; text-align: center; }
+.calling-label { margin: 0 0 48px; color: #8a806f; font-size: 12px; letter-spacing: .27em; font-weight: 300; }
+.calling-responses { display: flex; flex-direction: column; gap: 43px; }
+.calling-person { display: flex; width: min(100%, 450px); gap: 22px; align-items: flex-start; margin: 0 auto; text-align: left; }
+.calling-person:nth-child(even) { align-self: flex-end; margin-right: 0; }
+.calling-person:nth-child(odd) { align-self: flex-start; margin-left: 0; }
+.calling-dot { flex: 0 0 7px; width: 7px; height: 7px; margin-top: 10px; border-radius: 50%; background: #c69a59; box-shadow: 0 0 15px rgba(198,154,89,.28); }
+.calling-location { margin: 0 0 11px; color: #8a806f; font-size: 12px; letter-spacing: .15em; }
+.calling-name { margin: 0 0 7px; color: #302920; font-size: 24px; font-weight: 300; letter-spacing: .04em; }
+.calling-state { margin: 0; color: #9a9287; font-size: 12px; letter-spacing: .12em; }
+.calling-new .calling-dot { box-shadow: 0 0 26px 7px rgba(198,154,89,.25); }
+.calling-more, .calling-refresh { background: transparent; border: 0; padding: 8px; font: inherit; font-size: 12px; color: #746653; letter-spacing: .12em; cursor: pointer; }
+.calling-more { margin-top: 32px; }
+.calling-responses-section:not([hidden]) + .future-field { margin-top: 100px; }
+.calling-dialog[hidden], .calling-admin[hidden], .calling-responses-section[hidden], .calling-more[hidden] { display: none; }
+.calling-dialog-open { overflow: hidden; }
+.calling-dialog { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 22px; background: rgba(22,20,17,.60); }
+.calling-panel { position: relative; background: #f5f5f5; color: #3c352b; width: min(100%, 480px); max-height: min(92vh, 900px); overflow-y: auto; padding: 35px 38px 30px; text-align: center; box-shadow: 0 15px 60px rgba(0,0,0,.12); }
+.calling-close { position: absolute; top: 12px; right: 16px; border: 0; background: none; color: #796e5e; font-size: 26px; font-weight: 200; cursor: pointer; }
+.calling-panel-glow { display: block; width: 7px; height: 7px; margin: 0 auto 24px; border-radius: 50%; background: #c69a59; box-shadow: 0 0 20px rgba(198,154,89,.3); }
+.calling-panel h2 { margin: 0; color: #25211b; font-size: 28px; font-weight: 300; letter-spacing: .16em; }
+.calling-panel-intro { margin: 11px 0 26px; font-size: 13px; font-weight: 300; color: #80766b; letter-spacing: .09em; }
+.calling-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 14px; text-align: left; }
+.calling-grid label, .calling-captcha-label { display: block; color: #817465; font-size: 12px; letter-spacing: .10em; }
+.calling-grid input, #callingCaptchaInput { width: 100%; padding: 10px 9px; margin-top: 6px; border: 1px solid #d6cec3; border-radius: 0; outline-offset: 3px; box-sizing: border-box; background: #faf9f6; color: #28241e; font-size: 15px; font-family: inherit; }
+.calling-grid input:focus, #callingCaptchaInput:focus { border-color: #9e8c70; }
+.calling-consent { margin: 24px 0 16px; padding: 14px 0 0; border-top: 1px solid rgba(124,112,95,.18); text-align: left; }
+.calling-consent p { margin: 0 0 8px; color: #777065; font-size: 12px; line-height: 1.9; }
+.calling-consent a { color: #665b4c; text-decoration: underline; text-underline-offset: 3px; }
+.calling-check { display: flex; align-items: flex-start; gap: 8px; color: #50483d; font-size: 12px; line-height: 1.8; margin-top: 14px; }
+.calling-check input { margin: 4px 0 0; accent-color: #8c785c; }
+.calling-captcha-label { text-align: left; }
+.calling-captcha-line { display: flex; gap: 16px; align-items: center; margin: 8px 0 5px; }
+.calling-captcha-line img { display: block; border: 1px solid #ddd7cb; width: 180px; height: 60px; }
+#callingCaptchaInput { display: block; margin: 6px 0 0; max-width: 220px; font-size: 14px; }
+.calling-feedback { min-height: 22px; margin: 10px 0 0; font-size: 12px; color: #855c45; text-align: center; }
+.calling-submit { display: flex; margin: 6px auto 0; background: transparent; font-family: inherit; cursor: pointer; }
+.calling-submit:disabled { cursor: default; opacity: .45; }
+.calling-panel-footnote { margin: 18px 0 0; font-size: 11px; color: #a09689; line-height: 1.7; }
+.calling-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.calling-admin { padding: 50px 0 0; text-align: center; }
+.calling-admin-row { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; margin: 10px auto; color: #766b5d; font-size: 12px; }
+.calling-admin-action { font: inherit; font-size: 12px; padding: 5px 10px; background: transparent; border: 1px solid #d0c8ba; color: #685d4d; cursor: pointer; }
+@media (max-width: 640px) {
+  .calling-dialog { padding: 10px; }
+  .calling-panel { padding: 32px 20px 24px; }
+  .calling-responses-section { margin-top: 88px; }
+  .calling-person { gap: 18px; }
+  .calling-grid { gap: 12px; }
+  .calling-captcha-line { gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .calling-new .calling-dot { box-shadow: 0 0 12px rgba(198,154,89,.2); } }
+
+
 @media (max-width: 640px) {
   .spark-page {
     width: min(90vw, 520px);
@@ -342,6 +399,13 @@ body {
 
   <section class="spark-field" id="sparkField" aria-label="同工"></section>
 
+
+  <section class="calling-responses-section" id="callingResponsesSection" aria-label="回应呼召的人" hidden>
+    <p class="calling-label">回应的微光</p>
+    <div class="calling-responses" id="callingResponses"></div>
+    <button class="calling-more" id="callingMore" type="button" hidden>阅读更多回应</button>
+  </section>
+
   <section class="future-field" aria-labelledby="futureTitle">
     <div class="future-lights" aria-hidden="true">
       <span class="future-dot"></span>
@@ -349,12 +413,51 @@ body {
       <span class="future-dot"></span>
     </div>
     <p class="closing-line" id="futureTitle">
-      下一处火光，<br>
-      会在哪里？
+      如果你愿意以脚步服事他人，<br>
+      以生命见证恩典，<br>
+      让更多人有机会听见好消息，<br>
+      请回应这份邀请。
     </p>
-    <a class="coworker-mail" href="mailto:hello@budao.org?subject=%E7%94%B3%E8%AF%B7%E6%88%90%E4%B8%BA%E6%AD%A5%E9%81%93%E5%B8%A6%E9%A2%86%E4%BA%BA&amp;body=%E6%82%A8%E5%A5%BD%EF%BC%8C%0A%0A%E6%88%91%E5%B8%8C%E6%9C%9B%E8%BF%9B%E4%B8%80%E6%AD%A5%E4%BA%86%E8%A7%A3%E6%AD%A5%E9%81%93%EF%BC%8C%E5%B9%B6%E7%94%B3%E8%AF%B7%E6%88%90%E4%B8%BA%E6%AD%A5%E9%81%93%E5%B8%A6%E9%A2%86%E4%BA%BA%E3%80%82%0A%0A%E5%A7%93%E5%90%8D%EF%BC%9A%0A%E6%89%80%E5%9C%A8%E5%9F%8E%E5%B8%82%EF%BC%9A%0A%E6%95%99%E4%BC%9A%EF%BC%9A%0A%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%EF%BC%9A%0A%0A%E6%84%9F%E8%B0%A2%E3%80%82">成为带领人</a>
+    <button class="coworker-mail calling-trigger" id="respondCalling" type="button">我愿意</button>
+  </section>
+
+  <section class="calling-admin" id="callingAdmin" hidden aria-label="步道管理回应">
+    <p class="calling-label">步道管理 · 宣认记录</p>
+    <div id="callingAdminList"></div>
   </section>
 </main>
+
+<div class="calling-dialog" id="callingDialog" role="dialog" aria-modal="true" aria-labelledby="callingFormTitle" hidden>
+  <div class="calling-panel">
+    <button class="calling-close" type="button" id="callingClose" aria-label="关闭">×</button>
+    <span class="calling-panel-glow" aria-hidden="true"></span>
+    <h2 id="callingFormTitle">我在这里</h2>
+    <p class="calling-panel-intro">让这份回应，成为一处新的微光。</p>
+    <form id="callingForm" autocomplete="on">
+      <div class="calling-grid">
+        <label>国家 / 地区 <input name="country" type="text" required maxlength="45" autocomplete="country-name" placeholder="中国"></label>
+        <label>省 / 州 <input name="province" type="text" required maxlength="45" autocomplete="address-level1" placeholder="北京"></label>
+        <label>城市 / 区域 <input name="city" type="text" required maxlength="45" autocomplete="address-level2" placeholder="顺义"></label>
+        <label>姓名 <input name="displayName" type="text" required maxlength="45" autocomplete="name" placeholder="你的名字"></label>
+      </div>
+      <div class="calling-consent">
+        <p>你所填写的姓名与所在地，将公开展示在步道网站「同工」页面，作为你回应呼召的见证。</p>
+        <p>只有步道可以修改或撤下记录。如需更正或撤回，请<a href="mailto:hello@budao.org?subject=%E8%81%94%E7%B3%BB%E6%AD%A5%E9%81%93%EF%BC%9A%E6%9B%B4%E6%AD%A3%E6%88%96%E6%92%A4%E5%9B%9E%E5%AE%A3%E8%AE%A4">联系步道</a>。</p>
+        <label class="calling-check"><input type="checkbox" name="consent" required> 我已知晓并同意公开展示上述信息。</label>
+      </div>
+      <label class="calling-captcha-label" for="callingCaptchaInput">数字验证</label>
+      <div class="calling-captcha-line">
+        <img id="callingCaptchaImage" width="180" height="60" alt="五位数字验证码">
+        <button type="button" id="callingRefresh" class="calling-refresh">更换数字</button>
+      </div>
+      <input id="callingCaptchaInput" type="text" name="captcha" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5" required autocomplete="off" placeholder="输入图中的五位数字" aria-label="输入图片中的五位数字">
+      <div class="calling-trap" aria-hidden="true"><label>网址 <input name="website" tabindex="-1" autocomplete="off" value=""></label></div>
+      <p class="calling-feedback" id="callingFeedback" role="status" aria-live="polite"></p>
+      <button class="coworker-mail calling-submit" type="submit">确认宣认</button>
+      <p class="calling-panel-footnote">宣认不意味着获得带领或帐篷权限，未来需经过同行与步道认可。</p>
+    </form>
+  </div>
+</div>
 
 <footer>
   <div class="footer-sister-links" role="navigation" aria-label="事工展示">
@@ -433,5 +536,6 @@ if ("IntersectionObserver" in window) {
 }
 </script>
 
+<script src="/coworker-calling.js" defer></script>
 </body>
 </html>
