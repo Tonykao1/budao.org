@@ -1,7 +1,7 @@
 # BUDAO GLOBAL — Official translation governance and English copy review
 
 **Date:** 2026-11-09  
-**Status:** Governing translation constraints approved by project owner; individual English renderings below are **DRAFT**, not official released translations.  
+**Status:** Governing translation constraints approved. **Fellow Workers** and the two-line English faith declaration have received owner approval as copy decisions. Other English labels remain drafts. No production release is authorized by this document.  
 **Visual:** Absolute Visual Preservation Lock applies. Original site is the only artwork/layout master.
 
 ## 1. Non-negotiable rules from the owner
@@ -20,7 +20,7 @@
 | 步道 | **BUDAO** | **BRAND LOCKED** | The proper name, never Trails |
 | 童行 | Young Explorers | DRAFT | Picture books, education and journeys for young people |
 | 同道 | Companions | DRAFT | Walking in the same way, sharing ministry practice and equipping leaders |
-| 同工 | Co-Laborers | DRAFT | Persons serving together in the ministry |
+| 同工 | **Fellow Workers** | **COPY APPROVED — RELEASE PENDING VISUAL QA** | Persons serving together in the ministry; rooted in established Christian usage |
 | 牧场 | Pasture | DRAFT | Pastoral/pixel-sheep image of the digital Christian community |
 
 The original Chinese labels are not revised. Draft English labels must be reviewed for layout fit **without changing CSS, fonts, spacing, artwork, or animation**. The six-item navigation structure and existing href paths remain identical.
@@ -35,18 +35,18 @@ The original Chinese labels are not revised. Draft English labels must be review
 
 The approved Chinese source text and punctuation remain as they were in the HTML files. The English may be revised after theological and literary review; preview is not publication.
 
-## 4. Faith declaration — literary English draft, not integrated
+## 4. Faith declaration — wording approved, NOT visually integrated
 
 **Chinese authority:** 余生行走，不偏左右。
 
-**Proposed English (DRAFT ONLY):**
+**Owner-approved English wording (COPY APPROVED; NOT PUBLISHED):**
 
 > Till our final day, we shall walk in His way;  
-> neither left nor right shall we stray.
+> Neither left nor right shall we stray.
 
-Rationale: `final day` evokes a lifetime to the end; `walk` retains action; `His way` grounds the line in following Christ; `left nor right` echoes the scriptural imperative not to turn aside (Deuteronomy 5:32; Joshua 1:7; Proverbs 4:27); the line ends `day / way / stray` supply audible rhyme. This is an authored *poetic interpretation*, not a Bible quotation. The collective `we` is deliberate but needs owner approval.
+Rationale: `final day` evokes a lifetime to the end; `walk` retains action; `His way` grounds the line in following Christ; `left nor right` echoes the scriptural imperative not to turn aside (Deuteronomy 5:32; Joshua 1:7; Proverbs 4:27); the line ends `day / way / stray` supply audible rhyme. This is an authored *poetic interpretation*, not a Bible quotation. The collective `we` and the full grammatical wording are owner-approved. The capital **Neither** is line-initial poetic capitalization after a semicolon; never present this as a literal Scripture quotation.
 
-**Integration status: BLOCKED FOR VISUAL/INTERACTION REVIEW.** The existing Chinese slogan uses four embedded interactive controls (`dspBtn`, `playBtn`, `prevBtn`, `nextBtn`). Replacing their text with long English fragments would change the control hit areas and could break the approved artwork. Do **not** insert the English slogan into those controls or change CSS/markup. The existing Chinese headline remains until a fully faithful, zero-visual-change language treatment is explicitly accepted and verified.
+**Integration status: BLOCKED FOR VISUAL/INTERACTION REVIEW (despite copy approval).** The existing Chinese slogan uses four embedded interactive controls (`dspBtn`, `playBtn`, `prevBtn`, `nextBtn`). Replacing their text with long English fragments would change the control hit areas and could break the approved artwork. Do **not** insert the English slogan into those controls or change CSS/markup. The existing Chinese headline remains until a fully faithful, zero-visual-change language treatment is explicitly accepted and verified.
 
 ## 5. Quality controls and release gates
 
