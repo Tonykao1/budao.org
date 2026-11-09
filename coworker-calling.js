@@ -146,9 +146,16 @@
       highlight = result.item.id;
       modal.hidden = true;
       document.body.classList.remove("calling-dialog-open");
-      await refreshList();
+      try {
+        await refreshList();
+      } catch (_) {
+        // The write succeeded. Never misreport a successful declaration as failed
+        // merely because the follow-up public-list GET was interrupted.
+        entries = [result.item, ...entries.filter(item => item.id !== result.item.id)];
+        renderList();
+      }
       listArea.scrollIntoView({behavior:"smooth",block:"center"});
-      if (adminEntries) await refreshAdmin();
+      if (adminEntries) refreshAdmin().catch(() => {});
     } catch (error) {
       feedback.textContent = message(error);
       if (error.message === "invalid_captcha" || error.message === "captcha_used") {
