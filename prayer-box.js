@@ -5,6 +5,11 @@
 })(typeof window !== "undefined" ? window : null, function () {
   "use strict";
 
+  function localizedCopy(source) {
+    const i18n = typeof globalThis !== "undefined" && globalThis.BudaoHomeI18n;
+    return i18n && typeof i18n.runtimeCopy === "function" ? i18n.runtimeCopy(source) : source;
+  }
+
   function buildPrayerPayload(values, idempotencyKey) {
     const wantsReply = values.wantsReply === true;
     return {
@@ -36,7 +41,7 @@
           options.showSuccess();
           return { ok: true };
         } catch (error) {
-          options.showError("暂时没有送达，请稍后再试。");
+          options.showError(localizedCopy("暂时没有送达，请稍后再试。"));
           return { ok: false };
         } finally {
           busy = false;
@@ -102,7 +107,7 @@
     }
 
     function close() {
-      if (!completed && hasDraft() && !windowObject.confirm("要放下尚未送出的内容吗？")) return;
+      if (!completed && hasDraft() && !windowObject.confirm(localizedCopy("要放下尚未送出的内容吗？"))) return;
       shell.hidden = true;
       trigger.setAttribute("aria-expanded", "false");
       trigger.focus();
@@ -113,7 +118,7 @@
       setBusy: function (busy) {
         if (busy) submitButton.disabled = true;
         else updateSubmitState();
-        submitButton.textContent = busy ? "正在送达…" : "提交祷告";
+        submitButton.textContent = localizedCopy(busy ? "正在送达…" : "提交祷告");
         form.setAttribute("aria-busy", busy ? "true" : "false");
       },
       showError: function (text) { message.textContent = text; },
