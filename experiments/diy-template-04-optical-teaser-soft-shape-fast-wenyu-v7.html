@@ -377,11 +377,11 @@ function renderLight(){
  ctx.globalCompositeOperation="source-over";ctx.globalAlpha=1;ctx.filter="none";
  ctx.fillStyle="#010207";ctx.fillRect(0,0,W,H);
  // Preserve the V4 60%–96% heavily obscured original photograph as a nearly invisible ghost.
- const ghost=document.createElement("canvas");ghost.width=W;ghost.height=H;
+ const ghost=document.createElement("canvas");ghost.width=640;ghost.height=360;
  const g=ghost.getContext("2d");
  const r=Math.max(W/photo.width,H/photo.height);
  const sw=W/r,sh=H/r;
- g.drawImage(photo,(photo.width-sw)/2,(photo.height-sh)/2,sw,sh,0,0,W,H);
+ g.drawImage(photo,(photo.width-sw)/2,(photo.height-sh)/2,sw,sh,0,0,640,360);
  ctx.save();ctx.globalAlpha=clamp((1-a)*.22,0,.09);
  ctx.filter="blur("+Math.round(90+a*96)+"px) saturate(.46) brightness(.33)";
  ctx.drawImage(ghost,0,0,W,H);ctx.restore();
