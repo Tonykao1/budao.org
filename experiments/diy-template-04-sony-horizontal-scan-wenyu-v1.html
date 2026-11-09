@@ -305,7 +305,7 @@ function renderInformation(){
 function renderQR(){
  if(!verifiedQR||!qr)throw Error("未能验证本次活动对应的原始二维码");
  if(qr.width!==420||qr.height!==420)throw Error("二维码不符合原件 420×420 尺寸");
- const size=204,x=810,y=1214;
+ const size=210,x=802,y=1214;
  // Original bitmap only. No strokes, filters, overlays, artistic effects, or re-encoding.
  ctx.save();ctx.globalAlpha=1;ctx.filter="none";ctx.imageSmoothingEnabled=false;
  ctx.drawImage(qr,0,0,420,420,x,y,size,size);
