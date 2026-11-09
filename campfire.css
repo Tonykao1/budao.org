@@ -414,3 +414,105 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
 @media(prefers-reduced-motion:reduce) {
   .camp-card-spark,.camp-spark-button {transition:none;}
 }
+
+
+/* Sparks to Steps · a quiet, noncompetitive social layer */
+.camp-s2s-section {
+  position:relative; padding:clamp(65px,8vw,114px) 0;
+  background:radial-gradient(ellipse at 50% 5%,rgba(177,119,62,.12),transparent 60%),
+    linear-gradient(145deg,#15231b,#0f1914 67%,#142019);
+  border-top:1px solid rgba(212,165,97,.2);
+  border-bottom:1px solid rgba(212,165,97,.2);
+}
+.camp-s2s-heading {max-width:740px;margin:0 auto 45px;text-align:center}
+.campfire-page .camp-s2s-heading h2{
+  font:clamp(42px,5vw,64px)/1.28 "Songti SC",serif;color:#f2e5d0;
+  letter-spacing:.075em;margin:12px 0 19px
+}
+.campfire-page .camp-s2s-heading > p:last-child {
+  font-size:14px;line-height:2.05;color:#b9c4b6;margin:0 auto
+}
+.camp-s2s-three {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.camp-s2s-feature {
+  min-height:244px;box-sizing:border-box;padding:30px 28px 27px;
+  border:1px solid rgba(220,179,115,.24);
+  background:linear-gradient(150deg,rgba(73,83,57,.16),rgba(19,36,24,.42));
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.camp-s2s-glyph{color:#daa967;font:38px/1.1 "Songti SC",serif;display:block;margin-bottom:19px}
+.campfire-page .camp-s2s-feature h3{color:#f0ddc0;font:26px/1.4 "Songti SC",serif;margin:0 0 13px}
+.campfire-page .camp-s2s-feature p{color:#aebdad;font-size:13px;line-height:1.9;margin:0 0 23px}
+.camp-s2s-feature a,.camp-s2s-feature button{
+  margin-top:auto;border:0;border-bottom:1px solid #896b46;background:transparent;
+  padding:5px 0;color:#e0b780;text-decoration:none;font-size:13px;cursor:pointer;
+}
+.camp-s2s-feature a:hover,.camp-s2s-feature button:hover{color:#ffe5b9;border-color:#f6c99b}
+.camp-footprints-panel {
+  margin-top:28px;padding:26px 27px 30px;
+  border:1px solid rgba(222,179,119,.25);background:rgba(8,20,13,.45);
+}
+.camp-footprints-panel[hidden]{display:none}
+.camp-footprints-top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:20px}
+.campfire-page .camp-footprints-top h3{font:24px/1.4 "Songti SC",serif;color:#e9d6b4;margin:0 0 7px}
+.campfire-page .camp-footprints-top p{color:#a9b7a8;font-size:12px;line-height:1.7;margin:0}
+.camp-footprints-top button {
+  border:1px solid rgba(211,156,100,.48);background:transparent;padding:8px 13px;
+  color:#d6bb95;cursor:pointer;font-size:12px;white-space:nowrap
+}
+.camp-footprints-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
+.camp-footprint-card{
+  display:flex;align-items:center;gap:11px;min-width:0;padding:10px;
+  border:1px solid rgba(204,169,111,.24);background:rgba(36,51,36,.6)
+}
+.camp-footprint-photo{width:56px;height:68px;object-fit:cover;flex:none}
+.camp-footprint-copy{flex:1;min-width:0}
+.camp-footprint-copy time{font-size:10px;color:#ac9b82}
+.campfire-page .camp-footprint-copy h4{
+  font:17px/1.45 "Songti SC",serif;color:#e5d8bf;margin:3px 0 8px;
+  overflow-wrap:anywhere
+}
+.camp-footprint-link,.camp-footprint-remove{
+  color:#daba89;font-size:11px;cursor:pointer;background:none;border:0;text-decoration:none
+}
+.camp-footprint-remove{color:#b8a89c;padding:4px}
+.camp-footprints-empty{color:#b3bfac!important;font-size:13px!important;line-height:2!important}
+#camp-footprints-status{min-height:16px;color:#d7b98d;font-size:12px}
+.camp-memory-actions{display:flex;gap:6px;flex-wrap:wrap;margin:17px 0 9px}
+.camp-memory-actions button{
+  flex:1 1 105px;border:1px solid rgba(224,180,117,.35);
+  background:rgba(23,44,29,.68);color:#dec69e;padding:10px 8px;
+  font-size:12px;cursor:pointer;line-height:1.6;white-space:normal
+}
+.camp-memory-actions button:hover{background:rgba(180,115,58,.2)}
+.camp-memory-actions button[aria-pressed="true"]{background:rgba(221,173,102,.16);color:#ffe5b9}
+.camp-s2s-status{font-size:12px;line-height:1.7;color:#e2c18e;min-height:15px;margin:0 0 7px}
+.camp-album-memories{border-top:1px solid rgba(215,170,114,.3);padding:17px 0 20px}
+.camp-album-memories[hidden]{display:none}
+.campfire-page .camp-album-memories h4{font:23px/1.35 "Songti SC",serif;color:#efdab8;margin:0 0 9px}
+.camp-memory-intro{font-size:11px!important;line-height:1.7!important;color:#a3af9f!important;margin:0 0 13px!important}
+.camp-album-memory{padding:13px 0;border-bottom:1px solid rgba(206,167,105,.18)}
+.camp-album-memory-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.camp-album-memory-meta strong{font-size:13px;color:#ebd5b6}
+.camp-album-memory-meta time{margin-left:auto;color:#9eaa9d;font-size:11px}
+.camp-album-memory p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px!important;line-height:1.9!important;color:#d6ddcd!important;margin:7px 0!important}
+.camp-album-memory a,.camp-memory-invite{display:inline-block;color:#d6b37c;font-size:11px;text-decoration:none;margin-top:6px}
+.camp-memory-invite{border-bottom:1px solid rgba(209,168,103,.5);font-size:12px;margin-top:17px}
+.camp-walk-again{border-top:1px solid rgba(215,170,114,.27);padding-top:15px;margin-top:12px}
+.camp-walk-again p{font-size:12px!important;color:#aebcab!important;line-height:1.8!important;margin:0 0 8px!important}
+.camp-walk-again a{font-size:13px;color:#efc992;text-decoration:none;border-bottom:1px solid #b58a57;padding-bottom:3px}
+@media(max-width:980px){
+  .camp-s2s-feature{padding:23px 19px;min-height:250px}
+}
+@media(max-width:700px){
+  .camp-s2s-section{padding:70px 0}
+  .camp-s2s-three{grid-template-columns:1fr;gap:12px}
+  .camp-s2s-feature{min-height:0;padding:23px 22px}
+  .camp-s2s-glyph{margin-bottom:12px}
+  .camp-s2s-feature p{margin-bottom:18px!important}
+  .camp-footprints-panel{padding:17px}
+  .camp-footprints-top{align-items:flex-start;flex-direction:column}
+  .camp-memory-actions button{flex-basis:100px}
+}
+@media(prefers-reduced-motion:reduce){
+  .camp-s2s-feature a,.camp-s2s-feature button{transition:none}
+}

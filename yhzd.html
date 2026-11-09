@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/campfire.css">
   <script src="/campfire.js" defer></script>
   <script src="/campfire-interactions.js" defer></script>
+  <script src="/campfire-sparks-to-steps.js" defer></script>
   <title>营火之地｜步道影像与同行回响</title>
 </head>
 <body class="campfire-page">
@@ -55,6 +56,7 @@
         <span class="camp-subnav-brand">✦ 步道 · 行走记忆</span>
         <a href="#camp-gallery">影像</a>
         <a href="#camp-voices">评论</a>
+        <a href="#camp-sparks-to-steps">星火同行</a>
         <a href="#camp-history">足迹</a>
         <a href="#camp-contribute">留下回忆</a>
       </div>
@@ -83,6 +85,44 @@
           <p class="camp-loading">正在翻开沿途影集……</p>
         </div>
         <button type="button" class="camp-more" id="camp-photos-more" hidden>再翻开几张照片 <span aria-hidden="true">↓</span></button>
+      </div>
+    </section>
+
+    <section id="camp-sparks-to-steps" class="camp-s2s-section" aria-labelledby="camp-s2s-title">
+      <div class="camp-container">
+        <div class="camp-s2s-heading">
+          <p class="camp-kicker">SPARKS TO STEPS · BUDAO</p>
+          <h2 id="camp-s2s-title">星火同行</h2>
+          <p>从一张照片，回到一次真实相遇。没有粉丝数，也不需要经营人设；每一段记忆，都可能成为下一次同行的起点。</p>
+        </div>
+        <div class="camp-s2s-three">
+          <article class="camp-s2s-feature">
+            <span aria-hidden="true" class="camp-s2s-glyph">✧</span>
+            <h3>共写记忆</h3>
+            <p>打开一张现场照片，看看同一段行程里，不同的人如何记得那一天。只显示真实、经审核公开的留言。</p>
+            <a href="#camp-gallery">翻阅同行故事 ↗</a>
+          </article>
+          <article class="camp-s2s-feature">
+            <span aria-hidden="true" class="camp-s2s-glyph">⌁</span>
+            <h3>我的足迹</h3>
+            <p>主动收藏值得记住的照片，只保存在这台设备中。无需账号，也不会被悄悄汇入个人档案。</p>
+            <button type="button" id="camp-footprints-toggle" aria-expanded="false" aria-controls="camp-footprints-panel">翻开我的足迹 ↗</button>
+          </article>
+          <article class="camp-s2s-feature">
+            <span aria-hidden="true" class="camp-s2s-glyph">↗</span>
+            <h3>再次同行</h3>
+            <p>从过去的照片出发，分享一份真实记忆，或者打开步道日历，寻找下一次愿意参与的旅程。</p>
+            <a href="/test.html">看看未来的步道 ↗</a>
+          </article>
+        </div>
+        <div id="camp-footprints-panel" class="camp-footprints-panel" hidden>
+          <div class="camp-footprints-top">
+            <div><h3>我的足迹 · 私人收藏</h3><p>仅存于本设备，您可随时清空。换设备后不会自动同步。</p></div>
+            <button id="camp-footprints-clear" type="button">清空我的收藏</button>
+          </div>
+          <div id="camp-footprints-list" class="camp-footprints-list" aria-live="polite"></div>
+          <p id="camp-footprints-status" role="status" aria-live="polite"></p>
+        </div>
       </div>
     </section>
 
@@ -146,6 +186,22 @@
         </div>
         <button type="button" class="camp-spark-button" id="camp-photo-spark">✦ 点亮这一刻</button>
         <p class="camp-spark-state" id="camp-spark-state" role="status" aria-live="polite"></p>
+        <div class="camp-memory-actions" aria-label="让这段记忆继续">
+          <button type="button" id="camp-share-memory">分享这一刻</button>
+          <button type="button" id="camp-save-footprint" aria-pressed="false">收入我的足迹</button>
+          <button type="button" id="camp-view-memories" aria-expanded="false" aria-controls="camp-album-memories">共写这一天</button>
+        </div>
+        <p id="camp-s2s-status" role="status" aria-live="polite" class="camp-s2s-status"></p>
+        <div id="camp-album-memories" class="camp-album-memories" hidden>
+          <h4>这一天，不止一个视角</h4>
+          <p class="camp-memory-intro">由同行者自愿留下、经审核公开的回忆；不据此推断谁实际参加过活动。</p>
+          <div id="camp-album-memories-list" aria-live="polite"></div>
+          <a id="camp-invite-story" href="mailto:hello@budao.org" class="camp-memory-invite">愿意补充你记得的那一天？ ↗</a>
+        </div>
+        <div class="camp-walk-again">
+          <p>若这张照片使你想起同行的美好——</p>
+          <a id="camp-walk-again-link" href="/test.html">去看看下一次步道 <span aria-hidden="true">↗</span></a>
+        </div>
         <div class="camp-thread" id="camp-thread" aria-live="polite"></div>
         <form class="camp-comment-form" id="camp-comment-form">
           <h4 id="camp-reply-label">留下一段同行的话</h4>

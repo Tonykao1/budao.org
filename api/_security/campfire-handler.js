@@ -11,8 +11,10 @@ const { clientIp, consume } = require("./rate-limit");
 const archive = require("../../data/campfire-archive.json");
 
 const photos = new Map();
+const albums = new Map();
 for (const album of archive.albums || []) {
   if (!album || album.published !== true) continue;
+  albums.set(String(album.id || ""), { title: String(album.title || ""), date: String(album.date || "") });
   for (const p of album.photos || []) {
     if (p && p.approved === true && typeof p.src === "string" && p.src.startsWith("/campfire-photos/"))
       photos.set(p.src, String(album.id || ""));
@@ -70,6 +72,21 @@ async function thread(req,res,photoId) {
     "WHERE photo_id=$2 AND status='APPROVED'))) LIMIT 200",
     [visitor,photoId]) : [];
   return sendJson(res,200,{ok:true,photoId,comments,reacted:reacted.map(x=>x.key),guestWritesEnabled:guestWritesEnabled()});
+}
+// Shared, moderated memories across a real published trail album.
+async function albumMemories(req,res,albumId) {
+  if (typeof albumId !== "string" || !albums.has(albumId))
+    return error(res,404,"album_unavailable");
+  const rows=await query(
+    "SELECT id,photo_id AS \"photoId\",parent_id AS \"parentId\",display_name AS name,"+
+    "body,official,created_at AS \"createdAt\" FROM campfire_comments "+
+    "WHERE album_id=$1 AND status='APPROVED' ORDER BY created_at ASC LIMIT 120",
+    [albumId]
+  );
+  // Filter again by the current approved photo archive. A photo removed from
+  // the public album must never leak its old remarks to the shared view.
+  const valid=rows.filter(row=>photos.get(row.photoId)===albumId);
+  return sendJson(res,200,{ok:true,albumId,album:albums.get(albumId),memories:valid});
 }
 async function moderationQueue(req,res) {
   if (!adminFor(req)) return error(res,403,"forbidden");
@@ -165,6 +182,7 @@ async function handler(req,res) {
     if (req.method==="GET") {
       if (u.searchParams.get("view")==="config") return sendJson(res,200,{ok:true,guestWritesEnabled:guestWritesEnabled()});
       if (u.searchParams.get("view")==="moderation") return await moderationQueue(req,res);
+      if (u.searchParams.get("view")==="memories") return await albumMemories(req,res,u.searchParams.get("albumId"));
       return await thread(req,res,u.searchParams.get("photoId"));
     }
     const parsed=requireJsonPost(req,12*1024);
