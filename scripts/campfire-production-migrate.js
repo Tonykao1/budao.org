@@ -14,9 +14,9 @@ const path = require("node:path");
 
 function parseStatements(sqlText) {
   const normalized = sqlText
-    .split("\\n")
+    .split("\n")
     .filter((line) => !line.trimStart().startsWith("--"))
-    .join("\\n");
+    .join("\n");
   const statements = normalized.split(";")
     .map((statement) => statement.trim())
     .filter((statement) => statement && !/^(BEGIN|COMMIT)$/i.test(statement));
