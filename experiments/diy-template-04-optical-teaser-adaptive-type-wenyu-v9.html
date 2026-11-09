@@ -587,13 +587,84 @@ function typeLine(value,x,y,size,{weight=300,opacity=1,maxWidth=1570,align="left
  if(textWidth>maxWidth)c.font=weight+" "+Math.max(17,size*maxWidth/textWidth).toFixed(2)+"px "+TYPEFACE;
  c.fillText(value,x,y);c.restore();
 }
-function teaserTitle(t){
- const c=displayCtx,chars=Array.from(t);
- c.save();c.font="400 137px "+TYPEFACE;c.textBaseline="alphabetic";c.fillStyle="#fff";
- c.shadowColor="rgba(0,0,0,.9)";c.shadowBlur=28;
- let pos=104;
- for(const char of chars){c.fillText(char,pos,517);pos+=c.measureText(char).width+22}
+
+function measureTracking(c,t,size,tracking,weight=400){
+ c.font=weight+" "+size+"px "+TYPEFACE;
+ const chars=Array.from(t);
+ return chars.reduce((w,ch)=>w+c.measureText(ch).width,0)+Math.max(0,chars.length-1)*tracking;
+}
+function wrapTypography(c,value,width,size,weight=400,tracking=0){
+ const chars=Array.from(String(value||"").trim());
+ if(!chars.length)return [];
+ const lines=[];let line="";
+ for(const ch of chars){
+  const candidate=line+ch;
+  if(line&&measureTracking(c,candidate,size,tracking,weight)>width){
+   lines.push(line.trimEnd());line=ch===" "?"":ch;
+  }else{line=candidate;}
+ }
+ if(line)lines.push(line.trimEnd());
+ return lines;
+}
+function fitTypography(c,value,width,ideal,min,maxLines,weight=300,trackingRatio=0){
+ for(let size=ideal;size>=min;size-=1){
+  const tracking=size*trackingRatio;
+  const lines=wrapTypography(c,value,width,size,weight,tracking);
+  if(lines.length<=maxLines)return {size,lines,tracking};
+ }
+ return null;
+}
+function teaserTitle(title){
+ const c=displayCtx,value=String(title||"").trim();
+ if(!value)return;
+ let layout=fitTypography(c,value,1408,137,64,2,400,.155);
+ if(!layout)layout=fitTypography(c,value,1408,62,46,3,400,.10);
+ if(!layout)throw Error("标题过长，不能在保持可读字号时完整排入海报");
+ const {lines,size,tracking}=layout;
+ const gap=size*1.18;
+ const lastBase=lines.length===1?517:552;
+ const first=lastBase-(lines.length-1)*gap;
+ if(first<290)throw Error("标题无法在限定高度内完整显示");
+ c.save();c.textBaseline="alphabetic";c.fillStyle="#fff";
+ c.shadowColor="rgba(0,0,0,.88)";c.shadowBlur=28;c.font="400 "+size+"px "+TYPEFACE;
+ lines.forEach((line,row)=>{
+  let x=104;
+  for(const ch of Array.from(line)){
+   c.fillText(ch,x,first+row*gap);
+   x+=c.measureText(ch).width+tracking;
+  }
+ });
  c.restore();
+}
+function layoutDetails(facts){
+ const c=displayCtx,x=111,width=1464;
+ const groups=[
+  {text:facts.meeting?"集合地点    "+facts.meeting:"",ideal:29,min:23,max:3,weight:350,opacity:.95,gap:12},
+  {text:[facts.distance&&"距离 "+facts.distance,facts.elevation&&"爬升 "+facts.elevation,
+      facts.difficulty&&"难度 "+facts.difficulty,facts.duration&&"时长 "+facts.duration]
+      .filter(Boolean).join("     "),ideal:23,min:19,max:2,weight:300,opacity:.88,gap:10},
+  {text:[facts.surface&&"路面 "+facts.surface,facts.suitable&&"适合 "+facts.suitable,
+      facts.equipment&&"装备 "+facts.equipment].filter(Boolean).join("     "),
+      ideal:21,min:18,max:2,weight:300,opacity:.83,gap:0}
+ ];
+ const blocks=[];
+ for(const spec of groups){
+  if(!spec.text)continue;
+  const fit=fitTypography(c,spec.text,width,spec.ideal,spec.min,spec.max,spec.weight);
+  if(!fit)throw Error("活动信息过长，无法在最低可读字号内完整排入");
+  blocks.push({...spec,...fit});
+ }
+ const height=blocks.reduce((sum,b)=>sum+b.lines.length*b.size*1.26+b.gap,0);
+ const top=Math.max(810,987-height);
+ if(top+height>1017)throw Error("辅助信息高度超过可读区域");
+ let y=top;
+ for(const b of blocks){
+  c.save();c.textBaseline="alphabetic";c.font=b.weight+" "+b.size+"px "+TYPEFACE;
+  c.fillStyle="rgba(255,255,255,"+b.opacity+")";
+  c.shadowColor="rgba(0,0,0,.87)";c.shadowBlur=16;
+  for(const line of b.lines){y+=b.size*1.26;c.fillText(line,x,y);}
+  c.restore();y+=b.gap;
+ }
 }
 function originalQR(){
  if(!verifiedQR||!qr)throw Error("本次活动二维码原件不可用");
@@ -613,19 +684,21 @@ function brandMark(){
 function posterType(){
  if(!posterVisible)return;
  if(!verifiedQR||!qr||!brand)throw Error("二维码未核验，无法生成完整邀请函");
- displayCtx.save();
- displayCtx.setTransform(1,0,0,1,0,0);
- // SONY 2021 Alpha 1 launch teaser-inspired visual cadence:
- // commanding white phrase on the dark band, distinct event date,
- // then quiet small informational footnotes. No grids or text cards.
+ displayCtx.save();displayCtx.setTransform(1,0,0,1,0,0);
  teaserTitle(FACTS.title);
- typeLine(FACTS.date+"     "+FACTS.time,109,726,62,{weight:300,opacity:.98,maxWidth:1460});
- typeLine(FACTS.weekday+"    ·    "+FACTS.region,111,781,26,{opacity:.89});
- typeLine("集合地点    "+FACTS.meeting,111,895,29,{weight:350,opacity:.95,maxWidth:1450});
- typeLine("距离 "+FACTS.distance+"     爬升 "+FACTS.elevation+"     难度 "+FACTS.difficulty+
-  "     时长 "+FACTS.duration,112,949,23,{opacity:.88,maxWidth:1400});
- typeLine("路面 "+FACTS.surface+"     适合 "+FACTS.suitable+
-  "     装备 "+FACTS.equipment,112,994,22,{opacity:.83,maxWidth:1400});
+ const date=[FACTS.date,FACTS.time].filter(Boolean).join("     ");
+ if(date){
+  const fit=fitTypography(displayCtx,date,1460,62,40,1,300);
+  if(!fit)throw Error("日期时间排版无法容纳所有真实信息");
+  typeLine(date,109,726,fit.size,{weight:300,opacity:.98,maxWidth:1460});
+ }
+ const place=[FACTS.weekday,FACTS.region].filter(Boolean).join("    ·    ");
+ if(place){
+  const fit=fitTypography(displayCtx,place,1460,26,22,1,300);
+  if(!fit)throw Error("地理信息无法在限定宽度内显示");
+  typeLine(place,111,781,fit.size,{opacity:.89,maxWidth:1460});
+ }
+ layoutDetails(FACTS);
  typeLine("budao.org",112,1042,18,{opacity:.75});
  brandMark();originalQR();
  typeLine("扫码报名",1757,1025,16,{align:"center",opacity:.84,maxWidth:180});
