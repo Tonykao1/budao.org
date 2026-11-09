@@ -151,7 +151,10 @@
       if (adminEntries) await refreshAdmin();
     } catch (error) {
       feedback.textContent = message(error);
-      if (error.message === "invalid_captcha" || error.message === "captcha_used") await refreshCaptcha();
+      if (error.message === "invalid_captcha" || error.message === "captcha_used") {
+        await refreshCaptcha();
+        feedback.textContent = "验证码不正确或已失效，已为你更换一组数字。";
+      }
     } finally {
       submitButton.disabled = false;
     }
