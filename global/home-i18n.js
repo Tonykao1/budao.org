@@ -53,7 +53,7 @@
         typeof documentObject.querySelector !== 'function') return false;
     const line = documentObject.querySelector('header .hero-line');
     if (!line || typeof line.textContent !== 'string' ||
-        line.textContent.replace(/\\s+/g, '') !== '余生行走，不偏左右') return false;
+        line.textContent.replace(/\s+/g, '') !== '余生行走，不偏左右') return false;
 
     const dsp = documentObject.getElementById('dspBtn');
     const play = documentObject.getElementById('playBtn');
@@ -71,7 +71,7 @@
         !afterNext || afterNext.nodeType !== 3 ||
         prev.nextSibling !== next ||
         beforePlay.nodeValue !== '生行' ||
-        beforePrev.nodeValue.replace(/\\s+/g, '') !== '，不偏' ||
+        beforePrev.nodeValue.replace(/\s+/g, '') !== '，不偏' ||
         !documentObject.createTextNode ||
         !line.insertBefore) return false;
 
@@ -86,7 +86,7 @@
     next.textContent = 'right';
     afterNext.nodeValue = ' shall we stray.';
 
-    return line.textContent.replace(/\\s+/g, ' ').trim() === approvedEnglishCreed;
+    return line.textContent.replace(/\s+/g, ' ').trim() === approvedEnglishCreed;
   }
   // Private prayer UI strings are local only: never sent to an external translation service.
 
