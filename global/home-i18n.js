@@ -10,7 +10,7 @@
     { selector:'nav a[href="/test.html"]', source:'步道', values:{en:'BUDAO', 'zh-Hant':'BUDAO'} },
     { selector:'nav a[href="/tongxing.html"]', source:'童行', values:{en:'Young Explorers', 'zh-Hant':'童行'} },
     { selector:'nav a[href="/tongdao.html"]', source:'同道', values:{en:'Companions', 'zh-Hant':'同道'} },
-    { selector:'nav a[href="/what.html"]', source:'同工', values:{en:'Co-Laborers', 'zh-Hant':'同工'} },
+    { selector:'nav a[href="/what.html"]', source:'同工', values:{en:'Fellow Workers', 'zh-Hant':'同工'} },
     { selector:'nav a[href="/tonglu.html"]', source:'牧场', values:{en:'Pasture', 'zh-Hant':'牧場'} },
     { selector:'title', source:'步道 budao', values:{en:'BUDAO', 'zh-Hant':'BUDAO'} },
     { selector:'header > h1', source:'步道', values:{en:'BUDAO', 'zh-Hant':'BUDAO'} },
