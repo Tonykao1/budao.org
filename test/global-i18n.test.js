@@ -66,3 +66,44 @@ test('only approved selectors are handled; no broad text-node walker', () => {
   assert.ok(homepage.entries.every(e=>e.selector && e.source && e.values.en && e.values['zh-Hant']));
   assert.ok(homepage.entries.every(e=> !e.selector.includes('script') && !e.selector.includes('footer')));
 });
+test('translated brand entries must use uppercase BUDAO in every target language', () => {
+  const brandEntries = homepage.entries.filter(entry => entry.source.includes('步道'));
+  assert.ok(brandEntries.length >= 5, 'branded navigation, heading, title and footer are included');
+  for (const entry of brandEntries) {
+    assert.match(entry.values.en, /BUDAO/, entry.selector);
+    assert.match(entry.values['zh-Hant'], /BUDAO/, entry.selector);
+    assert.doesNotMatch(entry.values.en, /\\bTrails?\\b|\\bBudao\\b/i, entry.selector);
+  }
+  const navBrand = homepage.entries.find(entry => entry.selector === 'nav a[href="/test.html"]');
+  assert.equal(navBrand.values.en, 'BUDAO');
+  assert.equal(navBrand.values['zh-Hant'], 'BUDAO');
+});
+
+test('English typography uses English punctuation and questions', () => {
+  const forbiddenCjkPunctuation = /[，。！？「」『』（）【】]/;
+  for (const entry of homepage.entries) {
+    assert.doesNotMatch(entry.values.en, forbiddenCjkPunctuation, entry.selector);
+    if (entry.source.trim().endsWith('？')) assert.ok(entry.values.en.endsWith('?'), entry.selector);
+  }
+  const why = homepage.entries.find(entry => entry.source.startsWith('为什么是'));
+  assert.equal(why.values.en, 'Why BUDAO?');
+  assert.equal(why.values['zh-Hant'], '為什麼是 BUDAO？');
+});
+
+test('all six navigation choices have explicit, distinct provisional translations', () => {
+  const nav = homepage.entries.filter(entry => entry.selector.startsWith('nav a[href='));
+  assert.equal(nav.length, 6);
+  const labels = nav.map(entry => entry.values.en);
+  assert.equal(new Set(labels).size, 6);
+  assert.deepEqual(labels, ['Home','BUDAO','Young Explorers','Companions','Co-Laborers','Pasture']);
+});
+
+test('faith declaration is editorial-only until its interactive layout is reviewed', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const charter = fs.readFileSync(path.join(__dirname,'../docs/2026-11-09-global-translation-charter.md'),'utf8');
+  assert.match(charter,/Till our final day, we shall walk in His way;/);
+  assert.match(charter,/neither left nor right shall we stray/);
+  assert.match(charter,/BLOCKED FOR VISUAL\/INTERACTION REVIEW/);
+  assert.ok(homepage.entries.every(entry => !entry.selector.includes('hero-line')));
+});
