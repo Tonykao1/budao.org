@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>BUDAO · 第四套「横斑」V2｜SONY 横版光学影像</title>
+<style>
+:root{--paper:#ededf1;--ink:#1c222d;--muted:#6b7180;--line:#d9dce5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{background:#0c1120;color:#eef4ff;padding:31px max(22px,calc((100vw - 1460px)/2))}
+header .kicker{font:600 11px/1.5 Arial,sans-serif;letter-spacing:.25em;color:#92b0e3}
+header h1{font-size:clamp(31px,4.2vw,55px);letter-spacing:-.045em;line-height:1.09;font-weight:520;margin:12px 0}
+header p{margin:0;font-size:13px;line-height:1.9;color:#aab6cf;max-width:900px}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:19px;align-items:start;max-width:1560px;margin:auto;padding:24px 18px 64px}
+.stage{min-width:0}
+.poster-frame{background:#fff;padding:10px;box-shadow:0 23px 62px #111d3626}
+canvas{width:100%;height:auto;aspect-ratio:16/9;display:block;background:#050b15}
+.poster-meta{font:500 11px/1.5 Arial,sans-serif;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#757e8f;margin:11px 4px}
+.poster-meta strong{letter-spacing:.16em;color:#303d57}
+aside{background:#fff;border:1px solid #d3d8e3;border-radius:10px;padding:24px;max-width:1160px;width:100%;margin:auto;box-shadow:0 10px 37px #20345810;min-width:0}
+.eyebrow{font:600 10px/1.5 Arial,sans-serif;letter-spacing:.19em;color:#64799c}
+aside h2{font-size:25px;letter-spacing:-.045em;font-weight:540;margin:8px 0}
+aside p{color:#687181;line-height:1.9;font-size:13px;margin:0 0 15px}
+.upload{position:relative;margin:15px 0 16px;display:block;padding:21px 14px;border:1px dashed #879bb8;border-radius:7px;background:#edf2f9;cursor:pointer;text-align:center}
+.upload strong{font-size:13px;display:block;font-weight:650;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upload span{font-size:11px;color:#7e8999}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload:hover,.upload:focus-within{background:#e3ebfb;border-color:#4c71b7}
+.source{display:flex;align-items:center;gap:11px;padding:9px;border:1px solid #e1e5ed;border-radius:6px;margin:16px 0}
+.source img{width:74px;height:56px;object-fit:cover;border-radius:3px;background:#eee;flex:none}
+.source strong,.source span{display:block;font-size:11px;line-height:1.7}
+.source span{color:#7c8492}
+.control{margin:19px 0 8px}.control strong{font-size:12px;font-weight:620;display:block;margin-bottom:9px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.modes button{font:600 12px/1.5 Arial,sans-serif;border-radius:6px;padding:10px 6px;border:1px solid #c8d0de;background:#f7f8fb;color:#515e74;cursor:pointer}
+.modes button[aria-pressed="true"]{background:#152b51;border-color:#152b51;color:white}
+.sliderline{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.sliderline label{font-size:12px;font-weight:650}.sliderline span{color:#64738c;font-size:11px}
+input[type=range]{display:block;accent-color:#406da6;width:100%;margin:10px 0 6px}
+details{border-top:1px solid #e5e8ed;padding-top:15px;margin-top:21px}
+summary{cursor:pointer;color:#52627b;font-size:12px;font-weight:620}
+details .row{margin-top:13px}
+.primary{width:100%;padding:16px 10px;border:0;background:#14213c;border-radius:6px;color:white;font:600 14px/1.4 Arial,sans-serif;cursor:pointer;margin-top:21px}
+.primary:disabled{opacity:.55;cursor:not-allowed}
+#status{font-size:11px;line-height:1.8;color:#627082;white-space:pre-wrap;min-height:65px;margin:14px 0}
+.proof{display:flex;gap:12px;align-items:center;margin-top:16px;padding:10px 12px;background:#f7f9fc;border:1px solid #e0e5ec;border-radius:7px}
+.proof img{width:77px;height:77px;flex:none}
+.proof strong,.proof span{display:block;line-height:1.7;font-size:11px}
+.proof span{color:#7e8796}
+.guardrail{margin-top:16px;border-top:1px solid #e4e8ef;padding-top:14px;font-size:11px;line-height:1.85;color:#777f8d}
+.guardrail strong{display:block;font-weight:650;color:#49586f;margin-bottom:4px}
+@media(max-width:950px){main{grid-template-columns:1fr}.stage,aside{width:100%;max-width:655px;margin:0 auto}}
+@media(max-width:510px){main{padding:12px 8px 35px;gap:13px}.poster-frame{padding:5px}aside{padding:19px}header{padding:23px 19px}.poster-meta{font-size:9px}}
+</style>
+</head>
+<body>
+<header><div class="kicker">BUDAO DESIGN LAB / 04 / HORIZONTAL SCAN</div>
+<h1>把真实的风景，交给横向的光。</h1>
+<p>第四套 SONY α1 发布预告视觉方向 · 独立设计实验 V2 · 横版 16:9。照片在浏览器本地进行暗部重组、横向采样与光学拖尾；活动信息和原始二维码不参与滤镜。不调用外部图像 API，也不进行 AI 主体抠图。</p></header>
+<main>
+<section class="stage">
+<div class="poster-frame"><canvas id="poster" width="1920" height="1080" role="img" aria-label="暗色真实步道摄影与动态横向扫描光带的第四套步道邀请函"></canvas></div>
+<div class="poster-meta"><strong>04 / HORIZONTAL SCAN / V2</strong><span>1920 × 1080 · 16:9 LANDSCAPE · RAW PHOTO → LIGHT STRIPES</span></div>
+</section>
+<aside>
+<div class="eyebrow">NO AI · NO THIRD-PARTY IMAGE API</div>
+<h2>用一张照片，唤醒光。</h2>
+<p>上传活动照片，系统保留实景轮廓，将照片的亮度与局部色彩转译为不同长度、亮度和厚度的横向光带。光带不是等距离的装饰线。</p>
+<label class="upload"><strong id="fileName">上传一张活动照片</strong><span>JPEG / PNG / WebP · 最大 24MB · 本地处理</span>
+<input id="file" type="file" accept="image/jpeg,image/png,image/webp" aria-label="选择一张活动真实照片"></label>
+<div class="source"><img id="sourcePreview" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="当前使用的真实活动照片">
+<div><strong>上传照片是影像主体</strong><span>统一风格化，不抠图、不创造虚构场景</span></div></div>
+<div class="control"><strong>01 / 横斑强度</strong>
+<div class="modes" role="group" aria-label="横斑强度选择">
+<button type="button" data-mode="soft" aria-pressed="false">柔和</button>
+<button type="button" data-mode="normal" aria-pressed="true">标准</button>
+<button type="button" data-mode="strong" aria-pressed="false">强烈</button>
+</div></div>
+<div class="control"><div class="sliderline"><label for="clarity">02 / 保留原图清晰度</label><span id="clarityValue">72%</span></div>
+<input type="range" id="clarity" min="35" max="100" value="72" step="1"></div>
+<details><summary>高级取景 · 保留真实画面主体</summary>
+<div class="row"><div class="sliderline"><label for="focusX">水平取景</label><span id="focusXValue">50%</span></div><input type="range" id="focusX" min="0" max="100" value="50"></div>
+<div class="row"><div class="sliderline"><label for="focusY">垂直取景</label><span id="focusYValue">50%</span></div><input type="range" id="focusY" min="0" max="100" value="50"></div>
+</details>
+<button type="button" class="primary" id="download" disabled>导出 V1 高清 PNG</button>
+<div id="status" aria-live="polite">正在读取温榆秘境原始照片与报名二维码…</div>
+<div class="proof"><img src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="温榆秘境对应的原始微信报名二维码">
+<div><strong>报名二维码原件</strong><span>420×420 PNG · 不重编码、不变形</span><span>验证原始 Git 文件指纹后允许导出</span></div></div>
+<div class="guardrail"><strong>设计实验 / 并非 Tent 生产模板</strong>
+横版 1920×1080，完整展示路线、日期、时间、集合地点、距离、爬升、难度、时长、路面、适合人群及装备。默认素材来自真实“温榆秘境”活动，发布信息未与所有 Tent 活动动态关联。前三套定稿不变。</div>
+</aside>
+</main>
+<script>
+"use strict";
+const SOURCE={
+ photo:"../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg",
+ qr:"../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png",
+ logo:"../budao-logo-mark.png"
+};
+const FACTS=Object.freeze({
+ title:"温榆秘境",date:"2026.11.08",weekday:"周日",time:"15:45",
+ region:"中国 · 北京 · 顺义",meeting:"和园景逸大酒店停车场",
+ distance:"4千米",elevation:"＜50米",difficulty:"简单",duration:"1.5小时",
+ surface:"铺装路",suitable:"全年龄段友好",equipment:"运动鞋"
+});
+const QR_SHA="b95feaa3513cb215b29c508897e00ca6019dbec6";
+const FONT='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif';
+const $=s=>document.getElementById(s),cv=$("poster"),ctx=cv.getContext("2d",{alpha:false});
+const ui={file:$("file"),fileName:$("fileName"),source:$("sourcePreview"),status:$("status"),
+ download:$("download"),clarity:$("clarity"),clarityValue:$("clarityValue"),
+ focusX:$("focusX"),focusY:$("focusY"),focusXValue:$("focusXValue"),focusYValue:$("focusYValue"),
+ modes:Array.from(document.querySelectorAll("[data-mode]"))};
+let photo=null,qr=null,logo=null,verifiedQR=false,mode="normal",ready=false,frame=0,sequence=0,localPreviewUrl=null;
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const mix=(a,b,t)=>a*(1-t)+b*t;
+function rng(seed){let n=seed>>>0;return ()=>{n+=0x6D2B79F5;let t=n;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296};}
+function rgba(rgb,a){return "rgba("+Math.round(rgb[0])+","+Math.round(rgb[1])+","+Math.round(rgb[2])+","+a+")";}
+function lum(r,g,b){return .2126*r+.7152*g+.0722*b;}
+function text(value,x,y,size=30,color="#fff",weight=400,align="left",width=920){
+ ctx.save();ctx.textAlign=align;ctx.textBaseline="alphabetic";ctx.fillStyle=color;
+ ctx.font=weight+" "+size+"px "+FONT;
+ const measured=ctx.measureText(value).width;
+ const scaled=measured>width?Math.max(18,size*width/measured):size;
+ ctx.font=weight+" "+scaled.toFixed(2)+"px "+FONT;ctx.fillText(value,x,y);
+ ctx.restore();
+}
+async function verifyQR(blob){
+ if(!globalThis.crypto?.subtle)throw Error("当前浏览器不能验证原始二维码完整性");
+ const bytes=new Uint8Array(await blob.arrayBuffer()),header=new TextEncoder().encode("blob "+bytes.length+"\0");
+ const binary=new Uint8Array(header.length+bytes.length);
+ binary.set(header);binary.set(bytes,header.length);
+ const digest=new Uint8Array(await crypto.subtle.digest("SHA-1",binary));
+ const sha=Array.from(digest,b=>b.toString(16).padStart(2,"0")).join("");
+ if(sha!==QR_SHA)throw Error("二维码文件指纹与本次活动原件不符；禁止导出");
+}
+async function imageAsset(url,label){
+ const response=await fetch(url,{cache:"no-store"});
+ if(!response.ok)throw Error(label+" HTTP "+response.status);
+ const blob=await response.blob();
+ if(!blob.type.startsWith("image/"))throw Error(label+" 数据不是图片");
+ if(url===SOURCE.qr){await verifyQR(blob);verifiedQR=true;}
+ return await decodeFile(blob);
+}
+async function decodeFile(file){
+ if(typeof createImageBitmap==="function")return createImageBitmap(file);
+ const href=URL.createObjectURL(file),img=new Image();
+ try{
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error("图片解码失败"));img.src=href;});
+  return img;
+ }finally{URL.revokeObjectURL(href);}
+}
+function cover(bitmap,out,x=.5,y=.5){
+ const tw=out.width,th=out.height;
+ const sourceWidth=bitmap.width,sourceHeight=bitmap.height;
+ const ratio=Math.max(tw/sourceWidth,th/sourceHeight);
+ const sw=Math.min(sourceWidth,tw/ratio),sh=Math.min(sourceHeight,th/ratio);
+ const sx=clamp((sourceWidth-sw)*x,0,sourceWidth-sw);
+ const sy=clamp((sourceHeight-sh)*y,0,sourceHeight-sh);
+ const c=out.getContext("2d");
+ c.clearRect(0,0,tw,th);
+ c.imageSmoothingEnabled=true;c.imageSmoothingQuality="high";
+ c.drawImage(bitmap,sx,sy,sw,sh,0,0,tw,th);
+ return c;
+}
+function gradientLine(x,y,length,thickness,core,alpha){
+ if(length<15)return;
+ const lo=clamp(x,0,1920),hi=clamp(x+length,0,1920);
+ if(hi<=lo)return;
+ const grad=ctx.createLinearGradient(lo,y,hi,y);
+ grad.addColorStop(0,rgba(core,0));
+ grad.addColorStop(.13,rgba(core,alpha*.37));
+ grad.addColorStop(.41,rgba(core,alpha));
+ grad.addColorStop(.74,rgba(core,alpha*.61));
+ grad.addColorStop(1,rgba(core,0));
+ ctx.save();ctx.globalCompositeOperation="screen";
+ ctx.shadowColor=rgba(core,alpha*.93);ctx.shadowBlur=thickness*2.4+12;
+ ctx.fillStyle=grad;ctx.fillRect(lo,y-thickness/2,hi-lo,thickness);
+ ctx.shadowBlur=0;ctx.globalAlpha=.72;
+ ctx.fillRect(lo,y-Math.max(.7,thickness*.1),hi-lo,Math.max(1,thickness*.21));
+ ctx.restore();
+}
+function renderImage(strength,detail,fx,fy){
+ const W=1920,H=1080;
+ const hero=document.createElement("canvas");hero.width=W;hero.height=H;
+ const pc=cover(photo,hero,fx,fy);
+ const data=pc.getImageData(0,0,W,H).data;
+ let seed=0xBADA2604;
+ for(let y=54;y<H;y+=71){for(let x=57;x<W;x+=149){
+  const k=(y*W+x)*4;seed=Math.imul(seed^data[k]^data[k+1]<<4^data[k+2]<<9,1664525)>>>0;
+ }}
+ const rand=rng(seed^Math.round(fx*1009)^Math.round(fy*2017));
+ ctx.fillStyle="#050a15";ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);ctx.clip();
+ // Draw the actual photograph first. No invented scenery or generative masks.
+ ctx.save();ctx.filter="brightness("+(.43+.41*detail)+") contrast(1.28) saturate(.79)";
+ ctx.drawImage(hero,0,0,W,H);ctx.restore();
+ ctx.fillStyle="rgba(1,5,15,.23)";ctx.fillRect(0,0,W,H);
+ // Subtle Sony-style dark magenta/blue tonal wash, without Apple's burst effect.
+ const warm=ctx.createRadialGradient(430,215,20,480,260,850);
+ warm.addColorStop(0,"rgba(223,51,147,.18)");warm.addColorStop(1,"rgba(223,51,147,0)");
+ ctx.fillStyle=warm;ctx.fillRect(0,0,W,H);
+ const cool=ctx.createRadialGradient(840,720,20,940,650,780);
+ cool.addColorStop(0,"rgba(41,117,249,.22)");cool.addColorStop(1,"rgba(41,117,249,0)");
+ ctx.fillStyle=cool;ctx.fillRect(0,0,W,H);
+ // Source-driven candidate light locations. Samples only correspond to the uploaded photo.
+ const candidates=[];
+ for(let y=65;y<H-45;y+=10){
+  let best=null;
+  for(let x=65;x<1450;x+=19){
+   const k=(y*W+x)*4;
+   const score=lum(data[k],data[k+1],data[k+2])*(.83+.34*rand());
+   if(!best||score>best.score)best={x,y,r:data[k],g:data[k+1],b:data[k+2],score};
+  }
+  if(best)candidates.push(best);
+ }
+ candidates.sort((a,b)=>b.score-a.score);
+ // A low-opacity source-strip pass: original rows stretch horizontally.
+ ctx.save();ctx.globalCompositeOperation="screen";ctx.filter="blur(5px)";
+ const count=Math.round(13+28*strength);
+ for(let i=0;i<count;i++){
+  const z=candidates[(i*9+Math.floor(rand()*28))%candidates.length];
+  const bh=1+Math.floor(rand()*5);
+  const h=Math.min(H-z.y,bh);
+  const shift=(rand()-.45)*540*strength;
+  ctx.globalAlpha=(.03+.066*strength)*(.35+clamp(z.score/180,0,1));
+  ctx.drawImage(hero,0,z.y,W,h,shift,z.y+(rand()-.5)*16,W+rand()*380,h*(1.5+rand()*2.3));
+ }
+ ctx.restore();
+ // Multiple scales of horizontal light streaks, each rooted in image luminance/hue.
+ const streaks=Math.round(45+90*strength);
+ for(let i=0;i<streaks;i++){
+  const z=candidates[(i*13+Math.floor(rand()*12))%candidates.length];
+  const light=clamp(z.score/205,.16,1);
+  const tint=z.y<545?[243,92,169]:[69,152,255];
+  const source=[z.r,z.g,z.b];
+  const color=tint.map((v,j)=>mix(source[j],v,.64));
+  const len=(125+Math.pow(rand(),.7)*740)*(i%16===0?1.35:1);
+  const start=z.x-len*(.16+rand()*.67);
+  const y=z.y+(rand()-.5)*24;
+  const thick=i%16===0?(5+rand()*13):(.7+rand()*4.8);
+  gradientLine(start,y,len,thick,color,(.14+.28*strength)*light);
+ }
+ const brighter=candidates.filter(z=>z.score>42);
+ for(let i=0;i<Math.round(5+9*strength);i++){
+  const z=brighter[(i*7+Math.floor(rand()*brighter.length))%Math.max(1,brighter.length)]||candidates[i];
+  const tint=z.y<550?[255,169,211]:[105,193,255];
+  const color=tint.map((v,j)=>mix([z.r,z.g,z.b][j],v,.73));
+  gradientLine(z.x-310-rand()*450,z.y+(rand()-.5)*15,650+rand()*760,2+rand()*6,color,.23+.33*strength);
+ }
+ // A limited density of hairlines: never a uniform TV scan pattern.
+ ctx.save();ctx.globalAlpha=.12*strength;
+ for(let i=0;i<94;i++){
+  const y=rand()*H,x=rand()*1420,w=50+rand()*250;
+  const sample=candidates[i%candidates.length];
+  ctx.fillStyle=rgba(y<570?[179,98,176]:[67,137,216],(.16+.22*sample.score/255));
+  ctx.fillRect(x,y,w,.6+rand());
+ }
+ ctx.restore();
+ // Smooth cinematic right-hand dark field supports legible event information.
+ const fade=ctx.createLinearGradient(990,0,1760,0);
+ fade.addColorStop(0,"rgba(4,8,20,.0)");
+ fade.addColorStop(.40,"rgba(4,8,20,.76)");
+ fade.addColorStop(.78,"rgba(4,8,20,.96)");
+ fade.addColorStop(1,"#040918");
+ ctx.fillStyle=fade;ctx.fillRect(985,0,935,H);
+ // Soft lower falloff anchors footers without concealing the left-side image.
+ const bottom=ctx.createLinearGradient(0,815,0,1080);
+ bottom.addColorStop(0,"rgba(3,8,19,0)");bottom.addColorStop(1,"rgba(3,8,19,.58)");
+ ctx.fillStyle=bottom;ctx.fillRect(0,815,W,265);
+ ctx.restore();
+}
+function renderInformation(){
+ // Designed as a true wide-format Sony-inspired poster, not a portrait resized sideways.
+ text("BUDAO  /  HORIZONTAL SCAN",76,93,22,"rgba(245,247,255,.9)",500);
+ text("04  /  OPTICAL FIELD NOTES",1325,107,18,"#9caed1",480);
+ text(FACTS.title,1314,216,83,"#fbfcff",550,"left",550);
+ text(FACTS.date+"   /   "+FACTS.weekday+"   /   "+FACTS.time,1318,287,31,"#e4ebfb",420,"left",555);
+ ctx.save();ctx.lineWidth=1;ctx.strokeStyle="rgba(189,211,248,.28)";
+ ctx.beginPath();ctx.moveTo(1316,326);ctx.lineTo(1853,326);ctx.stroke();ctx.restore();
+ text(FACTS.region,1318,389,26,"#becce4",410,"left",520);
+ text("集合地点  /  MEETING POINT",1318,458,17,"#829bc3",550);
+ text(FACTS.meeting,1318,504,32,"#f9fbff",480,"left",537);
+ ctx.save();ctx.lineWidth=1;ctx.strokeStyle="rgba(189,211,248,.24)";
+ ctx.beginPath();ctx.moveTo(1316,543);ctx.lineTo(1853,543);ctx.stroke();ctx.restore();
+ const pair=[
+  ["DISTANCE",FACTS.distance,1318,600],
+  ["ASCENT",FACTS.elevation,1588,600],
+  ["LEVEL",FACTS.difficulty,1318,706],
+  ["DURATION",FACTS.duration,1588,706]
+ ];
+ for(const [label,value,x,y] of pair){
+  text(label,x,y,17,"#88a1ce",500);
+  text(value,x,y+39,35,"#f6f9ff",520);
+ }
+ text("路面  "+FACTS.surface,1318,811,23,"#c3d1e9",440,"left",275);
+ text("适合  "+FACTS.suitable,1318,853,21,"#c3d1e9",440,"left",281);
+ text("装备  "+FACTS.equipment,1318,896,22,"#c3d1e9",440,"left",270);
+ if(!logo)throw Error("步道品牌原始图片未加载");
+ ctx.save();ctx.globalAlpha=.95;ctx.filter="brightness(0) invert(1)";
+ const lw=108;ctx.drawImage(logo,1317,979,lw,lw*(logo.height/logo.width));ctx.restore();
+ text("budao.org",1849,1042,20,"#9fb4d9",400,"right");
+ // Clear border follows logo; color streaks never touch this information layer.
+}
+function renderQR(){
+ if(!verifiedQR||!qr)throw Error("本次活动原始二维码未通过校验");
+ if(qr.width!==420||qr.height!==420)throw Error("本次活动原始二维码应为 420×420");
+ const size=210,x=1628,y=792;
+ // Exactly 50% native-size direct bitmap drawing, no AI filters or redrawing.
+ ctx.save();ctx.filter="none";ctx.imageSmoothingEnabled=false;ctx.globalAlpha=1;
+ ctx.drawImage(qr,0,0,420,420,x,y,size,size);ctx.restore();
+}
+function draw(){
+ if(!photo||!qr||!logo||!verifiedQR)return;
+ ready=false;ui.download.disabled=true;
+ try{
+  const strength={soft:.55,normal:1,strong:1.45}[mode]||1;
+  const detail=Number(ui.clarity.value)/100;
+  const fx=Number(ui.focusX.value)/100,fy=Number(ui.focusY.value)/100;
+  renderImage(strength,detail,fx,fy);
+  renderInformation();renderQR();
+  ui.status.textContent="✓ 真实照片已在本地光学转译（"+mode+"）"+
+   "\n✓ 横斑来自原图亮部、颜色与局部采样"+
+   "\n✓ 真实活动参数及步道品牌完整呈现"+
+   "\n✓ 原始 420×420 微信二维码文件指纹一致，未重生成"+
+   "\n✓ 可导出 1920×1080 横版 PNG · 设计原型，非正式发布";
+  ready=true;ui.download.disabled=false;
+ }catch(err){ui.status.textContent="✕ 生成失败："+String(err.message||err);}
+}
+function schedule(){
+ if(frame)cancelAnimationFrame(frame);
+ frame=requestAnimationFrame(()=>{frame=0;draw();});
+}
+async function boot(){
+ try{
+  const [image,q,l]=await Promise.all([
+   imageAsset(SOURCE.photo,"真实活动照片"),
+   imageAsset(SOURCE.qr,"活动原始二维码"),
+   imageAsset(SOURCE.logo,"步道品牌标志")
+  ]);
+  await document.fonts.ready;
+  photo=image;qr=q;logo=l;
+  draw();
+ }catch(err){
+  ready=false;ui.download.disabled=true;
+  ui.status.textContent="✕ 素材加载或验真失败，禁止导出："+String(err.message||err);
+ }
+}
+ui.file.addEventListener("change",async()=>{
+ const file=ui.file.files?.[0];if(!file)return;
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>24*1024*1024){
+  ui.status.textContent="✕ 只接受小于24MB的 JPG/PNG/WebP 图片";return;
+ }
+ const order=++sequence;ui.download.disabled=true;ui.status.textContent="正在读取本地照片并构建横向光带…";
+ try{
+  const image=await decodeFile(file);
+  if(order!==sequence){image.close?.();return;}
+  photo?.close?.();photo=image;
+  if(localPreviewUrl)URL.revokeObjectURL(localPreviewUrl);
+  localPreviewUrl=URL.createObjectURL(file);ui.source.src=localPreviewUrl;
+  ui.fileName.textContent=file.name;draw();
+ }catch(err){ui.status.textContent="✕ 照片解码失败："+String(err.message||err);}
+});
+for(const button of ui.modes){
+ button.addEventListener("click",()=>{
+  mode=button.dataset.mode;
+  for(const b of ui.modes)b.setAttribute("aria-pressed",String(b===button));
+  schedule();
+ });
+}
+for(const [input,output] of [[ui.clarity,ui.clarityValue],[ui.focusX,ui.focusXValue],[ui.focusY,ui.focusYValue]]){
+ input.addEventListener("input",()=>{output.textContent=input.value+"%";schedule();});
+}
+ui.download.addEventListener("click",()=>{
+ if(!ready)return;
+ cv.toBlob(blob=>{
+  if(!blob){ui.status.textContent+="\n✕ PNG 导出失败";return;}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="BUDAO-模板四-横斑-横版-温榆秘境-V2.png";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2200);
+ },"image/png");
+});
+boot();
+</script>
+</body>
+</html>
