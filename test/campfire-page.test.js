@@ -191,3 +191,33 @@ test("火光与回响系统坚持匿名无计数、仅对实拍开放及管理�
   assert.ok(exists("/campfire-privacy.html"));
   assert.ok(exists("/campfire-interactions.js"));
 });
+
+
+test("星火同行把真实活动记忆与私人足迹分开，不公开计数或推断身份", () => {
+  const s2s = read("campfire-sparks-to-steps.js");
+  const api = read("api/_security/campfire-handler.js");
+  const privacy = read("campfire-privacy.html");
+  assert.match(html, /id="camp-sparks-to-steps"/);
+  assert.match(html, /id="camp-footprints-panel"/);
+  assert.match(html, /id="camp-album-memories"/);
+  assert.match(html, /id="camp-share-memory"/);
+  assert.match(html, /id="camp-walk-again-link"/);
+  assert.match(html, /campfire-sparks-to-steps\.js/);
+  assert.match(script, /albumId:string\(album\.id,80\)/);
+  assert.match(script, /new URLSearchParams\(window\.location\.search\)\.get\("photo"\)/);
+  assert.match(script, /item\.kind === "moment" && item\.image === photoId/);
+  assert.match(api, /async function albumMemories/);
+  assert.match(api, /status='APPROVED'/);
+  assert.match(api, /photos\.get\(row\.photoId\)===albumId/);
+  assert.match(api, /view"\)==="memories"/);
+  assert.match(s2s, /window\.localStorage/);
+  assert.match(s2s, /readSaved\(\)/);
+  assert.match(s2s, /writeSaved\(\[\]\)/);
+  assert.match(s2s, /navigator\.share/);
+  assert.match(s2s, /new URL\("\/yhzd\.html"/);
+  assert.match(s2s, /\/test\.html/);
+  assert.doesNotMatch(s2s, /geolocation|fingerprint|document\.cookie|innerHTML\s*=/i);
+  assert.match(privacy, /不上传到服务器/);
+  assert.match(css, /camp-s2s-three/);
+  assert.match(css, /camp-album-memory/);
+});
