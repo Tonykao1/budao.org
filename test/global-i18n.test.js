@@ -225,3 +225,74 @@ test('five elements still use existing source text and existing prayer button', 
   const cta = homepage.entries.find(e=>e.selector==='#prayerBoxTrigger');
   assert.equal(cta.values.en,'PRAYER');
 });
+
+function buildMockOriginalCreed(overrides = {}) {
+  const line = { childNodes: [], insertBefore(node, target) {
+    const index = this.childNodes.indexOf(target);
+    if (index < 0) throw Error('invalid insertion target');
+    node.parentElement = this;
+    this.childNodes.splice(index, 0, node);
+  }};
+  Object.defineProperty(line, 'textContent', {
+    get() { return this.childNodes.map(node => node.nodeType === 3 ? node.nodeValue : node.textContent).join(''); }
+  });
+  function span(id, text) {
+    const item = { nodeType:1, id, parentElement:line, textContent:text, className:'original-control', style:{}, onClick:() => id };
+    Object.defineProperty(item,'nextSibling',{get(){return line.childNodes[line.childNodes.indexOf(item) + 1] || null;}});
+    return item;
+  }
+  const text = value => ({nodeType:3, nodeValue:value, parentElement:line});
+  const dsp = span('dspBtn', overrides.dsp || '余');
+  const play = span('playBtn', '走');
+  const prev = span('prevBtn', '左');
+  const next = span('nextBtn', '右');
+  line.childNodes.push(
+    text('\n    '), dsp, text('生行'), play, text('，\n    不偏'), prev, next, text('\n  ')
+  );
+  const byId = {dspBtn:dsp,playBtn:play,prevBtn:prev,nextBtn:next};
+  return {
+    doc: {
+      querySelector: key => key === 'header .hero-line' ? line : null,
+      getElementById: key => byId[key],
+      createTextNode: value => text(value)
+    },
+    line, controls:byId
+  };
+}
+
+test('approved English creed appears using original four audio controls, no CSS or element changes', () => {
+  const {doc,line,controls} = buildMockOriginalCreed();
+  const originalControls = Object.values(controls);
+  const handlerRefs = originalControls.map(c=>c.onClick);
+  const childCount = line.childNodes.length;
+  assert.equal(homepage.previewEnglishCreed(doc,'en'),true);
+  assert.equal(line.textContent.replace(/\s+/g,' ').trim(),
+    'Till our final day, we shall walk in His way; Neither left nor right shall we stray.');
+  assert.equal(line.childNodes.length, childCount+1); // the single textual " nor " separator
+  assert.deepEqual(line.childNodes.filter(n=>n.nodeType===1),originalControls);
+  assert.deepEqual(originalControls.map(c=>c.onClick),handlerRefs);
+  assert.ok(originalControls.every(c=>c.className==='original-control' && Object.keys(c.style).length===0));
+  assert.deepEqual(originalControls.map(c=>c.textContent),['Till','walk','left','right']);
+  assert.equal(homepage.previewEnglishCreed(doc,'en'),false); // never apply twice
+});
+
+test('English creed translation is opt-in and guarded by the unchanged approved Chinese source', () => {
+  const source = buildMockOriginalCreed();
+  assert.equal(homepage.previewEnglishCreed(source.doc,'zh-Hans'),false);
+  assert.equal(homepage.previewEnglishCreed(source.doc,'zh-Hant'),false);
+  assert.match(source.line.textContent,/余生行走/);
+  const drifted = buildMockOriginalCreed({dsp:'另'});
+  const original = drifted.line.textContent;
+  assert.equal(homepage.previewEnglishCreed(drifted.doc,'en'),false);
+  assert.equal(drifted.line.textContent,original);
+});
+
+test('creed follows owner-approved punctuation and all original music IDs remain in original html', () => {
+  assert.equal(homepage.approvedEnglishCreed,
+    'Till our final day, we shall walk in His way; Neither left nor right shall we stray.');
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const original = fs.readFileSync(path.join(__dirname,'../home.html'),'utf8');
+  assert.match(original,/<span id="dspBtn"[^>]+>余<\/span>生行<span id="playBtn">走<\/span>/);
+  assert.match(original,/不偏<span id="prevBtn">左<\/span><span id="nextBtn">右<\/span>/);
+});
