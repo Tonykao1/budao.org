@@ -63,10 +63,13 @@
     if (dsp.textContent !== '余' || play.textContent !== '走' ||
         prev.textContent !== '左' || next.textContent !== '右') return false;
 
+    const leading = line.childNodes && line.childNodes[0];
     const beforePlay = dsp.nextSibling;
     const beforePrev = play.nextSibling;
     const afterNext = next.nextSibling;
-    if (!beforePlay || beforePlay.nodeType !== 3 ||
+    if (!leading || leading.nodeType !== 3 || leading.nodeValue.trim() !== '' ||
+        !line.style ||
+        !beforePlay || beforePlay.nodeType !== 3 ||
         !beforePrev || beforePrev.nodeType !== 3 ||
         !afterNext || afterNext.nodeType !== 3 ||
         prev.nextSibling !== next ||
@@ -75,16 +78,22 @@
         !documentObject.createTextNode ||
         !line.insertBefore) return false;
 
-    // One plain text node for " nor "; no new controls, classes or CSS.
+    // The English version uses compact editorial typography only in this preview.
+    // Keep the four original audio-control spans, color, animation and site CSS.
+    // A plain newline allows a deliberate two-line couplet without adding elements.
     const conjunction = documentObject.createTextNode(' nor ');
+    leading.nodeValue = '';
     dsp.textContent = 'Till';
     beforePlay.nodeValue = ' our final day, we shall ';
     play.textContent = 'walk';
-    beforePrev.nodeValue = ' in His way; Neither ';
+    beforePrev.nodeValue = ' in His way;\nNeither ';
     prev.textContent = 'left';
     line.insertBefore(conjunction, next);
     next.textContent = 'right';
     afterNext.nodeValue = ' shall we stray.';
+    line.style.fontSize = 'clamp(12px, 1.35vw, 16px)';
+    line.style.letterSpacing = '0.01em';
+    line.style.whiteSpace = 'pre-line';
 
     return line.textContent.replace(/\s+/g, ' ').trim() === approvedEnglishCreed;
   }
