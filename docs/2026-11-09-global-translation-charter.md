@@ -35,6 +35,20 @@ The original Chinese labels are not revised. Draft English labels must be review
 
 The approved Chinese source text and punctuation remain as they were in the HTML files. The English may be revised after theological and literary review; preview is not publication.
 
+## 3A. Homepage “五个一” — English rhythm proposal (visual preview only)
+
+Chinese original: **一个拥抱 · 一条线路 · 一则故事 · 一段经文 · 一起祷告**.
+
+English parallelism proposed for review:
+
+> **EMBRACE · TRAIL · STORY · SCRIPTURE · PRAYER**
+
+- Use **five uppercase nouns** with no articles. The repeated visual rhythm conveys the source’s “five ones” without five awkward repeated articles.
+- **SCRIPTURE** functions as a short conceptual label for the source “一段经文”; it must not be mistaken for a literal complete translation of a passage reference.
+- The last word **PRAYER** remains the pre-existing interactive prayer button; its HTML `id`, events, accessibility relationship, markup, and CSS stay unchanged. Do not rewrite prayer workflow or user-provided text.
+- Status: **DRAFT FOR OWNER REVIEW**. Do not mark official until the target-language meaning, and desktop/mobile fit in the original Chinese composition, have been accepted.
+- The Chinese default view and Traditional Chinese translations remain untouched. No aesthetic redesign is authorized.
+
 ## 4. Faith declaration — wording approved, NOT visually integrated
 
 **Chinese authority:** 余生行走，不偏左右。
