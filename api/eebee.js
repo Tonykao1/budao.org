@@ -17,6 +17,9 @@ const HANDOVER_STATUS = ["SCHEDULED", "COMPLETED"];
 const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
 module.exports = async function handler(request, response) {
+  if (new URL(request.url || "/api/eebee", "https://budao.org").searchParams.get("service") === "coworker") {
+    return require("./_coworker/calling")(request, response);
+  }
   try {
     if (request.method === "GET") return await handleGet(request, response);
     if (request.method === "POST") return await handlePost(request, response);
