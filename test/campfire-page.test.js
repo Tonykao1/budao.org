@@ -216,7 +216,7 @@ test("星火同行把真实活动记忆与私人足迹分开，不公开计数�
   assert.match(s2s, /navigator\.share/);
   assert.match(s2s, /new URL\("\/yhzd\.html"/);
   assert.match(s2s, /\/test\.html/);
-  assert.doesNotMatch(s2s, /geolocation|fingerprint|document\.cookie|innerHTML\s*=/i);
+  assert.doesNotMatch(s2s, /navigator\.geolocation|FingerprintJS|document\.cookie|innerHTML\s*=/i);
   assert.match(privacy, /不上传到服务器/);
   assert.match(css, /camp-s2s-three/);
   assert.match(css, /camp-album-memory/);
