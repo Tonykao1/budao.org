@@ -314,3 +314,41 @@ test('English creed compact typography never changes global style.css or Chinese
   assert.equal(homepage.previewEnglishCreed(original.doc,'zh-Hans'),false);
   assert.deepEqual(original.line.style,{});
 });
+
+
+test('approved footer English names preserve the original decorative symbols', () => {
+  const campfire = homepage.entries.find(e => e.selector === 'footer .campfire-link:not(.spark-link)');
+  const sparks = homepage.entries.find(e => e.selector === 'footer .campfire-link.spark-link');
+  assert.ok(campfire && sparks);
+  assert.equal(campfire.source, '✦ 营火之地');
+  assert.equal(campfire.values.en, '✦ Campfire');
+  assert.equal(campfire.values['zh-Hant'], '✦ 營火之地');
+  assert.equal(sparks.source, '❦ 路上星火');
+  assert.equal(sparks.values.en, '❦ Sparks');
+  assert.equal(sparks.values['zh-Hant'], '❦ 路上星火');
+});
+
+test('footer translation changes text only, never URLs, CSS classes or animation hooks', () => {
+  function node(text, href, className) {
+    return {textContent:text, href, className, children:[]};
+  }
+  const campfire = node('✦ 营火之地','/yhzd.html','campfire-link');
+  const sparks = node('❦ 路上星火','/lsxh.html','campfire-link spark-link');
+  const targets = {
+    'footer .campfire-link:not(.spark-link)':campfire,
+    'footer .campfire-link.spark-link':sparks
+  };
+  const doc = {
+    querySelector:selector=>targets[selector] || null,
+    documentElement:{lang:'zh'}
+  };
+  const entries = homepage.entries.filter(e=>Object.hasOwn(targets,e.selector));
+  const result = core.localize(doc,'en',entries);
+  assert.equal(result.changed,2);
+  assert.deepEqual([campfire.textContent,sparks.textContent],['✦ Campfire','❦ Sparks']);
+  assert.deepEqual([campfire.href,sparks.href],['/yhzd.html','/lsxh.html']);
+  assert.deepEqual([campfire.className,sparks.className],['campfire-link','campfire-link spark-link']);
+  const source = require('node:fs').readFileSync(require('node:path').join(__dirname,'../home.html'),'utf8');
+  assert.match(source,/<a class="campfire-link" href="\/yhzd.html">✦ 营火之地<\/a>/);
+  assert.match(source,/<a class="campfire-link spark-link" href="\/lsxh.html">❦ 路上星火<\/a>/);
+});
