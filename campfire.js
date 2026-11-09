@@ -86,7 +86,7 @@
         const key = (string(album.id, 80) || album.date + title) + ":" + index;
         if (!src || !alt || ids.has(key)) continue;
         ids.add(key);
-        photos.push({id:key,kind:"moment",image:src,alt,title,date:album.date,location,
+        photos.push({id:key,kind:"moment",albumId:string(album.id,80),image:src,alt,title,date:album.date,location,
           caption:string(item.caption, 180) || "步道现场影像"});
       }
     }
@@ -391,5 +391,12 @@
 
   bindEvents();
   // Load approved photos/comments first, then join the published route-cover archive.
-  loadArchive().then(loadRoutes);
+  loadArchive().then(loadRoutes).then(() => {
+    // A photo permalink is accepted only if it matches a currently approved,
+    // published onsite photo. It can never open a route cover or private asset.
+    const photoId = new URLSearchParams(window.location.search).get("photo");
+    if (!photoId) return;
+    const target = visiblePhotos.findIndex((item) => item.kind === "moment" && item.image === photoId);
+    if (target !== -1) openLightbox(target);
+  });
 })();
