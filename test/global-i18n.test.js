@@ -227,7 +227,7 @@ test('five elements still use existing source text and existing prayer button', 
 });
 
 function buildMockOriginalCreed(overrides = {}) {
-  const line = { childNodes: [], insertBefore(node, target) {
+  const line = { childNodes: [], style: {}, insertBefore(node, target) {
     const index = this.childNodes.indexOf(target);
     if (index < 0) throw Error('invalid insertion target');
     node.parentElement = this;
@@ -273,6 +273,11 @@ test('approved English creed appears using original four audio controls, no CSS 
   assert.deepEqual(originalControls.map(c=>c.onClick),handlerRefs);
   assert.ok(originalControls.every(c=>c.className==='original-control' && Object.keys(c.style).length===0));
   assert.deepEqual(originalControls.map(c=>c.textContent),['Till','walk','left','right']);
+  assert.equal(line.style.fontSize,'clamp(12px, 1.35vw, 16px)');
+  assert.equal(line.style.letterSpacing,'0.01em');
+  assert.equal(line.style.whiteSpace,'pre-line');
+  assert.match(line.textContent,/His way;\nNeither left nor right/);
+  assert.equal(line.childNodes[0].nodeValue,'');
   assert.equal(homepage.previewEnglishCreed(doc,'en'),false); // never apply twice
 });
 
@@ -281,6 +286,8 @@ test('English creed translation is opt-in and guarded by the unchanged approved 
   assert.equal(homepage.previewEnglishCreed(source.doc,'zh-Hans'),false);
   assert.equal(homepage.previewEnglishCreed(source.doc,'zh-Hant'),false);
   assert.match(source.line.textContent,/余生行走/);
+  assert.deepEqual(source.line.style,{});
+  assert.equal(source.line.childNodes[0].nodeValue,'\n    ');
   const drifted = buildMockOriginalCreed({dsp:'另'});
   const original = drifted.line.textContent;
   assert.equal(homepage.previewEnglishCreed(drifted.doc,'en'),false);
@@ -295,4 +302,15 @@ test('creed follows owner-approved punctuation and all original music IDs remain
   const original = fs.readFileSync(path.join(__dirname,'../home.html'),'utf8');
   assert.match(original,/<span id="dspBtn"[^>]+>余<\/span>生行<span id="playBtn">走<\/span>/);
   assert.match(original,/不偏<span id="prevBtn">左<\/span><span id="nextBtn">右<\/span>/);
+});
+
+test('English creed compact typography never changes global style.css or Chinese markup', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const source = fs.readFileSync(path.join(__dirname,'../home.html'),'utf8');
+  assert.doesNotMatch(source, /global-english-creed|font-size:clamp\(12px/);
+  assert.match(source, /<p class="hero-line">/);
+  const original = buildMockOriginalCreed();
+  assert.equal(homepage.previewEnglishCreed(original.doc,'zh-Hans'),false);
+  assert.deepEqual(original.line.style,{});
 });
