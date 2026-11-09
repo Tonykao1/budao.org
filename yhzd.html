@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="/campfire.css">
   <script src="/campfire.js" defer></script>
+  <script src="/campfire-interactions.js" defer></script>
   <title>营火之地｜步道影像与同行回响</title>
 </head>
 <body class="campfire-page">
@@ -77,6 +78,7 @@
           <button type="button" class="camp-filter" data-filter="cover" aria-pressed="false">线路封面</button>
         </div>
         <p class="camp-gallery-source-note" id="camp-gallery-source-note">影像注明来源；线路封面不等同于当天活动实拍。现场照片会在确认授权后陆续收入相册。</p>
+        <p class="camp-interaction-intro">每张现场照片都能留下火光与回响。我们不公开点赞数字；每个浏览器标识对同一内容只记录一次。</p>
         <div class="camp-photo-grid" id="camp-photo-grid" aria-live="polite">
           <p class="camp-loading">正在翻开沿途影集……</p>
         </div>
@@ -136,6 +138,37 @@
         <figcaption><span id="camp-lightbox-name"></span><small id="camp-lightbox-caption"></small></figcaption>
       </figure>
       <button type="button" class="camp-lightbox-arrow" id="camp-lightbox-next" aria-label="下一张">›</button>
+      <aside class="camp-conversation" id="camp-conversation" aria-label="照片下的火光与留言" hidden>
+        <div class="camp-conversation-heading">
+          <p class="camp-kicker">SPARKS & VOICES</p>
+          <h3>留下火光</h3>
+          <p>不计数，不排名。让一段同行的记忆继续有回响。</p>
+        </div>
+        <button type="button" class="camp-spark-button" id="camp-photo-spark">✦ 点亮这一刻</button>
+        <p class="camp-spark-state" id="camp-spark-state" role="status" aria-live="polite"></p>
+        <div class="camp-thread" id="camp-thread" aria-live="polite"></div>
+        <form class="camp-comment-form" id="camp-comment-form">
+          <h4 id="camp-reply-label">留下一段同行的话</h4>
+          <input type="hidden" id="camp-parent-id">
+          <label for="camp-comment-name">称呼（可选）</label>
+          <input id="camp-comment-name" maxlength="32" placeholder="例如：山间旅人" autocomplete="nickname">
+          <label for="camp-comment-body">留言</label>
+          <textarea id="camp-comment-body" rows="3" maxlength="600" required minlength="2" placeholder="写下那些值得记住的瞬间……"></textarea>
+          <label class="camp-consent-check"><input type="checkbox" id="camp-comment-consent">
+            我已阅读并同意社区规则与隐私说明，知悉留言审核后才公开；我已年满十八周岁。</label>
+          <div class="camp-comment-form-actions">
+            <button type="button" id="camp-reply-cancel" class="camp-quiet-button" hidden>取消回复</button>
+            <button type="submit" class="camp-button camp-button-gold" id="camp-comment-submit">提交留言</button>
+          </div>
+          <p id="camp-comment-state" role="status" aria-live="polite"></p>
+          <p class="camp-comment-policy">首次互动会在本设备保存匿名标记，用于防止重复点亮。不会公开点赞数，也不根据互动推断身份或信仰。<a href="/campfire-privacy.html">社区与隐私说明</a></p>
+        </form>
+        <section class="camp-moderation" id="camp-moderation" hidden>
+          <h4>营火管理 · 仅超级管理员</h4>
+          <button type="button" id="camp-load-moderation" class="camp-quiet-button">查看待审留言</button>
+          <div id="camp-moderation-list"></div>
+        </section>
+      </aside>
     </div>
   </dialog>
 
