@@ -49,6 +49,19 @@ English parallelism proposed for review:
 - Status: **DRAFT FOR OWNER REVIEW**. Do not mark official until the target-language meaning, and desktop/mobile fit in the original Chinese composition, have been accepted.
 - The Chinese default view and Traditional Chinese translations remain untouched. No aesthetic redesign is authorized.
 
+## 3B. Footer names — OWNER-APPROVED
+
+| Chinese source | English official name | Traditional Chinese | UI treatment |
+| --- | --- | --- | --- |
+| ✦ 营火之地 | **✦ Campfire** | ✦ 營火之地 | Preserve ✦ and the existing campfire link, colors and animation |
+| ❦ 路上星火 | **❦ Sparks** | ❦ 路上星火 | Preserve ❦ and existing spark link, colors and 180° staggered breathing |
+
+- These **English naming decisions are approved by the owner**. Do not substitute “Sparks Along the Way” or expand “Campfire” without new approval.
+- The source labels and links `/yhzd.html`, `/lsxh.html` stay unchanged in all source HTML files.
+- On the English homepage **preview**, only existing link `textContent` is localized. No CSS, class, animation, link or decorative symbol is changed.
+- Other pages require their own source-guarded internationalization integration before these English labels appear there; naming approval does not imply those pages are already translated.
+- Official publication continues to require responsive visual acceptance.
+
 ## 4. Faith declaration — wording approved, NOT visually integrated
 
 **Chinese authority:** 余生行走，不偏左右。
