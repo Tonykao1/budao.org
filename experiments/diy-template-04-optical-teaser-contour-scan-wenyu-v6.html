@@ -357,10 +357,89 @@ function sourceForLane(p,band,rand,radius=72){
  const top=Math.max(1,Math.min(pool.length,Math.floor(pool.length*.36)));
  return pool[Math.floor(rand()*top)];
 }
+
+// Scanline structure is sampled from the original image, without AI segmentation.
+function scanEnergy(raw,x,y){
+ const at=(xx,yy)=>{
+  const ix=(clamp(yy|0,0,SH-1)*SW+clamp(xx|0,0,SW-1))*4;
+  return luminance(raw[ix],raw[ix+1],raw[ix+2]);
+ };
+ const center=at(x,y),l=at(x-6,y),r=at(x+6,y),u=at(x,y-6),d=at(x,y+6);
+ const diagonal=at(x-5,y-4),other=at(x+5,y+4);
+ return .45*Math.abs(u-d)+.30*Math.abs(l-r)+
+   .12*(Math.abs(center-l)+Math.abs(center-r)+Math.abs(diagonal-other));
+}
+function makeScanMap(p){
+ const rows=[],energies=[],sx=9,sy=4;
+ for(let y=10;y<SH-10;y+=sy){
+  const row=[];
+  for(let x=9;x<SW-9;x+=sx){
+   const e=scanEnergy(p.raw,x,y);row.push({x,y,e});energies.push(e);
+  }
+  rows.push(row);
+ }
+ const sorted=energies.slice().sort((a,b)=>a-b);
+ const threshold=Math.max(7.5,(sorted[Math.floor(sorted.length*.76)]||0)*.86);
+ const segments=[];
+ for(const row of rows){
+  const mask=row.map(z=>z.e>=threshold);
+  for(let j=1;j<mask.length-1;j++)
+   if(!mask[j]&&mask[j-1]&&mask[j+1]&&row[j].e>threshold*.4)mask[j]=true;
+  let start=-1;
+  const pieces=[];
+  function emit(end){
+   const count=end-start;
+   if(count<=0)return;
+   let sum=0,peak=0;
+   for(let k=start;k<end;k++){sum+=row[k].e;peak=Math.max(peak,row[k].e);}
+   if(count>=2||peak>=threshold*2){
+    const center=row[start+Math.floor(count/2)];
+    const idx=(center.y*SW+center.x)*4;
+    pieces.push({x0:row[start].x-sx/2,x1:row[end-1].x+sx/2,y:center.y,
+       energy:sum/count,rgb:[p.raw[idx],p.raw[idx+1],p.raw[idx+2]]});
+   }
+  }
+  for(let k=0;k<=row.length;k++){
+   const active=k<row.length&&mask[k];
+   if(active&&start<0)start=k;
+   if(!active&&start>=0){emit(k);start=-1;}
+  }
+  pieces.sort((a,b)=>b.energy*Math.sqrt(b.x1-b.x0)-a.energy*Math.sqrt(a.x1-a.x0));
+  segments.push(...pieces.slice(0,6));
+ }
+ return {segments,threshold};
+}
+function renderContour(p,amount,spread){
+ if(amount<=0)return 0; // 0% is exactly the untouched V5 optical fan.
+ if(!p.scanMap)p.scanMap=makeScanMap(p);
+ const rand=random((p.hash^0xC0147036)>>>0),level=amount/50;
+ let drawn=0;
+ for(const seg of p.scanMap.segments){
+  if(rand()>.4+.55*level)continue;
+  const x=116+seg.x0/SW*1250,w=(seg.x1-seg.x0)/SW*1250;
+  const y=111+seg.y/SH*847;
+  if(w<13)continue;
+  const lane=seg.y/SH<.33?0:seg.y/SH>.66?2:1;
+  const tint=opticalRGB(seg.rgb,lane,p);
+  const energy=clamp((seg.energy-p.scanMap.threshold)/
+    Math.max(16,p.scanMap.threshold*2.3),0,1);
+  const hollow=.98-.70*Math.exp(-Math.pow((y-540)/156,2));
+  const opacity=(.13+.28*energy)*level*hollow;
+  gradientStroke(x,y,w,.6+1.5*level,tint,opacity,2+3*level);
+  drawn++;
+  // Every tenth structural fragment reconnects delicately with the V5 receding fan.
+  if(drawn%10===0&&energy>.32){
+   const dy=lane===0?385:lane===2?683:535;
+   ribbon(x+w,y,1440+(rand()-.5)*110,dy+(rand()-.5)*24,
+      .8,.24,tint,opacity*.19*spread,7);
+  }
+ }
+ return drawn;
+}
 function renderLight(){
  if(!photoData)return;
  ready=false;ui.download.disabled=true;
- const p=photoData,a=Number(ui.abstract.value)/100,spread=Number(ui.spread.value)/100;
+ const p=photoData,a=Number(ui.abstract.value)/100,spread=Number(ui.spread.value)/100,reveal=Number(ui.contour.value);
  const strength={subtle:.65,standard:1,intense:1.38}[mode]||1;
  const rand=random((p.hash^Math.imul(variant+1,0x9E3779B9))>>>0);
  ctx.globalCompositeOperation="source-over";ctx.globalAlpha=1;ctx.filter="none";
@@ -449,6 +528,8 @@ function renderLight(){
  depth.addColorStop(0,"rgba(0,0,0,0)");depth.addColorStop(.70,"rgba(0,0,0,.12)");
  depth.addColorStop(1,"rgba(0,0,0,.62)");
  ctx.fillStyle=depth;ctx.fillRect(1160,0,W-1160,H);
+ // V6: horizontal image structure, fused into the V5 optical fan.
+ const contourLines=renderContour(p,reveal,spread);
  const vignette=ctx.createRadialGradient(925,540,260,925,540,1140);
  vignette.addColorStop(0,"rgba(0,0,0,0)");vignette.addColorStop(.68,"rgba(0,0,0,.08)");
  vignette.addColorStop(1,"rgba(0,0,0,.72)");
@@ -456,6 +537,7 @@ function renderLight(){
  ui.status.textContent="✓ V4 已通过光栅与照片真实取色完整保留"+
    "\n✓ V5 光束向右侧纵深收束、向左侧近景发散，发散角 "+Math.round(spread*100)+"%"+
    "\n✓ 上下两组光场分层倾泻，中部保留深黑空间"+
+   "\n✓ V6 水平显影 "+reveal+"% · 光学轮廓区间 "+contourLines+" 段"+
    "\n✓ 照片抽象化 "+Math.round(a*100)+"% · 无 AI API · "+mode+" · 光形 "+(variant+1)+
    "\n✓ 仅展示光学母图，尚未进入文字排版阶段";
  ready=true;ui.download.disabled=false;ui.reroll.disabled=false;
