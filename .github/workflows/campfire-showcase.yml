@@ -14,6 +14,9 @@ on:
       - "db/migrations/20261106_campfire_interactions.sql"
       - "api/publish-route.js"
       - "vercel.json"
+      - "package.json"
+      - "scripts/campfire-production-migrate.js"
+      - "test/campfire-production-migrate.test.js"
       - ".github/workflows/campfire-showcase.yml"
   pull_request:
     paths:
@@ -28,6 +31,9 @@ on:
       - "db/migrations/20261106_campfire_interactions.sql"
       - "api/publish-route.js"
       - "vercel.json"
+      - "package.json"
+      - "scripts/campfire-production-migrate.js"
+      - "test/campfire-production-migrate.test.js"
       - ".github/workflows/campfire-showcase.yml"
 
 permissions:
@@ -46,4 +52,4 @@ jobs:
       - name: Validate interaction JavaScript
         run: node --check campfire-interactions.js && node --check api/_security/campfire-handler.js
       - name: Run campfire regression suite
-        run: node --test test/campfire-page.test.js
+        run: node --test test/campfire-page.test.js test/campfire-production-migrate.test.js
