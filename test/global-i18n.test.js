@@ -95,7 +95,7 @@ test('all six navigation choices have explicit, distinct provisional translation
   assert.equal(nav.length, 6);
   const labels = nav.map(entry => entry.values.en);
   assert.equal(new Set(labels).size, 6);
-  assert.deepEqual(labels, ['Home','BUDAO','Young Explorers','Companions','Co-Laborers','Pasture']);
+  assert.deepEqual(labels, ['Home','BUDAO','Young Explorers','Companions','Fellow Workers','Pasture']);
 });
 
 test('faith declaration is editorial-only until its interactive layout is reviewed', () => {
@@ -103,7 +103,10 @@ test('faith declaration is editorial-only until its interactive layout is review
   const path = require('node:path');
   const charter = fs.readFileSync(path.join(__dirname,'../docs/2026-11-09-global-translation-charter.md'),'utf8');
   assert.match(charter,/Till our final day, we shall walk in His way;/);
-  assert.match(charter,/neither left nor right shall we stray/);
+  assert.match(charter,/Neither left nor right shall we stray/);
+  assert.match(charter,/Owner-approved English wording/);
+  assert.match(charter,/COPY APPROVED — RELEASE PENDING VISUAL QA/);
+  assert.equal(homepage.entries.find(entry => entry.source === '同工').values.en, 'Fellow Workers');
   assert.match(charter,/BLOCKED FOR VISUAL\/INTERACTION REVIEW/);
   assert.ok(homepage.entries.every(entry => !entry.selector.includes('hero-line')));
 });
