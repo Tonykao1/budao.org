@@ -13,14 +13,16 @@ conflict, hold the translation for review; never change the approved composition
   source-text guards, safe text-node substitutions. No API calls, cookies,
   localStorage, analytics, CSS edits or element insertions.
 - `global/home-i18n.js`: draft English and Traditional Chinese editorial translations
-  for selected homepage source-text nodes only. Does not rewrite the animated
-  slogan, footer visual symbols or the sensitive private prayer dialog.
+  for selected homepage source-text nodes only. The approved English creed is
+  now included as an **opt-in preview** using the original four audio spans,
+  preserving existing CSS and handlers. Private prayer dialog strings are
+  localized with no API payload changes; footer visual symbols stay untouched.
 - `home.html`: two *deferred script references*; existing markup, CSS and
   existing JavaScript preserved. Opening `/home.html` without a supported
   `?lang=` value performs no localization changes. For developer review only:
   `/home.html?lang=en` or `/home.html?lang=zh-Hant`.
 - `test/global-i18n.test.js`: unit checks for default no-op, safe targets,
-  guarded substitutions, and preservation of interactive child nodes.
+  guarded substitutions, intact prayer controls and the approved English creed.
 
 ## Absolutely out of scope
 
@@ -38,6 +40,8 @@ SEO routes, no database migrations. This is not a complete international site.
    localization test suites, under a complete repository working tree.
 4. Approval of the language selection UI *only if* it can remain visually
    identical or separately authorized; no automatic visual changes.
+   The English creed is intentionally previewed with the same font/style;
+   its longer text must be reviewed for mobile/desktop wrap before merge.
 5. No modifications to frozen invitation templates or `/i/{id}` routing.
 
 ## Principle
