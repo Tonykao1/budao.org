@@ -2,6 +2,7 @@
 "use strict";
 // Public responses do not create accounts or authorize tent access.
 const crypto = require("node:crypto");
+const zlib = require("node:zlib");
 const { neon } = require("@neondatabase/serverless");
 const { getAuthenticatedPublisher, isSteward } = require("../_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("../_security/http");
@@ -63,29 +64,100 @@ async function rateAllowed(sql, req, purpose, max, windowMinutes) {
 function digitsFor(nonce) {
   return String(parseInt(hmac("digits:" + nonce).slice(0, 12), 16) % 100000).padStart(5,"0");
 }
-function captchaSvg(code, nonce) {
-  const turns = [-9,7,-4,8,-6], offsets = [0,3,-2,2,0];
-  const glyphs = code.split("").map((digit,i) => {
-    const x = 36 + i * 26, y = 40 + offsets[i];
-    return '<text x="' + x + '" y="' + y + '" transform="rotate(' + turns[i] +
-      ' ' + x + ' ' + y + ')" font-size="31" font-family="Georgia,serif" fill="#655846">' + digit + '</text>';
-  }).join("");
-  const seed = parseInt(hmac("visual:" + nonce).slice(0,8), 16);
-  const lines = Array.from({length:4},(_,i) => {
-    const x = 10 + ((seed >>> (i*5)) % 25), y = 9 + ((seed >>> (i*4)) % 39);
-    return '<path d="M' + x + ',' + y + ' Q90,' + (y+12) + ' 166,' + (y+(i%2?-8:8)) +
-      '" stroke="#c9b99f" stroke-width=".8" fill="none" opacity=".5"/>';
-  }).join("");
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="60" viewBox="0 0 180 60">' +
-    '<rect width="180" height="60" rx="3" fill="#f0eee9"/>' + lines + glyphs + '</svg>';
+function pngChunk(type, bytes) {
+  const label = Buffer.from(type, "ascii");
+  const size = Buffer.alloc(4);
+  size.writeUInt32BE(bytes.length);
+  let crc = 0xffffffff;
+  for (const b of Buffer.concat([label, bytes])) {
+    crc ^= b;
+    for (let i=0;i<8;i++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  const checksum = Buffer.alloc(4);
+  checksum.writeUInt32BE((crc ^ 0xffffffff) >>> 0);
+  return Buffer.concat([size,label,bytes,checksum]);
+}
+
+function captchaPng(code, nonce) {
+  // Rasterise the glyphs; never ship the solution as extractable SVG <text>.
+  // This is a low-friction image challenge, backed by signed expiry,
+  // one-time use and database-enforced request limits.
+  const WIDTH=180, HEIGHT=60;
+  const pixels=Buffer.alloc(WIDTH*HEIGHT*3);
+  let seed = parseInt(hmac("visual:" + nonce).slice(0,8),16) || 0x12345678;
+  const random=() => {
+    seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+    return (seed >>> 0) / 0x100000000;
+  };
+  const set=(x,y,r,g,b) => {
+    x=Math.round(x); y=Math.round(y);
+    if (x<0||y<0||x>=WIDTH||y>=HEIGHT) return;
+    const j=(y*WIDTH+x)*3;
+    pixels[j]=r; pixels[j+1]=g; pixels[j+2]=b;
+  };
+  for (let y=0;y<HEIGHT;y++) for (let x=0;x<WIDTH;x++) {
+    const shift=Math.floor(random()*6)-3;
+    set(x,y,240+shift,238+shift,233+shift);
+  }
+  // Soft amber linework and light texture remain subtle and legible.
+  for (let line=0;line<3;line++) {
+    const base=9+line*20+Math.floor(random()*5);
+    for (let x=8;x<WIDTH-8;x++) {
+      const y=base+Math.sin(x/23+line)*5;
+      set(x,y,210,198,178);
+    }
+  }
+  for (let k=0;k<115;k++) {
+    const x=Math.floor(random()*WIDTH),y=Math.floor(random()*HEIGHT);
+    set(x,y,204,190,167);
+  }
+  const digitRows={
+    "0":["01110","10001","10011","10101","11001","10001","01110"],
+    "1":["00100","01100","00100","00100","00100","00100","01110"],
+    "2":["01110","10001","00001","00010","00100","01000","11111"],
+    "3":["11110","00001","00001","01110","00001","00001","11110"],
+    "4":["00010","00110","01010","10010","11111","00010","00010"],
+    "5":["11111","10000","11110","00001","00001","10001","01110"],
+    "6":["00111","01000","10000","11110","10001","10001","01110"],
+    "7":["11111","00001","00010","00100","01000","01000","01000"],
+    "8":["01110","10001","10001","01110","10001","10001","01110"],
+    "9":["01110","10001","10001","01111","00001","00010","11100"]
+  };
+  [...code].forEach((digit,index)=>{
+    const rows=digitRows[digit];
+    const angle=(random()-.5)*.30;
+    const rise=(random()-.5)*8;
+    const left=15+index*31+Math.floor(random()*4);
+    const top=13+rise;
+    const size=4;
+    rows.forEach((row,dy)=>[...row].forEach((on,dx)=>{
+      if (on!=="1") return;
+      for (let py=0;py<size;py++) for(let px=0;px<size;px++) {
+        const x=left+dx*size+px+angle*((dy-3)*size+py);
+        const y=top+dy*size+py-angle*((dx-2)*size+px);
+        set(x,y,93,82,65);
+      }
+    }));
+  });
+  const raw=Buffer.alloc(HEIGHT*(1+WIDTH*3));
+  for(let y=0;y<HEIGHT;y++) pixels.copy(raw,y*(1+WIDTH*3)+1,y*WIDTH*3,(y+1)*WIDTH*3);
+  const header=Buffer.alloc(13);
+  header.writeUInt32BE(WIDTH,0); header.writeUInt32BE(HEIGHT,4);
+  header[8]=8; header[9]=2; // 8-bit truecolour PNG, no alpha
+  return Buffer.concat([
+    Buffer.from("89504e470d0a1a0a","hex"),
+    pngChunk("IHDR",header),
+    pngChunk("IDAT",zlib.deflateSync(raw,{level:6})),
+    pngChunk("IEND",Buffer.alloc(0))
+  ]);
 }
 function issueCaptcha() {
   const nonce = crypto.randomBytes(18).toString("base64url"), exp = Date.now() + 300000;
   const payload = Buffer.from(JSON.stringify({ nonce,exp })).toString("base64url");
   return {
     token: payload + "." + hmac("challenge:" + payload),
-    image: "data:image/svg+xml;base64," +
-      Buffer.from(captchaSvg(digitsFor(nonce),nonce)).toString("base64"),
+    image: "data:image/png;base64," +
+      captchaPng(digitsFor(nonce),nonce).toString("base64"),
     expiresIn: 300
   };
 }
@@ -181,4 +253,4 @@ module.exports = async function callingHandler(req,res) {
     return sendJson(res,503,{ok:false,reason:"calling_service_unavailable"});
   }
 };
-module.exports._test = {field,fields,issueCaptcha,validateCaptcha,captchaSvg,mapped};
+module.exports._test = {field,fields,issueCaptcha,validateCaptcha,captchaPng,digitsFor,mapped};
