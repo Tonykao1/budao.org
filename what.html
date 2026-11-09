@@ -267,7 +267,7 @@ body {
 
 /* Calling: inherits the original gray-paper, fine-line and amber-ember language. */
 .calling-trigger { background: transparent; font-family: inherit; cursor: pointer; }
-.calling-responses-section { margin-top: 120px; text-align: center; }
+.calling-responses-section { margin: 0 auto 112px; text-align: center; }
 .calling-label { margin: 0 0 48px; color: #8a806f; font-size: 12px; letter-spacing: .27em; font-weight: 300; }
 .calling-responses { display: flex; flex-direction: column; gap: 43px; }
 .calling-person { display: flex; width: min(100%, 450px); gap: 22px; align-items: flex-start; margin: 0 auto; text-align: left; }
@@ -280,7 +280,6 @@ body {
 .calling-new .calling-dot { box-shadow: 0 0 26px 7px rgba(198,154,89,.25); }
 .calling-more, .calling-refresh { background: transparent; border: 0; padding: 8px; font: inherit; font-size: 12px; color: #746653; letter-spacing: .12em; cursor: pointer; }
 .calling-more { margin-top: 32px; }
-.calling-responses-section:not([hidden]) + .future-field { margin-top: 100px; }
 .calling-dialog[hidden], .calling-admin[hidden], .calling-responses-section[hidden], .calling-more[hidden] { display: none; }
 .calling-dialog-open { overflow: hidden; }
 .calling-dialog { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 22px; background: rgba(22,20,17,.60); }
@@ -313,7 +312,7 @@ body {
 @media (max-width: 640px) {
   .calling-dialog { padding: 10px; }
   .calling-panel { padding: 32px 20px 24px; }
-  .calling-responses-section { margin-top: 88px; }
+  .calling-responses-section { margin: 0 auto 84px; }
   .calling-person { gap: 18px; }
   .calling-grid { gap: 12px; }
   .calling-captcha-line { gap: 10px; }
@@ -395,16 +394,16 @@ body {
     </p>
   </section>
 
-  <p class="ministry-source">步道事工</p>
-
-  <section class="spark-field" id="sparkField" aria-label="同工"></section>
-
-
   <section class="calling-responses-section" id="callingResponsesSection" aria-label="回应呼召的人" hidden>
     <p class="calling-label">回应的微光</p>
     <div class="calling-responses" id="callingResponses"></div>
     <button class="calling-more" id="callingMore" type="button" hidden>阅读更多回应</button>
   </section>
+
+  <p class="ministry-source">步道事工</p>
+
+  <section class="spark-field" id="sparkField" aria-label="同工"></section>
+
 
   <section class="future-field" aria-labelledby="futureTitle">
     <div class="future-lights" aria-hidden="true">
