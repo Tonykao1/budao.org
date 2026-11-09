@@ -64,7 +64,7 @@ test('mixed content translation touches only existing leading text node', () => 
 test('only approved selectors are handled; no broad text-node walker', () => {
   assert.ok(homepage.entries.length >= 10);
   assert.ok(homepage.entries.every(e=>e.selector && e.source && e.values.en && e.values['zh-Hant']));
-  assert.ok(homepage.entries.every(e=> !e.selector.includes('script') && !e.selector.includes('footer')));
+  assert.ok(homepage.entries.every(e=> !e.selector.includes('script') && !e.selector.includes('hero-line')));
 });
 test('translated brand entries must use uppercase BUDAO in every target language', () => {
   const brandEntries = homepage.entries.filter(entry => entry.source.includes('步道'));
@@ -72,7 +72,7 @@ test('translated brand entries must use uppercase BUDAO in every target language
   for (const entry of brandEntries) {
     assert.match(entry.values.en, /BUDAO/, entry.selector);
     assert.match(entry.values['zh-Hant'], /BUDAO/, entry.selector);
-    assert.doesNotMatch(entry.values.en, /\\bTrails?\\b|\\bBudao\\b/i, entry.selector);
+    assert.doesNotMatch(entry.values.en, /(?:Trails?|Budao)/, entry.selector);
   }
   const navBrand = homepage.entries.find(entry => entry.selector === 'nav a[href="/test.html"]');
   assert.equal(navBrand.values.en, 'BUDAO');
