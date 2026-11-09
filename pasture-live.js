@@ -14,14 +14,23 @@ const residentName=document.getElementById('residentName');
 const residentId=document.getElementById('residentId');
 const residentAvatar=document.getElementById('residentAvatar');
 const toast=document.getElementById('residentToast');
-let resident=null,emailDraft='',pendingArrival=false,coreEngineReady=false,makerState=null;
+const invitation=document.getElementById('pastureInvitation');
+const beginButton=document.getElementById('pastureBegin');
+const returnButton=document.getElementById('pastureReturning');
+const closeButton=document.getElementById('residentClose');
+let resident=null,emailDraft='',pendingArrival=false,coreEngineReady=false,makerState=null,authMode='claim',invitationTimer=null;
 let DNA=null,Renderer=null,I18n=null;
 const BASE_DIMS=['woolColor','faceColor','woolShape','bodyShape'];
 const FEATURE_DIMS=['ears','expression','marking','forelock'];
 
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function showLayer(){layer.hidden=false;error.textContent=''}
+function showLayer(){clearTimeout(invitationTimer);invitation.hidden=true;layer.hidden=false;error.textContent=''}
 function hideLayer(){layer.hidden=true;error.textContent=''}
+function showInvitation(delay=0){
+  hideLayer();skyZone.hidden=true;clearTimeout(invitationTimer);
+  if(resident?.sheep){invitation.hidden=true;return}
+  invitationTimer=setTimeout(()=>{if(layer.hidden&&!resident?.sheep)invitation.hidden=false},delay);
+}
 function setBusy(button,busy){if(button){button.disabled=!!busy;button.dataset.oldText=button.dataset.oldText||button.textContent;button.textContent=busy?'请稍候…':button.dataset.oldText}}
 function showError(reason){const map={invalid_email:'请输入有效邮箱。',email_rate_limited:'这个邮箱请求过于频繁，请稍后再试。',rate_limited:'操作过于频繁，请稍后再试。',verification_invalid:'验证码不正确，请重新输入。',verification_expired:'验证码已经过期，请重新获取。',verification_locked:'尝试次数过多，请重新获取验证码。',email_unavailable:'验证码邮件暂时无法发送。',auth_not_configured:'牧场登录服务暂时不可用。',database_not_configured:'牧场登录服务暂时不可用。',invalid_sheep:'暂时没有完成，请再试一次。',service_unavailable:'牧场登录服务暂时不可用。'};error.textContent=map[reason]||'暂时没有完成，请再试一次。'}
 async function request(payload,method='POST'){const opts={method,credentials:'same-origin',headers:{'Content-Type':'application/json'}};if(method!=='GET')opts.body=JSON.stringify(payload||{});const r=await fetch(API,opts);let data={};try{data=await r.json()}catch(_){ }if(!r.ok||data.ok===false){const e=new Error(data.reason||'service_unavailable');e.reason=data.reason||'service_unavailable';throw e}return data}
@@ -44,10 +53,47 @@ async function ensureMakerModules(){
 }
 function loadCoreScript(d,id,src,ready,next){if(ready()){next();return}const existing=d.getElementById(id);if(existing){existing.addEventListener('load',next,{once:true});return}const s=d.createElement('script');s.id=id;s.src=src;s.onload=next;d.body.appendChild(s)}
 function ensureCoreEngine(){try{const d=core.contentDocument;if(!d)return;coreEngineReady=!!core.contentWindow.__tongluResidentEngineV1;if(coreEngineReady){sendResidentToCore(pendingArrival);return}loadCoreScript(d,'pastureSheepDnaScript','/pasture-sheep-dna.js',()=>!!core.contentWindow.PastureSheepDNA,()=>{loadCoreScript(d,'pastureSheepRendererScript','/pasture-sheep-renderer.js',()=>!!core.contentWindow.PastureSheepRenderer,()=>{loadCoreScript(d,'pastureResidentCoreScript','/pasture-resident-core.js',()=>!!core.contentWindow.__tongluResidentEngineV1,()=>{coreEngineReady=true;sendResidentToCore(pendingArrival)})})})}catch(_){}}
-function applyResident(arrival=false){hideLayer();skyZone.hidden=false;updateResidentUi();pendingArrival=!!arrival;ensureCoreEngine();sendResidentToCore(arrival);if(arrival)showToast('你已经进入羊群')}
+function applyResident(arrival=false){clearTimeout(invitationTimer);invitation.hidden=true;hideLayer();skyZone.hidden=false;updateResidentUi();pendingArrival=!!arrival;ensureCoreEngine();sendResidentToCore(arrival);if(arrival)showToast('你已经进入羊群')}
 
-function showEmail(){resetCard();showLayer();title.textContent='进入牧场';copy.textContent='留下一个可以找到你的邮箱。确认以后，你会进入羊群，并在牧场里认出自己。';body.innerHTML='<div class="resident-fields"><input id="residentEmail" type="email" inputmode="email" autocomplete="email" placeholder="你的邮箱"></div><div class="resident-actions"><button id="sendCode">发送验证码</button></div>';const input=document.getElementById('residentEmail');if(emailDraft)input.value=emailDraft;document.getElementById('sendCode').onclick=async e=>{const btn=e.currentTarget;emailDraft=input.value.trim();setBusy(btn,true);error.textContent='';try{await request({action:'requestCode',email:emailDraft});showCode()}catch(err){showError(err.reason)}finally{setBusy(btn,false)}}}
-function showCode(){resetCard();showLayer();title.textContent='查收邮件';copy.textContent='验证码已经发送到 '+emailDraft+'。输入 6 位数字，就能继续进入牧场。';body.innerHTML='<div class="resident-fields"><input id="residentCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 位验证码"></div><div class="resident-actions"><button id="verifyCode">进入牧场</button><button id="changeEmail" class="secondary">换邮箱</button></div>';document.getElementById('changeEmail').onclick=showEmail;document.getElementById('verifyCode').onclick=async e=>{const btn=e.currentTarget,code=document.getElementById('residentCode').value.trim();setBusy(btn,true);error.textContent='';try{const data=await request({action:'verifyCode',email:emailDraft,code});resident=data.user;if(data.needsSheep||!resident?.sheep)showMaker(false);else if(wantsMakerReview())showMaker(true);else if(wantsArrivalReview())applyResident(true);else applyResident(false)}catch(err){showError(err.reason)}finally{setBusy(btn,false)}}}
+function showEmail(mode=authMode){authMode=mode;resetCard();showLayer();title.textContent=mode==='claim'?'记住你':'找回自己';copy.textContent=mode==='claim'?'验证邮箱，就能保存刚刚捏出的自己，以后再回来仍是同一只羊。':'填写之前使用的邮箱，通过验证找回羊群中的自己。';body.innerHTML='<div class="resident-fields"><input id="residentEmail" type="email" inputmode="email" autocomplete="email" placeholder="你的邮箱"></div><div class="resident-actions"><button id="sendCode">发送验证码</button></div>';const input=document.getElementById('residentEmail');if(emailDraft)input.value=emailDraft;document.getElementById('sendCode').onclick=async e=>{const btn=e.currentTarget;emailDraft=input.value.trim();setBusy(btn,true);error.textContent='';try{await request({action:'requestCode',email:emailDraft});showCode()}catch(err){showError(err.reason)}finally{setBusy(btn,false)}}}
+function showCode(){
+  resetCard();showLayer();title.textContent='查收邮件';
+  copy.textContent='验证码已经发送到 '+emailDraft+'。输入 6 位数字完成验证。';
+  body.innerHTML='<div class="resident-fields"><input id="residentCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 位验证码"></div><div class="resident-actions"><button id="verifyCode">确认邮箱</button><button id="changeEmail" class="secondary">换邮箱</button></div>';
+  document.getElementById('changeEmail').onclick=()=>showEmail(authMode);
+  document.getElementById('verifyCode').onclick=async e=>{
+    const btn=e.currentTarget,code=document.getElementById('residentCode').value.trim();
+    setBusy(btn,true);error.textContent='';
+    try{
+      const data=await request({action:'verifyCode',email:emailDraft,code});
+      resident=data.user;
+      if(resident?.sheep){
+        const wasClaim=authMode==='claim';
+        clearDraft();
+        if(wantsMakerReview())showMaker(true);
+        else if(wantsArrivalReview())applyResident(true);
+        else applyResident(false);
+        if(wasClaim)showToast('此邮箱已有牧场身份，已找回原来的羊');
+        return;
+      }
+      if(authMode==='claim'){
+        const draft=readDraft();
+        if(draft){
+          try{
+            const saved=await request({action:'saveSheep',appearanceVersion:2,appearance:draft});
+            resident=saved.user;clearDraft();applyResident(!!saved.created);
+          }catch(saveError){
+            showMaker(false);
+            showError(saveError.reason);
+          }
+          return;
+        }
+      }
+      showMaker(false);
+    }catch(err){showError(err.reason)}
+    finally{setBusy(btn,false)}
+  };
+}
 
 function t(key){return I18n?.t(key)||key}
 function readDraft(){try{const value=JSON.parse(sessionStorage.getItem(DRAFT_KEY)||'null');if(DNA.validateV2(value))return value;sessionStorage.removeItem(DRAFT_KEY)}catch(_){try{sessionStorage.removeItem(DRAFT_KEY)}catch(__){}}return null}
@@ -75,13 +121,41 @@ function wireMaker(){
   document.querySelector('.maker-confirm')?.addEventListener('click',confirmMaker);
 }
 function renderMaker(){title.textContent='';copy.textContent='';error.textContent='';body.innerHTML=makerScreenMarkup();wireMaker();drawMakerCanvases()}
-async function confirmMaker(e){const btn=e?.currentTarget;if(!makerState||!DNA.validateV2(makerState.dna))return;if(makerState.review){resetCard();hideLayer();makerState=null;applyResident(false);return}if(btn)btn.disabled=true;error.textContent='';try{const data=await request({action:'saveSheep',appearanceVersion:2,appearance:makerState.dna});resident=data.user;clearDraft();makerState=null;resetCard();applyResident(!!data.created)}catch(err){showError(err.reason);if(btn)btn.disabled=false}}
+async function confirmMaker(e){
+  const btn=e?.currentTarget;if(!makerState||!DNA.validateV2(makerState.dna))return;
+  if(makerState.review){resetCard();hideLayer();makerState=null;applyResident(false);return}
+  if(!resident){
+    writeDraft(makerState.dna);makerState=null;resetCard();showEmail('claim');return;
+  }
+  if(btn)btn.disabled=true;error.textContent='';
+  try{
+    const data=await request({action:'saveSheep',appearanceVersion:2,appearance:makerState.dna});
+    resident=data.user;clearDraft();makerState=null;resetCard();applyResident(!!data.created);
+  }catch(err){showError(err.reason);if(btn)btn.disabled=false}
+}
 function showMaker(review=false){makerState={screen:1,dna:makerInitialDna(review),activeDimension:null,review:!!review};card.classList.add('maker-card','maker-v2-card');showLayer();renderMaker()}
 
 core.addEventListener('load',()=>{coreEngineReady=false;ensureCoreEngine()});
 window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='tonglu-resident-ready-v1'){coreEngineReady=true;sendResidentToCore(pendingArrival)}});
 window.addEventListener('resize',()=>{if(makerState)requestAnimationFrame(drawMakerCanvases)});
 window.PastureSheepMaker=Object.freeze({openReview:()=>{if(resident?.sheep)showMaker(true)}});
-async function boot(){try{await ensureMakerModules();const data=await request(null,'GET');resident=data.user;ensureCoreEngine();if(!resident)return showEmail();if(!resident.sheep)return showMaker(false);if(wantsMakerReview())return showMaker(true);if(wantsArrivalReview())return applyResident(true);applyResident(false)}catch(err){showEmail();showError(err.reason)}}
+beginButton.addEventListener('click',()=>{if(!DNA||!Renderer){showToast('捏羊功能暂不可用，请稍后再试');return}showMaker(false)});
+returnButton.addEventListener('click',()=>showEmail('returning'));
+closeButton.addEventListener('click',()=>{if(resident?.sheep){makerState=null;resetCard();applyResident(false)}else{if(makerState&&!makerState.review)writeDraft(makerState.dna);makerState=null;resetCard();showInvitation()}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!layer.hidden)closeButton.click()});
+async function boot(){
+  try{
+    await ensureMakerModules();
+    const data=await request(null,'GET');
+    resident=data.user;ensureCoreEngine();
+    if(!resident||!resident.sheep)return showInvitation(2600);
+    if(wantsMakerReview())return showMaker(true);
+    if(wantsArrivalReview())return applyResident(true);
+    applyResident(false);
+  }catch(err){
+    showInvitation(2600);
+    showToast('身份服务暂不可用，仍可先欣赏牧场');
+  }
+}
 boot();
 })();
