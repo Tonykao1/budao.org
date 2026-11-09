@@ -41,7 +41,53 @@
     { selector:'.footer-sister-links', mode:'attribute', attribute:'aria-label', source:'事工展示', values:{en:'Ministry stories', 'zh-Hant':'事工展示'} },
     { selector:'footer > p', mode:'leading-text', source:'© 2026 步道 budao.org', values:{en:'© 2026 BUDAO budao.org', 'zh-Hant':'© 2026 BUDAO budao.org'} }
   ];
-  // The animated Chinese declaration and the footer art remain unchanged.
+  // The Chinese source and all original musical/art elements remain unchanged.
+  // English creed is a preview-only content substitution using the EXISTING
+  // audio controls. No style, attribute, element or event handler is changed.
+  // The middle conjunction is inserted as a text node (not an element).
+  const approvedEnglishCreed =
+    'Till our final day, we shall walk in His way; Neither left nor right shall we stray.';
+
+  function previewEnglishCreed(documentObject, locale) {
+    if (locale !== 'en' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const line = documentObject.querySelector('header .hero-line');
+    if (!line || typeof line.textContent !== 'string' ||
+        line.textContent.replace(/\\s+/g, '') !== '余生行走，不偏左右') return false;
+
+    const dsp = documentObject.getElementById('dspBtn');
+    const play = documentObject.getElementById('playBtn');
+    const prev = documentObject.getElementById('prevBtn');
+    const next = documentObject.getElementById('nextBtn');
+    if (![dsp, play, prev, next].every(el => el && el.parentElement === line)) return false;
+    if (dsp.textContent !== '余' || play.textContent !== '走' ||
+        prev.textContent !== '左' || next.textContent !== '右') return false;
+
+    const beforePlay = dsp.nextSibling;
+    const beforePrev = play.nextSibling;
+    const afterNext = next.nextSibling;
+    if (!beforePlay || beforePlay.nodeType !== 3 ||
+        !beforePrev || beforePrev.nodeType !== 3 ||
+        !afterNext || afterNext.nodeType !== 3 ||
+        prev.nextSibling !== next ||
+        beforePlay.nodeValue !== '生行' ||
+        beforePrev.nodeValue.replace(/\\s+/g, '') !== '，不偏' ||
+        !documentObject.createTextNode ||
+        !line.insertBefore) return false;
+
+    // One plain text node for " nor "; no new controls, classes or CSS.
+    const conjunction = documentObject.createTextNode(' nor ');
+    dsp.textContent = 'Till';
+    beforePlay.nodeValue = ' our final day, we shall ';
+    play.textContent = 'walk';
+    beforePrev.nodeValue = ' in His way; Neither ';
+    prev.textContent = 'left';
+    line.insertBefore(conjunction, next);
+    next.textContent = 'right';
+    afterNext.nodeValue = ' shall we stray.';
+
+    return line.textContent.replace(/\\s+/g, ' ').trim() === approvedEnglishCreed;
+  }
   // Private prayer UI strings are local only: never sent to an external translation service.
 
   // Source-keyed UI strings for post-click changes made by prayer-box.js.
@@ -77,8 +123,9 @@
     const chosen = root.BudaoGlobal.requestedLocale(root.location.search);
     if (chosen === root.BudaoGlobal.SOURCE) return;
     root.BudaoGlobal.localize(root.document, chosen, entries);
+    previewEnglishCreed(root.document, chosen);
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
