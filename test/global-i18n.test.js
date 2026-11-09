@@ -56,7 +56,7 @@ test('mixed content translation touches only existing leading text node', () => 
   const item = homepage.entries.find(e=>e.mode==='leading-text');
   const doc = {querySelector:q=>q===item.selector?el:null,documentElement:{lang:'zh'}};
   assert.equal(core.localize(doc,'en',[item]).changed,1);
-  assert.match(node.nodeValue,/An embrace/);
+  assert.equal(node.nodeValue, '· EMBRACE · TRAIL · STORY · SCRIPTURE · ');
   assert.equal(el.children[0],button);
   assert.equal(button.textContent,'一起祷告');
 });
@@ -200,4 +200,28 @@ test('prayer submission failures are translated only for an opted-in homepage lo
     if (previous === undefined) delete globalThis.location;
     else globalThis.location = previous;
   }
+});
+
+
+test('homepage five elements are parallel uppercase nouns without articles', () => {
+  const leading = homepage.entries.find(e => e.selector === 'main section:nth-of-type(3) p');
+  const prayer = homepage.entries.find(e => e.selector === '#prayerBoxTrigger');
+  assert.ok(leading && prayer);
+  const words = leading.values.en.split('·').map(v => v.trim()).filter(Boolean);
+  words.push(prayer.values.en);
+  assert.deepEqual(words, ['EMBRACE', 'TRAIL', 'STORY', 'SCRIPTURE', 'PRAYER']);
+  assert.equal(words.length, 5);
+  assert.ok(words.every(word => /^[A-Z]+$/.test(word)));
+  assert.equal(leading.values['zh-Hant'], '· 一個擁抱 · 一條線路 · 一則故事 · 一段經文 · ');
+  assert.equal(prayer.values['zh-Hant'], '一起禱告');
+});
+
+test('five elements still use existing source text and existing prayer button', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'home.html'), 'utf8');
+  assert.match(html, /· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 · <button id="prayerBoxTrigger"/);
+  assert.match(html, /class="prayer-box-trigger" type="button" aria-controls="prayerBox"/);
+  const cta = homepage.entries.find(e=>e.selector==='#prayerBoxTrigger');
+  assert.equal(cta.values.en,'PRAYER');
 });
