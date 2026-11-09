@@ -110,3 +110,94 @@ test('faith declaration is editorial-only until its interactive layout is review
   assert.match(charter,/BLOCKED FOR VISUAL\/INTERACTION REVIEW/);
   assert.ok(homepage.entries.every(entry => !entry.selector.includes('hero-line')));
 });
+
+
+test('localized accessibility attributes are source-guarded and leave all visual attributes untouched', () => {
+  const attributes = { 'aria-label': '关闭', class: 'prayer-box-close', style: 'color:inherit' };
+  const el = {
+    getAttribute: key => attributes[key],
+    setAttribute: (key,value) => { attributes[key] = value; },
+    children: [],
+    textContent: '×'
+  };
+  const doc = {
+    querySelector: selector => selector === '.prayer-box-close' ? el : null,
+    documentElement: { lang: 'zh' }
+  };
+  const entry = homepage.entries.find(x => x.selector === '.prayer-box-close');
+  assert.equal(core.localize(doc,'en',[entry]).changed,1);
+  assert.equal(attributes['aria-label'],'Close');
+  assert.equal(attributes.class,'prayer-box-close');
+  assert.equal(attributes.style,'color:inherit');
+  const unsafe = { selector:'.prayer-box-close',mode:'attribute',attribute:'style',source:'color:inherit',values:{en:'display:none'} };
+  assert.equal(core.localize(doc,'en',[unsafe]).changed,0);
+  assert.equal(attributes.style,'color:inherit');
+});
+
+test('private-prayer dialog has source-guarded English and traditional Chinese for visible copy', () => {
+  const entries = homepage.entries;
+  for (const source of [
+    '有什么想让我们陪你一起记念？',
+    '代祷事项',
+    '仅由步道带领人阅读和代祷',
+    '同意带领人邀请受托同工一起代祷',
+    '希望带领人私下回应我',
+    '你的内容不会公开。',
+    '我们会谨慎承接，只用于代祷与必要的关怀。',
+    '提交祷告',
+    '已经收到了。',
+    '会有一位步道带领人安静地承接这份祷告。愿你在前面的路上，得着平安与同行。'
+  ]) {
+    const item = entries.find(e => e.source === source);
+    assert.ok(item, 'missing '+source);
+    assert.ok(item.values.en && item.values['zh-Hant']);
+  }
+  assert.equal(entries.filter(e => e.selector === '.prayer-box-privacy').length,2);
+  assert.ok(entries.every(e => !e.selector.includes('.prayer-box-honeypot')));
+});
+
+test('dynamic prayer feedback uses the same locale; Chinese is the default', () => {
+  assert.equal(homepage.runtimeCopy('正在送达…','en'),'Sending…');
+  assert.equal(homepage.runtimeCopy('暂时没有送达，请稍后再试。','en'),
+    'Your request could not be sent. Please try again later.');
+  assert.equal(homepage.runtimeCopy('要放下尚未送出的内容吗？','zh-Hant'),
+    '要放下尚未送出的內容嗎？');
+  assert.equal(homepage.runtimeCopy('提交祷告','zh-Hans'),'提交祷告');
+  assert.equal(homepage.runtimeCopy('提交祷告','ja'),'提交祷告');
+});
+
+test('localization cannot change private prayer consent or API body', () => {
+  const prayer = require('../prayer-box.js');
+  const payload = prayer.buildPrayerPayload({
+    body: '请为我代祷',
+    visibility: 'TRUSTED_TEAM',
+    wantsReply: false,
+    contact: 'do-not-share@example.test',
+    website: ''
+  },'source-key');
+  assert.equal(payload.body,'请为我代祷');
+  assert.equal(payload.visibility,'TRUSTED_TEAM');
+  assert.equal(payload.wantsReply,false);
+  assert.equal(payload.contact,'');
+  assert.equal(payload.idempotencyKey,'source-key');
+});
+
+test('prayer submission failures are translated only for an opted-in homepage locale', async () => {
+  const prayer = require('../prayer-box.js');
+  const previous = globalThis.location;
+  globalThis.location = { pathname:'/home.html',search:'?lang=en' };
+  let errorText = '';
+  try {
+    const controller = prayer.createSubmitController({
+      fetchImpl: async () => ({ok:false,json:async () => ({ok:false})}),
+      setBusy() {},
+      showSuccess() { throw Error('unexpected success'); },
+      showError(text) { errorText = text; }
+    });
+    assert.deepEqual(await controller.submit({body:'test'},'test-id'),{ok:false});
+    assert.equal(errorText,'Your request could not be sent. Please try again later.');
+  } finally {
+    if (previous === undefined) delete globalThis.location;
+    else globalThis.location = previous;
+  }
+});
