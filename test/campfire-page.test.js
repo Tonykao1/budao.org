@@ -259,3 +259,19 @@ test("首屏每次进入展示不同同行的高分照片，二次点击进入�
   assert.match(css, /\.camp-photo-card:nth-of-type/);
   assert.match(html, /再次点击进入对应影集/);
 });
+
+
+test("二次点击后的丝滑下卷拥有减速阻尼，并尊重用户的操作", () => {
+  assert.match(script, /function glideToAlbum\(heading, reducedMotion\)/);
+  assert.match(script, /Math\.pow\(1 - t, 3\)/, "uses easing instead of browser-default smooth scrolling");
+  assert.match(script, /requestAnimationFrame\(tick\)/);
+  assert.match(script, /heading\.getBoundingClientRect\(\)\.top/);
+  assert.match(script, /getComputedStyle\(heading\)\.scrollMarginTop/);
+  assert.match(script, /window\.scrollTo\(0, startY \+ distance \* ease\)/);
+  assert.match(script, /window\.addEventListener\("wheel", cancel/);
+  assert.match(script, /window\.addEventListener\("touchstart", cancel/);
+  assert.match(script, /window\.addEventListener\("keydown", cancel/);
+  assert.match(script, /html\.style\.scrollBehavior = oldScrollBehavior/);
+  assert.match(script, /glideToAlbum\(heading, prefersReducedMotion\)/);
+  assert.match(script, /if \(reducedMotion \|\| typeof window\.requestAnimationFrame !== "function"\)/);
+});
