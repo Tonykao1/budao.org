@@ -172,5 +172,15 @@
     "title": "温榆秘境",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-11-14",
+    "type": "camp",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony-2026-11-14-fc2a8085cf4b",
+    "title": "静之湖暖冬半日营",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
