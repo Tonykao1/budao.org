@@ -397,7 +397,8 @@ test('English mobile navigation uses scroll, not clipping or changed navbar geom
   const css={
     get overflowX(){return styles.overflowX || '';},set overflowX(v){styles.overflowX=v;},
     get justifyContent(){return styles.justifyContent || '';},set justifyContent(v){styles.justifyContent=v;},
-    removeProperty(prop){delete styles[prop==='overflow-x'?'overflowX':'justifyContent'];}
+    get paddingRight(){return styles.paddingRight || '';},set paddingRight(v){styles.paddingRight=v;},
+    removeProperty(prop){delete styles[{'overflow-x':'overflowX','justify-content':'justifyContent','padding-right':'paddingRight'}[prop]];}
   };
   const paths=['/home.html','/test.html','/tongxing.html','/tongdao.html','/what.html','/tonglu.html'];
   const elements=paths.map(p=>({getAttribute:key=>key==='href'?p:null}));
@@ -406,7 +407,7 @@ test('English mobile navigation uses scroll, not clipping or changed navbar geom
   const mock={
     document:{querySelector:selector=>selector==='body > nav'?nav:null},
     matchMedia:media=>{
-      assert.equal(media,'(max-width: 900px)');
+      assert.equal(media,'(max-width: 1200px)');
       return {get matches(){return matches;},addEventListener:(event,fn)=>{
         assert.equal(event,'change');callback=fn;
       }};
@@ -415,13 +416,13 @@ test('English mobile navigation uses scroll, not clipping or changed navbar geom
   assert.equal(homepage.enableEnglishNarrowNavigation(mock,'zh-Hans'),false);
   assert.deepEqual(styles,{});
   assert.equal(homepage.enableEnglishNarrowNavigation(mock,'en'),true);
-  assert.deepEqual(styles,{overflowX:'auto',justifyContent:'flex-start'});
+  assert.deepEqual(styles,{overflowX:'auto',justifyContent:'flex-start',paddingRight:'76px'});
   matches=false;
   callback();
   assert.deepEqual(styles,{});
   matches=true;
   callback();
-  assert.deepEqual(styles,{overflowX:'auto',justifyContent:'flex-start'});
+  assert.deepEqual(styles,{overflowX:'auto',justifyContent:'flex-start',paddingRight:'76px'});
   assert.deepEqual(paths, elements.map(x=>x.getAttribute('href')));
 });
 
@@ -434,4 +435,64 @@ test('English nav guard refuses unexpected markup or other locales', () => {
   assert.equal(homepage.enableEnglishNarrowNavigation(fake,'en'),false);
   assert.equal(homepage.enableEnglishNarrowNavigation(fake,'zh-Hant'),false);
   assert.deepEqual(nav.style,{});
+});
+
+
+test('the only homepage language control is separate from all six original nav links', () => {
+  const fs=require('node:fs'), path=require('node:path');
+  const html=fs.readFileSync(path.join(__dirname,'../home.html'),'utf8');
+  const nav=html.match(/<nav>([\s\S]*?)<\/nav>/);
+  assert.ok(nav);
+  assert.equal((nav[1].match(/<a href=/g)||[]).length,6);
+  assert.doesNotMatch(nav[1],/homeLanguageSwitch/);
+  assert.match(html, /<\/nav>\s*<a id="homeLanguageSwitch" href="\/home\.html\?lang=en" lang="en" hreflang="en" aria-label="Switch homepage to English">EN<\/a>\s*<header>/);
+  assert.equal((html.match(/id="homeLanguageSwitch"/g)||[]).length,1);
+  assert.match(html, /#homeLanguageSwitch:focus-visible/);
+  assert.match(html, /min-height: 44px/);
+});
+
+test('homepage language toggle switches Chinese and English bidirectionally, preserving query/hash', () => {
+  const attributes={href:'/home.html?lang=en',lang:'en',hreflang:'en','aria-label':'Switch homepage to English'};
+  const link={
+    tagName:'A',textContent:'EN',
+    getAttribute:k=>attributes[k]??null,
+    setAttribute:(k,v)=>{attributes[k]=v;}
+  };
+  const makeWindow=(search,hash,path='/home.html')=>({
+    BudaoGlobal:core,
+    location:{pathname:path,search,hash},
+    document:{getElementById:id=>id==='homeLanguageSwitch'?link:null}
+  });
+  const cn=makeWindow('','');
+  assert.equal(homepage.configureHomeLanguageSwitch(cn,'zh-Hans'),true);
+  assert.equal(link.textContent,'EN');
+  assert.equal(attributes.href,'/home.html?lang=en');
+  assert.equal(attributes.hreflang,'en');
+  assert.equal(attributes['aria-label'],'Switch homepage to English');
+  const en=makeWindow('?lang=en&ref=local','#hello');
+  assert.equal(homepage.configureHomeLanguageSwitch(en,'en'),true);
+  assert.equal(link.textContent,'中文');
+  assert.equal(attributes.href,'/home.html?ref=local#hello');
+  assert.equal(attributes.lang,'zh-Hans');
+  assert.equal(attributes.hreflang,'zh-Hans');
+  assert.equal(attributes['aria-label'],'切换到中文首页');
+  assert.equal(homepage.configureHomeLanguageSwitch(cn,'zh-Hans'),true);
+  assert.equal(attributes.href,'/home.html?lang=en');
+});
+
+test('language toggle never installs on non-homepage paths or unexpected markup', () => {
+  const link={
+    tagName:'A',textContent:'EN',
+    getAttribute:k=>k==='href'?'/home.html?lang=en':null,
+    setAttribute(){throw Error('Unexpected mutation');}
+  };
+  const mk=(pathname,element=link)=>({
+    BudaoGlobal:core,
+    location:{pathname,search:'',hash:''},
+    document:{getElementById:()=>element}
+  });
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('/test.html'),'zh-Hans'),false);
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('/tongdao.html'),'zh-Hans'),false);
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('/home.html',{...link,tagName:'BUTTON'}),'en'),false);
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('/home.html',{...link,getAttribute:()=>'/unexpected'}),'en'),false);
 });
