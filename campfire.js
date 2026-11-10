@@ -219,6 +219,27 @@
     return result;
   }
 
+  // A distance-normalized velocity profile: short, gentle launch (12%),
+  // steady glide (30%), then a deliberately long 58% damping phase.
+  // Velocity and acceleration remain continuous at phase boundaries.
+  function dampedScrollProgress(value) {
+    const t = Math.max(0, Math.min(1, value));
+    const launchEnd = 0.12;
+    const brakeStart = 0.42;
+    const launchArea = 2 * launchEnd / Math.PI;
+    const cruiseArea = brakeStart - launchEnd;
+    const brakeArea = 2 * (1 - brakeStart) / Math.PI;
+    const total = launchArea + cruiseArea + brakeArea;
+    if (t < launchEnd) {
+      return (launchArea * (1 - Math.cos(Math.PI * t / (2 * launchEnd)))) / total;
+    }
+    if (t < brakeStart) {
+      return (launchArea + t - launchEnd) / total;
+    }
+    const damping = (t - brakeStart) / (1 - brakeStart);
+    return (launchArea + cruiseArea + brakeArea * Math.sin(Math.PI * damping / 2)) / total;
+  }
+
   function glideToAlbum(heading, reducedMotion) {
     // Stop an earlier gallery glide before starting another (or jumping directly).
     if (heroScrollCancel) heroScrollCancel();
@@ -235,9 +256,9 @@
     const distance = targetY - startY;
     if (Math.abs(distance) < 2) return;
 
-    // Cubic ease-out: a smooth downward glide that gently loses speed near arrival,
-    // without bounce, scaling or overshoot. Adjust duration to travel distance.
-    const duration = Math.min(1250, Math.max(680, 610 + Math.abs(distance) * 0.18));
+    // Scale the journey to the distance; reserve over half the time for
+    // gradual physical-feeling braking instead of a nearly static final tail.
+    const duration = Math.min(1950, Math.max(950, 760 + Math.abs(distance) * 0.27));
     const html = document.documentElement;
     const oldScrollBehavior = html.style.scrollBehavior;
     html.style.scrollBehavior = "auto";
@@ -266,7 +287,7 @@
       if (!running) return;
       if (started === null) started = now;
       const t = Math.min(1, (now - started) / duration);
-      const ease = 1 - Math.pow(1 - t, 3);
+      const ease = dampedScrollProgress(t);
       window.scrollTo(0, startY + distance * ease);
       if (t < 1) frame = window.requestAnimationFrame(tick);
       else cancel();
