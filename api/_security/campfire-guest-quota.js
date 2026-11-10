@@ -4,7 +4,8 @@
  * A browser token and a short-lived HMAC of the network address provide two
  * independent quotas. Never persist raw IPs, device fingerprints or location.
  *
- * Records expire after 48h via opportunistic bounded cleanup; the network
+ * Records stop being used after their hourly bucket and are deleted after
+ * 48h in bounded batches when new requests arrive; the network
  * HMAC includes the time bucket, preventing long-term linkage across windows.
  */
 const crypto = require("node:crypto");
