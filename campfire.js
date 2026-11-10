@@ -27,6 +27,7 @@
   let lightboxIndex = 0;
   let heroScores = Object.create(null);
   const HERO_VISIT_KEY = "budao.campfire.hero.last.v2";
+  let heroScrollCancel = null;
 
   function localToday() {
     try {
@@ -218,6 +219,61 @@
     return result;
   }
 
+  function glideToAlbum(heading, reducedMotion) {
+    // Stop an earlier gallery glide before starting another (or jumping directly).
+    if (heroScrollCancel) heroScrollCancel();
+    if (reducedMotion || typeof window.requestAnimationFrame !== "function") {
+      heading.scrollIntoView({behavior:"auto", block:"start"});
+      return;
+    }
+
+    // Keep the editor's scroll margin, and never run past the document's end.
+    const startY = window.scrollY || document.documentElement.scrollTop || 0;
+    const margin = parseFloat(window.getComputedStyle(heading).scrollMarginTop) || 0;
+    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const targetY = Math.max(0, Math.min(maxY, startY + heading.getBoundingClientRect().top - margin));
+    const distance = targetY - startY;
+    if (Math.abs(distance) < 2) return;
+
+    // Cubic ease-out: a smooth downward glide that gently loses speed near arrival,
+    // without bounce, scaling or overshoot. Adjust duration to travel distance.
+    const duration = Math.min(1250, Math.max(680, 610 + Math.abs(distance) * 0.18));
+    const html = document.documentElement;
+    const oldScrollBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    let frame = 0;
+    let started = null;
+    let running = true;
+    const cancel = () => {
+      if (!running) return;
+      running = false;
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("wheel", cancel);
+      window.removeEventListener("touchstart", cancel);
+      window.removeEventListener("pointerdown", cancel);
+      window.removeEventListener("keydown", cancel);
+      html.style.scrollBehavior = oldScrollBehavior;
+      if (heroScrollCancel === cancel) heroScrollCancel = null;
+    };
+    heroScrollCancel = cancel;
+    // Manual wheel/touch/key interactions must regain control immediately.
+    window.addEventListener("wheel", cancel, {passive:true});
+    window.addEventListener("touchstart", cancel, {passive:true});
+    window.addEventListener("pointerdown", cancel, {passive:true});
+    window.addEventListener("keydown", cancel);
+
+    const tick = (now) => {
+      if (!running) return;
+      if (started === null) started = now;
+      const t = Math.min(1, (now - started) / duration);
+      const ease = 1 - Math.pow(1 - t, 3);
+      window.scrollTo(0, startY + distance * ease);
+      if (t < 1) frame = window.requestAnimationFrame(tick);
+      else cancel();
+    };
+    frame = window.requestAnimationFrame(tick);
+  }
+
   function scrollToHeroAlbum(item) {
     if (item.kind !== "moment") return;
     // A real-photo hero only links to the real-photo album, never to route covers.
@@ -237,8 +293,8 @@
     });
     const prefersReducedMotion = window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    heading.scrollIntoView({behavior:prefersReducedMotion ? "auto" : "smooth", block:"start"});
     heading.focus({preventScroll:true});
+    glideToAlbum(heading, prefersReducedMotion);
   }
 
   function renderHero() {
