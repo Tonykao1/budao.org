@@ -439,7 +439,7 @@ test('BUDAO overview introduction is faithfully localized while preserving line 
   const r=core.localize(doc,'en',entries);
   assert.deepEqual(r,{changed:4,skipped:0});
   assert.equal(title.textContent,'BUDAO');
-  assert.equal(h1.textContent,'Walking Together This Week');
+  assert.equal(h1.textContent,'This Week, Together');
   assert.equal(first.nodeValue,'Some keep walking on the edges of the city.');
   assert.equal(second.nodeValue,'Others walk together across countries and time zones.');
   assert.equal(p.children[0],br);
