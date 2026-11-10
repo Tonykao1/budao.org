@@ -234,7 +234,8 @@
 
 .budao-calendar-step-mark--pioneer,
 .budao-calendar-step-mark--march,
-.budao-calendar-step-mark--fellowship{
+.budao-calendar-step-mark--fellowship,
+.budao-calendar-step-mark--camp{
     background-image:none;
     -webkit-mask-image:var(--budao-step-shape);
     mask-image:var(--budao-step-shape);
@@ -256,6 +257,11 @@
 
 .budao-calendar-step-mark--fellowship{
     background-color:#8B56C7;
+}
+
+/* Camp routes use the approved footprint mask with their own pine-green ink. */
+.budao-calendar-step-mark--camp{
+    background-color:#557E62;
 }
 
 /* Calendar footprints temporarily reveal the corresponding route slot. */

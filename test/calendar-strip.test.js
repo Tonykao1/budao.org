@@ -122,3 +122,26 @@ test('today uses a small iridescent downward triangle instead of the word 今', 
   assert.match(css, /\.budao-calendar-today-marker[\s\S]*clip-path:\s*polygon\(50%\s+100%,\s*0\s+0,\s*100%\s+0\)/, 'triangle must point downward');
   assert.match(css, /\.budao-calendar-today-marker[\s\S]*linear-gradient/, 'triangle must use an iridescent gradient');
 });
+
+test('published camp route receives a visible, correctly dated calendar footprint', () => {
+  const calendar = require('../budao-calendar.js');
+  const events = JSON.parse(fs.readFileSync(path.join(root, 'calendar-events.json'), 'utf8'));
+  const routes = JSON.parse(fs.readFileSync(path.join(root, 'routes.json'), 'utf8'));
+  const css = fs.readFileSync(path.join(root, 'budao-calendar.css'), 'utf8');
+  const route = routes.find((item) => item.title === '静之湖暖冬半日营');
+
+  assert.ok(route, 'the published route must remain present');
+  assert.equal(route.date, '2026-11-14');
+  assert.equal(route.calendarType, 'camp');
+  assert.ok(events.some((item) => item.date === route.date && item.type === 'camp'), 'calendar event sync must include camp');
+  const schedule = calendar.mergeStepSchedule({}, events, routes);
+  const model = calendar.buildCalendarModel(new Date(2026, 10, 10, 12), schedule);
+  const day = [...model.previous.days, ...model.current.days, ...model.next.days]
+    .find((item) => item.dateKey === route.date);
+  assert.ok(day, 'the route date must be inside the current rolling calendar');
+  assert.deepEqual(day.steps, ['camp']);
+
+  assert.match(css, /\\.budao-calendar-step-mark--camp[\\s\\S]*?background-image:none;/, 'camp must share the approved footprint mask');
+  assert.match(css, /\\.budao-calendar-step-mark--camp[\\s\\S]*?mask-image:var\\(--budao-step-shape\\)/, 'camp mask must be rendered');
+  assert.match(css, /\\.budao-calendar-step-mark--camp\\{[\\s\\S]*?background-color:\\s*#[0-9a-f]{6}/i, 'camp must have a visible solid footprint color');
+});
