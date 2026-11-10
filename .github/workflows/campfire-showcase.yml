@@ -12,6 +12,9 @@ on:
       - "campfire-sparks-to-steps.js"
       - "campfire-privacy.html"
       - "api/_security/campfire-handler.js"
+      - "api/_security/campfire-guest-quota.js"
+      - "db/migrations/20261110_campfire_guest_limits.sql"
+      - "test/campfire-guest-quota.test.js"
       - "db/migrations/20261106_campfire_interactions.sql"
       - "api/publish-route.js"
       - "vercel.json"
@@ -30,6 +33,9 @@ on:
       - "campfire-sparks-to-steps.js"
       - "campfire-privacy.html"
       - "api/_security/campfire-handler.js"
+      - "api/_security/campfire-guest-quota.js"
+      - "db/migrations/20261110_campfire_guest_limits.sql"
+      - "test/campfire-guest-quota.test.js"
       - "db/migrations/20261106_campfire_interactions.sql"
       - "api/publish-route.js"
       - "vercel.json"
@@ -52,8 +58,8 @@ jobs:
       - name: Validate campfire JavaScript
         run: node --check campfire.js
       - name: Validate interaction JavaScript
-        run: node --check campfire-interactions.js && node --check api/_security/campfire-handler.js
+        run: node --check campfire-interactions.js && node --check api/_security/campfire-handler.js && node --check api/_security/campfire-guest-quota.js
       - name: Validate Sparks to Steps JavaScript
         run: node --check campfire-sparks-to-steps.js
       - name: Run campfire regression suite
-        run: node --test test/campfire-page.test.js test/campfire-production-migrate.test.js
+        run: node --test test/campfire-page.test.js test/campfire-production-migrate.test.js test/campfire-guest-quota.test.js
