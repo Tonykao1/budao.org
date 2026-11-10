@@ -128,6 +128,33 @@
   }
   root.BudaoHomeI18n = Object.freeze({ runtimeCopy });
 
+  // English labels are longer than the original six Chinese labels. Keep the
+  // site's single-row navigation, existing typography and links, but make the
+  // English row horizontally scrollable on narrow screens rather than clipping
+  // the first and last links. Never affects the original Chinese experience.
+  function enableEnglishNarrowNavigation(windowObject, locale) {
+    if (locale !== 'en' || !windowObject || !windowObject.document ||
+        typeof windowObject.matchMedia !== 'function') return false;
+    const nav = windowObject.document.querySelector('body > nav');
+    if (!nav || !nav.style || typeof nav.querySelectorAll !== 'function') return false;
+    const expected = ['/home.html','/test.html','/tongxing.html','/tongdao.html','/what.html','/tonglu.html'];
+    const anchors = Array.from(nav.querySelectorAll('a'));
+    if (anchors.length !== expected.length ||
+        !anchors.every((anchor,index) => anchor.getAttribute('href')?.split('?')[0] === expected[index])) return false;
+    const mq = windowObject.matchMedia('(max-width: 900px)');
+    const sync = () => {
+      if (mq.matches) {
+        nav.style.overflowX = 'auto';
+        nav.style.justifyContent = 'flex-start';
+      } else {
+        nav.style.removeProperty('overflow-x');
+        nav.style.removeProperty('justify-content');
+      }
+    };
+    sync();
+    if (typeof mq.addEventListener === 'function') mq.addEventListener('change',sync);
+    return true;
+  }
   function start() {
     if (!root.BudaoGlobal || !root.document || !root.location) return;
     if (root.location.pathname !== '/home.html') return;
@@ -136,8 +163,9 @@
     root.BudaoGlobal.localize(root.document, chosen, entries);
     previewEnglishCreed(root.document, chosen);
     root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
+    enableEnglishNarrowNavigation(root, chosen);
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, enableEnglishNarrowNavigation });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
