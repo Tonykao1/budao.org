@@ -352,3 +352,112 @@ test('footer translation changes text only, never URLs, CSS classes or animation
   assert.match(source,/<a class="campfire-link" href="\/yhzd.html">✦ 营火之地<\/a>/);
   assert.match(source,/<a class="campfire-link spark-link" href="\/lsxh.html">❦ 路上星火<\/a>/);
 });
+
+
+test('language is carried only between actually localized page links', () => {
+  const anchors = [
+    ['/home.html','home'],['/test.html','core'],
+    ['/tongdao.html','untranslated-training'],
+    ['/yhzd.html','untranslated-campfire'],
+    ['https://example.org/test.html','external'],
+    ['mailto:hello@budao.org','email'],
+    ['/i/abc','immutable'],
+    ['/test.html?from=home#routes','query-hash'],
+    ['#prayerBox','fragment']
+  ].map(([href,id]) => ({
+    id, href, className:'unchanged', style:{},
+    getAttribute(name) { return name === 'href' ? this.href : null; },
+    setAttribute(name,value) { assert.equal(name,'href'); this.href = value; }
+  }));
+  const doc = {querySelectorAll:selector=>{
+    assert.equal(selector,'a[href]');
+    return anchors;
+  }};
+  const changed = core.carryLocaleOnLinks(doc,'en',['/home.html','/test.html']);
+  assert.deepEqual(changed,{changed:3});
+  assert.deepEqual(anchors.map(a=>a.href),[
+    '/home.html?lang=en','/test.html?lang=en',
+    '/tongdao.html','/yhzd.html',
+    'https://example.org/test.html','mailto:hello@budao.org','/i/abc',
+    '/test.html?from=home&lang=en#routes','#prayerBox'
+  ]);
+  assert.ok(anchors.every(a=>a.className==='unchanged' && Object.keys(a.style).length===0));
+  assert.deepEqual(core.carryLocaleOnLinks(doc,'en',['/home.html','/test.html']),{changed:0});
+});
+
+test('Chinese default and unknown languages do not modify navigation', () => {
+  const link = {
+    href:'/home.html',
+    getAttribute(){ return this.href; },
+    setAttribute(_,value){ this.href = value; }
+  };
+  const doc = {querySelectorAll:()=>[link]};
+  assert.deepEqual(core.carryLocaleOnLinks(doc,'zh-Hans',['/home.html']),{changed:0});
+  assert.deepEqual(core.carryLocaleOnLinks(doc,'ja',['/home.html']),{changed:0});
+  assert.equal(link.href,'/home.html');
+});
+
+test('BUDAO overview uses the same official nav/footer names as homepage', () => {
+  const overview = require('../global/core-page-i18n');
+  for (const selector of [
+    'nav a[href="/home.html"]',
+    'nav a[href="/test.html"]',
+    'nav a[href="/tongxing.html"]',
+    'nav a[href="/tongdao.html"]',
+    'nav a[href="/what.html"]',
+    'nav a[href="/tonglu.html"]',
+    'footer .campfire-link:not(.spark-link)',
+    'footer .campfire-link.spark-link'
+  ]) {
+    const original = homepage.entries.find(e=>e.selector===selector);
+    const localized = overview.entries.find(e=>e.selector===selector);
+    assert.ok(original && localized, selector);
+    assert.equal(localized.source,original.source);
+    assert.deepEqual(localized.values,original.values);
+  }
+});
+
+test('BUDAO overview introduction is faithfully localized while preserving line breaks', () => {
+  const overview = require('../global/core-page-i18n');
+  const first = {nodeType:3,nodeValue:'\n有人仍在城市边缘继续向前走。'};
+  const br = {nodeType:1,tagName:'BR'};
+  const second = {nodeType:3,nodeValue:'\n也有人，在不同国家与时区里，彼此同行。\n'};
+  const p = {childNodes:[first,br,second],children:[br]};
+  const title = {textContent:'步道',children:[]};
+  const h1 = {textContent:'本周同行',children:[]};
+  const doc = {
+    querySelector:selector=>({
+      'title':title,
+      '.super-hero h1':h1,
+      '.super-hero p':p
+    })[selector] || null,
+    documentElement:{lang:'zh'}
+  };
+  const entries = overview.entries.filter(e=>
+    e.selector==='title' || e.selector==='.super-hero h1' ||
+    e.selector==='.super-hero p');
+  const r=core.localize(doc,'en',entries);
+  assert.deepEqual(r,{changed:4,skipped:0});
+  assert.equal(title.textContent,'BUDAO');
+  assert.equal(h1.textContent,'Walking Together This Week');
+  assert.equal(first.nodeValue,'Some keep walking on the edges of the city.');
+  assert.equal(second.nodeValue,'Others walk together across countries and time zones.');
+  assert.equal(p.children[0],br);
+  assert.equal(p.childNodes[1],br);
+  assert.equal(doc.documentElement.lang,'en');
+});
+
+test('overview translation does not change the route-card engine, data or site CSS', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const html = fs.readFileSync(path.join(__dirname,'../test.html'),'utf8');
+  assert.match(html, /<script src="\/global\/i18n-core\.js" defer><\/script>/);
+  assert.match(html, /<script src="\/global\/core-page-i18n\.js" defer><\/script>/);
+  assert.match(html, /<h1>本周同行<\/h1>/);
+  assert.match(html, /<section class="budao-calendar" id="budaoCalendar" aria-label="步道日历"><\/section>/);
+  assert.match(html, /<div\s+class="route-grid"\s+id="routeGrid"><\/div>/);
+  const overview = require('../global/core-page-i18n');
+  assert.ok(overview.entries.every(e => !e.selector.includes('#routeGrid') &&
+    !e.selector.includes('.route-card') && !e.selector.includes('form')));
+  assert.doesNotMatch(html,/global\/core-page-i18n\.css/);
+});
