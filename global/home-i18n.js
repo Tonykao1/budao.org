@@ -135,6 +135,7 @@
     if (chosen === root.BudaoGlobal.SOURCE) return;
     root.BudaoGlobal.localize(root.document, chosen, entries);
     previewEnglishCreed(root.document, chosen);
+    root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html','/test.html']);
   }
   if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed });
   if (root.document) {
