@@ -136,8 +136,7 @@
         windowObject.location.pathname !== '/home.html') return false;
     const link = windowObject.document.getElementById('homeLanguageSwitch');
     if (!link || link.tagName !== 'A' ||
-        link.getAttribute('href') !== '/home.html?lang=en' &&
-        link.getAttribute('href') !== '/home.html') return false;
+        !/^\/home\.html(?:\?[^#]*)?(?:#[-\w.%]*)?$/.test(link.getAttribute('href') || '')) return false;
     const english = locale === 'en';
     const target = english ? 'zh-Hans' : 'en';
     const href = windowObject.BudaoGlobal.languageLink('/home.html',
