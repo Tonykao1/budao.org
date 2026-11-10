@@ -25,6 +25,8 @@
   let activeFilter = "all";
   let visiblePhotos = [];
   let lightboxIndex = 0;
+  let heroScores = Object.create(null);
+  const HERO_VISIT_KEY = "budao.campfire.hero.last.v2";
 
   function localToday() {
     try {
@@ -87,7 +89,10 @@
         if (!src || !alt || ids.has(key)) continue;
         ids.add(key);
         photos.push({id:key,kind:"moment",albumId:string(album.id,80),image:src,alt,title,date:album.date,location,
-          caption:string(item.caption, 180) || "步道现场影像"});
+          caption:string(item.caption, 180) || "步道现场影像",
+          heroEligible:item.heroEligible !== false,
+          heroScore:typeof item.heroScore === "number" && Number.isFinite(item.heroScore)
+            ? Math.max(0, Math.min(100, item.heroScore)) : null});
       }
     }
     photos.sort((a, b) => b.date.localeCompare(a.date));
@@ -131,32 +136,124 @@
       img.src = item.image;
     }
   }
+  function albumKey(item) {
+    return item.albumId ? "album:" + item.albumId : "event:" + item.date + "|" + item.title;
+  }
+
+  function heroPhotoScore(item) {
+    // Published, approved images only. An editor may explicitly rank or exclude a photo.
+    if (item.heroScore !== null && item.heroScore !== undefined) return item.heroScore;
+    const technical = heroScores[item.image];
+    const base = typeof technical === "number" && Number.isFinite(technical) ? technical : 56;
+    const scene = item.alt + " " + item.caption;
+    // A small storytelling tie-breaker; the main technical score is baked from pixels.
+    const scenic = /云海|晚霞|日落|夕阳|山峦|远山|山脊|秋色|彩霞|光影|湖泊|山谷|星空/.test(scene) ? 5 : 0;
+    const together = /同行|山路|步道|相遇|徒步|小径/.test(scene) ? 3 : 0;
+    const lessSuitable = /餐桌|食物|螃蟹|石像/.test(scene) ? 5 : 0;
+    return Math.max(0, Math.min(100, base + scenic + together - lessSuitable));
+  }
+
+  function weightedHeroPick(options, weight) {
+    const weights = options.map((item) => Math.max(0.001, weight(item)));
+    let roll = Math.random() * weights.reduce((sum, value) => sum + value, 0);
+    for (let i = 0; i < options.length; i++) {
+      roll -= weights[i];
+      if (roll < 0) return options[i];
+    }
+    return options[options.length - 1];
+  }
+
+  function previousHeroSelection() {
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem(HERO_VISIT_KEY));
+      return saved && Array.isArray(saved.albums) && Array.isArray(saved.photos)
+        ? saved : {albums:[],photos:[]};
+    } catch {
+      return {albums:[],photos:[]};
+    }
+  }
+
+  function selectHeroPhotos() {
+    const groups = new Map();
+    for (const item of gallery) {
+      // Route covers must never be passed off as real journeys on the hero.
+      if (item.kind !== "moment" || item.heroEligible === false) continue;
+      const key = albumKey(item);
+      if (!groups.has(key)) groups.set(key, {key, date:item.date, photos:[]});
+      groups.get(key).photos.push(item);
+    }
+    const albums = [...groups.values()].sort((a,b) => b.date.localeCompare(a.date));
+    const previous = previousHeroSelection();
+    const fresh = albums.filter((album) => !previous.albums.includes(album.key));
+    // With six or more albums, successive visits show three different events.
+    const pool = fresh.length >= 3 ? fresh : albums;
+    const picks = [];
+    const remaining = pool.slice();
+    while (remaining.length && picks.length < 3) {
+      const selected = weightedHeroPick(remaining, (album) => {
+        const top = Math.max(...album.photos.map(heroPhotoScore));
+        const recent = albums.findIndex((entry) => entry.key === album.key);
+        return 0.8 + top / 150 + 0.12 * (1 - recent / Math.max(1,albums.length));
+      });
+      picks.push(selected);
+      remaining.splice(remaining.indexOf(selected), 1);
+    }
+    const result = picks.map((album) => {
+      const ranked = album.photos.slice().sort((a,b) => heroPhotoScore(b) - heroPhotoScore(a));
+      const bestScore = heroPhotoScore(ranked[0]);
+      // Prefer only the high-scoring candidates, not a random snapshot.
+      const shortlist = ranked.filter((item) => heroPhotoScore(item) >= bestScore - 12).slice(0,4);
+      const unseen = shortlist.filter((item) => !previous.photos.includes(item.image));
+      const candidates = unseen.length ? unseen : shortlist;
+      return weightedHeroPick(candidates, (item) =>
+        Math.exp((heroPhotoScore(item) - bestScore) / 6));
+    });
+    try {
+      window.sessionStorage.setItem(HERO_VISIT_KEY, JSON.stringify({
+        albums:picks.map((album) => album.key), photos:result.map((item) => item.image)
+      }));
+    } catch {
+      // Private/locked-down browsers still get a randomized selection.
+    }
+    return result;
+  }
+
+  function scrollToHeroAlbum(item) {
+    if (item.kind !== "moment") return;
+    // A real-photo hero only links to the real-photo album, never to route covers.
+    if (activeFilter !== "moment") setGalleryFilter("moment");
+    const key = albumKey(item);
+    const targetIndex = visiblePhotos.findIndex((entry) => albumKey(entry) === key);
+    if (targetIndex < 0) return;
+    if (targetIndex >= photoLimit) {
+      photoLimit = Math.ceil((targetIndex + 1) / 9) * 9;
+      renderGallery();
+    }
+    const groups = document.querySelectorAll("#camp-photo-grid .camp-album-heading");
+    const heading = [...groups].find((element) => element.dataset.albumKey === key);
+    if (!heading) return;
+    document.querySelectorAll("#camp-photo-grid .camp-album-heading").forEach((element) => {
+      element.classList.toggle("is-target", element === heading);
+    });
+    const prefersReducedMotion = window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    heading.scrollIntoView({behavior:prefersReducedMotion ? "auto" : "smooth", block:"start"});
+    heading.focus({preventScroll:true});
+  }
+
   function renderHero() {
     const hero = $("#camp-hero-gallery");
     if (!hero) return;
-    // Three journeys, three memories: choose one approved photo per distinct event.
-    // Only use route covers when fewer than three different published photo albums exist.
-    const source = [];
-    const seenActivities = new Set();
-    for (const kind of ["moment", "cover"]) {
-      for (const item of gallery) {
-        if (item.kind !== kind) continue;
-        const activityKey = item.date + "|" + item.title;
-        if (seenActivities.has(activityKey)) continue;
-        seenActivities.add(activityKey);
-        source.push(item);
-        if (source.length === 3) break;
-      }
-      if (source.length === 3) break;
-    }
+    const source = selectHeroPhotos();
     if (!source.length) return;
-    // Preserve every photo's size and position; a click only changes the stacking order.
-    let frontIndex = source.length > 1 ? 1 : 0; // Match the existing visual z-order.
+    // The default top photo is not yet armed: first click always selects,
+    // second click on that same photo navigates to its complete album.
+    let frontIndex = source.length > 1 ? 1 : 0;
+    let armedIndex = -1;
     const nodes = source.map((item, index) => {
       const shot = newElement("figure", "camp-hero-shot");
       shot.tabIndex = 0;
       shot.setAttribute("role", "button");
-      shot.setAttribute("aria-label", "将" + item.title + "的照片置于最上层");
       const img = newElement("img");
       setCampfirePhoto(img, item, shot);
       img.alt = item.alt;
@@ -164,18 +261,27 @@
       img.decoding = "async";
       shot.appendChild(img);
       shot.appendChild(newElement("figcaption", "", kindName(item) + " · " + item.title));
-      const bringToFront = () => {
+      const activate = () => {
+        if (armedIndex === index) {
+          scrollToHeroAlbum(item);
+          return;
+        }
+        armedIndex = index;
         frontIndex = index;
         nodes.forEach((node, nodeIndex) => {
-          node.classList.toggle("is-front", nodeIndex === frontIndex);
-          node.setAttribute("aria-pressed", String(nodeIndex === frontIndex));
+          const selected = nodeIndex === frontIndex;
+          node.classList.toggle("is-front", selected);
+          node.setAttribute("aria-pressed", String(selected));
+          node.setAttribute("aria-label", selected
+            ? "再次点击查看" + source[nodeIndex].title + "的全部现场照片"
+            : "将" + source[nodeIndex].title + "的照片置于最上层");
         });
       };
-      shot.addEventListener("click", bringToFront);
+      shot.addEventListener("click", activate);
       shot.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          bringToFront();
+          activate();
         }
       });
       return shot;
@@ -183,6 +289,8 @@
     nodes.forEach((node, index) => {
       node.classList.toggle("is-front", index === frontIndex);
       node.setAttribute("aria-pressed", String(index === frontIndex));
+      node.setAttribute("aria-label", "将" + source[index].title + "的照片置于最上层");
+      node.title = "点击置顶，再点击进入" + source[index].title + "影集";
     });
     hero.replaceChildren(...nodes);
   }
@@ -202,7 +310,23 @@
         : "目前没有可公开展示的这一类影像。";
       root.replaceChildren(newElement("p", "camp-empty", message));
     } else {
-      const nodes = photos.slice(0, photoLimit).map((item, index) => {
+      const nodes = [];
+      let currentAlbum = "";
+      photos.slice(0, photoLimit).forEach((item, index) => {
+        if (item.kind === "moment") {
+          const key = albumKey(item);
+          if (key !== currentAlbum) {
+            const heading = newElement("div", "camp-album-heading");
+            heading.dataset.albumKey = key;
+            heading.tabIndex = -1;
+            heading.appendChild(newElement("span", "camp-album-date", item.date.replace(/-/g, ".") + " · 真实同行"));
+            heading.appendChild(newElement("h3", "", item.title));
+            nodes.push(heading);
+          }
+          currentAlbum = key;
+        } else {
+          currentAlbum = "";
+        }
         const button = newElement("article", "camp-photo-card");
         button.tabIndex = 0;
         button.setAttribute("role", "button");
@@ -245,7 +369,7 @@
             openLightbox(index);
           }
         });
-        return button;
+        nodes.push(button);
       });
       root.replaceChildren(...nodes);
     }
@@ -342,6 +466,24 @@
     return order.map((index) => original[index]);
   }
 
+  async function loadHeroScores() {
+    try {
+      const response = await fetch("/data/campfire-hero-quality.json", {cache:"no-store"});
+      if (!response.ok) throw new Error("Quality manifest HTTP " + response.status);
+      const data = await response.json();
+      if (!data || data.version !== 1 || !data.scores || typeof data.scores !== "object")
+        throw new Error("Unsupported quality manifest");
+      heroScores = Object.create(null);
+      for (const [source, value] of Object.entries(data.scores)) {
+        if (source.startsWith("/campfire-photos/") && Number.isFinite(value))
+          heroScores[source] = Math.max(0, Math.min(100, value));
+      }
+    } catch {
+      // The editorial text/approval fallback works until a photo build finishes.
+      heroScores = Object.create(null);
+    }
+  }
+
   async function loadArchive() {
     try {
       const response = await fetch("/data/campfire-archive.json", {cache:"no-store"});
@@ -427,8 +569,12 @@
   }
 
   bindEvents();
+  // Re-entering through the browser back/forward cache should produce new memories.
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted && gallery.some((item) => item.kind === "moment")) renderHero();
+  });
   // Load approved photos/comments first, then join the published route-cover archive.
-  loadArchive().then(loadRoutes).then(() => {
+  Promise.all([loadArchive(), loadHeroScores()]).then(loadRoutes).then(() => {
     // A photo permalink is accepted only if it matches a currently approved,
     // published onsite photo. It can never open a route cover or private asset.
     const photoId = new URLSearchParams(window.location.search).get("photo");
