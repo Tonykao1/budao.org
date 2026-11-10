@@ -141,7 +141,7 @@ test('published camp route receives a visible, correctly dated calendar footprin
   assert.ok(day, 'the route date must be inside the current rolling calendar');
   assert.deepEqual(day.steps, ['camp']);
 
-  assert.match(css, /\\.budao-calendar-step-mark--camp[\\s\\S]*?background-image:none;/, 'camp must share the approved footprint mask');
-  assert.match(css, /\\.budao-calendar-step-mark--camp[\\s\\S]*?mask-image:var\\(--budao-step-shape\\)/, 'camp mask must be rendered');
-  assert.match(css, /\\.budao-calendar-step-mark--camp\\{[\\s\\S]*?background-color:\\s*#[0-9a-f]{6}/i, 'camp must have a visible solid footprint color');
+  assert.match(css, /\.budao-calendar-step-mark--camp[\s\S]*?background-image:none;/, 'camp must share the approved footprint mask');
+  assert.match(css, /\.budao-calendar-step-mark--camp[\s\S]*?mask-image:var\(--budao-step-shape\)/, 'camp mask must be rendered');
+  assert.match(css, /\.budao-calendar-step-mark--camp\{[\s\S]*?background-color:\s*#[0-9a-f]{6}/i, 'camp must have a visible solid footprint color');
 });
