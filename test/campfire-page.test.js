@@ -263,13 +263,14 @@ test("首屏每次进入展示不同同行的高分照片，二次点击进入�
 
 test("二次点击后的丝滑下卷拥有减速阻尼，并尊重用户的操作", () => {
   assert.match(script, /function glideToAlbum\(heading, reducedMotion\)/);
-  assert.match(script, /function dampedScrollProgress\\(value\\)/);
-  assert.match(script, /const brakeStart = 0\\.42/);
-  assert.match(script, /const ease = dampedScrollProgress\\(t\\)/);
+  assert.ok(script.includes("function dampedScrollProgress(value)"));
+  assert.ok(script.includes("const launchEnd = 0.16;"));
+  assert.ok(script.includes("const brakeStart = 0.38;"));
+  assert.ok(script.includes("const ease = dampedScrollProgress(t)"));
   assert.match(script, /requestAnimationFrame\(tick\)/);
   assert.match(script, /heading\.getBoundingClientRect\(\)\.top/);
   assert.match(script, /getComputedStyle\(heading\)\.scrollMarginTop/);
-  assert.match(script, /window\.scrollTo\(0, startY \+ distance \* ease\)/);
+  assert.ok(script.includes("window.scrollTo(0, nextY)"));
   assert.match(script, /window\.addEventListener\("wheel", cancel/);
   assert.match(script, /window\.addEventListener\("touchstart", cancel/);
   assert.match(script, /window\.addEventListener\("keydown", cancel/);
@@ -297,10 +298,13 @@ test("较长阻尼区间持续减速并且精确停靠，无反弹或突跳", ()
   assert.ok(1 - ease(0.75) < 0.15);
   // A C1-continuous velocity curve avoids a noticeable kick at phase changes.
   const delta=0.00001;
-  for (const point of [0.12,0.42]) {
+  for (const point of [0.16,0.38]) {
     const left=(ease(point)-ease(point-delta))/delta;
     const right=(ease(point+delta)-ease(point))/delta;
     assert.ok(Math.abs(left-right) < 0.001, "velocity jumps at " + point);
   }
-  assert.match(script, /Math\.min\(1950, Math\.max\(950, 760 \+ Math\.abs\(distance\) \* 0\.27\)\)/);
+  assert.ok(script.includes("Math.min(1750, Math.max(950, 720 + Math.abs(distance) * 0.16))"));
+  assert.ok(script.includes("Math.abs(nextY - lastPaintedY) >= 0.45"));
+  assert.ok(script.includes('document.addEventListener("visibilitychange", onVisibilityChange)'));
+  assert.ok(script.includes('document.removeEventListener("visibilitychange", onVisibilityChange)'));
 });
