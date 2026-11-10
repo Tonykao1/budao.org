@@ -263,7 +263,9 @@ test("首屏每次进入展示不同同行的高分照片，二次点击进入�
 
 test("二次点击后的丝滑下卷拥有减速阻尼，并尊重用户的操作", () => {
   assert.match(script, /function glideToAlbum\(heading, reducedMotion\)/);
-  assert.match(script, /Math\.pow\(1 - t, 3\)/, "uses easing instead of browser-default smooth scrolling");
+  assert.match(script, /function dampedScrollProgress\\(value\\)/);
+  assert.match(script, /const brakeStart = 0\\.42/);
+  assert.match(script, /const ease = dampedScrollProgress\\(t\\)/);
   assert.match(script, /requestAnimationFrame\(tick\)/);
   assert.match(script, /heading\.getBoundingClientRect\(\)\.top/);
   assert.match(script, /getComputedStyle\(heading\)\.scrollMarginTop/);
@@ -274,4 +276,31 @@ test("二次点击后的丝滑下卷拥有减速阻尼，并尊重用户的操�
   assert.match(script, /html\.style\.scrollBehavior = oldScrollBehavior/);
   assert.match(script, /glideToAlbum\(heading, prefersReducedMotion\)/);
   assert.match(script, /if \(reducedMotion \|\| typeof window\.requestAnimationFrame !== "function"\)/);
+});
+
+
+test("较长阻尼区间持续减速并且精确停靠，无反弹或突跳", () => {
+  const source = script.match(/  function dampedScrollProgress\(value\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(source, "damping helper must exist");
+  const ease = new Function("return " + source.trim())();
+  const near = (a,b,tol=0.001) => assert.ok(Math.abs(a-b) < tol, a + " ≠ " + b);
+  near(ease(0), 0, 1e-10);
+  near(ease(1), 1, 1e-10);
+  for (let i=1; i<=1000; i++) {
+    const before = ease((i-1)/1000);
+    const after = ease(i/1000);
+    assert.ok(after >= before - 1e-10 && after <= 1 + 1e-10,
+      "movement must be monotone with no overshoot");
+  }
+  // The last quarter should still move visibly: not become nearly static.
+  assert.ok(1 - ease(0.75) > 0.09);
+  assert.ok(1 - ease(0.75) < 0.15);
+  // A C1-continuous velocity curve avoids a noticeable kick at phase changes.
+  const delta=0.00001;
+  for (const point of [0.12,0.42]) {
+    const left=(ease(point)-ease(point-delta))/delta;
+    const right=(ease(point+delta)-ease(point))/delta;
+    assert.ok(Math.abs(left-right) < 0.001, "velocity jumps at " + point);
+  }
+  assert.match(script, /Math\.min\(1950, Math\.max\(950, 760 \+ Math\.abs\(distance\) \* 0\.27\)\)/);
 });
