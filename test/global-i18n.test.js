@@ -390,3 +390,48 @@ test('English homepage beta preserves protected prayer payload and permissions',
   assert.match(code,/function localizedCopy/);
   assert.doesNotMatch(code,/fetch\([^)]*translate/i);
 });
+
+
+test('English mobile navigation uses scroll, not clipping or changed navbar geometry', () => {
+  const styles={};
+  const css={
+    get overflowX(){return styles.overflowX || '';},set overflowX(v){styles.overflowX=v;},
+    get justifyContent(){return styles.justifyContent || '';},set justifyContent(v){styles.justifyContent=v;},
+    removeProperty(prop){delete styles[prop==='overflow-x'?'overflowX':'justifyContent'];}
+  };
+  const paths=['/home.html','/test.html','/tongxing.html','/tongdao.html','/what.html','/tonglu.html'];
+  const elements=paths.map(p=>({getAttribute:key=>key==='href'?p:null}));
+  const nav={style:css,querySelectorAll:selector=>selector==='a'?elements:[]};
+  let matches=true,callback;
+  const mock={
+    document:{querySelector:selector=>selector==='body > nav'?nav:null},
+    matchMedia:media=>{
+      assert.equal(media,'(max-width: 900px)');
+      return {get matches(){return matches;},addEventListener:(event,fn)=>{
+        assert.equal(event,'change');callback=fn;
+      }};
+    }
+  };
+  assert.equal(homepage.enableEnglishNarrowNavigation(mock,'zh-Hans'),false);
+  assert.deepEqual(styles,{});
+  assert.equal(homepage.enableEnglishNarrowNavigation(mock,'en'),true);
+  assert.deepEqual(styles,{overflowX:'auto',justifyContent:'flex-start'});
+  matches=false;
+  callback();
+  assert.deepEqual(styles,{});
+  matches=true;
+  callback();
+  assert.deepEqual(styles,{overflowX:'auto',justifyContent:'flex-start'});
+  assert.deepEqual(paths, elements.map(x=>x.getAttribute('href')));
+});
+
+test('English nav guard refuses unexpected markup or other locales', () => {
+  const nav={style:{},querySelectorAll:()=>[{getAttribute:()=>'/home.html'}]};
+  const fake={
+    document:{querySelector:()=>nav},
+    matchMedia:()=>({matches:true})
+  };
+  assert.equal(homepage.enableEnglishNarrowNavigation(fake,'en'),false);
+  assert.equal(homepage.enableEnglishNarrowNavigation(fake,'zh-Hant'),false);
+  assert.deepEqual(nav.style,{});
+});
