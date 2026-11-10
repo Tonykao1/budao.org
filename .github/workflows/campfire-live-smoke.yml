@@ -1,0 +1,70 @@
+name: Campfire Live Read-only Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/campfire-live-smoke.yml"
+      - "api/_security/campfire-handler.js"
+      - "api/_security/campfire-guest-quota.js"
+      - "api/publish-route.js"
+      - "vercel.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify public guest settings and moderator isolation
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+
+          const origin = 'https://budao.org';
+          const photoId = '/campfire-photos/261031/261031-01.jpg';
+          const read = async (path) => {
+            const response = await fetch(origin + path, {
+              headers: { Accept: 'application/json' },
+              signal: AbortSignal.timeout(10000)
+            });
+            const body = await response.json().catch(() => ({}));
+            return { status: response.status, body };
+          };
+
+          let last;
+          for (let attempt = 1; attempt <= 12; attempt++) {
+            try {
+              const config = await read('/api/campfire?view=config');
+              assert.equal(config.status, 200, 'config endpoint');
+              assert.equal(config.body.ok, true);
+              assert.equal(config.body.guestWritesEnabled, true, 'production guest participation enabled');
+
+              const thread = await read('/api/campfire?view=thread&photoId=' + encodeURIComponent(photoId));
+              assert.equal(thread.status, 200, 'approved trail photo thread');
+              assert.ok(Array.isArray(thread.body.comments), 'public comments list');
+              assert.ok(Array.isArray(thread.body.reacted), 'visitor-specific reaction state');
+              assert.equal(Object.hasOwn(thread.body, 'count'), false, 'no public counters');
+
+              const privateQueue = await read('/api/campfire?view=moderation');
+              assert.equal(privateQueue.status, 403, 'no guest moderation access');
+              assert.equal(privateQueue.body.reason, 'forbidden');
+
+              const invalidPhoto = await read('/api/campfire?view=thread&photoId=%2Fcampfire-photos%2Fprivate.jpg');
+              assert.equal(invalidPhoto.status, 404, 'unapproved photos do not expose data');
+
+              console.log('PASS: global guest API ready; comments private until approved; moderator queue protected.');
+              process.exit(0);
+            } catch (e) {
+              last = e;
+              console.log('Attempt ' + attempt + ': ' + String(e.message).slice(0,240));
+              if (attempt < 12) await new Promise(resolve => setTimeout(resolve, 7000));
+            }
+          }
+          console.error('Production smoke failed:', String(last?.message || 'unknown'));
+          process.exit(1);
+          NODE
