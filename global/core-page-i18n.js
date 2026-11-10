@@ -14,7 +14,7 @@
     { selector:'nav a[href="/tongdao.html"]', source:'同道', values:{en:'Companions','zh-Hant':'同道'} },
     { selector:'nav a[href="/what.html"]', source:'同工', values:{en:'Fellow Workers','zh-Hant':'同工'} },
     { selector:'nav a[href="/tonglu.html"]', source:'牧场', values:{en:'Pasture','zh-Hant':'牧場'} },
-    { selector:'.super-hero h1', source:'本周同行', values:{en:'Walking Together This Week','zh-Hant':'本週同行'} },
+    { selector:'.super-hero h1', source:'本周同行', values:{en:'This Week, Together','zh-Hant':'本週同行'} },
     { selector:'.super-hero p', mode:'leading-text', source:'有人仍在城市边缘继续向前走。', values:{en:'Some keep walking on the edges of the city.','zh-Hant':'有人仍在城市邊緣繼續向前走。'} },
     { selector:'.super-hero p', mode:'leading-text', source:'也有人，在不同国家与时区里，彼此同行。', values:{en:'Others walk together across countries and time zones.','zh-Hant':'也有人，在不同國家與時區裡，彼此同行。'} },
     { selector:'#budaoCalendar', mode:'attribute', attribute:'aria-label', source:'步道日历', values:{en:'BUDAO calendar','zh-Hant':'BUDAO 日曆'} },
