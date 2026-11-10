@@ -8,6 +8,7 @@ const { getDatabaseUrl } = require("../../db/client");
 const { getAuthenticatedPublisher, isSteward } = require("./auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./http");
 const { clientIp, consume } = require("./rate-limit");
+const { consumeGuestQuota } = require("./campfire-guest-quota");
 const archive = require("../../data/campfire-archive.json");
 
 const photos = new Map();
@@ -62,9 +63,10 @@ async function thread(req,res,photoId) {
   if (!validPhoto(photoId)) return error(res,404,"photo_unavailable");
   const visitor = guestHash(req,res,false);
   const comments = await query(
-    "SELECT id, parent_id AS \"parentId\",display_name AS name,body,official,created_at AS \"createdAt\" "+
+    "SELECT id, parent_id AS \"parentId\",display_name AS name,body,official,created_at AS \"createdAt\", "+
+    "(visitor_hash IS NOT NULL AND visitor_hash=$2) AS mine "+
     "FROM campfire_comments WHERE photo_id=$1 AND status='APPROVED' ORDER BY created_at ASC LIMIT 180",
-    [photoId]);
+    [photoId,visitor]);
   const reacted = visitor ? await query(
     "SELECT target_kind||':'||target_id AS key FROM campfire_reactions "+
     "WHERE visitor_hash=$1 AND ((target_kind='photo' AND target_id=$2) OR "+
@@ -112,6 +114,8 @@ async function react(req,res,data) {
     if (!c.length) return error(res,404,"comment_unavailable");
   }
   const visitor = guestHash(req,res,true);
+  if (!await consumeGuestQuota(query,req,visitor,"react"))
+    return error(res,429,"rate_limited");
   const inserted = await query(
     "INSERT INTO campfire_reactions(visitor_hash,target_kind,target_id,album_id) VALUES ($1,$2,$3,$4) "+
     "ON CONFLICT (visitor_hash,target_kind,target_id) DO NOTHING RETURNING id",
@@ -124,6 +128,7 @@ async function addComment(req,res,data) {
   const admin=adminFor(req);
   if (!admin && !guestWritesEnabled()) return error(res,403,"guest_comments_not_enabled");
   if (!admin && data.consent!==true) return error(res,400,"consent_required");
+  if (!admin && data.company_website) return error(res,400,"invalid_request");
   const body=clean(data.body,600);
   const name=admin?"步道 · 主理人":clean(data.name||"",32)||"同行者";
   if (body.length<2 || /https?:\/\/|www\./i.test(body)) return error(res,400,"invalid_comment");
@@ -137,6 +142,8 @@ async function addComment(req,res,data) {
     parent=found[0].parent_id||found[0].id;
   }
   const visitor=admin?null:guestHash(req,res,true);
+  if (visitor && !await consumeGuestQuota(query,req,visitor,"comment"))
+    return error(res,429,"rate_limited");
   const status=admin?"APPROVED":"PENDING";
   const inserted=await query(
     "INSERT INTO campfire_comments(photo_id,album_id,parent_id,visitor_hash,display_name,body,status,official,consent_version) "+
@@ -172,10 +179,33 @@ async function report(req,res,data) {
   const found=await query("SELECT id FROM campfire_comments WHERE id=$1::uuid AND status='APPROVED'",[data.commentId]);
   if (!found.length) return error(res,404,"comment_unavailable");
   const visitor=guestHash(req,res,true);
+  if (!await consumeGuestQuota(query,req,visitor,"report"))
+    return error(res,429,"rate_limited");
   await query("INSERT INTO campfire_reports(comment_id,visitor_hash) VALUES($1::uuid,$2) "+
     "ON CONFLICT(comment_id,visitor_hash) DO NOTHING",[data.commentId,visitor]);
   return sendJson(res,200,{ok:true});
 }
+
+async function withdrawOwnComment(req,res,data) {
+  if (!UUID.test(data.commentId||"")) return error(res,400,"invalid_target");
+  const visitor=guestHash(req,res,false);
+  if (!visitor) return error(res,403,"visitor_session_required");
+  if (!await consumeGuestQuota(query,req,visitor,"withdraw"))
+    return error(res,429,"rate_limited");
+  // No account needed: only the same browser's short-lived secret may
+  // withdraw the specific author's own comment (published or pending).
+  const scrubbed=await query(
+    "UPDATE campfire_comments SET status='DELETED',body='此评论已由作者撤回',"+
+    "display_name='同行者',visitor_hash=NULL,updated_at=NOW() "+
+    "WHERE id=$1::uuid AND visitor_hash=$2 AND status IN ('PENDING','APPROVED','HIDDEN') RETURNING id",
+    [data.commentId,visitor]);
+  if (!scrubbed.length) return error(res,404,"comment_unavailable");
+  // Any earlier reports must not retain an active link to removed content.
+  await query("UPDATE campfire_reports SET resolved_at=NOW() "+
+    "WHERE comment_id=$1::uuid AND resolved_at IS NULL",[data.commentId]);
+  return sendJson(res,200,{ok:true,withdrawn:true});
+}
+
 async function handler(req,res) {
   const u=new URL(req.url||"/api/campfire","https://budao.org");
   try {
@@ -197,6 +227,7 @@ async function handler(req,res) {
       case "comment":return await addComment(req,res,data);
       case "moderate":return await moderate(req,res,data);
       case "report":return await report(req,res,data);
+      case "withdraw":return await withdrawOwnComment(req,res,data);
       default:return error(res,400,"invalid_action");
     }
   } catch(e) {
