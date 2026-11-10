@@ -529,6 +529,90 @@
       ],
       "editorialNote": "超级管理员提供 2026-08-16「故城记忆」12 张现场照片，并于 2026-11-05 确认正式发布。已清除 EXIF 并优化为 WebP；照片全部与档案目录对应。不推断参与者身份或具体地名。",
       "publishedOn": "2026-11-05"
+    },
+    {
+      "id": "260809",
+      "date": "2026-08-09",
+      "title": "东灵山领袖行军",
+      "location": "中国·北京·东灵山",
+      "description": "云海在山峦间翻涌，浓雾将道路时隐时现地藏起。\n\n我们行走在天地之间，看牛群安卧、马儿悠然、野花在风中静静开放。山川辽阔，人的脚步显得如此微小。\n\n领袖行军，不是为了证明谁能走得更高、更远，而是在旷野中学习谦卑，在未知中操练信心，在同行中彼此扶持。\n\n道路未必始终清晰，但我们仍愿并肩前行。",
+      "published": true,
+      "publishedOn": "2026-11-10",
+      "editorialNote": "管理员提供2026-08-09东灵山领袖行军13张现场照片，2026-11-10要求正式部署。精选12张，原第5张因场景重复未采用。首图采用雾中台阶与同行者；按叙事编排，不冒称拍摄时间顺序。照片重新编码为WebP并去除EXIF。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260809/260809-01.webp",
+          "alt": "阳光穿过薄雾，几位同行者沿着山间石阶行走",
+          "caption": "雾中台阶，同行者走在山路上",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-02.webp",
+          "alt": "石头铺就的山路通往前方草坡和山脊，山间飘过薄雾",
+          "caption": "山路伸向远方的草坡",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-03.webp",
+          "alt": "绿色高山草甸和碎石山径延伸至起伏山脊，右侧薄雾漫过坡面",
+          "caption": "山势徐徐展开",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-04.webp",
+          "alt": "蓝天下大片白云铺过山谷，绿色山坡在前景延伸",
+          "caption": "云海在群山之间翻涌",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-05.webp",
+          "alt": "辽阔云海上方露出远山的轮廓，云朵高耸在蓝天中",
+          "caption": "云海深处，远山若隐若现",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-06.webp",
+          "alt": "两位徒步者走在高山石阶上，周围是绿草、树林与弥漫山谷的云雾",
+          "caption": "云雾之间，继续前行",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-07.webp",
+          "alt": "云雾笼罩宽阔的高山草甸，牛群散布在坡面上吃草",
+          "caption": "云雾中的高山牧场",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-08.webp",
+          "alt": "蓝天下多头牛在草甸上安卧，远方山坡草色浓绿",
+          "caption": "草甸上的牛群安然休憩",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-09.webp",
+          "alt": "四匹马站在薄雾笼罩的草坡上，其中一匹低头吃草",
+          "caption": "雾中遇见群马",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-10.webp",
+          "alt": "几匹马站立或卧倒在绿色草坡上，其中一匹棕马面朝镜头",
+          "caption": "近看山坡上的马群",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-11.webp",
+          "alt": "一匹棕色小马独自站在浓雾和草地之间",
+          "caption": "小马停在安静的雾里",
+          "approved": true
+        },
+        {
+          "src": "/campfire-photos/260809/260809-12.webp",
+          "alt": "两株紫色花序在高山绿草丛中开放，背景被雾气笼罩",
+          "caption": "雾中的紫色山花",
+          "approved": true
+        }
+      ]
     }
   ],
   "quoteSource": "营火之地旧版公开留言库（未逐条绑定活动场次）",
