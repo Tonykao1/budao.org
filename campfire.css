@@ -70,13 +70,19 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
 .camp-filter.is-active { border-color:#d7aa77; background:#d7aa77; color:#182218; }
 .campfire-page .camp-gallery-source-note { margin:0 0 28px; max-width:720px; color:#aebbac; font-size:12px; line-height:1.9; }
 .camp-photo-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:17px; align-items:stretch; }
+.camp-album-heading { grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:8px 20px; align-items:baseline; justify-content:space-between; margin:30px 0 2px; padding:17px 0 11px; border-top:1px solid rgba(248,236,206,.18); scroll-margin-top:30px; outline:none; }
+.camp-album-heading:first-child { margin-top:0; }
+.camp-album-heading h3 { margin:0; color:#f6ebd9; font:clamp(23px,2.7vw,34px)/1.35 "Songti SC","Noto Serif CJK SC",serif; }
+.camp-album-date { color:#d7aa77; font-size:11px; letter-spacing:.11em; }
+.camp-album-heading.is-target { border-top-color:#d7aa77; }
+.camp-album-heading:focus-visible { outline:2px solid #d7aa77; outline-offset:4px; }
 .camp-photo-card { grid-column:span 4; display:block; padding:0; text-align:left; color:inherit; border:1px solid rgba(248,236,206,.17); background:#152119; cursor:zoom-in; overflow:hidden; }
-.camp-photo-card:nth-child(7n + 1) { grid-column:span 7; }
-.camp-photo-card:nth-child(7n + 2) { grid-column:span 5; }
-.camp-photo-card:nth-child(7n + 3) { grid-column:span 5; }
-.camp-photo-card:nth-child(7n + 4) { grid-column:span 7; }
+.camp-photo-card:nth-of-type(7n + 1) { grid-column:span 7; }
+.camp-photo-card:nth-of-type(7n + 2) { grid-column:span 5; }
+.camp-photo-card:nth-of-type(7n + 3) { grid-column:span 5; }
+.camp-photo-card:nth-of-type(7n + 4) { grid-column:span 7; }
 .camp-photo-visual { position:relative; height:245px; overflow:hidden; background:#29382b; }
-.camp-photo-card:nth-child(7n + 1) .camp-photo-visual,.camp-photo-card:nth-child(7n + 4) .camp-photo-visual { height:335px; }
+.camp-photo-card:nth-of-type(7n + 1) .camp-photo-visual,.camp-photo-card:nth-of-type(7n + 4) .camp-photo-visual { height:335px; }
 .camp-photo-visual img { display:block; height:100%; width:100%; object-fit:cover; transition:transform .6s,filter .3s; }
 .camp-photo-card:hover img { transform:scale(1.04); filter:brightness(1.07); }
 .camp-photo-kind { position:absolute; left:17px; top:17px; color:#fbe6c7; background:rgba(11,20,13,.72); border:1px solid rgba(255,255,255,.2); backdrop-filter:blur(6px); font-size:11px; letter-spacing:.06em; padding:6px 9px; }
@@ -140,7 +146,7 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
   .camp-hero-gallery { height:380px; }
   .campfire-page .camp-poem { font-size:26px; }
   .camp-photo-visual { height:220px; }
-  .camp-photo-card:nth-child(7n + 1) .camp-photo-visual,.camp-photo-card:nth-child(7n + 4) .camp-photo-visual { height:275px; }
+  .camp-photo-card:nth-of-type(7n + 1) .camp-photo-visual,.camp-photo-card:nth-of-type(7n + 4) .camp-photo-visual { height:275px; }
 }
 @media(max-width:700px) {
   .camp-container { width:calc(100% - 36px); }
@@ -165,9 +171,9 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
   .campfire-page .camp-section-heading h2 { font-size:40px; }
   .campfire-page .camp-section-heading > p { margin-top:18px; font-size:13px; }
   .camp-photo-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
-  .camp-photo-card,.camp-photo-card:nth-child(7n + 1),.camp-photo-card:nth-child(7n + 2),.camp-photo-card:nth-child(7n + 3),.camp-photo-card:nth-child(7n + 4) { grid-column:span 1; }
+  .camp-photo-card,.camp-photo-card:nth-of-type(7n + 1),.camp-photo-card:nth-of-type(7n + 2),.camp-photo-card:nth-of-type(7n + 3),.camp-photo-card:nth-of-type(7n + 4) { grid-column:span 1; }
   .camp-photo-card:first-child { grid-column:span 2; }
-  .camp-photo-visual,.camp-photo-card:nth-child(7n + 1) .camp-photo-visual,.camp-photo-card:nth-child(7n + 4) .camp-photo-visual { height:205px; }
+  .camp-photo-visual,.camp-photo-card:nth-of-type(7n + 1) .camp-photo-visual,.camp-photo-card:nth-of-type(7n + 4) .camp-photo-visual { height:205px; }
   .camp-photo-card:first-child .camp-photo-visual { height:265px; }
   .camp-photo-caption { padding:15px 14px 16px; min-height:0; }
   .camp-photo-title { font-size:19px; }
