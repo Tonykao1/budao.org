@@ -134,7 +134,21 @@
   function renderHero() {
     const hero = $("#camp-hero-gallery");
     if (!hero) return;
-    const source = gallery.slice(0, 3);
+    // Three journeys, three memories: choose one approved photo per distinct event.
+    // Only use route covers when fewer than three different published photo albums exist.
+    const source = [];
+    const seenActivities = new Set();
+    for (const kind of ["moment", "cover"]) {
+      for (const item of gallery) {
+        if (item.kind !== kind) continue;
+        const activityKey = item.date + "|" + item.title;
+        if (seenActivities.has(activityKey)) continue;
+        seenActivities.add(activityKey);
+        source.push(item);
+        if (source.length === 3) break;
+      }
+      if (source.length === 3) break;
+    }
     if (!source.length) return;
     const nodes = source.map((item) => {
       const shot = newElement("figure", "camp-hero-shot");
