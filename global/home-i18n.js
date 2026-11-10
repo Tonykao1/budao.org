@@ -128,6 +128,28 @@
   }
   root.BudaoHomeI18n = Object.freeze({ runtimeCopy });
 
+  // This control is a sibling of the original six-link nav, and appears
+  // only on /home.html. Explicit link navigation, never auto locale selection.
+  function configureHomeLanguageSwitch(windowObject, locale) {
+    if (!windowObject || !windowObject.BudaoGlobal ||
+        !windowObject.document || !windowObject.location ||
+        windowObject.location.pathname !== '/home.html') return false;
+    const link = windowObject.document.getElementById('homeLanguageSwitch');
+    if (!link || link.tagName !== 'A' ||
+        link.getAttribute('href') !== '/home.html?lang=en' &&
+        link.getAttribute('href') !== '/home.html') return false;
+    const english = locale === 'en';
+    const target = english ? 'zh-Hans' : 'en';
+    const href = windowObject.BudaoGlobal.languageLink('/home.html',
+      windowObject.location.search, windowObject.location.hash, target);
+    if (!href) return false;
+    link.setAttribute('href', href);
+    link.setAttribute('lang', english ? 'zh-Hans' : 'en');
+    link.setAttribute('hreflang', english ? 'zh-Hans' : 'en');
+    link.setAttribute('aria-label', english ? '切换到中文首页' : 'Switch homepage to English');
+    link.textContent = english ? '中文' : 'EN';
+    return true;
+  }
   // English labels are longer than the original six Chinese labels. Keep the
   // site's single-row navigation, existing typography and links, but make the
   // English row horizontally scrollable on narrow screens rather than clipping
@@ -141,14 +163,16 @@
     const anchors = Array.from(nav.querySelectorAll('a'));
     if (anchors.length !== expected.length ||
         !anchors.every((anchor,index) => anchor.getAttribute('href')?.split('?')[0] === expected[index])) return false;
-    const mq = windowObject.matchMedia('(max-width: 900px)');
+    const mq = windowObject.matchMedia('(max-width: 1200px)');
     const sync = () => {
       if (mq.matches) {
         nav.style.overflowX = 'auto';
         nav.style.justifyContent = 'flex-start';
+        nav.style.paddingRight = '76px';
       } else {
         nav.style.removeProperty('overflow-x');
         nav.style.removeProperty('justify-content');
+        nav.style.removeProperty('padding-right');
       }
     };
     sync();
@@ -159,13 +183,16 @@
     if (!root.BudaoGlobal || !root.document || !root.location) return;
     if (root.location.pathname !== '/home.html') return;
     const chosen = root.BudaoGlobal.requestedLocale(root.location.search);
-    if (chosen === root.BudaoGlobal.SOURCE) return;
-    root.BudaoGlobal.localize(root.document, chosen, entries);
-    previewEnglishCreed(root.document, chosen);
-    root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
-    enableEnglishNarrowNavigation(root, chosen);
+    if (chosen !== root.BudaoGlobal.SOURCE) {
+      root.BudaoGlobal.localize(root.document, chosen, entries);
+      previewEnglishCreed(root.document, chosen);
+      root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
+      enableEnglishNarrowNavigation(root, chosen);
+    }
+    // Configure last so localization of self-links cannot undo the toggle target.
+    configureHomeLanguageSwitch(root, chosen);
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, enableEnglishNarrowNavigation });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
