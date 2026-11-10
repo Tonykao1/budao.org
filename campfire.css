@@ -40,6 +40,9 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
 .camp-hero-shot:nth-child(1) { width:65%; height:75%; top:4%; left:0; transform:rotate(-7deg); z-index:2; }
 .camp-hero-shot:nth-child(2) { width:52%; height:68%; top:24%; right:0; transform:rotate(8deg); z-index:3; }
 .camp-hero-shot:nth-child(3) { width:44%; height:49%; top:51%; left:7%; transform:rotate(3deg); z-index:1; }
+.camp-hero-shot { cursor:pointer; }
+.camp-hero-shot.is-front { z-index:4; }
+.camp-hero-shot:focus-visible { outline:3px solid #e7b780; outline-offset:5px; }
 .camp-hero-shot img { width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.8); }
 .camp-hero-shot figcaption { position:absolute; bottom:0; left:0; right:0; padding:25px 10px 10px; background:linear-gradient(transparent,rgba(11,16,10,.88)); color:#fff5e6; font-size:11px; letter-spacing:.06em; text-align:center; }
 .camp-cover-placeholder { display:flex; flex-direction:column; height:100%; align-items:center; justify-content:center; border:1px solid var(--fire-line); color:#e7b780; }
