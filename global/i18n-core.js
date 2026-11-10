@@ -35,6 +35,32 @@
     const q = params.toString();
     return pathname + (q ? '?' + q : '') + (typeof hash === 'string' && /^#[-\w.%]*$/.test(hash) ? hash : '');
   }
+  // Preserve the chosen locale ONLY for routes that actually have a reviewed
+  // opt-in language integration. Never imply untranslated pages are translated.
+  // Does not add elements, listeners, styling, storage or external navigation.
+  function carryLocaleOnLinks(documentObject, locale, localizedPaths) {
+    const chosen = normalizeLocale(locale);
+    if (!chosen || chosen === SOURCE || !documentObject ||
+        typeof documentObject.querySelectorAll !== 'function' ||
+        !Array.isArray(localizedPaths)) return { changed: 0 };
+    const approved = new Set(localizedPaths.filter(safePage));
+    let changed = 0;
+    for (const link of Array.from(documentObject.querySelectorAll('a[href]') || [])) {
+      if (!link || typeof link.getAttribute !== 'function' ||
+          typeof link.setAttribute !== 'function') continue;
+      const href = link.getAttribute('href');
+      if (typeof href !== 'string') continue;
+      // Exactly root-relative HTML routes. Never touch external URLs, route
+      // invitations, user-generated registration links, mailto or fragments.
+      const parts = /^(\/[a-z]+\.html)(\?[^#]*)?(#[-\w.%]*)?$/.exec(href);
+      if (!parts || !approved.has(parts[1])) continue;
+      const next = languageLink(parts[1], parts[2] || '', parts[3] || '', chosen);
+      if (!next || next === href) continue;
+      link.setAttribute('href', next);
+      changed++;
+    }
+    return { changed };
+  }
   function localize(document, locale, entries) {
     const chosen = normalizeLocale(locale) || SOURCE;
     if (chosen === SOURCE || !document || !Array.isArray(entries)) return { changed: 0, skipped: 0 };
@@ -67,5 +93,5 @@
     if (changed && document.documentElement) document.documentElement.lang = chosen;
     return { changed, skipped };
   }
-  return Object.freeze({ SOURCE, SUPPORTED, normalizeLocale, requestedLocale, safePage, languageLink, localize });
+  return Object.freeze({ SOURCE, SUPPORTED, normalizeLocale, requestedLocale, safePage, languageLink, localize, carryLocaleOnLinks });
 });
