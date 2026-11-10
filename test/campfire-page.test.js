@@ -221,3 +221,41 @@ test("星火同行把真实活动记忆与私人足迹分开，不公开计数�
   assert.match(css, /camp-s2s-three/);
   assert.match(css, /camp-album-memory/);
 });
+
+
+test("首屏每次进入展示不同同行的高分照片，二次点击进入对应影集", () => {
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.equal(quality.version, 1);
+  assert.ok(quality.scores && typeof quality.scores === "object");
+  const approved = archive.albums
+    .filter((album) => album.published === true)
+    .flatMap((album) => album.photos.filter((photo) => photo.approved === true));
+  assert.ok(approved.length >= 3);
+  for (const photo of approved) {
+    assert.ok(Number.isInteger(quality.scores[photo.src]), "missing quality score: " + photo.src);
+    assert.ok(quality.scores[photo.src] >= 0 && quality.scores[photo.src] <= 100);
+  }
+  const processor = read("scripts/campfire-watermark.py");
+  const workflow = read(".github/workflows/campfire-watermark.yml");
+  assert.match(processor, /hero_quality_score/);
+  assert.match(processor, /ImageChops\.difference/);
+  assert.match(processor, /campfire-hero-quality\.json/);
+  assert.match(workflow, /git add -A campfire-watermarked\/ data\/campfire-hero-quality\.json/);
+
+  assert.match(script, /function selectHeroPhotos\(\)/);
+  assert.match(script, /item\.kind !== "moment" \|\| item\.heroEligible === false/);
+  assert.match(script, /function heroPhotoScore\(item\)/);
+  assert.match(script, /data\/campfire-hero-quality\.json/);
+  assert.match(script, /previousHeroSelection/);
+  assert.match(script, /window\.sessionStorage/);
+  assert.match(script, /event\.persisted/);
+  assert.match(script, /if \(armedIndex === index\)/);
+  assert.match(script, /shot\.addEventListener\("click", activate\)/);
+  assert.match(script, /scrollToHeroAlbum\(item\)/);
+  assert.match(script, /setGalleryFilter\("moment"\)/);
+  assert.match(script, /heading\.scrollIntoView/);
+  assert.match(script, /heading\.dataset\.albumKey/);
+  assert.match(css, /\.camp-album-heading/);
+  assert.match(css, /\.camp-photo-card:nth-of-type/);
+  assert.match(html, /再次点击进入对应影集/);
+});
