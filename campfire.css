@@ -516,3 +516,42 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
 @media(prefers-reduced-motion:reduce){
   .camp-s2s-feature a,.camp-s2s-feature button{transition:none}
 }
+
+
+/* Global Campfire no-account participation: disclosure and accessible withdrawal. */
+.camp-necessary-cookie{
+  margin:10px 0 16px!important;
+  color:#a9b9a9!important;
+  font-size:11px!important;
+  line-height:1.8!important;
+}
+.camp-necessary-cookie a{
+  color:#deb67f;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.camp-honeypot{
+  position:absolute!important;
+  left:-10000px!important;
+  height:1px!important;
+  width:1px!important;
+  overflow:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+.camp-withdraw-pending{
+  display:inline-block;
+  border:0;
+  background:none;
+  color:#d0ac83;
+  padding:5px 0;
+  font-size:12px;
+  cursor:pointer;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.camp-withdraw-pending[hidden]{display:none}
+.camp-thread-tool:focus-visible,.camp-card-spark:focus-visible,
+.camp-spark-button:focus-visible,.camp-withdraw-pending:focus-visible{
+  outline:2px solid #e7bc81;outline-offset:3px;
+}

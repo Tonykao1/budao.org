@@ -12,6 +12,7 @@
   let photo=null;
   let liked=new Set();
   let comments=[];
+  let lastPending=null;
   let enabled=false;
   let admin=false;
   let available=false;
@@ -34,7 +35,9 @@
     const reason=String(e.message||e);
     return ({
       guest_reactions_not_enabled:"此功能尚在筹备，暂未开放访客互动。",
-      guest_comments_not_enabled:"访客留言正在进行合规准备，暂未开放。",
+      guest_comments_not_enabled:"访客留言暂时关闭，请稍后再试。",
+      visitor_session_required:"未找到本设备的匿名会话，无法核对留言归属。",
+      comment_unavailable:"这条评论不存在、已被撤回，或不属于当前浏览器。",
       migration_required:"互动数据准备中，暂时无法连接。",
       rate_limited:"操作稍频繁，请稍后再试。",
       consent_required:"请先阅读并同意社区规则。",
@@ -111,6 +114,16 @@
     tools.append(spark);
     if(enabled||admin)tools.append(button("回复","camp-thread-tool",()=>replyTo(c)));
     tools.append(button("举报","camp-thread-tool",()=>reportComment(c)));
+    if(c.mine && !c.official) {
+      tools.append(button("撤回我的留言","camp-thread-tool",async()=>{
+        if(!window.confirm("确定撤回这条留言吗？撤回后无法恢复。"))return;
+        try {
+          await post({action:"withdraw",commentId:c.id});
+          state("留言已撤回，个人关联记录已清除。");
+          await refreshThread();
+        }catch(e){state(reason(e));}
+      }));
+    }
     if(admin) {
       tools.append(button("隐藏","camp-thread-tool camp-manage-tool",()=>changeStatus(c.id,"HIDDEN")));
       tools.append(button("删除","camp-thread-tool camp-manage-tool",()=>removeComment(c.id)));
@@ -176,6 +189,8 @@
   }
   async function showPhoto(item) {
     photo=item;
+    lastPending=null;
+    $("camp-withdraw-pending").hidden=true;
     resetReply();
     sparkState("");
     state("");
@@ -247,15 +262,28 @@
         const response=await post({
           action:"comment",photoId:photo.image,parentId:$("camp-parent-id").value||null,
           name:$("camp-comment-name").value,body:$("camp-comment-body").value,
+          company_website:$("camp-company-website").value,
           consent:$("camp-comment-consent").checked
         });
         $("camp-comment-body").value="";resetReply();
-        state(response.status==="PENDING"?"感谢留言。审核通过后就会出现在这里。":"你的回复已发布。");
+        lastPending=response.status==="PENDING"?response.id:null;
+        $("camp-withdraw-pending").hidden=!lastPending;
+        state(response.status==="PENDING"?"感谢留言！审核通过后将在这里公开。你也可以随时撤回刚提交的内容。":"你的回复已发布。");
         if(response.status==="APPROVED")await refreshThread();
       }catch(err){state(reason(err));}
       finally{submit.disabled=!enabled&&!admin;}
     });
     $("camp-reply-cancel")?.addEventListener("click",resetReply);
+    $("camp-withdraw-pending")?.addEventListener("click",async()=>{
+      if(!lastPending||!window.confirm("确定撤回刚提交的待审留言吗？"))return;
+      const id=lastPending;
+      try {
+        await post({action:"withdraw",commentId:id});
+        lastPending=null;
+        $("camp-withdraw-pending").hidden=true;
+        state("已撤回。留言正文及匿名关联已清除。");
+      }catch(e){state(reason(e));}
+    });
     $("camp-photo-spark")?.addEventListener("click",()=>photo&&sparkPhoto(photo.image,$("camp-photo-spark")));
     $("camp-load-moderation")?.addEventListener("click",loadModeration);
     Promise.allSettled([findAdmin(),configure()]).then(refreshCardButtons);
