@@ -285,3 +285,33 @@
 .route-grid.is-calendar-focused .route-card.is-calendar-filtered-out {
     display:none;
 }
+
+
+/* Approved 2026-09-17 five-color footprint artwork (retina-optimized PNG from signed-off source). */
+.budao-calendar-step-mark--pioneer,
+.budao-calendar-step-mark--budao,
+.budao-calendar-step-mark--march,
+.budao-calendar-step-mark--camp,
+.budao-calendar-step-mark--fellowship{
+    background-color:transparent;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-size:contain;
+    -webkit-mask-image:none;
+    mask-image:none;
+}
+.budao-calendar-step-mark--pioneer{
+    background-image:url("/assets/calendar-steps/pioneer-gold.png");
+}
+.budao-calendar-step-mark--budao{
+    background-image:url("/assets/calendar-steps/budao-green.png");
+}
+.budao-calendar-step-mark--march{
+    background-image:url("/assets/calendar-steps/march-orange.png");
+}
+.budao-calendar-step-mark--camp{
+    background-image:url("/assets/calendar-steps/camp-blue.png");
+}
+.budao-calendar-step-mark--fellowship{
+    background-image:url("/assets/calendar-steps/fellowship-purple.png");
+}

@@ -145,3 +145,31 @@ test('published camp route receives a visible, correctly dated calendar footprin
   assert.match(css, /\.budao-calendar-step-mark--camp[\s\S]*?mask-image:var\(--budao-step-shape\)/, 'camp mask must be rendered');
   assert.match(css, /\.budao-calendar-step-mark--camp\{[\s\S]*?background-color:\s*#[0-9a-f]{6}/i, 'camp must have a visible solid footprint color');
 });
+
+
+test('five approved original artwork icons are mapped to the five step types', () => {
+  const css = fs.readFileSync(path.join(root, 'budao-calendar.css'), 'utf8');
+  const approved = css.slice(css.indexOf('/* Approved 2026-09-17 five-color footprint artwork'));
+  const expected = {
+    pioneer: 'pioneer-gold.png',
+    budao: 'budao-green.png',
+    march: 'march-orange.png',
+    camp: 'camp-blue.png',
+    fellowship: 'fellowship-purple.png'
+  };
+
+  assert.match(approved, /-webkit-mask-image:none;/);
+  assert.match(approved, /mask-image:none;/);
+  assert.match(approved, /background-size:contain;/);
+  for (const [type, filename] of Object.entries(expected)) {
+    const escaped = filename.replace(/\./g, '\\.');
+    assert.match(approved, new RegExp('\\\\.budao-calendar-step-mark--' + type + '\\\\{[\\\\s\\\\S]*?background-image:url\\\\("/assets/calendar-steps/' + escaped + '"\\\\)'));
+    const image = fs.readFileSync(path.join(root, 'assets', 'calendar-steps', filename));
+    assert.equal(image.toString('hex', 0, 8), '89504e470d0a1a0a', filename + ' must be a valid PNG');
+    assert.equal(image.readUInt32BE(16), 72, filename + ' width');
+    assert.equal(image.readUInt32BE(20), 80, filename + ' height');
+  }
+  const events = JSON.parse(fs.readFileSync(path.join(root, 'calendar-events.json'), 'utf8'));
+  assert.ok(events.some(e => e.date === '2026-11-14' && e.type === 'camp'),
+    'Jingzhihu half-day camp must remain marked on Nov 14');
+});
