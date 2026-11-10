@@ -219,13 +219,13 @@
     return result;
   }
 
-  // A distance-normalized velocity profile: short, gentle launch (12%),
-  // steady glide (30%), then a deliberately long 58% damping phase.
-  // Velocity and acceleration remain continuous at phase boundaries.
+  // Film-like distance-normalized velocity: gentle launch (16%), brief glide
+  // (22%), then 62% of the time is a long, continuous braking phase.
+  // First and second derivatives remain continuous: no jolt at either seam.
   function dampedScrollProgress(value) {
     const t = Math.max(0, Math.min(1, value));
-    const launchEnd = 0.12;
-    const brakeStart = 0.42;
+    const launchEnd = 0.16;
+    const brakeStart = 0.38;
     const launchArea = 2 * launchEnd / Math.PI;
     const cruiseArea = brakeStart - launchEnd;
     const brakeArea = 2 * (1 - brakeStart) / Math.PI;
@@ -256,15 +256,19 @@
     const distance = targetY - startY;
     if (Math.abs(distance) < 2) return;
 
-    // Scale the journey to the distance; reserve over half the time for
-    // gradual physical-feeling braking instead of a nearly static final tail.
-    const duration = Math.min(1950, Math.max(950, 760 + Math.abs(distance) * 0.27));
+    // Apple-like pacing is responsive rather than artificially slow: long
+    // journeys gain time, but more than half is still spent smoothly braking.
+    const duration = Math.min(1750, Math.max(950, 720 + Math.abs(distance) * 0.16));
     const html = document.documentElement;
     const oldScrollBehavior = html.style.scrollBehavior;
     html.style.scrollBehavior = "auto";
     let frame = 0;
     let started = null;
+    let lastPaintedY = startY;
     let running = true;
+    const onVisibilityChange = () => {
+      if (document.hidden) cancel();
+    };
     const cancel = () => {
       if (!running) return;
       running = false;
@@ -273,6 +277,7 @@
       window.removeEventListener("touchstart", cancel);
       window.removeEventListener("pointerdown", cancel);
       window.removeEventListener("keydown", cancel);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       html.style.scrollBehavior = oldScrollBehavior;
       if (heroScrollCancel === cancel) heroScrollCancel = null;
     };
@@ -282,13 +287,20 @@
     window.addEventListener("touchstart", cancel, {passive:true});
     window.addEventListener("pointerdown", cancel, {passive:true});
     window.addEventListener("keydown", cancel);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const tick = (now) => {
       if (!running) return;
       if (started === null) started = now;
       const t = Math.min(1, (now - started) / duration);
       const ease = dampedScrollProgress(t);
-      window.scrollTo(0, startY + distance * ease);
+      const nextY = t === 1 ? targetY : startY + distance * ease;
+      // Subpixel writes when nearly still can look like a tiny end-of-scroll
+      // tremor on high-refresh displays; always land exactly on the target.
+      if (t === 1 || Math.abs(nextY - lastPaintedY) >= 0.45) {
+        window.scrollTo(0, nextY);
+        lastPaintedY = nextY;
+      }
       if (t < 1) frame = window.requestAnimationFrame(tick);
       else cancel();
     };
