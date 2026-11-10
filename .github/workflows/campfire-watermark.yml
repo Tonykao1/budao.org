@@ -41,12 +41,12 @@ jobs:
       - name: Produce approved watermarked display photos
         run: python scripts/campfire-watermark.py
 
-      - name: Publish generated display files
+      - name: Publish watermarked photos and editorial quality scores
         shell: bash
         run: |
-          git add -A campfire-watermarked/
+          git add -A campfire-watermarked/ data/campfire-hero-quality.json
           if git diff --cached --quiet; then
-            echo "Display photos are already up to date."
+            echo "Display photos and quality scores are already up to date."
             exit 0
           fi
           git config user.name "budao-campfire-bot"
