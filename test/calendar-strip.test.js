@@ -162,8 +162,9 @@ test('five approved original artwork icons are mapped to the five step types', (
   assert.match(approved, /mask-image:none;/);
   assert.match(approved, /background-size:contain;/);
   for (const [type, filename] of Object.entries(expected)) {
-    const escaped = filename.replace(/\./g, '\\.');
-    assert.match(approved, new RegExp('\\\\.budao-calendar-step-mark--' + type + '\\\\{[\\\\s\\\\S]*?background-image:url\\\\("/assets/calendar-steps/' + escaped + '"\\\\)'));
+    const declaration = '.budao-calendar-step-mark--' + type + '{\n' +
+      '    background-image:url("/assets/calendar-steps/' + filename + '");';
+    assert.ok(approved.includes(declaration), type + ' must use its approved original artwork');
     const image = fs.readFileSync(path.join(root, 'assets', 'calendar-steps', filename));
     assert.equal(image.toString('hex', 0, 8), '89504e470d0a1a0a', filename + ' must be a valid PNG');
     assert.equal(image.readUInt32BE(16), 72, filename + ' width');
