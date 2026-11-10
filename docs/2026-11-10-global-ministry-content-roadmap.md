@@ -5,6 +5,8 @@
 **Applies to:** BUDAO GLOBAL, homepage, 同道, and future international leader-formation materials  
 **Principle:** Distinguish what BUDAO teaches now, what the website already exposes, and what the ministry intends to produce later.
 
+> **Next-stage charter draft available:** [《BUDAO 同行实践与带领人造就总纲》审阅稿 v0.1](./2026-11-10-budao-walk-and-leader-formation-charter.md). This is based on homepage copy, 10 current Tongdao template records and the existing facilitation state machine. It remains **proposed/internal** until ministry, Scripture, safety and rights reviews; no public video/course is available as a result of drafting it.
+
 ## 1. The three questions and their authoritative sources
 
 | Visitor question | Source of truth | Currently available | Not yet available |
