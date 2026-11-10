@@ -150,8 +150,13 @@
       if (source.length === 3) break;
     }
     if (!source.length) return;
-    const nodes = source.map((item) => {
+    // Preserve every photo's size and position; a click only changes the stacking order.
+    let frontIndex = source.length > 1 ? 1 : 0; // Match the existing visual z-order.
+    const nodes = source.map((item, index) => {
       const shot = newElement("figure", "camp-hero-shot");
+      shot.tabIndex = 0;
+      shot.setAttribute("role", "button");
+      shot.setAttribute("aria-label", "将" + item.title + "的照片置于最上层");
       const img = newElement("img");
       setCampfirePhoto(img, item, shot);
       img.alt = item.alt;
@@ -159,7 +164,25 @@
       img.decoding = "async";
       shot.appendChild(img);
       shot.appendChild(newElement("figcaption", "", kindName(item) + " · " + item.title));
+      const bringToFront = () => {
+        frontIndex = index;
+        nodes.forEach((node, nodeIndex) => {
+          node.classList.toggle("is-front", nodeIndex === frontIndex);
+          node.setAttribute("aria-pressed", String(nodeIndex === frontIndex));
+        });
+      };
+      shot.addEventListener("click", bringToFront);
+      shot.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          bringToFront();
+        }
+      });
       return shot;
+    });
+    nodes.forEach((node, index) => {
+      node.classList.toggle("is-front", index === frontIndex);
+      node.setAttribute("aria-pressed", String(index === frontIndex));
     });
     hero.replaceChildren(...nodes);
   }
