@@ -265,6 +265,25 @@
     if (typeof mq.addEventListener === 'function') mq.addEventListener('change',sync);
     return true;
   }
+  // The Japanese reading is exposed to assistive technologies without
+  // changing the BUDAO logo, lettering, event handlers or six navigation links.
+  // translate=no discourages browser machine translation of the proper noun.
+  function annotateJapaneseBrand(documentObject, locale) {
+    if (locale !== 'ja' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const heading = documentObject.querySelector('header > h1');
+    const navBrand = documentObject.querySelector('nav a[href="/test.html"]');
+    if (!heading || !navBrand ||
+        heading.textContent.trim() !== 'BUDAO' ||
+        navBrand.textContent.trim() !== 'BUDAO' ||
+        typeof heading.setAttribute !== 'function' ||
+        typeof navBrand.setAttribute !== 'function') return false;
+    for (const element of [heading, navBrand]) {
+      element.setAttribute('translate', 'no');
+      element.setAttribute('aria-label', 'BUDAO（ブダオ）');
+    }
+    return true;
+  }
   function start() {
     if (!root.BudaoGlobal || !root.document || !root.location) return;
     if (root.location.pathname !== '/home.html') return;
@@ -274,13 +293,14 @@
       previewEnglishCreed(root.document, chosen);
       previewTraditionalCreed(root.document, chosen);
       previewJapaneseCreed(root.document, chosen);
+      annotateJapaneseBrand(root.document, chosen);
       root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
       enableEnglishNarrowNavigation(root, chosen);
     }
     // Configure last so localization of self-links cannot undo the toggle target.
     configureHomeLanguageSwitch(root, chosen);
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, annotateJapaneseBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
