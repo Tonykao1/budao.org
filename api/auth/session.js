@@ -1,10 +1,13 @@
 const { getAuthenticatedPublisher } = require("../_security/auth");
 const { sendJson } = require("../_security/http");
 const pastureAdminHandler = require("../_security/pasture-admin-handler");
+const firstCardHandler = require("../_security/pasture-first-card-handler");
 
 module.exports = async function handler(request, response) {
-  if (request.method !== "GET") return sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
   const url = new URL(request.url || "/api/auth/session", "https://budao.org");
+  if(url.searchParams.get("view")==="pasture-first-card")
+    return firstCardHandler(request,response);
+  if (request.method !== "GET") return sendJson(response, 405, { ok: false, reason: "method_not_allowed" });
   if (url.searchParams.get("view") === "pasture-residents") {
     return pastureAdminHandler(request, response);
   }

@@ -26,6 +26,18 @@ test('entry requires actual Scripture text and reference, never silently invents
  assert.throws(()=>core.newEntry({scripture:{reference:'约 15:1',text:''}},'t','a'),/经文/);
  assert.equal(core.validateScripture({reference:'约 15:1',text:'  用户粘贴  '}).text,'用户粘贴');
 });
+test('licensed ESV entries persist reference and provenance without persisting copyrighted passage text',()=>{
+ const scripture=core.validateScripture({
+  reference:'约 3:16',text:'',translation:'English Standard Version (ESV)',source:'esv',storage:'reference-only',verseIds:['JHN.3.16']
+ });
+ assert.equal(scripture.reference,'约 3:16');
+ assert.equal(scripture.text,'');
+ assert.equal(scripture.translation,'English Standard Version (ESV)');
+ assert.equal(scripture.source,'esv');
+ assert.equal(scripture.storage,'reference-only');
+ assert.deepEqual(scripture.verseIds,['JHN.3.16']);
+ assert.equal(scripture.enteredBy,'licensed-live-source');
+});
 test('private micro sharing is linked to verified source note and cannot auto-publish',()=>{
  const e=core.newEntry({scripture:{reference:'约 15:1',text:'测试所用的经文'},reflection:'我愿在今天更加认真地思考。'},'2026-09-29T00:00:00Z','entry1');
  const micro=core.makeMicro(e,'这是一句话。','m1');

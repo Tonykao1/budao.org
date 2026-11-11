@@ -28,7 +28,38 @@ async function ensurePastureSchema(env = process.env) {
   await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_ciphertext text`;
   await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_nonce text`;
   await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS email_tag text`;
+  // A user can own a sheep before their step-card entitlement is verified.
+  // The only issuer for this field will be the future server-side card verifier.
+  await query`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS card_activated_at timestamptz`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_users_email_hash_uq ON pasture_users(email_hash)`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_cards (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    serial text NOT NULL UNIQUE,
+    secret_digest text NOT NULL UNIQUE,
+    secret_version text NOT NULL DEFAULT 'v1',
+    batch_id text NOT NULL,
+    status text NOT NULL DEFAULT 'ISSUED' CHECK (status IN ('ISSUED','ACTIVATED','REVOKED')),
+    activated_by_user_id uuid REFERENCES pasture_users(id) ON DELETE SET NULL,
+    issued_at timestamptz NOT NULL DEFAULT now(),
+    activated_at timestamptz,
+    revoked_at timestamptz
+  )`;
+  // Existing cards remain compatible; new issues must carry ministry provenance.
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS issuer_id text`;
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS authorization_ref text`;
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS delivery_channel text`;
+  await query`ALTER TABLE pasture_cards ADD COLUMN IF NOT EXISTS reserved_for_user_id uuid REFERENCES pasture_users(id) ON DELETE SET NULL`;
+  await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_cards_genesis_only_uq
+    ON pasture_cards(authorization_ref) WHERE authorization_ref='GENESIS-0001'`;
+  await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_cards_active_resident_uq
+    ON pasture_cards(activated_by_user_id) WHERE status='ACTIVATED'`;
+  await query`CREATE INDEX IF NOT EXISTS pasture_cards_batch_idx ON pasture_cards(batch_id,issued_at)`;
+  await query`CREATE TABLE IF NOT EXISTS pasture_card_attempts (
+    user_id uuid PRIMARY KEY REFERENCES pasture_users(id) ON DELETE CASCADE,
+    attempts integer NOT NULL DEFAULT 0,
+    window_started_at timestamptz NOT NULL DEFAULT now()
+  )`;
+
   await query`CREATE TABLE IF NOT EXISTS pasture_email_verifications (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     email_hash text NOT NULL,
@@ -59,6 +90,8 @@ async function ensurePastureSchema(env = process.env) {
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await query`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_version integer NOT NULL DEFAULT 1`;
+  await query`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_v2 jsonb`;
   await query`CREATE UNIQUE INDEX IF NOT EXISTS pasture_sheep_user_id_uq ON pasture_sheep(user_id)`;
   ensured = true;
 }
@@ -159,10 +192,9 @@ async function saveSheep(userId, appearance) {
   const db = getDb();
   const existing = await sheepForUser(userId);
   if (existing) {
-    const rows = await db.update(pastureSheep)
-      .set({ ...appearance, updatedAt: new Date() })
-      .where(eq(pastureSheep.id, existing.id)).returning();
-    return { sheep: rows[0] || existing, created: false };
+    // One resident, one sheep. An already issued identity must never be
+    // silently overwritten by a stale Preview maker or a repeated request.
+    return { sheep: existing, created: false };
   }
   const rows = await db.insert(pastureSheep)
     .values({ userId, ...appearance }).returning();

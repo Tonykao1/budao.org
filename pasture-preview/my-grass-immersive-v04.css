@@ -180,3 +180,379 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 @media(prefers-reduced-motion:reduce){
  body.grassbook-open .book-layer{backdrop-filter:none}
 }
+
+/* 今日读经：清晰的出版级页边读痕，不再用淡草痕覆盖正文。 */
+#grassWorkspace .gs-verse:hover:not(:disabled){background:rgba(204,175,119,.06)!important}
+#grassWorkspace .gs-verse.is-read:before,#grassWorkspace .gs-verse.is-current:before{content:"";display:inline-block;width:3px;height:.9em;margin-right:5px;vertical-align:-.10em;background:#776447}
+#grassWorkspace .gs-verse.is-current:before{width:5px;height:1.14em;background:#372b21;box-shadow:2px 0 #ac8b58}
+#grassWorkspace .gs-verse.is-following:before{content:"";display:inline-block;vertical-align:-.10em;width:5px;height:1.14em;margin-right:5px;background:#372b21;box-shadow:2px 0 #ac8b58}
+#grassWorkspace .gs-verse.is-read sup{color:#473526!important;font-weight:800}
+#grassWorkspace .gs-verse.is-current sup{color:#21170e!important;font-weight:900;font-size:11px}
+#grassWorkspace .gs-verse.is-current span{color:#20170f!important;font-weight:900!important;text-shadow:.25px 0 currentColor,-.25px 0 currentColor}
+#grassWorkspace .gs-verse.is-following span,#grassWorkspace .gs-verse.is-following sup{font-weight:900!important}
+#grassWorkspace .gs-reading-finish{border-top-color:rgba(140,105,62,.18)!important}
+#grassWorkspace .gs-journey-status{display:flex;min-height:39px;width:100%;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font:700 12px/1.45 "PingFang SC",sans-serif;color:#61492e}
+#grassWorkspace .gs-journey-status-copy{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+#grassWorkspace .gs-journey-status button{border:1px solid #75593c;background:#efe0b9;color:#382719;font:800 12px/1.3 "PingFang SC",sans-serif;padding:8px 10px;min-height:36px;cursor:pointer}
+#grassWorkspace .gs-journey-status[data-phase="recording"] button{background:#dcc59b;border-color:#68462e}
+#grassWorkspace .gs-journey-controls{display:flex;gap:8px;flex-wrap:wrap}
+#grassWorkspace .gs-journey-rec-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#953d30;box-shadow:0 0 0 2px rgba(149,61,48,.1);animation:gsRecBreath 2s ease-in-out infinite}
+@keyframes gsRecBreath{50%{opacity:.55}}
+@media(prefers-reduced-motion:reduce){#grassWorkspace .gs-journey-rec-dot{animation:none}}
+#grassWorkspace .gs-recorder-console[data-state="recording"] .gs-journey-rec-indicator{background:#d0aa76;border-color:#804435}
+#grassWorkspace .gs-journey-rec-indicator{cursor:default}
+#grassWorkspace .gs-journey-keys{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+.gs-nav-reading-note{background:transparent!important;border-left:1px solid rgba(111,129,79,.5)!important}
+
+/* 经卷领受：沿用既定古卷，把“今日经文 + 经卷号 + 控制”收进同一标题区域。 */
+#grassWorkspace .gs-scripture-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+ margin:0 0 3px;padding:0 0 7px;border-bottom:1px solid rgba(140,105,62,.38);
+}
+#grassWorkspace .gs-scripture-titlecluster{
+ display:flex;align-items:baseline;gap:10px;min-width:0;flex:1 1 190px;
+}
+#grassWorkspace .gs-scripture-heading h3{
+ margin:0!important;padding:0!important;border:0!important;white-space:nowrap;flex:0 0 auto;
+}
+#grassWorkspace .gs-scripture-reference{
+ flex:0 1 118px;min-width:64px;width:clamp(64px,8.5vw,118px)!important;margin:0!important;padding:0 0 0 10px!important;
+ border:0!important;border-left:1px solid rgba(140,105,62,.34)!important;background:transparent!important;box-shadow:none!important;
+ color:#6b5033;font:800 clamp(16px,1.15vw,19px)/1.25 STKaiti,KaiTi,"Songti SC",serif;
+}
+#grassWorkspace .gs-scripture-controls{
+ display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:0 1 auto;flex-wrap:wrap;max-width:58%;
+}
+#grassWorkspace .gs-scripture-nav-button{
+ min-height:30px!important;padding:4px 9px!important;border-width:1px!important;box-shadow:none!important;font-size:12px!important;
+}
+#grassWorkspace .gs-scripture-controls .gs-translation-picker{
+ flex:0 0 auto;max-width:118px;min-height:30px;margin:0;padding:3px 23px 3px 8px;
+ border:1px solid rgba(128,102,66,.55);background:rgba(255,247,220,.20);color:#4c3926;
+ font:700 12px/1.3 "PingFang SC",system-ui,sans-serif;
+}
+#grassWorkspace .gs-scripture-controls #gsEsvAttribution{
+ flex:1 0 100%;margin:0!important;text-align:right;font-size:9px!important;line-height:1.15!important;opacity:.60!important;
+}
+#grassWorkspace .gs-reading-panel{overflow:hidden!important;display:flex!important;flex-direction:column!important}
+#grassWorkspace .gs-reception-guide{
+ flex:0 0 auto;margin:1px 0 3px!important;padding:1px 0 1px 8px!important;font-size:10px!important;line-height:1.4!important;
+}
+#grassWorkspace .gs-verse-reader{
+ flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:auto!important;padding:3px 4px 8px 1px!important;
+}
+#grassWorkspace[data-scripture-translation="esv"] .gs-verse{
+ font-size:clamp(19px,1.45vw,22px)!important;line-height:1.92!important;
+}
+#grassWorkspace .gs-reading-finish{flex:0 0 auto;padding-top:4px!important;margin-top:2px;border-top:1px solid rgba(140,105,62,.18)!important}
+#grassWorkspace .gs-reading-finish .gs-action{min-height:34px!important;padding:5px 10px!important;font-size:12px!important}
+@media(max-width:820px){
+ #grassWorkspace .gs-scripture-heading{gap:6px}
+ #grassWorkspace .gs-scripture-titlecluster{flex-basis:100%}
+ #grassWorkspace .gs-scripture-reference{width:auto!important;flex:0 1 110px}
+ #grassWorkspace .gs-scripture-controls{max-width:100%;margin-left:auto}
+ #grassWorkspace .gs-scripture-controls .gs-translation-picker{max-width:112px}
+ #grassWorkspace .gs-verse-reader{min-height:280px!important}
+ #grassWorkspace[data-scripture-translation="esv"] .gs-verse{font-size:20px!important}
+}
+
+
+/* 我的牧草 V1.3 · 右页复古随身录音机控制台（已定稿录音部分） */
+#grassWorkspace .gs-recording-panel{display:flex;flex-direction:column;min-height:0;padding-top:0!important}
+#grassWorkspace .gs-recording-panel>h3{margin:0!important;margin-bottom:7px!important;padding-bottom:6px!important}
+#grassWorkspace .gs-recorder-console{
+ display:grid;grid-template-columns:minmax(0,.88fr) minmax(190px,1.12fr);gap:9px;
+ padding:10px;margin:0 0 7px;border:3px solid #6d573c;
+ background:linear-gradient(145deg,#d6bc88 0,#b69768 48%,#8d714f 100%);
+ box-shadow:inset 2px 2px rgba(255,239,198,.55),inset -3px -3px rgba(72,48,29,.22),4px 5px rgba(70,46,28,.16);
+ color:#3d2b1c;
+}
+#grassWorkspace .gs-recorder-deck{display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-width:0}
+#grassWorkspace .gs-recorder-brand{display:flex;justify-content:space-between;gap:8px;align-items:baseline;border-bottom:1px solid rgba(77,53,31,.38);padding:1px 2px 5px;font:800 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.11em;color:#4c3724}
+#grassWorkspace .gs-recorder-brand span{font-weight:600;letter-spacing:.05em;opacity:.72}
+#grassWorkspace .gs-recorder-keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#grassWorkspace .gs-recorder-key{
+ min-width:0;min-height:58px;padding:6px 4px;border:2px solid #55422f;border-radius:2px;
+ background:linear-gradient(#e5d4ac,#b5976d);color:#39291d;
+ box-shadow:inset 1px 1px rgba(255,246,218,.72),inset -2px -2px rgba(77,54,35,.20),0 3px 0 #5e4934;
+ font:800 10px/1.2 "PingFang SC",system-ui,sans-serif;cursor:pointer;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+}
+#grassWorkspace .gs-recorder-key:not(:disabled):active{transform:translateY(2px);box-shadow:inset 1px 1px rgba(255,246,218,.62),0 1px 0 #5e4934}
+#grassWorkspace .gs-recorder-key:disabled{opacity:.42;cursor:not-allowed}
+#grassWorkspace .gs-recorder-key-icon{font:900 18px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.12em}
+#grassWorkspace .gs-recorder-record .gs-recorder-key-icon{color:#7f3e2f}
+#grassWorkspace .gs-recorder-display{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;min-width:0;align-items:stretch}
+#grassWorkspace .gs-recorder-screen{
+ min-height:90px;padding:9px 8px 7px;border:3px solid #4c4434;
+ background:linear-gradient(180deg,#636b55,#4d5746);box-shadow:inset 3px 3px rgba(29,35,28,.36),inset -2px -2px rgba(219,220,171,.10);
+ display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+}
+#grassWorkspace .gs-recorder-wave{height:51px;display:flex;align-items:center;justify-content:center;gap:3px;overflow:hidden}
+#grassWorkspace .gs-recorder-wave span{display:block;width:4px;height:var(--h);min-height:4px;max-height:100%;background:#d5d29a;opacity:.68;box-shadow:1px 0 rgba(37,48,33,.30)}
+#grassWorkspace .gs-recorder-status{font:700 9px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;color:#ece6bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#grassWorkspace .gs-recorder-link{
+ min-height:90px;border:2px solid #55422f;background:linear-gradient(#d7c49b,#9f835d);box-shadow:inset 1px 1px rgba(255,244,213,.65),0 3px 0 #5e4934;
+ font-size:19px;cursor:pointer;color:#44311f;
+}
+#grassWorkspace .gs-recorder-link:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 #5e4934}
+#grassWorkspace .gs-recorder-link:disabled{opacity:.36;cursor:not-allowed}
+#grassWorkspace .gs-recorder-console[data-state="recording"] .gs-recorder-screen{background:linear-gradient(180deg,#685a48,#57463b)}
+#grassWorkspace .gs-recorder-console[data-state="recording"] .gs-recorder-wave span{animation:gsRecorderPulse .58s ease-in-out infinite alternate;animation-delay:calc(var(--i) * -31ms);opacity:.92}
+#grassWorkspace .gs-recorder-console[data-state="playing"] .gs-recorder-wave span{animation:gsRecorderPulse .78s ease-in-out infinite alternate;animation-delay:calc(var(--i) * -23ms)}
+#grassWorkspace .gs-recorder-console[data-state="linked"] .gs-recorder-link{opacity:.72}
+#grassWorkspace .gs-audio-host{height:0;overflow:hidden;margin:0;padding:0}
+#grassWorkspace .gs-recorder-note{margin:3px 2px 8px;font:500 11px/1.55 "PingFang SC",system-ui,sans-serif;color:#72563b}
+@keyframes gsRecorderPulse{from{transform:scaleY(.42)}to{transform:scaleY(1)}}
+@media(max-width:1100px){
+ #grassWorkspace .gs-recorder-console{grid-template-columns:1fr;gap:8px}
+ #grassWorkspace .gs-recorder-display{grid-template-columns:minmax(0,1fr)}
+ #grassWorkspace .gs-recorder-screen,#grassWorkspace .gs-recorder-link{min-height:78px}
+ #grassWorkspace .gs-recorder-wave{height:42px}
+}
+@media(max-width:820px){
+ #grassWorkspace .gs-recorder-console{padding:8px}
+ #grassWorkspace .gs-recorder-key{min-height:52px}
+}
+
+
+/* 经卷领受：中心不失、固定六向，不使用打卡、数量徽章与完成率。 */
+#grassWorkspace .gs-insight-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+#grassWorkspace .gs-insight-writing{padding-top:12px;margin-top:10px;border-top:1px solid rgba(125,99,62,.27)}
+#grassWorkspace .gs-insight-writing .gs-field{display:block;font-size:13px;font-weight:600}
+#grassWorkspace .gs-insight-writing textarea{min-height:74px;resize:vertical;background:transparent!important;border:0!important;border-bottom:1px solid rgba(125,99,62,.34)!important;padding:7px 2px!important;box-shadow:none!important;line-height:1.8}
+#grassWorkspace .gs-insight-writing textarea:disabled{opacity:.8;cursor:default}
+#grassWorkspace .gs-light-stage{overflow-y:auto}
+#grassWorkspace .gs-light-panel{width:100%;max-width:520px;margin:0 auto;padding:5px 0 8px}
+#grassWorkspace .gs-light-orbit{position:relative;height:clamp(270px,35dvh,340px);width:min(100%,430px);margin:0 auto;isolation:isolate}
+#grassWorkspace .gs-light-orbit:before{content:"";position:absolute;left:50%;top:50%;width:50%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(128,103,65,.13);pointer-events:none}
+#grassWorkspace .gs-light-center,#grassWorkspace .gs-light-node{
+ position:absolute;width:50px;height:50px;min-height:50px;display:grid;place-items:center;
+ border:1px solid rgba(130,106,67,.5);border-radius:50%;cursor:pointer;
+ font:700 23px/1 STKaiti,KaiTi,"Songti SC",serif;color:#766246;
+ background:radial-gradient(circle at 42% 34%,rgba(251,246,219,.95),rgba(201,181,136,.6) 83%);
+ box-shadow:inset 0 1px 3px rgba(255,255,240,.68),0 3px 7px rgba(65,54,31,.1);
+ transform:translate(-50%,-50%);transition:opacity .2s ease,box-shadow .2s ease,filter .2s ease
+}
+#grassWorkspace .gs-light-center{left:50%;top:50%;z-index:3;width:56px;height:56px;font-size:26px}
+#grassWorkspace .gs-light-center.is-lit{color:#4d5c36;border-color:#7a8e54;background:radial-gradient(circle at 43% 36%,#f8f6dd,#becf94);box-shadow:0 0 19px rgba(169,191,113,.4),inset 0 0 8px rgba(255,255,235,.7)}
+#grassWorkspace .gs-light-node[data-position="top"]{left:50%;top:14%}
+#grassWorkspace .gs-light-node[data-position="upper-right"]{left:80%;top:31%}
+#grassWorkspace .gs-light-node[data-position="lower-right"]{left:80%;top:70%}
+#grassWorkspace .gs-light-node[data-position="bottom"]{left:50%;top:87%}
+#grassWorkspace .gs-light-node[data-position="lower-left"]{left:20%;top:70%}
+#grassWorkspace .gs-light-node[data-position="upper-left"]{left:20%;top:31%}
+#grassWorkspace .gs-light-node.is-dim{opacity:.28}
+#grassWorkspace .gs-light-node.is-focused{border-color:#597b4d;box-shadow:0 0 18px rgba(151,173,100,.5);color:#476045}
+#grassWorkspace .gs-light-node.is-linked{background:radial-gradient(circle at 38% 30%,#faf3d6,#ccd5a5);border-color:#899b6b;color:#4c6140}
+#grassWorkspace .gs-light-center:focus-visible,#grassWorkspace .gs-light-node:focus-visible{outline:2px solid #526f42;outline-offset:3px}
+#grassWorkspace .gs-light-copy{font:500 14px/1.75 STKaiti,KaiTi,serif;text-align:center;color:#846f50;margin:2px 0 10px}
+#grassWorkspace .gs-light-detail{margin:0 6px 18px;padding:12px 5px;border-top:1px solid rgba(124,102,70,.24)}
+#grassWorkspace .gs-light-detail>p{font:500 16px/1.7 STKaiti,KaiTi,serif;margin:0 0 10px;color:#59492f}
+#grassWorkspace .gs-light-detail textarea{min-height:80px;background:rgba(249,238,203,.18)!important;resize:vertical}
+#grassWorkspace .gs-light-history{margin-top:18px;display:grid;gap:10px}
+#grassWorkspace .gs-light-history-item{padding:9px 4px;border-top:1px solid rgba(130,105,70,.25);overflow-wrap:anywhere}
+#grassWorkspace .gs-light-history-item p{margin:0 0 3px;white-space:pre-wrap}
+#grassWorkspace .gs-light-history-item small{display:block;color:#8a7457;margin-bottom:6px}
+#grassWorkspace .gs-light-history-item .gs-smallbutton{font-size:11px;min-height:36px}
+@media(max-width:820px){
+ #grassWorkspace .gs-insight-layout{grid-template-columns:1fr}
+ #grassWorkspace .gs-light-orbit{height:300px;max-width:400px}
+ #grassWorkspace .gs-light-panel{padding-bottom:24px}
+}
+@media(prefers-reduced-motion:reduce){
+ #grassWorkspace .gs-light-center,#grassWorkspace .gs-light-node{transition:none}
+}
+
+
+#grassWorkspace .gs-light-echo{margin:4px 0 9px;padding:5px 8px;border-left:1px solid rgba(113,146,94,.65);font:500 14px/1.6 STKaiti,KaiTi,serif;white-space:pre-wrap;color:#59694d}
+#grassWorkspace .gs-light-node.is-pulsing{animation:gsLightPulse 1.2s ease-in-out 1}
+@keyframes gsLightPulse{0%,100%{filter:brightness(1)}45%{filter:brightness(1.22);box-shadow:0 0 20px rgba(160,195,113,.65)}}
+@media(prefers-reduced-motion:reduce){#grassWorkspace .gs-light-node.is-pulsing{animation:none}}
+
+
+/* ORIGINAL VOICE STATION — parchment and classic analog visual layout V0.2 */
+#grassWorkspace .gs-voice-station{overflow-y:auto;min-height:0;max-height:100%;padding:8px 12px 18px!important;scrollbar-width:thin}
+#grassWorkspace .gs-voice-heading{text-align:center;padding:3px 8px 8px;margin:0 0 7px;border:2px double #aa8051;border-radius:3px;background:linear-gradient(90deg,rgba(151,101,50,.1),rgba(252,235,194,.35),rgba(151,101,50,.1));box-shadow:inset 0 0 0 2px rgba(248,227,182,.48)}
+#grassWorkspace .gs-voice-heading>span{display:block;font:700 13px/1.4 Georgia,serif;letter-spacing:.12em;color:#533723}
+#grassWorkspace .gs-voice-heading h3{font:700 15px/1.4 STKaiti,KaiTi,serif!important;letter-spacing:.25em;color:#573d25!important;margin:2px 0 0!important;padding:0!important;border:0!important}
+#grassWorkspace .gs-voice-scripture{font:700 12px/1.4 STKaiti,KaiTi,serif;color:#62482b;border-bottom:1px solid #ba9666;padding:3px 3px 8px;margin-bottom:12px}
+#grassWorkspace .gs-voice-tape-deck{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:12px 10px 11px;margin-bottom:10px;border:3px ridge #77522f;border-radius:6px;background:linear-gradient(140deg,#4a3020,#2a1e17 53%,#533926);color:#efd4a2;box-shadow:0 0 0 2px #b18a56,inset 0 0 0 1px rgba(237,194,109,.45),3px 5px 7px #5f3b2240}
+#grassWorkspace .gs-voice-cassette{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:9px 7px;background:linear-gradient(135deg,#c8a574,#a67d4f);border:2px solid #4d3420;box-shadow:inset 1px 1px #f4dbab,inset -2px -2px #7b5537}
+#grassWorkspace .gs-voice-tape-quote{font:600 11px/1.35 STKaiti,KaiTi,serif;text-align:center;color:#573a22}
+#grassWorkspace .gs-voice-tape-window{height:63px;border:3px ridge #38281b;background:repeating-linear-gradient(0deg,#271b16 0 2px,#35251d 2px 4px);display:flex;justify-content:space-around;align-items:center;overflow:hidden}
+#grassWorkspace .gs-voice-tape-window span{width:52px;height:52px;border-radius:50%;border:7px solid #bda27d;box-shadow:inset 0 0 0 5px #34291e,0 0 0 2px #654f3d;background:repeating-conic-gradient(#bd9a69 0deg 23deg,#4e3b29 23deg 45deg)}
+#grassWorkspace .gs-voice-tape-window i{display:block;height:8px;flex:1;background:repeating-linear-gradient(90deg,#493025 0 2px,#2b1a14 2px 4px)}
+#grassWorkspace .gs-voice-cassette small{font:600 8px/1.3 Georgia,serif;letter-spacing:.05em;color:#4a301d;text-align:center}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-deck{grid-column:2;grid-row:1;justify-content:center}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:2;grid-row:1;align-self:start;transform:translateY(16px);pointer-events:none}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-brand{display:none}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-screen{min-height:44px;padding:5px;border:2px solid #241a13;background:linear-gradient(#e3bd77,#b18a50);box-shadow:inset 1px 2px 5px #63431e}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-wave{height:20px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-wave span{background:#80522c;opacity:.75;width:3px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-status{color:#3a2718;font-size:8px}
+#grassWorkspace .gs-voice-tape-deck .gs-journey-keys{align-self:end;grid-template-columns:repeat(3,minmax(0,1fr));padding-top:77px;gap:4px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-key{min-height:47px;padding:4px 2px;font-size:9px;border-color:#4b311f;background:linear-gradient(#ead7ae,#b89a70);box-shadow:inset 1px 1px #fdf0cc,0 2px #573c28}
+#grassWorkspace .gs-voice-dsp{margin:5px 0 11px;background:linear-gradient(145deg,#463021,#2b1f19 60%,#5a3d2a);border:3px ridge #8e653d;border-radius:5px;padding:8px;color:#e5c99c;box-shadow:0 0 0 2px #c19c66,inset 0 0 0 1px #b18c58}
+#grassWorkspace .gs-voice-dsp-heading{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:0 2px 6px;border-bottom:1px solid #af895c}
+#grassWorkspace .gs-voice-dsp-heading strong{font:700 11px Georgia,serif;letter-spacing:.08em}
+#grassWorkspace .gs-voice-dsp-heading small{font:500 9px STKaiti,KaiTi,serif}
+#grassWorkspace .gs-voice-dsp-channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:8px 0 4px}
+#grassWorkspace .gs-voice-dsp-channel{display:flex;flex-direction:column;align-items:center;gap:6px;border-right:1px solid #8f6b46}
+#grassWorkspace .gs-voice-dsp-channel:last-child{border-right:0}
+#grassWorkspace .gs-voice-dsp-channel b{font:700 10px Georgia,serif;letter-spacing:.02em}
+#grassWorkspace .gs-voice-knob{width:33px;height:33px;border-radius:50%;border:3px ridge #a98a5a;background:conic-gradient(from 25deg,#c7a564,#6b4b29,#dfb974,#8b683d,#c7a564);box-shadow:0 2px 3px #140d09,inset 0 0 0 6px #80613a;position:relative}
+#grassWorkspace .gs-voice-knob:before{content:"";position:absolute;width:2px;height:12px;background:#f9e5b4;top:0;left:calc(50% - 1px)}
+#grassWorkspace .gs-voice-dsp-channel small{font:600 10px STKaiti,KaiTi,serif}
+#grassWorkspace .gs-voice-dsp>p{margin:8px 0 0;text-align:center;color:#d4b78b;font-size:9px}
+#grassWorkspace .gs-voice-tracks,#grassWorkspace .gs-voice-archive{margin:9px 0}
+#grassWorkspace .gs-voice-tracks h4,#grassWorkspace .gs-voice-archive h4{font:700 15px STKaiti,KaiTi,serif;color:#624021;margin:0 0 8px;border-bottom:1px solid #b49160;padding-bottom:4px}
+#grassWorkspace .gs-voice-track{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;margin:3px 0;border:1px solid #c09b6c;background:linear-gradient(90deg,#efd6a5,#e3c38e);font:700 12px STKaiti,KaiTi,serif;color:#523820}
+#grassWorkspace .gs-voice-track time{font:600 11px ui-monospace,monospace}
+#grassWorkspace .gs-voice-empty{font:12px/1.6 STKaiti,KaiTi,serif;color:#775e3e}
+#grassWorkspace .gs-voice-archive-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;border:1px solid #b68b57;padding:8px 4px;background:rgba(249,229,190,.25)}
+#grassWorkspace .gs-voice-archive-row span{font:10px/1.55 STKaiti,KaiTi,serif;text-align:center;color:#63492e}
+#grassWorkspace .gs-voice-archive-row b{display:block}
+#grassWorkspace .gs-voice-archive-row button{min-width:0;font:700 10px STKaiti,KaiTi,serif;border:1px solid #957046;color:#50331c;background:#ebd0a0;cursor:pointer}
+#grassWorkspace .gs-voice-archive-row button:disabled{opacity:.5;cursor:default}
+#grassWorkspace .gs-voice-station .gs-actions{justify-content:center}
+#grassWorkspace .gs-voice-station .gs-actions .gs-small{display:none}
+@media(max-width:1100px){
+ #grassWorkspace .gs-voice-tape-deck{grid-template-columns:1fr 1fr!important}
+ #grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:2!important}
+}
+@media(max-width:600px){
+ #grassWorkspace .gs-voice-station{padding:7px!important}
+ #grassWorkspace .gs-voice-tape-deck{gap:5px;padding:7px}
+ #grassWorkspace .gs-voice-tape-window span{width:37px;height:37px}
+ #grassWorkspace .gs-voice-tape-window{height:52px}
+ #grassWorkspace .gs-voice-dsp-channel b{font-size:8px}
+ #grassWorkspace .gs-voice-knob{height:25px;width:25px}
+}
+
+/* Voice station compact hardware / genuine verse signal styling */
+#grassWorkspace .gs-voice-tape-deck{display:grid!important;grid-template-columns:1fr 1.12fr!important;gap:9px;padding:10px!important;align-items:center}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-deck{grid-column:1!important;grid-row:1!important}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:2!important;grid-row:1!important;transform:none!important;align-self:center!important;pointer-events:auto!important}
+#grassWorkspace .gs-voice-tape-deck .gs-journey-keys{padding-top:0!important;gap:4px}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-screen{min-height:59px!important;background:linear-gradient(#68735d,#364536)!important}
+#grassWorkspace .gs-voice-tape-deck .gs-recorder-status{color:#e7dcab!important}
+#grassWorkspace .gs-voice-tracks h4{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#grassWorkspace .gs-voice-tracks h4 small{font-size:10px;font-weight:400;color:#80613b}
+#grassWorkspace .gs-voice-track{display:grid!important;grid-template-columns:19px 60px 1fr 100px;align-items:center;gap:6px!important;border-left:3px solid #987249!important;padding:8px 9px!important;transition:box-shadow .2s}
+#grassWorkspace .gs-voice-track-seal{font-size:16px;color:#987249}
+#grassWorkspace .gs-voice-track-light{position:relative;border-top:1px dotted #9e7747;height:3px}
+#grassWorkspace .gs-voice-track-light i{position:absolute;top:-6px;width:10px;height:10px;transform:rotate(45deg);background:#a7834b;border:1px solid #f9e9ba}
+#grassWorkspace .gs-voice-track time{font-size:10px!important;white-space:nowrap;text-align:right}
+#grassWorkspace .gs-voice-track.is-audible{border-color:#e7b755!important;background:linear-gradient(90deg,#ffefb6,#e8c987)!important;box-shadow:0 0 14px #eab24f88,inset 0 0 12px #fff2bd!important}
+#grassWorkspace .gs-voice-track.is-audible .gs-voice-track-light i{background:#fff9c7;box-shadow:0 0 10px 4px #ffd66a}
+@media(max-width:570px){#grassWorkspace .gs-voice-tape-deck{grid-template-columns:1fr!important}#grassWorkspace .gs-voice-tape-deck .gs-recorder-deck{grid-column:1!important;grid-row:2!important}#grassWorkspace .gs-voice-tape-deck .gs-recorder-display{grid-column:1!important;grid-row:1!important}#grassWorkspace .gs-voice-track{grid-template-columns:14px 50px 1fr 92px;gap:3px!important}}
+
+#grassWorkspace .gs-voice-station>h3,#grassWorkspace .gs-voice-hidden-brand{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;margin:0!important;padding:0!important;border:0!important}
+
+
+/* DSP 1/4 — actual denoise audition control, classic brass encoder and mechanical bypass. */
+#grassWorkspace .gs-voice-dsp-channel.gs-dsp-denoise{gap:5px;position:relative}
+#grassWorkspace .gs-dsp-knob-wrap{width:43px;height:43px;position:relative;display:grid;place-items:center}
+#grassWorkspace .gs-dsp-knob-face{
+ width:34px;height:34px;display:block;border-radius:50%;position:relative;
+ border:3px ridge #c9a165;background:conic-gradient(#78552d,#e9c78b,#9b7446,#e8bc75,#78552d);
+ box-shadow:inset 0 0 0 6px rgba(113,76,37,.25),0 2px 5px #1d130d;
+ pointer-events:none;
+}
+#grassWorkspace .gs-dsp-knob-face:after{
+ content:"";position:absolute;inset:1px;border-radius:50%;
+ background:linear-gradient(#f7dfaa,#8e5b30);width:3px;height:12px;left:calc(50% - 1.5px);top:0;
+ transform:rotate(var(--knob-angle,-40.5deg));transform-origin:50% 14px;
+}
+#grassWorkspace input[data-dsp-denoise-strength]{
+ appearance:none;-webkit-appearance:none;opacity:0;position:absolute;inset:0;width:43px;height:43px;
+ cursor:ew-resize;margin:0;touch-action:none;
+}
+#grassWorkspace .gs-dsp-knob-wrap:focus-within{outline:2px solid #f1d38b;outline-offset:3px;border-radius:50%}
+#grassWorkspace .gs-dsp-denoise button[data-action="dsp-denoise"]{
+ min-width:48px;min-height:24px;padding:2px 9px;border:2px outset #bea075;
+ background:linear-gradient(#d6bd92,#ac8759);color:#3c2a1a;border-radius:2px;
+ box-shadow:0 2px 0 #392718,inset 1px 1px #f0d9ab;
+ font:800 10px ui-monospace,monospace;cursor:pointer;
+}
+#grassWorkspace .gs-dsp-denoise[data-enabled="true"] button[data-action="dsp-denoise"]{
+ background:linear-gradient(#c2a666,#86633c);border-style:inset;color:#fff2bd;box-shadow:inset 0 2px 4px #3c2a1c;
+}
+#grassWorkspace .gs-dsp-denoise button:focus-visible{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-dsp-denoise button:disabled,
+#grassWorkspace input[data-dsp-denoise-strength]:disabled{opacity:.4;cursor:default}
+#grassWorkspace .gs-dsp-denoise-value{white-space:nowrap;font-size:9px!important;color:#e3c997}
+#grassWorkspace .gs-dsp-coming{opacity:.54}
+#grassWorkspace .gs-dsp-coming .gs-voice-knob{filter:grayscale(.65)}
+#grassWorkspace .gs-dsp-coming small{font-size:9px!important;text-align:center}
+#grassWorkspace #gsDspStatus{font-size:9px;line-height:1.5;min-height:14px;margin:7px 0 0;color:#d9bd8a}
+
+
+/* DSP 2/4 — three-band vintage EQ: LOW 180 Hz, MID 1.8 kHz, HIGH 6 kHz */
+#grassWorkspace .gs-voice-dsp-channel.gs-dsp-eq{gap:5px;min-width:0}
+#grassWorkspace .gs-eq-three{display:flex;width:100%;justify-content:space-evenly;align-items:start;gap:1px;padding:1px 0 2px}
+#grassWorkspace .gs-eq-control{width:29px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;color:#d9bc8b}
+#grassWorkspace .gs-eq-dial{width:24px;height:24px;border:2px ridge #c8aa78;position:relative;pointer-events:none;border-radius:50%;background:conic-gradient(#73512e,#d5b281,#81603a,#eed2a1,#73512e);box-shadow:inset 0 0 0 5px rgba(83,56,35,.29),1px 2px 2px #1f160c}
+#grassWorkspace .gs-eq-dial:before{content:"";position:absolute;left:calc(50% - 1px);top:1px;width:2px;height:8px;background:#f7e8c9;transform:rotate(var(--knob-angle,0deg));transform-origin:50% 10px}
+#grassWorkspace input[data-dsp-eq-band]{appearance:none;-webkit-appearance:none;position:absolute;inset:0 0 auto 0;width:29px;height:28px;margin:0;opacity:0;cursor:ew-resize;touch-action:none}
+#grassWorkspace .gs-eq-control:focus-within .gs-eq-dial{outline:2px solid #f2d6a0;outline-offset:2px}
+#grassWorkspace .gs-eq-band-label{font:700 8px/1.3 ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap}
+#grassWorkspace .gs-dsp-eq button[data-action="dsp-eq"]{
+ min-width:43px;min-height:24px;padding:2px 8px;border:2px outset #bea075;
+ background:linear-gradient(#d6bd92,#ac8759);color:#3c2a1a;border-radius:2px;box-shadow:0 2px 0 #392718,inset 1px 1px #f0d9ab;
+ font:800 10px ui-monospace,monospace;cursor:pointer}
+#grassWorkspace .gs-dsp-eq[data-enabled="true"] button[data-action="dsp-eq"]{
+ background:linear-gradient(#c2a666,#86633c);border-style:inset;color:#fff2bd;box-shadow:inset 0 2px 4px #3c2a1c}
+#grassWorkspace .gs-dsp-eq button:focus-visible{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-dsp-eq button:disabled{opacity:.45;cursor:default}
+#grassWorkspace .gs-eq-values{display:block;max-width:100%;text-align:center;line-height:1.35!important;font-size:8px!important;color:#e3c997;overflow-wrap:anywhere}
+@media(max-width:600px){#grassWorkspace .gs-eq-control{width:23px}#grassWorkspace .gs-eq-dial{width:20px;height:20px}#grassWorkspace input[data-dsp-eq-band]{width:23px;height:24px}#grassWorkspace .gs-eq-band-label{font-size:7px}}
+
+
+/* DSP 3/4 — actual dynamics compressor: threshold, ratio, bypass, reduction */
+#grassWorkspace .gs-dsp-comp{min-width:0;gap:5px;align-self:stretch}
+#grassWorkspace .gs-comp-pair{display:flex;width:100%;align-items:flex-start;justify-content:space-evenly;gap:2px;padding:1px 0 2px}
+#grassWorkspace .gs-comp-control{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;width:32px;color:#dec9a6}
+#grassWorkspace .gs-comp-dial{position:relative;display:block;width:26px;height:26px;border:2px ridge #c8a779;border-radius:50%;background:conic-gradient(#63472d,#c4a474,#8a6036,#e5bf8a,#63472d);box-shadow:inset 0 0 0 5px #72583c66,1px 2px 2px #1f160e;pointer-events:none}
+#grassWorkspace .gs-comp-dial:after{content:"";position:absolute;top:1px;left:calc(50% - 1px);height:9px;width:2px;background:#fff0c5;transform:rotate(var(--knob-angle,0deg));transform-origin:50% 11px}
+#grassWorkspace input[data-dsp-comp-control]{appearance:none;-webkit-appearance:none;opacity:0;position:absolute;top:0;left:0;height:31px;width:32px;margin:0;cursor:ew-resize;touch-action:none}
+#grassWorkspace .gs-comp-control:focus-within .gs-comp-dial{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-comp-control>span:last-child{font:700 8px/1.25 ui-monospace,monospace;white-space:nowrap}
+#grassWorkspace .gs-dsp-comp button[data-action="dsp-comp"]{
+ min-height:24px;min-width:44px;padding:2px 8px;border:2px outset #bea075;border-radius:2px;
+ background:linear-gradient(#d6bd92,#ac8759);color:#3c2a1a;box-shadow:0 2px 0 #392718,inset 1px 1px #f0d9ab;
+ font:800 10px ui-monospace,monospace;cursor:pointer;
+}
+#grassWorkspace .gs-dsp-comp[data-enabled="true"] button[data-action="dsp-comp"]{
+ border-style:inset;color:#fff2bd;background:linear-gradient(#c2a666,#86633c);box-shadow:inset 0 2px 4px #3c2a1c;
+}
+#grassWorkspace .gs-dsp-comp button:focus-visible{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-dsp-comp button:disabled,#grassWorkspace input[data-dsp-comp-control]:disabled{opacity:.48;cursor:default}
+#grassWorkspace .gs-comp-values{font:600 9px/1.25 ui-monospace,monospace!important;color:#dcc49c;white-space:nowrap}
+#grassWorkspace .gs-comp-reduction{position:relative;display:block;min-width:68px;width:90%;height:17px;border:1px inset #80603d;border-radius:2px;background:#273125;box-shadow:inset 1px 2px 5px #171c14;overflow:hidden}
+#grassWorkspace .gs-comp-reduction-bar{position:absolute;top:0;bottom:0;left:0;width:0%;pointer-events:none;background:linear-gradient(90deg,#71875b,#bb9f4b,#edaf58);box-shadow:0 0 4px #b8a35b;transition:width .12s linear}
+#grassWorkspace .gs-comp-reduction output{position:relative;z-index:1;display:block;text-align:center;font:700 9px/15px ui-monospace,monospace;color:#f5e1b9;text-shadow:0 1px 2px #171912}
+@media(max-width:600px){#grassWorkspace .gs-comp-control{width:25px}#grassWorkspace .gs-comp-dial{width:21px;height:21px}#grassWorkspace input[data-dsp-comp-control]{width:25px;height:25px}#grassWorkspace .gs-comp-reduction{min-width:45px}#grassWorkspace .gs-comp-values{font-size:8px!important}}
+@media(prefers-reduced-motion:reduce){#grassWorkspace .gs-comp-reduction-bar{transition:none}}
+
+
+/* DSP 4/4 — true room convolution, ROOM and MIX engraved brass controls */
+#grassWorkspace .gs-dsp-reverb{gap:5px;min-width:0;align-self:stretch}
+#grassWorkspace .gs-reverb-pair{display:flex;width:100%;align-items:flex-start;justify-content:space-evenly;gap:2px;padding:1px 0 2px}
+#grassWorkspace .gs-reverb-control{width:32px;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
+#grassWorkspace .gs-reverb-dial{position:relative;width:26px;height:26px;border:2px ridge #c8a779;border-radius:50%;background:conic-gradient(#72512f,#d6ba87,#9a744a,#eac58e,#72512f);box-shadow:inset 0 0 0 5px #73563872,1px 2px 2px #1f160e;pointer-events:none}
+#grassWorkspace .gs-reverb-dial:after{content:"";position:absolute;top:1px;left:calc(50% - 1px);height:9px;width:2px;background:#fff0c6;transform:rotate(var(--knob-angle,0deg));transform-origin:50% 11px}
+#grassWorkspace input[data-dsp-reverb-control]{appearance:none;-webkit-appearance:none;position:absolute;top:0;left:0;height:31px;width:32px;opacity:0;margin:0;cursor:ew-resize;touch-action:none}
+#grassWorkspace .gs-reverb-control:focus-within .gs-reverb-dial{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-reverb-control>span:last-child{font:700 8px/1.25 ui-monospace,monospace;color:#dcc8a5;white-space:nowrap}
+#grassWorkspace .gs-dsp-reverb button[data-action="dsp-reverb"]{min-height:24px;min-width:44px;padding:2px 8px;border:2px outset #bea075;border-radius:2px;background:linear-gradient(#d6bd92,#ac8759);color:#3c2a1a;box-shadow:0 2px 0 #392718,inset 1px 1px #f0d9ab;font:800 10px ui-monospace,monospace;cursor:pointer}
+#grassWorkspace .gs-dsp-reverb[data-enabled="true"] button[data-action="dsp-reverb"]{border-style:inset;color:#fff2bd;background:linear-gradient(#c2a666,#86633c);box-shadow:inset 0 2px 4px #3c2a1c}
+#grassWorkspace .gs-dsp-reverb button:focus-visible{outline:2px solid #f1d38b;outline-offset:3px}
+#grassWorkspace .gs-dsp-reverb button:disabled,#grassWorkspace input[data-dsp-reverb-control]:disabled{opacity:.48;cursor:default}
+#grassWorkspace .gs-reverb-values{font:600 9px/1.25 ui-monospace,monospace!important;color:#e5caa2;text-align:center;white-space:nowrap}
+@media(max-width:600px){#grassWorkspace .gs-reverb-control{width:25px}#grassWorkspace .gs-reverb-dial{width:21px;height:21px}#grassWorkspace input[data-dsp-reverb-control]{width:25px;height:25px}#grassWorkspace .gs-reverb-values{font-size:8px!important}}
+
+/* One authentic private archive; remove the empty "reunion" showcase pane. */
+#grassWorkspace .gs-grid.gs-archive-only{grid-template-columns:minmax(0,1fr);gap:0}

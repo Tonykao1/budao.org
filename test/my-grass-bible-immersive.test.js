@@ -30,6 +30,51 @@ test('旧导航格式得到保留，支持节范围、单节与整章',()=>{
  assert.equal(B.parse('玛 9:1'),null);
  assert.throws(()=>B.format('约',999,177,178),/节数/);
 });
+test('第一固定译本锁定为1919圣经和合本神版简体',()=>{
+ assert.equal(B.translation.id,'cuv1919-shen-s');
+ assert.equal(B.translation.name,'圣经和合本（神版）');
+ assert.equal(B.translation.language,'zh-CN');
+ assert.equal(B.translation.year,1919);
+ assert.equal(B.translation.license,'Public Domain');
+ assert.deepEqual(B.translation.stats,{books:66,chapters:1189,verses:31103});
+});
+test('经卷具有稳定OSIS与数据slug，经节ID可长期保存',()=>{
+ assert.equal(B.bookMeta('创').osis,'GEN');
+ assert.equal(B.bookMeta('创').slug,'genesis');
+ assert.equal(B.bookMeta('路加福音').osis,'LUK');
+ assert.equal(B.bookMeta('启').slug,'revelation-of-john');
+ assert.equal(B.verseId('路',6,1),'LUK.6.1');
+ assert.equal(B.verseId('启',22,21),'REV.22.21');
+});
+test('章节地址固定到已核验语料快照，不跟随上游漂移',()=>{
+ assert.equal(B.translation.sourceCommit,'0bf4ed97ed6f115a37d9254d75f94bf97d0eab92');
+ assert.equal(
+  B.chapterUrl('创',1),
+  'https://cdn.jsdelivr.net/gh/sangchy1972/pd-text-corpus@0bf4ed97ed6f115a37d9254d75f94bf97d0eab92/bibles/zh-Hans/books/genesis/chapters/1.json'
+ );
+});
+test('已载入章节可按经文范围抽取，整章和越界都由真实节数决定',()=>{
+ const chapter={verses:[
+  {verse:1,text:'起初，神创造天地。'},
+  {verse:2,text:'地是空虚混沌，渊面黑暗；神的灵运行在水面上。'},
+  {verse:3,text:'神说：「要有光」，就有了光。'}
+ ]};
+ assert.deepEqual(B.extractPassage('创',1,chapter,1,2,false),{
+  reference:'创 1:1–2',
+  translation:'圣经和合本（神版）',
+  source:'cuv1919-shen-s',
+  verseIds:['GEN.1.1','GEN.1.2'],
+  verses:[chapter.verses[0],chapter.verses[1]],
+  text:'起初，神创造天地。\n地是空虚混沌，渊面黑暗；神的灵运行在水面上。'
+ });
+ assert.equal(B.extractPassage('创',1,chapter,1,1,true).reference,'创 1');
+ assert.throws(()=>B.extractPassage('创',1,chapter,1,4,false),/本章只有 3 节/);
+});
+test('我的牧草正文层提供自动装载适配器，固定译本和正文不再依赖用户手工录入',()=>{
+ assert.equal(typeof B.loadChapter,'function');
+ assert.equal(typeof B.loadPassage,'function');
+ assert.equal(typeof B.installMyGrassIntegration,'function');
+});
 test('immersive treatment is scoped to 我的牧草, with original pixel farm and other modules unchanged',()=>{
  const css=fs.readFileSync(path.join(base,'my-grass-immersive-v04.css'),'utf8');
  const folio=fs.readFileSync(path.join(base,'my-grass-folio-v04.js'),'utf8');
