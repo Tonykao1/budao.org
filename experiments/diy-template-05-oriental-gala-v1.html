@@ -353,6 +353,17 @@ async function imageFromURL(src){
  const response=await fetch(src,{cache:"no-store",credentials:"same-origin"});
  if(!response.ok)throw Error("真实素材读取失败（HTTP "+response.status+"）");
  const blob=await response.blob();if(!blob.type.startsWith("image/")&&!src.endsWith(".svg"))throw Error("素材不是图像");
+ if(blob.type.includes("svg")||src.endsWith(".svg")){
+  const objectURL=URL.createObjectURL(blob);
+  try{
+   const pic=new Image();
+   await new Promise((resolve,reject)=>{
+    pic.onload=resolve;pic.onerror=()=>reject(Error("步道脚印线稿 SVG 无法解码"));
+    pic.src=objectURL;
+   });
+   return {bmp:pic,blob};
+  }finally{URL.revokeObjectURL(objectURL);}
+ }
  return {bmp:await createImageBitmap(blob),blob};
 }
 async function qrFromRoute(R){
