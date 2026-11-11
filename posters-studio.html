@@ -86,12 +86,14 @@ $("route").addEventListener("change",()=>{routeId=$("route").value;update();});
 $("poster").addEventListener("load",()=>{
 if(!routeId)return;
 const own=++loadIndex;
+const pollStart=Date.now();
 const poll=()=>{
  if(own!==loadIndex)return;
  const btn=findCurrent();
  if(btn){$("download").disabled=false;explain("海报绘制完成。可点击“导出当前海报 PNG”，或在模板内直接导出。");return;}
  const info=$("poster").contentDocument?.getElementById("status")?.textContent||"";
- if(/✕|失败|禁止导出/.test(info)){explain(info);return;}
+ if(/✕|✗|失败|无法|禁止导出|资料不足/.test(info)){explain(info);$("download").disabled=true;return;}
+ if(Date.now()-pollStart>45000){explain("海报生成超时，请尝试减少图片尺寸或在模板独立页面中检查。");return;}
  window.setTimeout(poll,650);
 };
 poll();
