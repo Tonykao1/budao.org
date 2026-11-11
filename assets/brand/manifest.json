@@ -21,13 +21,17 @@
         ],
         "format": "PNG RGBA",
         "sha256": "c9caebe0e9498ec49ba3b6d39c1b3c99154c5fa29df4d292660302102b046ca8",
-        "availability": "conversation-file; NOT yet uploaded to GitHub repository"
+        "availability": "preserved in user's personal ChatGPT Library; not yet committed as PNG binary to GitHub",
+        "library_path": "/步道图形资产/第六套·远方召唤/书法主字/BUDAO_第六套_固定主字_03_左低右高_原始母版.png",
+        "library_file_id": "libfile_1d92b9c0f068819189e0a5db9cb3ed2f",
+        "archive_record": "/步道图形资产/第六套·远方召唤/书法主字/第六套_03号固定主字_归档记录.md"
       },
       "display_variant": {
         "file": "assets/brand/wordmarks/budao-calligraphy-03-display.svg",
         "format": "SVG, transparent background",
         "source": "Derived by tracing selected No.03 master",
-        "fidelity": "edge-simplified; requires final preview visual confirmation before calling original-identical"
+        "fidelity": "edge-simplified; requires final preview visual confirmation before calling original-identical",
+        "testing": "Chromium Canvas drawImage passed, V1.1 PNG exported; user visual approval pending"
       },
       "usage": {
         "templates": [
