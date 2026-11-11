@@ -48,10 +48,10 @@ button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
       <option value="kai">人文楷体 · 手写气质</option>
     </select>
    </div>
-   <button type="button" id="resetPhoto" class="lite">使用温榆秘境原图</button>
+   <button type="button" id="resetPhoto" class="lite">使用当前活动原图</button>
  </div>
  <div id="paletteSwatches" class="swatches" aria-label="自动推荐配色"></div>
- <div id="colorAnalysis" class="analysis">正在分析温榆秘境原始照片……</div>
+ <div id="colorAnalysis" class="analysis">正在分析所选活动原始照片……</div>
  <div class="designnote">八套艺术配色及 V9 构图保持不变。仅右侧主标题增加局部明暗保护及字体切换；未安装相应系统字体的设备会自动回退。局部对比提升不等于适用于所有照片的绝对保证。</div>
 </section>
 <div class="diagnostics"><strong>素材与渲染校验</strong><div id="status">正在读取原始资源并核对校验值…</div></div>
@@ -60,9 +60,9 @@ button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
 <canvas id="baseline" width="1080" height="1530" role="img" aria-label="与右侧使用同一张照片的V9原版颜色"></canvas>
 </div><small class="notice">锁定的 V9 保时捷蓝雾色系，始终作为比较基准。</small></section>
 <section class="panel"><div class="label">右｜BUDAO 自适应艺术配色（本地生成）</div><div class="surface">
-<canvas id="poster" width="1080" height="1530" role="img" aria-label="步道温榆秘境活动海报，Canvas 稳定渲染稿"></canvas>
+<canvas id="poster" width="1080" height="1530" role="img" aria-label="步道当前活动海报，Canvas 稳定渲染稿"></canvas>
 </div><div class="actions"><button id="export" class="primary" disabled type="button">导出智能配色 PNG</button><button id="retry" type="button">重新分析与绘制</button><a class="action" href="./diy-template-01-v9.svg" target="_blank" rel="noopener">查看定稿 V9 原稿</a></div>
-<small class="notice">实验版仅在浏览器本地计算照片色彩；文件不会上传。二维码沿用已发布原始素材，下载图片前建议实际扫码测试。</small>
+<small class="notice">照片在当前浏览器内分析；二维码来自所选活动的原始文件。下载前请检查扫码可用性。</small>
 </section></div></main>
 <script src="/posters-runtime.js"></script>
 <script>
