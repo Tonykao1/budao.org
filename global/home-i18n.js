@@ -198,6 +198,8 @@
   // Homepage-only two links, presenting the OTHER two languages.
   // 简体: 繁 + EN; English: 简 + 繁; 繁體: 简 + EN.
   // No browser/IP inference, cookies, global navigation or new pages.
+  // Homepage-only switch: three alternatives to the currently selected language.
+  // Japanese is available in this isolated preview branch only.
   function configureHomeLanguageSwitch(windowObject, locale) {
     if (!windowObject || !windowObject.BudaoGlobal ||
         !windowObject.document || !windowObject.location ||
@@ -206,30 +208,32 @@
     if (!wrap || wrap.tagName !== 'DIV' ||
         typeof wrap.querySelectorAll !== 'function') return false;
     const links = Array.from(wrap.querySelectorAll('a'));
-    if (links.length !== 2 ||
+    if (links.length !== 3 ||
         !links.every(link => typeof link.getAttribute === 'function' &&
           /^\/home\.html(?:\?[^#]*)?(?:#[-\w.%]*)?$/.test(link.getAttribute('href') || ''))) return false;
-    const choices = Object.freeze({
-      'zh-Hans': [['zh-Hant','繁','切換至繁體中文首頁'], ['en','EN','Switch homepage to English']],
-      'zh-Hant': [['zh-Hans','简','切换至简体中文首页'], ['en','EN','Switch homepage to English']],
-      en: [['zh-Hans','简','切换至简体中文首页'], ['zh-Hant','繁','切換至繁體中文首頁']]
+    const names = Object.freeze({
+      'zh-Hans': ['简','切换至简体中文首页'],
+      'zh-Hant': ['繁','切換至繁體中文首頁'],
+      en: ['EN','Switch homepage to English'],
+      ja: ['日','日本語のホームページに切り替える']
     });
-    const targets = choices[locale];
-    if (!targets) return false;
-    const prepared = targets.map(([lang,label,description]) => ({
-      lang,label,description,
+    const languages = ['zh-Hans','zh-Hant','en','ja'];
+    if (!languages.includes(locale)) return false;
+    const prepared = languages.filter(lang => lang !== locale).map(lang => ({
+      lang,label:names[lang][0],description:names[lang][1],
       href:windowObject.BudaoGlobal.languageLink('/home.html',
         windowObject.location.search, windowObject.location.hash, lang)
     }));
     if (prepared.some(target => !target.href)) return false;
     prepared.forEach((target,i) => {
-      links[i].setAttribute('href',target.href);
-      links[i].setAttribute('lang',target.lang);
-      links[i].setAttribute('hreflang',target.lang);
-      links[i].setAttribute('aria-label',target.description);
+      links[i].setAttribute('href', target.href);
+      links[i].setAttribute('lang', target.lang);
+      links[i].setAttribute('hreflang', target.lang);
+      links[i].setAttribute('aria-label', target.description);
       links[i].textContent=target.label;
     });
     wrap.setAttribute('aria-label',
+      locale === 'ja' ? 'ホームページの言語切り替え' :
       locale === 'en' ? 'Homepage languages' :
       locale === 'zh-Hant' ? '首頁語言切換' : '首页语言切换');
     return true;
@@ -239,7 +243,7 @@
   // English row horizontally scrollable on narrow screens rather than clipping
   // the first and last links. Never affects the original Chinese experience.
   function enableEnglishNarrowNavigation(windowObject, locale) {
-    if (!['en','zh-Hant'].includes(locale) || !windowObject || !windowObject.document ||
+    if (!['en','zh-Hant','ja'].includes(locale) || !windowObject || !windowObject.document ||
         typeof windowObject.matchMedia !== 'function') return false;
     const nav = windowObject.document.querySelector('body > nav');
     if (!nav || !nav.style || typeof nav.querySelectorAll !== 'function') return false;
