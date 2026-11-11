@@ -354,6 +354,16 @@ async function handler(req,res){
     return sendJson(res,503,{ok:false,reason:"digest_not_configured"});
   try{
     const sql=neon(process.env.DATABASE_URL);
+    const route=new URL(req.url||"/api/daily-digest","https://budao.org");
+    if(route.searchParams.get("dryRun")==="1"){
+      // Authenticated production diagnostic. No email is sent and no sending
+      // state is changed; avoid putting prayer text or names into responses.
+      const period=utcWindow(new Date());
+      const snapshot=await collectAll(sql,period.start,period.end,cfg);
+      return sendJson(res,200,{ok:true,dryRun:true,window:period,
+        sources:Object.fromEntries(Object.entries(snapshot.sources)
+          .map(([name,item])=>[name,item.state]))});
+    }
     return sendJson(res,200,await runDaily(sql,new Date(),cfg));
   }catch(error){
     console.error("BUDAO Daily failed:",clean(error?.code||error?.name||"unknown",32));
