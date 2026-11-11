@@ -17,7 +17,7 @@ test('My Grass only performs fresh server entitlement check; shell card shade is
  assert.match(auth,/pasture-open-grass-after-check-v1/);
 });
 test('Card always consults verified issuance receipt; no local demo activation',()=>{
- const card=read('pasture-preview/card-activation.html'),handler=read('api/_security/pasture-auth-handler.js'),zone=read('pasture-preview/function-zone.html');
+ const card=read('pasture-preview/card-activation.html'),handler=read('api/_security/pasture-auth-handler.js'),zone=read('pasture-preview/function-zone.html'),page=read('pasture-preview/index.html');
  assert.match(card,/const card=data\.card\|\|null/);
  assert.match(card,/data\.user\.cardActivated===true/);
  assert.match(card,/card\?\.status==='ISSUED'/);
