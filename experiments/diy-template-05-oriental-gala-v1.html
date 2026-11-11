@@ -283,21 +283,47 @@ function photoArch(P){
  framePath(x-11,y-15,w+22,h+19);c.stroke();
  c.restore();
 }
+function titleRows(value){
+ const chars=Array.from(value||"");
+ if(chars.length<=7)return [chars.join("")];
+ if(chars.length<=18){
+  const boundaries=["暖冬","盛夏","初夏","金秋","新春","春日","冬日","秋日","夏日","亲子","少年","领袖","徒步","探线","半日","一日","夜行","秘境","湿地"];
+  const candidates=boundaries.map(w=>value.indexOf(w))
+    .filter(i=>i>=3&&i<=chars.length-3);
+  const split=candidates.length?candidates.sort((x,y)=>Math.abs(x-chars.length/2)-Math.abs(y-chars.length/2))[0]:Math.ceil(chars.length/2);
+  return [chars.slice(0,split).join(""),chars.slice(split).join("")];
+ }
+ const lineCount=chars.length<=40?3:4;
+ if(lineCount===4)throw Error("第五套 V1 暂不支持超过40字的主标题");
+ const n=Math.ceil(chars.length/lineCount),rows=[];
+ for(let i=0;i<chars.length;i+=n)rows.push(chars.slice(i,i+n).join(""));
+ return rows;
+}
 function bigTitle(P,R){
  write("万千脚步 · 自成华章",540,738,23,{font:serif,weight:500,color:P.gold,align:"center",tracking:3,shadow:"#180909",blur:10});
- const block=fitBlock(R.title,830,115,56,2,serif,700);
- const step=block.size*1.16;
- let y=block.lines.length===1?884:816;
- c.save();c.shadowColor="rgba(16,9,10,.85)";c.shadowBlur=19;
- for(const line of block.lines){
-  write(line,540,y,block.size,{font:serif,weight:700,color:P.paper,align:"center"});
-  y+=step;
+ const lines=titleRows(R.title);
+ const ideal=lines.length===1?125:lines.length===2?102:68;
+ const minimum=lines.length===1?55:lines.length===2?55:42;
+ let size=ideal;
+ while(size>minimum){
+  c.save();c.font="700 "+size+"px "+serif;
+  const max=Math.max(...lines.map(x=>c.measureText(x).width));c.restore();
+  if(max<=820)break;size-=1;
+ }
+ c.save();c.font="700 "+size+"px "+serif;
+ if(lines.some(x=>c.measureText(x).width>824)){c.restore();throw Error("当前活动名称无法在可读字号内排入第五套海报");}
+ c.restore();
+ const first=lines.length===1?873:lines.length===2?809:774;
+ const gap=lines.length===1?0:lines.length===2?95:69;
+ c.save();c.shadowColor="rgba(16,9,10,.88)";c.shadowBlur=20;
+ for(let i=0;i<lines.length;i++){
+  write(lines[i],540,first+i*gap,size,{font:serif,weight:700,color:P.paper,align:"center"});
  }
  c.restore();
  const description=R.subtitle;
  if(description){
-  const size=fitLine(description,790,25,16,serif,400);
-  write(description,540,931,size,{font:serif,weight:400,color:P.muted,align:"center",shadow:"#12090e",blur:7});
+  const subSize=fitLine(description,790,22,16,serif,400);
+  write(description,540,944,subSize,{font:serif,weight:400,color:P.muted,align:"center",shadow:"#12090e",blur:7});
  }
 }
 function details(P,R){
