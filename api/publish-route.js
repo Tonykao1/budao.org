@@ -5,6 +5,9 @@ module.exports = async function handler(request, response) {
   if (url.searchParams.get('service') === 'pasture') {
     return pastureAuthHandler(request, response);
   }
+  if (url.searchParams.get('service') === 'daily-digest') {
+    return require('./_security/daily-digest')(request,response);
+  }
   // Reuse the existing service dispatcher to respect Vercel's 12-function budget.
   if (url.searchParams.get('service') === 'campfire') {
     return require('./_security/campfire-handler')(request, response);
