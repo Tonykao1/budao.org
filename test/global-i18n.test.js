@@ -169,7 +169,7 @@ test('dynamic prayer feedback uses the same locale; Chinese is the default', () 
   assert.equal(homepage.runtimeCopy('要放下尚未送出的内容吗？','zh-Hant'),
     '要放下尚未送出的內容嗎？');
   assert.equal(homepage.runtimeCopy('提交祷告','zh-Hans'),'提交祷告');
-  assert.equal(homepage.runtimeCopy('提交祷告','ja'),'提交祷告');
+  assert.equal(homepage.runtimeCopy('提交祷告','ja'),'祈りを送信');
 });
 
 test('localization cannot change private prayer consent or API body', () => {
