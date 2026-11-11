@@ -6,8 +6,10 @@ const homepage = require('../global/home-i18n');
 test('normalizes supported languages; unknown language stays on Chinese', () => {
   assert.equal(core.normalizeLocale('ZH_tw'), 'zh-Hant');
   assert.equal(core.normalizeLocale('en-GB'), 'en');
-  assert.equal(core.normalizeLocale('ja'), null);
-  assert.equal(core.requestedLocale('?lang=ja'), 'zh-Hans');
+  assert.equal(core.normalizeLocale('ja'), 'ja');
+  assert.equal(core.normalizeLocale('ja-JP'), 'ja');
+  assert.equal(core.normalizeLocale('ko'), null);
+  assert.equal(core.requestedLocale('?lang=ja'), 'ja');
   assert.equal(core.requestedLocale(''), 'zh-Hans');
   assert.equal(core.requestedLocale('?lang=en'), 'en');
 });
@@ -167,7 +169,7 @@ test('dynamic prayer feedback uses the same locale; Chinese is the default', () 
   assert.equal(homepage.runtimeCopy('要放下尚未送出的内容吗？','zh-Hant'),
     '要放下尚未送出的內容嗎？');
   assert.equal(homepage.runtimeCopy('提交祷告','zh-Hans'),'提交祷告');
-  assert.equal(homepage.runtimeCopy('提交祷告','ja'),'提交祷告');
+  assert.equal(homepage.runtimeCopy('提交祷告','ja'),'祈りを送信');
 });
 
 test('localization cannot change private prayer consent or API body', () => {
@@ -453,45 +455,52 @@ test('homepage is the only page with three-language controls and six original na
   assert.match(html, /<\/nav>\s*<div id="homeLanguageSwitch" role="navigation"/);
   assert.match(html, /href="\/home\.html\?lang=zh-Hant"/);
   assert.match(html, /href="\/home\.html\?lang=en"/);
+  assert.match(html, /href="\/home\.html\?lang=ja"/);
   assert.equal((html.match(/id="homeLanguageSwitch"/g)||[]).length,1);
-  assert.equal((html.match(/target="_top"/g)||[]).length,2);
+  assert.equal((html.match(/target="_top"/g)||[]).length,3);
   assert.match(html, /#homeLanguageSwitch a:focus-visible/);
   assert.match(html, /min-height: 44px/);
 });
 
-test('homepage-only selector offers the OTHER two languages, no auto redirects', () => {
-  const attrs1={href:'/home.html?lang=zh-Hant'};
-  const attrs2={href:'/home.html?lang=en'};
-  const mkLink=attributes=>({
-    getAttribute:key=>attributes[key]??null,
-    setAttribute:(key,val)=>{attributes[key]=val;},
+test('homepage-only selector offers OTHER three of four locales with safe language links', () => {
+  const attrs=[{href:'/home.html?lang=zh-Hant'},{href:'/home.html?lang=en'},{href:'/home.html?lang=ja'}];
+  const links=attrs.map(a=>({
+    getAttribute:key=>a[key]??null,
+    setAttribute:(key,v)=>{a[key]=v;},
     textContent:''
-  });
-  const l1=mkLink(attrs1),l2=mkLink(attrs2);
-  const attrsWrap={};
+  }));
+  const wrapAttributes={};
   const wrap={
     tagName:'DIV',
-    querySelectorAll:sel=>sel==='a'?[l1,l2]:[],
-    setAttribute:(name,value)=>{attrsWrap[name]=value;}
+    querySelectorAll:sel=>sel==='a'?links:[],
+    setAttribute:(key,v)=>{wrapAttributes[key]=v;}
   };
-  const makeWindow=(search,hash,path='/home.html')=>({
+  const mk=(search,hash,path='/home.html')=>({
     BudaoGlobal:core,
     location:{pathname:path,search,hash},
     document:{getElementById:id=>id==='homeLanguageSwitch'?wrap:null}
   });
-  assert.equal(homepage.configureHomeLanguageSwitch(makeWindow('',''),'zh-Hans'),true);
-  assert.deepEqual([l1.textContent,l2.textContent],['繁','EN']);
-  assert.deepEqual([attrs1.href,attrs2.href],['/home.html?lang=zh-Hant','/home.html?lang=en']);
-  assert.equal(homepage.configureHomeLanguageSwitch(makeWindow('?lang=en&from=go','#top'),'en'),true);
-  assert.deepEqual([l1.textContent,l2.textContent],['简','繁']);
-  assert.deepEqual([attrs1.href,attrs2.href],['/home.html?from=go#top','/home.html?lang=zh-Hant&from=go#top']);
-  assert.equal(attrsWrap['aria-label'],'Homepage languages');
-  assert.equal(homepage.configureHomeLanguageSwitch(makeWindow('?lang=zh-Hant'),'zh-Hant'),true);
-  assert.deepEqual([l1.textContent,l2.textContent],['简','EN']);
-  assert.deepEqual([attrs1.href,attrs2.href],['/home.html','/home.html?lang=en']);
-  assert.equal(attrsWrap['aria-label'],'首頁語言切換');
-  assert.equal(homepage.configureHomeLanguageSwitch(makeWindow('',''),'zh-Hans'),true);
-  assert.deepEqual([l1.textContent,l2.textContent],['繁','EN']);
+  const expect=(labels,hrefs)=> {
+    assert.deepEqual(links.map(x=>x.textContent),labels);
+    assert.deepEqual(attrs.map(x=>x.href),hrefs);
+  };
+
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('',''),'zh-Hans'),true);
+  expect(['繁','EN','日'],['/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
+
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=en&from=go','#top'),'en'),true);
+  expect(['简','繁','日'],['/home.html?from=go#top','/home.html?lang=zh-Hant&from=go#top','/home.html?lang=ja&from=go#top']);
+  assert.equal(wrapAttributes['aria-label'],'Homepage languages');
+
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=zh-Hant'),'zh-Hant'),true);
+  expect(['简','EN','日'],['/home.html','/home.html?lang=en','/home.html?lang=ja']);
+
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=ja'),'ja'),true);
+  expect(['简','繁','EN'],['/home.html','/home.html?lang=zh-Hant','/home.html?lang=en']);
+  assert.equal(wrapAttributes['aria-label'],'ホームページの言語切り替え');
+
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('',''),'zh-Hans'),true);
+  expect(['繁','EN','日'],['/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
 });
 
 test('selector refuses non-homepage routes and unexpected markup', () => {
@@ -501,7 +510,7 @@ test('selector refuses non-homepage routes and unexpected markup', () => {
     location:{pathname,search:'',hash:''},
     document:{getElementById:()=>wrap}
   });
-  const wrap={tagName:'DIV',querySelectorAll:()=>[good,good],setAttribute(){}};
+  const wrap={tagName:'DIV',querySelectorAll:()=>[good,good,good],setAttribute(){}};
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/test.html',wrap),'en'),false);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/tongdao.html',wrap),'zh-Hant'),false);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/home.html',{...wrap,tagName:'A'}),'en'),false);
@@ -548,4 +557,107 @@ test('Traditional Chinese homepage consistently names 步道 in mission, prayer 
   const completed = homepage.entries.find(e=>e.selector==='.prayer-box-success p');
   assert.match(completed.values['zh-Hant'], /步道帶領人/);
   assert.doesNotMatch(completed.values['zh-Hant'], /BUDAO/);
+});
+
+
+test('Japanese preview translates all 37 homepage fields and preserves other locales', () => {
+  assert.equal(homepage.entries.length,37);
+  for (const entry of homepage.entries) {
+    assert.ok(typeof entry.values.ja==='string' && entry.values.ja.trim(),entry.selector);
+    assert.ok(typeof entry.values.en==='string' && entry.values.en.trim(),entry.selector);
+    assert.ok(typeof entry.values['zh-Hant']==='string' && entry.values['zh-Hant'].trim(),entry.selector);
+  }
+  const heading=homepage.entries.find(e=>e.selector==='header > h1');
+  assert.deepEqual({en:heading.values.en,trad:heading.values['zh-Hant'],ja:heading.values.ja},
+    {en:'BUDAO',trad:'步道',ja:'BUDAO'});
+  assert.equal(homepage.entries.find(e=>e.selector==='main section:nth-of-type(1) h2').values.ja,
+    '私たちは何をしているのでしょうか？');
+  assert.match(homepage.entries.find(e=>e.selector==='main section:nth-of-type(2) p').values.ja,
+    /主こそ道であり、真理であり、いのちです/);
+  assert.equal(core.languageLink('/home.html','','','ja'),'/home.html?lang=ja');
+  assert.equal(core.languageLink('/home.html','?lang=ja','','zh-Hans'),'/home.html');
+});
+
+test('Japanese brand uses BUDAO first, BUDAO（ブダオ） on first introduction, then ブダオ', () => {
+  const bySelector = (selector) => {
+    const entry = homepage.entries.find(e=>e.selector===selector);
+    assert.ok(entry,selector);
+    return entry.values.ja;
+  };
+  assert.equal(bySelector('nav a[href="/test.html"]'),'BUDAO');
+  assert.equal(bySelector('header > h1'),'BUDAO');
+  assert.equal(bySelector('title'),'BUDAO');
+  assert.equal(bySelector('main section:nth-of-type(2) h2'),'なぜ「BUDAO（ブダオ）」なのでしょうか？');
+  assert.equal(bySelector('main section:nth-of-type(3) h2'),'ブダオには何があるのでしょうか？');
+  assert.equal(bySelector('.prayer-box-return'),'ブダオに戻る');
+  assert.match(bySelector('.prayer-box-options label:nth-of-type(1) span'),/ブダオのリーダー/);
+  assert.match(bySelector('.prayer-box-success p'),/ブダオのリーダー/);
+  assert.equal(bySelector('footer > p'),'© 2026 BUDAO budao.org');
+  const japaneseValues = homepage.entries.map(e=>e.values.ja);
+  assert.ok(japaneseValues.some(x=>x.includes('BUDAO（ブダオ）')));
+  assert.ok(!japaneseValues.some(x=>x.includes('歩道')), 'never translate BUDAO to the Japanese word for sidewalk');
+});
+
+test('Japanese proper-name annotation adds a pronunciation and discourages auto translation', () => {
+  const makeElement = (value) => ({
+    textContent: value,
+    attributes: {},
+    setAttribute(name,value) { this.attributes[name]=value; }
+  });
+  const hero = makeElement('BUDAO');
+  const nav = makeElement('BUDAO');
+  const doc = {querySelector(selector) {
+    if(selector==='header > h1') return hero;
+    if(selector==='nav a[href="/test.html"]') return nav;
+    return null;
+  }};
+  assert.equal(homepage.annotateJapaneseBrand(doc,'zh-Hans'),false);
+  assert.equal(homepage.annotateJapaneseBrand(doc,'en'),false);
+  assert.deepEqual(hero.attributes,{});
+  assert.equal(homepage.annotateJapaneseBrand(doc,'ja'),true);
+  for (const el of [hero,nav]) {
+    assert.equal(el.textContent,'BUDAO');
+    assert.deepEqual(el.attributes,{'translate':'no','aria-label':'BUDAO（ブダオ）'});
+  }
+  const drift=makeElement('歩道');
+  assert.equal(homepage.annotateJapaneseBrand({
+    querySelector(selector) {return selector==='header > h1'?drift:nav;}
+  },'ja'),false);
+  assert.deepEqual(drift.attributes,{});
+});
+
+test('Japanese prayer feedback remains local while payload and privacy rules remain unchanged', () => {
+  assert.equal(homepage.runtimeCopy('正在送达…','ja'),'送信中…');
+  assert.equal(homepage.runtimeCopy('提交祷告','ja'),'祈りを送信');
+  assert.match(homepage.runtimeCopy('要放下尚未送出的内容吗？','ja'),/破棄しますか/);
+  const fields=homepage.entries.filter(e=>e.selector.includes('prayer-box'));
+  assert.ok(fields.length>=17);
+  assert.ok(fields.every(e=>typeof e.values.ja==='string' && e.values.ja.trim()));
+});
+
+test('Japanese declaration is a draft and retains all four original audio controls', () => {
+  const {doc,line,controls}=buildMockOriginalCreed();
+  const existing=Object.values(controls);
+  const count=line.childNodes.filter(n=>n.nodeType===1).length;
+  assert.equal(homepage.previewJapaneseCreed(doc,'ja'),true);
+  assert.equal(line.textContent.replace(/\s+/g,''),'生涯、主の道を歩み、左にも右にもそれず。');
+  assert.equal(line.childNodes.filter(n=>n.nodeType===1).length,count);
+  assert.deepEqual(line.childNodes.filter(n=>n.nodeType===1),existing);
+  assert.equal(controls.dspBtn.textContent,'生涯');
+  assert.equal(controls.playBtn.textContent,'歩み');
+  assert.equal(controls.prevBtn.textContent,'左');
+  assert.equal(controls.nextBtn.textContent,'右');
+  assert.equal(homepage.previewJapaneseCreed(doc,'ja'),false);
+  assert.equal(homepage.previewJapaneseCreed(buildMockOriginalCreed().doc,'en'),false);
+});
+
+test('Japanese homepage is opt-in; no other site pages acquire Japanese labels', () => {
+  const files=require('node:fs'),path=require('node:path');
+  const html=files.readFileSync(path.join(__dirname,'../home.html'),'utf8');
+  assert.equal((html.match(/href="\/home\.html\?lang=ja"/g)||[]).length,1);
+  assert.match(html, /href="\/test\.html">步道<\/a>/);
+  assert.doesNotMatch(html, /<nav>[\s\S]*?href="\/home\.html\?lang=ja"[\s\S]*?<\/nav>/);
+  const a={href:'/tongdao.html',getAttribute(){return this.href;},setAttribute(){throw Error('must not set')}}
+  const document={querySelectorAll:()=>[a]};
+  assert.deepEqual(core.carryLocaleOnLinks(document,'ja',['/home.html']),{changed:0});
 });
