@@ -66,17 +66,21 @@ test('only approved selectors are handled; no broad text-node walker', () => {
   assert.ok(homepage.entries.every(e=>e.selector && e.source && e.values.en && e.values['zh-Hant']));
   assert.ok(homepage.entries.every(e=> !e.selector.includes('script') && !e.selector.includes('hero-line')));
 });
-test('translated brand entries must use uppercase BUDAO in every target language', () => {
+test('English uses BUDAO; Traditional Chinese keeps the original 步道 brand', () => {
   const brandEntries = homepage.entries.filter(entry => entry.source.includes('步道'));
   assert.ok(brandEntries.length >= 5, 'branded navigation, heading, title and footer are included');
   for (const entry of brandEntries) {
     assert.match(entry.values.en, /BUDAO/, entry.selector);
-    assert.match(entry.values['zh-Hant'], /BUDAO/, entry.selector);
     assert.doesNotMatch(entry.values.en, /(?:Trails?|Budao)/, entry.selector);
+    assert.doesNotMatch(entry.values['zh-Hant'], /BUDAO/, entry.selector);
   }
   const navBrand = homepage.entries.find(entry => entry.selector === 'nav a[href="/test.html"]');
-  assert.equal(navBrand.values.en, 'BUDAO');
-  assert.equal(navBrand.values['zh-Hant'], 'BUDAO');
+  const heading = homepage.entries.find(entry => entry.selector === 'header > h1');
+  const title = homepage.entries.find(entry => entry.selector === 'title');
+  for (const entry of [navBrand, heading, title]) {
+    assert.equal(entry.values.en, 'BUDAO');
+    assert.equal(entry.values['zh-Hant'], '步道');
+  }
 });
 
 test('English typography uses English punctuation and questions', () => {
@@ -87,7 +91,7 @@ test('English typography uses English punctuation and questions', () => {
   }
   const why = homepage.entries.find(entry => entry.source.startsWith('为什么是'));
   assert.equal(why.values.en, 'Why BUDAO?');
-  assert.equal(why.values['zh-Hant'], '為什麼是 BUDAO？');
+  assert.equal(why.values['zh-Hant'], '為什麼是「步道」？');
 });
 
 test('all six navigation choices have explicit, distinct provisional translations', () => {
@@ -527,4 +531,21 @@ test('traditional localization remains opt-in and source-guarded on homepage', (
   assert.equal(core.requestedLocale(''),'zh-Hans');
   assert.equal(core.languageLink('/home.html','','','zh-Hant'),'/home.html?lang=zh-Hant');
   assert.equal(core.languageLink('/home.html','?lang=zh-Hant','','zh-Hans'),'/home.html');
+});
+
+test('Traditional Chinese homepage consistently names 步道 in mission, prayer and footer', () => {
+  const selections = {
+    'main section:nth-of-type(3) h2':'「步道」有什麼？',
+    '.prayer-box-options label:nth-of-type(1) span':'僅由步道帶領人閱讀和代禱',
+    '.prayer-box-return':'回到步道',
+    'footer > p':'© 2026 步道 budao.org'
+  };
+  for (const [selector, expected] of Object.entries(selections)) {
+    const entry = homepage.entries.find(e=>e.selector===selector);
+    assert.ok(entry, selector);
+    assert.equal(entry.values['zh-Hant'], expected, selector);
+  }
+  const completed = homepage.entries.find(e=>e.selector==='.prayer-box-success p');
+  assert.match(completed.values['zh-Hant'], /步道帶領人/);
+  assert.doesNotMatch(completed.values['zh-Hant'], /BUDAO/);
 });
