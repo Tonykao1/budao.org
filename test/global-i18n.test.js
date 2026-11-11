@@ -598,6 +598,34 @@ test('Japanese brand uses BUDAO first, BUDAO（ブダオ） on first introductio
   assert.ok(!japaneseValues.some(x=>x.includes('歩道')), 'never translate BUDAO to the Japanese word for sidewalk');
 });
 
+test('Japanese proper-name annotation adds a pronunciation and discourages auto translation', () => {
+  const makeElement = (value) => ({
+    textContent: value,
+    attributes: {},
+    setAttribute(name,value) { this.attributes[name]=value; }
+  });
+  const hero = makeElement('BUDAO');
+  const nav = makeElement('BUDAO');
+  const doc = {querySelector(selector) {
+    if(selector==='header > h1') return hero;
+    if(selector==='nav a[href="/test.html"]') return nav;
+    return null;
+  }};
+  assert.equal(homepage.annotateJapaneseBrand(doc,'zh-Hans'),false);
+  assert.equal(homepage.annotateJapaneseBrand(doc,'en'),false);
+  assert.deepEqual(hero.attributes,{});
+  assert.equal(homepage.annotateJapaneseBrand(doc,'ja'),true);
+  for (const el of [hero,nav]) {
+    assert.equal(el.textContent,'BUDAO');
+    assert.deepEqual(el.attributes,{'translate':'no','aria-label':'BUDAO（ブダオ）'});
+  }
+  const drift=makeElement('歩道');
+  assert.equal(homepage.annotateJapaneseBrand({
+    querySelector(selector) {return selector==='header > h1'?drift:nav;}
+  },'ja'),false);
+  assert.deepEqual(drift.attributes,{});
+});
+
 test('Japanese prayer feedback remains local while payload and privacy rules remain unchanged', () => {
   assert.equal(homepage.runtimeCopy('正在送达…','ja'),'送信中…');
   assert.equal(homepage.runtimeCopy('提交祷告','ja'),'祈りを送信');
