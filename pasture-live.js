@@ -29,7 +29,35 @@ function resetCard(){card.classList.remove('maker-card','maker-v2-card')}
 function showToast(message){toast.textContent=message;toast.hidden=false;setTimeout(()=>toast.hidden=true,2200)}
 function residentAvatarDna(){const sheep=resident?.sheep;if(!sheep||!DNA||!Renderer)return null;if(Number(sheep.appearanceVersion)===2&&DNA.validateV2(sheep.appearance))return sheep.appearance;return{bodyColor:sheep.bodyColor,headColor:sheep.headColor,marking:sheep.marking||'NONE'}}
 function drawResidentAvatar(){if(!residentAvatar||!Renderer)return;const ctx=residentAvatar.getContext('2d');ctx.clearRect(0,0,residentAvatar.width,residentAvatar.height);ctx.imageSmoothingEnabled=false;const dna=residentAvatarDna();if(!dna)return;Renderer.draw(residentAvatar.getContext('2d'),7,34,2.8,false,dna)}
-function updateResidentUi(){if(residentName)residentName.textContent='牧场居民';if(residentId)residentId.textContent=resident?.emailMasked||resident?.email_masked||'已进入羊群';drawResidentAvatar();document.querySelectorAll('.pasture-feature-locked').forEach(el=>{el.title='功能正在生长，成熟后开放';el.onclick=e=>{e.preventDefault();showToast('功能正在生长，成熟后开放')}})}
+function updateResidentUi(){
+ if(residentName)residentName.textContent='牧场居民';
+ if(residentId)residentId.textContent=resident?.emailMasked||resident?.email_masked||'已进入羊群';
+ drawResidentAvatar();
+ document.querySelectorAll('.pasture-feature-locked').forEach(el=>{
+  const open=el.id==='grassBookBtn'&&Boolean(resident?.id&&resident?.sheep&&resident?.cardActivated===true);
+  el.classList.toggle('pasture-founder-reader-open',open);
+  el.title=open?'打开我的牧草 · 阅读先行':'功能正在生长，成熟后开放';
+  if(open){
+   el.removeAttribute('aria-disabled');el.setAttribute('role','button');el.tabIndex=0;
+   el.onclick=async event=>{
+    event.preventDefault();
+    try{
+     // A fresh same-origin server check is required before each private entry.
+     const result=await request(null,'GET');
+     if(!result?.user?.id||result.user.id!==resident.id||result.user.cardActivated!==true||!result.user.sheep){
+      resident=result?.user||null;updateResidentUi();showToast('请先确认步道卡与居民身份');return;
+     }
+     window.location.assign('/my-grass-reader.html');
+    }catch(_){showToast('身份验证暂时不可用，请稍后重试')}
+   };
+   el.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();el.click()}};
+  }else{
+   el.setAttribute('aria-disabled','true');el.removeAttribute('role');el.removeAttribute('tabindex');
+   el.onclick=event=>{event.preventDefault();showToast('功能正在生长，成熟后开放')};
+   el.onkeydown=null;
+  }
+ });
+}
 function sendResidentToCore(arrival=false){if(!coreEngineReady||!resident?.sheep||!core.contentWindow)return;core.contentWindow.postMessage({type:'tonglu-resident-v1',resident:{id:resident.id,sheep:resident.sheep},arrival:!!arrival},location.origin);pendingArrival=false}
 function wantsMakerReview(){return new URLSearchParams(location.search).get('sheepMakerReview')==='1'}
 function wantsArrivalReview(){return location.hostname.endsWith('.vercel.app')&&new URLSearchParams(location.search).get('sheepArrivalReview')==='1'}
