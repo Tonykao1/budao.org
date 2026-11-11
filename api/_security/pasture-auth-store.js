@@ -52,6 +52,7 @@ async function ensurePastureSchema(){
         created_at timestamptz NOT NULL DEFAULT now(),
         updated_at timestamptz NOT NULL DEFAULT now()
       )`;
+      await q`ALTER TABLE pasture_users ADD COLUMN IF NOT EXISTS card_activated_at timestamptz`;
       await q`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_version integer NOT NULL DEFAULT 1`;
       await q`ALTER TABLE pasture_sheep ADD COLUMN IF NOT EXISTS appearance_v2 jsonb`;
     })().catch(e=>{ensurePromise=null;throw e});
@@ -74,7 +75,7 @@ async function findOrCreateUser(emailHash,emailMasked,encrypted){
   const rows=await sql()`INSERT INTO pasture_users(email_hash,email_masked,email_ciphertext,email_nonce,email_tag)
     VALUES(${emailHash},${emailMasked},${encrypted.emailCiphertext},${encrypted.emailNonce},${encrypted.emailTag})
     ON CONFLICT(email_hash) DO UPDATE SET email_masked=EXCLUDED.email_masked,email_ciphertext=EXCLUDED.email_ciphertext,email_nonce=EXCLUDED.email_nonce,email_tag=EXCLUDED.email_tag,updated_at=now()
-    RETURNING id,email_masked AS "emailMasked",status,created_at AS "createdAt"`;
+    RETURNING id,email_masked AS "emailMasked",status,created_at AS "createdAt",card_activated_at AS "cardActivatedAt"`;
   return rows[0]||null;
 }
 async function createSession(userId,tokenHash,expiresAt,ua){
@@ -83,12 +84,12 @@ async function createSession(userId,tokenHash,expiresAt,ua){
 }
 async function sessionByTokenHash(tokenHash){
   const q=sql();
-  const rows=await q`SELECT s.id AS "sessionId",u.id AS "userId",u.email_masked AS "emailMasked",u.status,u.created_at AS "createdAt"
+  const rows=await q`SELECT s.id AS "sessionId",u.id AS "userId",u.email_masked AS "emailMasked",u.status,u.created_at AS "createdAt",u.card_activated_at AS "cardActivatedAt"
     FROM pasture_sessions s JOIN pasture_users u ON u.id=s.user_id
     WHERE s.token_hash=${tokenHash} AND s.revoked_at IS NULL AND s.expires_at>now() LIMIT 1`;
   if(!rows[0])return null;
   await q`UPDATE pasture_sessions SET last_seen_at=now() WHERE id=${rows[0].sessionId}`;
-  return {session:{id:rows[0].sessionId},user:{id:rows[0].userId,emailMasked:rows[0].emailMasked,status:rows[0].status,createdAt:rows[0].createdAt}};
+  return {session:{id:rows[0].sessionId},user:{id:rows[0].userId,emailMasked:rows[0].emailMasked,status:rows[0].status,createdAt:rows[0].createdAt,cardActivatedAt:rows[0].cardActivatedAt}};
 }
 async function revokeSession(tokenHash){await sql()`UPDATE pasture_sessions SET revoked_at=now() WHERE token_hash=${tokenHash}`}
 async function sheepForUser(userId){
