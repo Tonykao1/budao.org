@@ -294,7 +294,22 @@ async function runDaily(sql,now,cfg,deps={}){
   const done=await sql`SELECT window_end FROM budao_daily_digest_runs
     WHERE status='SENT' AND window_end<=${win.end}::timestamptz
     ORDER BY window_end DESC LIMIT 1`;
-  let start=done.length?new Date(done[0].window_end).toISOString():win.start;
+  // When yesterday's email failed, roll its unsent window into today's
+  // report rather than silently losing that day. Ignore older failed rows
+  // already covered by a later successfully delivered digest.
+  const missed=done.length?
+    await sql`SELECT window_start FROM budao_daily_digest_runs
+      WHERE status!='SENT' AND window_end>${new Date(done[0].window_end).toISOString()}::timestamptz
+        AND window_end<${win.end}::timestamptz ORDER BY window_start ASC LIMIT 1`:
+    await sql`SELECT window_start FROM budao_daily_digest_runs
+      WHERE status!='SENT' AND window_end<${win.end}::timestamptz
+      ORDER BY window_start ASC LIMIT 1`;
+  let start=done.length?new Date(done[0].window_end).toISOString():
+    (missed.length?new Date(missed[0].window_start).toISOString():win.start);
+  if(missed.length){
+    const earliest=new Date(missed[0].window_start).toISOString();
+    if(earliest<start)start=earliest;
+  }
   const limit=new Date(Date.parse(win.end)-45*DAY_MS).toISOString();
   if(start<limit)start=limit;
   if(start>=win.end)return {ok:true,skipped:"already_caught_up",key:win.key};
