@@ -578,6 +578,26 @@ test('Japanese preview translates all 37 homepage fields and preserves other loc
   assert.equal(core.languageLink('/home.html','?lang=ja','','zh-Hans'),'/home.html');
 });
 
+test('Japanese brand uses BUDAO first, BUDAO（ブダオ） on first introduction, then ブダオ', () => {
+  const bySelector = (selector) => {
+    const entry = homepage.entries.find(e=>e.selector===selector);
+    assert.ok(entry,selector);
+    return entry.values.ja;
+  };
+  assert.equal(bySelector('nav a[href="/test.html"]'),'BUDAO');
+  assert.equal(bySelector('header > h1'),'BUDAO');
+  assert.equal(bySelector('title'),'BUDAO');
+  assert.equal(bySelector('main section:nth-of-type(2) h2'),'なぜ「BUDAO（ブダオ）」なのでしょうか？');
+  assert.equal(bySelector('main section:nth-of-type(3) h2'),'ブダオには何があるのでしょうか？');
+  assert.equal(bySelector('.prayer-box-return'),'ブダオに戻る');
+  assert.match(bySelector('.prayer-box-options label:nth-of-type(1) span'),/ブダオのリーダー/);
+  assert.match(bySelector('.prayer-box-success p'),/ブダオのリーダー/);
+  assert.equal(bySelector('footer > p'),'© 2026 BUDAO budao.org');
+  const japaneseValues = homepage.entries.map(e=>e.values.ja);
+  assert.ok(japaneseValues.some(x=>x.includes('BUDAO（ブダオ）')));
+  assert.ok(!japaneseValues.some(x=>x.includes('歩道')), 'never translate BUDAO to the Japanese word for sidewalk');
+});
+
 test('Japanese prayer feedback remains local while payload and privacy rules remain unchanged', () => {
   assert.equal(homepage.runtimeCopy('正在送达…','ja'),'送信中…');
   assert.equal(homepage.runtimeCopy('提交祷告','ja'),'祈りを送信');
