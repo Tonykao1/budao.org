@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>BUDAO · 第五套《东方·盛典》V1.3 · 顶部 logo 右侧路线说明</title>
+<meta name="description" content="BUDAO 第五套东方盛典真实 Canvas 海报实验：源自步道自身脚步线稿的连续礼序纹样，照片叙事，中轴构图与原创绛红鎏金色彩。无需 AI 绘图。">
+<style>
+:root{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#1d2733;background:#f0efed}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}
+header{background:#201b1c;color:#fffaef;padding:23px max(20px,calc((100% - 1450px)/2)) 26px;border-bottom:3px solid #ba9c65}
+header small{font-size:10px;letter-spacing:.24em;color:#d4bd91}
+header h1{font-size:clamp(25px,3vw,42px);font-weight:530;margin:13px 0 8px;letter-spacing:.045em}
+header p{color:#d4c7b4;font-size:13px;line-height:1.9;margin:0;max-width:880px}
+main{max-width:1500px;margin:0 auto;padding:28px 20px 55px;display:grid;grid-template-columns:minmax(0,770px) minmax(300px,1fr);gap:23px;align-items:start}
+.poster-zone{background:#221a20;padding:15px;border-radius:8px;box-shadow:0 16px 50px #32241d38;display:flex;flex-direction:column;align-items:center}
+canvas{width:min(100%,570px);height:auto;display:block;background:#391a24;aspect-ratio:1080/1530;border:1px solid #e9c9974d;box-shadow:0 7px 28px #110e11c4}
+.poster-note{color:#ded0bd;font-size:11px;line-height:1.8;margin:13px 0 0;text-align:center}
+.panel{background:#fff;border:1px solid #e2dad0;border-radius:8px;padding:21px 24px;box-shadow:0 5px 22px #352d2710}
+.panel + .panel{margin-top:14px}
+.eyebrow{color:#936d40;font-size:10px;font-weight:750;letter-spacing:.15em}
+.panel h2{font-weight:580;font-size:22px;margin:7px 0 8px;letter-spacing:.02em}
+.lead{font-size:12px;color:#6f6c67;line-height:1.85;margin:0 0 15px}
+label{font-size:12px;font-weight:580;color:#545351;display:block;margin:15px 0 7px}
+select,input[type=file]{display:block;width:100%;font-size:13px;padding:11px 10px;border:1px solid #cfc4b7;background:#fffcf8;border-radius:6px;color:#292826}
+input[type=range]{width:100%;accent-color:#9b512d}
+.control-line{display:flex;justify-content:space-between;gap:12px;align-items:center}
+output{font-variant-numeric:tabular-nums;font-size:12px;color:#9b674a}
+.palette-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.choice{border:1px solid #ddd2c4;background:#fffdf9;border-radius:6px;padding:8px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:76px}
+.choice[aria-pressed=true]{border:2px solid #8c5a33;padding:7px;background:#faf3e8}
+.swatch{height:29px;width:100%;border-radius:3px}
+.choice small{font-size:11px;color:#47413c}
+.actions{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}
+button{font:inherit}
+.action{border-radius:5px;border:1px solid #a78f6e;padding:11px 16px;background:#fff;color:#473c30;font-size:13px;font-weight:600;cursor:pointer}
+.action.primary{background:#53252c;border-color:#53252c;color:#fff;flex:1}
+.action:disabled{opacity:.47;cursor:not-allowed}
+.action:focus-visible,.choice:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #af762a;outline-offset:3px}
+.status{white-space:pre-wrap;color:#456148;background:#f6f4ef;border:1px solid #e2ddd2;border-radius:6px;margin:15px 0 0;padding:11px;font-size:11px;line-height:1.85;min-height:50px}
+.status.error{color:#9d3032}
+.crit{display:grid;grid-template-columns:1fr;gap:9px;margin:11px 0 0;padding:0;list-style:none}
+.crit li{display:flex;gap:9px;font-size:12px;color:#645b50;line-height:1.65}
+.crit li::before{content:"✓";color:#946a42;font-weight:800}
+.warning{font-size:11px;line-height:1.8;color:#897157;margin:13px 0 0}
+a{color:#7b4b30}
+@media(max-width:1080px){main{grid-template-columns:1fr;max-width:830px}.poster-zone{order:2}.controls{order:1}.panel{padding:20px}}
+</style>
+</head>
+<body>
+<header>
+<small>BUDAO · TEMPLATE 05 / EDITORIAL VISUAL RESEARCH / V1</small>
+<h1>东方·盛典 <span style="font-weight:300;color:#c0a47a">/ 典礼之序</span></h1>
+<p>对标国家级大型文艺活动的中轴秩序、东方纹样与典礼色彩，但不复制任何央视节目标识、官方徽章或国家象征。每一枚纹样均由步道自有的脚步线稿在 Canvas 中生成；活动照片和报名二维码来自所选步道原始资料。</p>
+</header>
+<main>
+<section class="poster-zone">
+<canvas id="poster" width="1080" height="1530" role="img" aria-label="步道第五套东方盛典海报预览"></canvas>
+<p class="poster-note">1080 × 1530 · 第五套 V1.3 · 顶部 logo 右侧路线说明 · 原始二维码不变</p>
+</section>
+<section class="controls">
+<div class="panel">
+<div class="eyebrow">DESIGN REVIEW · FIRST STUDY</div>
+<h2>第五套 / V1.3 设计复核</h2>
+<p class="lead">纠正 V1.2 的位置：海报最顶部左侧保留现有脚丫 logo，右侧横向空间显示真实路线说明（最多两行，超长以省略号标记）。主标题下方不放说明。原有 30% 标题行距、字体选择及二维码原图保持不变。</p>
+<label for="route">真实活动数据</label>
+<select id="route"><option>正在读取已发布活动……</option></select>
+<label for="titleFont">活动主标题字体</label>
+<select id="titleFont" aria-label="活动主标题字体">
+<option value="song" selected>典礼宋体 · 庄重</option>
+<option value="sans">现代黑体 · 鲜明</option>
+<option value="kai">书卷楷体 · 雅致</option>
+</select>
+<label>主题色系</label>
+<div class="palette-grid" role="group" aria-label="主题色系">
+<button class="choice" data-theme="vermilion" type="button" aria-pressed="true"><span class="swatch" style="background:linear-gradient(115deg,#411821,#812a31,#d4b574)"></span><small>典礼绛红</small></button>
+<button class="choice" data-theme="jade" type="button" aria-pressed="false"><span class="swatch" style="background:linear-gradient(115deg,#132e31,#31645d,#c1b77b)"></span><small>山海黛青</small></button>
+<button class="choice" data-theme="ink" type="button" aria-pressed="false"><span class="swatch" style="background:linear-gradient(115deg,#111a27,#384658,#d4b58a)"></span><small>玄墨鎏金</small></button>
+</div>
+<div class="control-line"><label for="pattern">连续脚步纹样密度</label><output id="patternVal">65%</output></div>
+<input id="pattern" type="range" min="0" max="100" step="5" value="65">
+<div class="control-line"><label for="light">摄影明度</label><output id="lightVal">58%</output></div>
+<input id="light" type="range" min="20" max="100" step="5" value="58">
+<div class="control-line"><label for="crop">照片取景缩放</label><output id="cropVal">100%</output></div>
+<input id="crop" type="range" min="100" max="155" step="5" value="100">
+<label for="localPhoto">本地替换照片（仅视觉实验）</label>
+<input id="localPhoto" type="file" accept="image/jpeg,image/png,image/webp">
+<div class="actions">
+<button type="button" class="action primary" id="download" disabled>导出真实 PNG</button>
+<button type="button" class="action" id="reset">恢复默认</button>
+</div>
+<p id="status" class="status" role="status" aria-live="polite">正在准备当前活动及真实素材……</p>
+<p class="warning">上传照片只在本地浏览器中预览，不会更改网站活动资料。原始二维码始终绑定所选活动；没有可用二维码则禁止导出。</p>
+</div>
+<div class="panel">
+<div class="eyebrow">V1 DESIGN CONTRACT</div>
+<h2>验收四项</h2>
+<ul class="crit">
+<li>真实照片是主角，不让装饰盖过人的真实同行</li>
+<li>BUDAO 原始脚步图案形成连续、成列的原创东方礼序</li>
+<li>真实路线说明位于海报顶部 logo 右侧；主标题下方不再重复展示</li>
+<li>报名二维码保留原始像素与白边，并在视觉末端承担行动引导</li>
+</ul>
+</div>
+</section>
+</main>
+<script src="/posters-runtime.js"></script>
+<script>
+(async function(){
+"use strict";
+const runtime=window.BudaoPosterRuntime;
+const cv=document.getElementById("poster"),c=cv.getContext("2d",{alpha:false});
+const $=id=>document.getElementById(id);
+const E={route:$("route"),titleFont:$("titleFont"),pattern:$("pattern"),light:$("light"),crop:$("crop"),
+ patternVal:$("patternVal"),lightVal:$("lightVal"),cropVal:$("cropVal"),
+ upload:$("localPhoto"),download:$("download"),reset:$("reset"),status:$("status")};
+const themes=Object.freeze({
+ vermilion:{name:"典礼绛红",bg:"#18141b",wine:"#7e2530",dark:"#461723",gold:"#d0ac66",light:"#fff0c9",muted:"#e0c6a3",paper:"#fff7e8",veil:"rgba(62,8,21,.18)",gleam:"#c9433c"},
+ jade:{name:"山海黛青",bg:"#10252a",wine:"#28564f",dark:"#103537",gold:"#c6bb85",light:"#faf0ce",muted:"#ccd0b6",paper:"#fff8df",veil:"rgba(12,57,55,.23)",gleam:"#5f9e86"},
+ ink:{name:"玄墨鎏金",bg:"#111923",wine:"#303d51",dark:"#192233",gold:"#d2ae7d",light:"#fff0d6",muted:"#c7c2b7",paper:"#fff5e5",veil:"rgba(13,24,38,.25)",gleam:"#8195b4"}
+});
+let chosen="vermilion",record=null,photo=null,originalPhoto=null,footprint=null,footGold=null,qr=null,brand=null,ready=false,job=0,photoURL=null;
+const serif='"Songti SC","Noto Serif CJK SC","STSong","SimSun",serif';
+const sans='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+const titleFaces=Object.freeze({
+ song:{family:serif,weight:700,tracking:0},
+ sans:{family:sans,weight:700,tracking:5},
+ kai:{family:'"Kaiti SC","STKaiti","KaiTi","DFKai-SB","Noto Serif CJK SC",serif',weight:500,tracking:1.5}
+});
+function setStatus(message,error){
+ E.status.textContent=message;E.status.classList.toggle("error",!!error);
+}
+function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
+function alpha(hex,a){
+ const clean=hex.replace("#","");const n=parseInt(clean,16);
+ return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")";
+}
+function roundRect(x,y,w,h,r,fill,stroke,width){
+ c.beginPath();c.roundRect(x,y,w,h,r);
+ if(fill){c.fillStyle=fill;c.fill();}
+ if(stroke){c.strokeStyle=stroke;c.lineWidth=width||1;c.stroke();}
+}
+function strokeLine(points,color,width){
+ c.save();c.strokeStyle=color;c.lineWidth=width;c.beginPath();
+ points.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.restore();
+}
+function write(value,x,y,size,options){
+ const o=options||{};if(!value)return;
+ c.save();c.font=(o.weight||400)+" "+size+"px "+(o.font||sans);
+ c.textAlign=o.align||"left";c.textBaseline="alphabetic";
+ c.fillStyle=o.color||"#fff";
+ if(o.shadow){c.shadowColor=o.shadow;c.shadowBlur=o.blur||10;}
+ if(o.tracking){
+  const chars=Array.from(String(value));const width=chars.reduce((s,ch)=>s+c.measureText(ch).width,0)+(chars.length-1)*o.tracking;
+  let px=o.align==="center"?x-width/2:o.align==="right"?x-width:x;
+  c.textAlign="left";
+  for(const ch of chars){c.fillText(ch,px,y);px+=c.measureText(ch).width+o.tracking;}
+ }else{c.fillText(String(value),x,y);}
+ c.restore();
+}
+function fitLine(value,width,initial,min,font,weight){
+ c.save();let size=initial;const str=String(value||"");
+ while(size>min){
+  c.font=weight+" "+size+"px "+font;
+  if(c.measureText(str).width<=width)break;
+  size-=1;
+ }
+ c.restore();return size;
+}
+function wrap(value,width,size,font,weight,maxLines){
+ c.save();c.font=weight+" "+size+"px "+font;
+ const lines=[];let current="";
+ for(const char of Array.from(String(value||""))){
+  if(char==="\n"){if(current)lines.push(current);current="";continue;}
+  if(c.measureText(current+char).width>width&&current){lines.push(current);current=char;}
+  else current+=char;
+ }
+ if(current)lines.push(current);c.restore();
+ return lines.length<=maxLines?lines:null;
+}
+function fitBlock(value,width,ideal,min,maxLines,font,weight){
+ for(let px=ideal;px>=min;px--){const lines=wrap(value,width,px,font,weight,maxLines);if(lines)return {size:px,lines};}
+ throw Error("路线文字太长，无法在清晰可读的字号内显示");
+}
+function cover(img,x,y,w,h,zoom){
+ const sw=img.width,sh=img.height;const ratio=Math.max(w/sw,h/sh)*(zoom||1);
+ const dw=sw*ratio,dh=sh*ratio;
+ c.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+}
+function framePath(x,y,w,h){
+ c.beginPath();c.moveTo(x,y+h);c.lineTo(x,y+140);
+ c.bezierCurveTo(x,y+53,x+85,y+14,x+w/2,y+11);
+ c.bezierCurveTo(x+w-85,y+14,x+w,y+53,x+w,y+140);
+ c.lineTo(x+w,y+h);c.closePath();
+}
+function addFootprintPalette(src,color){
+ const off=document.createElement("canvas");off.width=133;off.height=312;
+ const k=off.getContext("2d");k.drawImage(src,0,0,133,312);
+ k.globalCompositeOperation="source-in";k.fillStyle=color;k.fillRect(0,0,133,312);
+ return off;
+}
+function footAt(x,y,w,h,angle,a){
+ if(!footGold)return;
+ c.save();c.translate(x,y);c.rotate(angle);c.globalAlpha=a;
+ c.drawImage(footGold,-w/2,-h/2,w,h);c.restore();
+}
+function ornaments(P){
+ const power=Number(E.pattern.value)/100;
+ if(power<=0)return;
+ c.save();
+ // Outer rhythmic procession: the verified BUDAO footprint icon is repeated,
+ // not recreated as any governmental/official insignia.
+ for(let side of [-1,1]){
+  for(let i=0;i<18;i++){
+   const yy=308+i*32;
+   const xx=540+side*(472+5*Math.sin(i*.54));
+   footAt(xx,yy,12,30,(side===-1?-.19:.19)+(i%2?.1:-.1),(.11+(i%3)*.035)*power);
+  }
+ }
+ for(let i=0;i<30;i++){
+  const xx=135+i*28;
+  footAt(xx,229+14*Math.sin(Math.PI*i/29),10,23,(i%2?.1:-.1),.17*power);
+ }
+ for(let i=0;i<26;i++){
+  const xx=126+i*33;
+  footAt(xx,990,10,23,(i%2?.13:-.13),.12*power);
+ }
+ // Fan-shaped ceremonial rings: all geometric strokes are new SVG/Canvas shapes.
+ const cx=540,cy=657;
+ for(let k=0;k<5;k++){
+  c.beginPath();
+  c.ellipse(cx,cy,434+k*13,477+k*12,0,Math.PI*.89,Math.PI*2.11);
+  c.strokeStyle=alpha(P.gold,.10*power);c.lineWidth=k%2?1.2:.6;c.stroke();
+ }
+ c.restore();
+}
+function backdrop(P){
+ const base=c.createLinearGradient(0,0,1080,1530);
+ base.addColorStop(0,P.dark);base.addColorStop(.38,P.wine);base.addColorStop(.64,P.dark);base.addColorStop(1,P.bg);
+ c.fillStyle=base;c.fillRect(0,0,1080,1530);
+ const glow=c.createRadialGradient(540,485,42,540,485,780);
+ glow.addColorStop(0,alpha(P.gleam,.19));glow.addColorStop(.5,alpha(P.wine,.04));glow.addColorStop(1,"rgba(0,0,0,0)");
+ c.fillStyle=glow;c.fillRect(0,0,1080,1350);
+ // No official national insignia, historic crest, anthem, or government logo.
+ roundRect(39,37,1002,1453,0,null,alpha(P.gold,.47),1.4);
+ roundRect(49,47,982,1433,0,null,alpha(P.gold,.20),.85);
+ strokeLine([[75,150],[1005,150]],alpha(P.gold,.45),1);
+ strokeLine([[75,974],[1005,974]],alpha(P.gold,.4),1.1);
+ strokeLine([[76,1451],[1004,1451]],alpha(P.gold,.45),1);
+ for(const x of [83,996]){
+  for(const y of [79,1408]){
+   c.fillStyle=alpha(P.gold,.73);c.beginPath();c.moveTo(x,y-7);c.lineTo(x+7,y);c.lineTo(x,y+7);c.lineTo(x-7,y);c.fill();
+  }
+ }
+}
+function headerDraw(P,R){
+ if(brand){
+  c.save();c.filter="brightness(0) invert(1)";c.globalAlpha=.91;
+  const w=53,h=w*brand.height/brand.width;c.drawImage(brand,95,83,w,h);c.restore();
+ }
+ // Route description belongs exclusively in the top horizontal strip,
+ // immediately to the RIGHT of the existing logo (not below the title).
+ // Use actual route text and a visible ellipsis when it cannot fit.
+ const topDescription=routeDescriptionExcerpt(R.description,805,17,2);
+ const topBaselines=topDescription.length===1?[112]:[101,127];
+ for(let i=0;i<topDescription.length;i++){
+  write(topDescription[i],173,topBaselines[i],17,{font:serif,weight:400,
+    color:P.muted,align:"left"});
+ }
+ // No template-title text on final poster. The central visual accent is purely ornamental.
+ for(const dx of [-19,0,19]){
+  const x=540+dx;c.save();c.fillStyle=alpha(P.gold,dx===0?.87:.58);
+  c.beginPath();c.moveTo(x,194);c.lineTo(x+6,202);c.lineTo(x,210);c.lineTo(x-6,202);c.closePath();c.fill();c.restore();
+ }
+ // Original symmetrical ceremonial filigree around title.
+ c.save();c.strokeStyle=alpha(P.gold,.65);c.lineWidth=1.7;
+ for(const side of [-1,1]){
+  const cx=540+side*258;
+  c.beginPath();c.moveTo(cx,202);c.lineTo(cx+side*95,202);c.stroke();
+  c.beginPath();c.arc(cx+side*99,202,3,0,Math.PI*2);c.fillStyle=P.gold;c.fill();
+ }
+ c.restore();
+}
+function photoArch(P){
+ const x=103,y=274,w=874,h=691;
+ c.save();framePath(x,y,w,h);c.clip();
+ const zoom=Number(E.crop.value)/100;
+ const brightness=Number(E.light.value)/100;
+ // The real site route photograph is the dominant visual material.
+ cover(photo,x,y,w,h,zoom);
+ c.fillStyle=alpha(P.dark,.19+(1-brightness)*.45);c.fillRect(x,y,w,h);
+ c.fillStyle=P.veil;c.fillRect(x,y,w,h);
+ const shade=c.createLinearGradient(0,y+120,0,y+h);
+ shade.addColorStop(0,"rgba(3,5,7,.04)");
+ shade.addColorStop(.43,"rgba(3,5,7,.05)");
+ shade.addColorStop(.75,"rgba(13,11,16,.62)");
+ shade.addColorStop(1,"rgba(13,10,16,.94)");
+ c.fillStyle=shade;c.fillRect(x,y,w,h);
+ // Photo remains legible behind the information, not replaced by generated scenery.
+ c.restore();
+ framePath(x,y,w,h);c.lineWidth=2.1;c.strokeStyle=alpha(P.gold,.83);c.stroke();
+ // The geometric decorative crown belongs to BUDAO, not to an official coat of arms.
+ c.save();c.strokeStyle=alpha(P.gold,.30);c.lineWidth=1;
+ framePath(x-11,y-15,w+22,h+19);c.stroke();
+ c.restore();
+}
+function titleRows(value){
+ const chars=Array.from(value||"");
+ if(chars.length<=7)return [chars.join("")];
+ if(chars.length<=18){
+  const boundaries=["暖冬","盛夏","初夏","金秋","新春","春日","冬日","秋日","夏日","亲子","少年","领袖","徒步","探线","半日","一日","夜行","秘境","湿地"];
+  const candidates=boundaries.map(w=>value.indexOf(w))
+    .filter(i=>i>=3&&i<=chars.length-3);
+  const split=candidates.length?candidates.sort((x,y)=>Math.abs(x-chars.length/2)-Math.abs(y-chars.length/2))[0]:Math.ceil(chars.length/2);
+  return [chars.slice(0,split).join(""),chars.slice(split).join("")];
+ }
+ const lineCount=chars.length<=40?3:4;
+ if(lineCount===4)throw Error("第五套 V1 暂不支持超过40字的主标题");
+ const n=Math.ceil(chars.length/lineCount),rows=[];
+ for(let i=0;i<chars.length;i+=n)rows.push(chars.slice(i,i+n).join(""));
+ return rows;
+}
+// The poster uses source description only: no invented slogans or AI copy.
+// If the source text exceeds the two-line space, append an honest ellipsis.
+function routeDescriptionExcerpt(source,width,fontSize,maxLines){
+ const full=String(source||"").replace(/\s+/g," ").trim();
+ if(!full)return [];
+ const tryLines=text=>wrap(text,width,fontSize,serif,400,maxLines);
+ const all=tryLines(full);
+ if(all)return all;
+ const chars=Array.from(full);
+ let lo=0,hi=chars.length,valid=[];
+ while(lo<=hi){
+  const mid=(lo+hi)>>1;
+  const current=chars.slice(0,mid).join("").trimEnd()+"…";
+  const lines=tryLines(current);
+  if(lines){valid=lines;lo=mid+1;}else hi=mid-1;
+ }
+ if(!valid.length)throw Error("路线说明无法排入海报");
+ return valid;
+}
+function bigTitle(P,R){
+ const selected=titleFaces[E.titleFont.value]||titleFaces.song;
+ const family=selected.family,weight=selected.weight,tracking=selected.tracking||0;
+ const widthOf=(text)=>c.measureText(text).width+Math.max(0,Array.from(text).length-1)*tracking;
+ const lines=titleRows(R.title);
+ const ideal=lines.length===1?125:lines.length===2?102:68;
+ const minimum=lines.length===1?55:lines.length===2?55:42;
+ let size=ideal;
+ while(size>minimum){
+  c.save();c.font=weight+" "+size+"px "+family;
+  const max=Math.max(...lines.map(widthOf));c.restore();
+  if(max<=820)break;size-=1;
+ }
+ c.save();c.font=weight+" "+size+"px "+family;
+ if(lines.some(x=>widthOf(x)>824)){c.restore();throw Error("当前活动名称无法在可读字号内排入第五套海报");}
+ c.restore();
+
+ // V1.1 baseline steps: 95px (2-line), 69px (3-line).
+ // V1.2 expands those EXACT steps by 30%; top shifts preserve the details below.
+ const first=lines.length===1?839:lines.length===2?750:675;
+ const gap=lines.length===1?0:lines.length===2?95*1.30:69*1.30;
+ c.save();c.shadowColor="rgba(16,9,10,.88)";c.shadowBlur=20;
+ for(let i=0;i<lines.length;i++){
+  write(lines[i],540,first+i*gap,size,{font:family,weight,tracking,color:P.paper,align:"center"});
+ }
+ c.restore();
+
+}
+function details(P,R){
+ const start=1000;
+ write("日期",107,start+33,18,{weight:700,color:P.gold,tracking:1.4});
+ write(R.mmdd.replace(" / ","."),106,start+115,83,{font:serif,weight:600,color:P.paper,tracking:1});
+ write(R.year+"  "+R.weekday+"   "+R.time,510,start+91,28,{font:sans,weight:500,color:P.paper});
+ write(R.region,509,start+129,19,{font:serif,weight:500,color:P.muted});
+ strokeLine([[110,1160],[750,1160]],alpha(P.gold,.40),1);
+ write("集 合 地 点",111,1198,18,{font:serif,weight:650,tracking:3,color:P.gold});
+ const meeting=fitBlock(R.meeting,621,32,19,2,sans,600);
+ let y=1247;
+ for(const line of meeting.lines){write(line,109,y,meeting.size,{weight:600,color:P.paper});y+=meeting.size*1.2;}
+ const groups=[
+  [R.distance&&"距离 "+R.distance,R.elevation&&"爬升 "+R.elevation,R.difficulty&&"难度 "+R.difficulty].filter(Boolean).join("   ·   "),
+  [R.duration&&"时长 "+R.duration,R.surface&&"路面 "+R.surface].filter(Boolean).join("   ·   "),
+  [R.suitable&&"适合 "+R.suitable,R.equipment&&"装备 "+R.equipment].filter(Boolean).join("   ·   ")
+ ];
+ let yy=Math.max(1310,y+13);
+ for(const row of groups){
+  if(!row)continue;
+  const size=fitLine(row,640,22,15,sans,400);
+  write(row,110,yy,size,{font:sans,weight:400,color:P.muted});yy+=34;
+ }
+ if(yy>1450)throw Error("活动详情过长，无法完整排入海报");
+ const size=184,x=802,qy=1174;
+ // Only the OUTER white frame is reduced: 13px -> 2.6px (one fifth).
+ // Preserve the QR image and its own quiet zone, original pixel size and location.
+ const outerMargin=13/5;
+ roundRect(x-outerMargin,qy-outerMargin,size+2*outerMargin,size+2*outerMargin,1,"#fff",alpha(P.gold,.85),2);
+ c.save();c.imageSmoothingEnabled=false;c.drawImage(qr,x,qy,size,size);c.restore();
+ write(R.isPast?"历史活动 · 已结束":"扫码报名相约步道",x+size/2,1411,18,
+       {font:serif,weight:600,align:"center",color:P.gold,tracking:1});
+ strokeLine([[118,1447],[970,1447]],alpha(P.gold,.3),.85);
+ write("budao.org",971,1476,17,{weight:500,color:P.gold,align:"right",tracking:1});
+}
+function render(){
+ E.download.disabled=true;ready=false;
+ if(!record||!photo||!qr||!footGold||!brand)return;
+ try{
+  const P=themes[chosen];
+  c.save();c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.filter="none";
+  backdrop(P);ornaments(P);headerDraw(P,record);photoArch(P);bigTitle(P,record);details(P,record);
+  c.restore();
+  const check=c.getImageData(533,475,1,1).data;
+  if(check[3]!==255)throw Error("海报画面未完整渲染");
+  ready=true;E.download.disabled=false;
+  setStatus("✓ 已读取原始活动照片及本次活动的报名二维码\n✓ 已绘制 BUDAO 连续脚步礼序纹样，背景未使用 AI 绘画\n✓ 已排入活动真实标题、时间、集合点和路线参数\n✓ V1.3：顶部保留脚丫 logo，原文路线说明置于其右侧；标题下方无说明\n✓ 多行标题基线间距较 V1.1 增加30%；二维码不变\n✓ 1080 × 1530 PNG 已就绪"+(record.isPast?"\n注意：该活动已结束，海报仅作历史样张。":""));
+ }catch(err){
+  c.restore();setStatus("✕ 无法绘制：" + String(err.message||err),true);ready=false;E.download.disabled=true;
+ }
+}
+async function imageFromURL(src){
+ const response=await fetch(src,{cache:"no-store",credentials:"same-origin"});
+ if(!response.ok)throw Error("真实素材读取失败（HTTP "+response.status+"）");
+ const blob=await response.blob();if(!blob.type.startsWith("image/")&&!src.endsWith(".svg"))throw Error("素材不是图像");
+ if(blob.type.includes("svg")||src.endsWith(".svg")){
+  const objectURL=URL.createObjectURL(blob);
+  try{
+   const pic=new Image();
+   await new Promise((resolve,reject)=>{
+    pic.onload=resolve;pic.onerror=()=>reject(Error("步道脚印线稿 SVG 无法解码"));
+    pic.src=objectURL;
+   });
+   return {bmp:pic,blob};
+  }finally{URL.revokeObjectURL(objectURL);}
+ }
+ return {bmp:await createImageBitmap(blob),blob};
+}
+async function qrFromRoute(R){
+ const response=await fetch(R.qr,{cache:"no-store",credentials:"same-origin"});
+ if(!response.ok)throw Error("原始报名二维码读取失败（HTTP "+response.status+"）");
+ const blob=await response.blob();
+ if(!/^image\/(png|jpeg|webp|gif)$/.test(blob.type))throw Error("报名二维码格式不是图片");
+ if(R.qrSha){
+  if(!crypto?.subtle)throw Error("浏览器无法校验二维码指纹");
+  const bytes=new Uint8Array(await blob.arrayBuffer());
+  const header=new TextEncoder().encode("blob "+bytes.length+"\0");
+  const all=new Uint8Array(header.length+bytes.length);
+  all.set(header);all.set(bytes,header.length);
+  const digest=new Uint8Array(await crypto.subtle.digest("SHA-1",all));
+  const sha=Array.from(digest,x=>x.toString(16).padStart(2,"0")).join("");
+  if(sha!==R.qrSha)throw Error("原始报名二维码指纹不符，禁止导出");
+ }
+ const bitmap=await createImageBitmap(blob);
+ if(bitmap.width<80||bitmap.height<80||Math.abs(bitmap.width-bitmap.height)>2)throw Error("原始报名二维码尺寸不合法");
+ return bitmap;
+}
+let selectionToken=0;const routes=await runtime.routes();
+const list=routes.filter(r=>r&&(r.routeId||r.id)&&r.title).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+if(!list.length)throw Error("目前没有可用的步道活动");
+E.route.replaceChildren();
+for(const route of list){
+ const op=document.createElement("option");op.value=String(route.routeId||route.id);
+ op.textContent=(route.date||"")+" · "+route.title+" · "+(route.city||"");E.route.append(op);
+}
+const p=new URLSearchParams(location.search),requested=p.get("route");
+if(requested&&list.some(r=>String(r.routeId||r.id)===requested))E.route.value=requested;
+const [footResult,brandResult]=await Promise.all([
+ imageFromURL("/assets/budao-footprint-watermark.svg"),imageFromURL("/budao-logo-mark.png")
+]);
+footprint=footResult.bmp;brand=brandResult.bmp;
+async function activate(){
+ const token=++selectionToken;
+ E.download.disabled=true;setStatus("正在读取当前活动的真实照片与报名二维码……");
+ let pimg,qimg;
+ try{
+  const selected=list.find(r=>String(r.routeId||r.id)===E.route.value);
+  if(!selected)throw Error("没有选择活动");
+  const R=runtime.normalized(selected);
+  const [p,q]=await Promise.all([imageFromURL(R.photo),qrFromRoute(R)]);
+  if(token!==selectionToken){p.bmp.close?.();q.close?.();return;}
+  pimg=p.bmp;qimg=q;
+  record=R;originalPhoto=pimg;photo=pimg;qr=qimg;
+  E.upload.value="";E.crop.value="100";E.cropVal.textContent="100%";
+  const u=new URL(location.href);u.searchParams.set("route",R.id);history.replaceState(null,"",u.pathname+u.search);
+  buildFootGold();render();
+ }catch(err){
+  if(token!==selectionToken)return;
+  record=null;photo=null;qr=null;E.download.disabled=true;
+  setStatus("✕ "+String(err.message||err),true);
+ }
+}
+function buildFootGold(){
+ const P=themes[chosen];footGold=addFootprintPalette(footprint,P.gold);
+}
+E.route.addEventListener("change",activate);
+E.titleFont.addEventListener("change",render);
+for(const button of document.querySelectorAll("[data-theme]")){
+ button.addEventListener("click",()=>{
+  chosen=button.dataset.theme;
+  document.querySelectorAll("[data-theme]").forEach(b=>b.setAttribute("aria-pressed",String(b===button)));
+  if(footprint)buildFootGold();render();
+ });
+}
+for(const [el,out] of [[E.pattern,E.patternVal],[E.light,E.lightVal],[E.crop,E.cropVal]]){
+ el.addEventListener("input",()=>{out.textContent=el.value+"%";render()});
+}
+E.upload.addEventListener("change",async()=>{
+ const file=E.upload.files?.[0];if(!file)return;
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>24*1024*1024){setStatus("✕ 只能选择不超过24MB的 JPG、PNG 或 WebP",true);return;}
+ const token=++job;
+ try{
+  const bitmap=await createImageBitmap(file);
+  if(token!==job)return;
+  photo=bitmap;render();
+ }catch(err){setStatus("✕ 本地图片无法读取："+String(err.message||err),true)}
+});
+E.reset.addEventListener("click",()=>{
+ chosen="vermilion";E.titleFont.value="song";
+ document.querySelectorAll("[data-theme]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.theme===chosen)));
+ E.pattern.value=65;E.light.value=58;E.crop.value=100;
+ E.patternVal.textContent="65%";E.lightVal.textContent="58%";E.cropVal.textContent="100%";
+ E.upload.value="";photo=originalPhoto;if(footprint)buildFootGold();render();
+});
+E.download.addEventListener("click",()=>{
+ if(!ready||!record)return;
+ cv.toBlob(blob=>{
+  if(!blob){setStatus("✕ PNG 导出失败",true);return;}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="BUDAO-"+record.title+"-东方盛典-V1.3-"+chosen+"-"+E.titleFont.value+".png";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+ },"image/png");
+});
+await activate();
+})().catch(err=>{
+ const e=document.getElementById("status");e.textContent="✕ "+String(err.message||err);e.classList.add("error");document.getElementById("download").disabled=true;
+});
+</script>
+</body></html>
