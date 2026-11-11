@@ -63,6 +63,54 @@
 .truil-footer-signature { display: inline-block; margin-inline-start: 1.4em; font-weight: 300; font-size: .95em; letter-spacing: .035em; opacity: .78; }
 @media (max-width: 620px) { .truil-footer-signature { margin-inline-start: .75em; } }
 </style>
+  <!-- Homepage-only language choices; original six-link navigation is untouched. -->
+  <style>
+    #homeLanguageSwitch {
+      position: absolute;
+      z-index: 10;
+      top: 8px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 0 3px;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 999px;
+      background: #000;
+      white-space: nowrap;
+    }
+    #homeLanguageSwitch a {
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 0 6px;
+      color: #fff;
+      text-decoration: none;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      border-radius: 999px;
+      transition: background-color 160ms ease;
+    }
+    #homeLanguageSwitch a:hover { background: rgba(255,255,255,0.17); }
+    #homeLanguageSwitch a:focus-visible { outline: 2px solid #e9d6a8; outline-offset: -3px; }
+    @media (max-width: 1200px) {
+      #homeLanguageSwitch {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: max-content;
+        margin: 6px 10px -30px auto;
+      }
+    }
+  </style>
+  <script src="/global/i18n-core.js" defer></script>
+  <script src="/global/home-i18n.js" defer></script>
 </head>
 <body>
 
@@ -74,6 +122,10 @@
   <a href="/what.html">同工</a>
   <a href="/tonglu.html">牧场</a>
 </nav>
+<div id="homeLanguageSwitch" role="navigation" aria-label="首页语言切换">
+  <a href="/home.html?lang=zh-Hant" lang="zh-Hant" hreflang="zh-Hant" target="_top" aria-label="切換至繁體中文首頁">繁</a>
+  <a href="/home.html?lang=en" lang="en" hreflang="en" target="_top" aria-label="Switch homepage to English">EN</a>
+</div>
 
 <header>
   <h1>步道</h1>
