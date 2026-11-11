@@ -16,7 +16,7 @@
     { selector:'title', source:'步道 budao', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'BUDAO'} },
     { selector:'header > h1', source:'步道', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'BUDAO'} },
     { selector:'main section:nth-of-type(1) h2', source:'我们在做什么？', values:{en:'What do we do?', 'zh-Hant':'我們在做什麼？', ja:'私たちは何をしているのでしょうか？'} },
-    { selector:'main section:nth-of-type(1) p', source:'健行于天地，相知于彼此，在旷野经历与祂的同在。', values:{en:'We walk the earth beneath the heavens, come to know one another, and encounter His presence in the wilderness.', 'zh-Hant':'健行於天地，相知於彼此，在曠野經歷與祂的同在。', ja:'天地の中を歩き、互いを知り、荒野で主の臨在を経験します。'} },
+    { selector:'main section:nth-of-type(1) p', source:'健行于天地，相知于彼此，在旷野经历与祂的同在。', values:{en:'We walk the earth beneath the heavens, come to know one another, and encounter His presence in the wilderness.', 'zh-Hant':'健行於天地，相知於彼此，在曠野經歷與祂的同在。', ja:'空と大地の間を歩み、互いを知り、荒野で主の臨在に触れます。'} },
     { selector:'main section:nth-of-type(2) h2', source:'为什么是“步道”？', values:{en:'Why BUDAO?', 'zh-Hant':'為什麼是「步道」？', ja:'なぜ「BUDAO」なのでしょうか？'} },
     { selector:'main section:nth-of-type(2) p', source:'祂就是道路、真理、生命。唯有祂亲自感动你同行天路，共步主道。', values:{en:'He is the way, the truth, and the life. He alone can stir our hearts to journey heavenward together, following His way.', 'zh-Hant':'祂就是道路、真理、生命。唯有祂親自感動你同行天路，共步主道。', ja:'主こそ道であり、真理であり、いのちです。主ご自身が心を動かしてくださるとき、私たちは天の御国を目指し、主の道をともに歩むのです。'} },
     { selector:'main section:nth-of-type(3) h2', source:'“步道”有什么？', values:{en:'What will you find at BUDAO?', 'zh-Hant':'「步道」有什麼？', ja:'BUDAOには何があるのでしょうか？'} },
