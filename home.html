@@ -63,6 +63,40 @@
 .truil-footer-signature { display: inline-block; margin-inline-start: 1.4em; font-weight: 300; font-size: .95em; letter-spacing: .035em; opacity: .78; }
 @media (max-width: 620px) { .truil-footer-signature { margin-inline-start: .75em; } }
 </style>
+  <!-- Homepage-only language control: separate from the six original nav entries. -->
+  <style>
+    #homeLanguageSwitch {
+      position: absolute;
+      z-index: 10;
+      top: 8px;
+      right: 12px;
+      min-width: 44px;
+      min-height: 44px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      background: #000;
+      color: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: border-color 160ms ease;
+    }
+    #homeLanguageSwitch:hover { border-color: rgba(255, 255, 255, 0.85); }
+    #homeLanguageSwitch:focus-visible { outline: 2px solid #e9d6a8; outline-offset: 2px; }
+    @media (max-width: 430px) { #homeLanguageSwitch { top: 4px; right: 9px; } }
+  </style>
+  <!-- BUDAO GLOBAL: opt-in English homepage beta; source Chinese and existing artwork untouched -->
+  <script src="/global/i18n-core.js" defer></script>
+  <script src="/global/home-i18n.js" defer></script>
 </head>
 <body>
 
@@ -74,6 +108,7 @@
   <a href="/what.html">同工</a>
   <a href="/tonglu.html">牧场</a>
 </nav>
+<a id="homeLanguageSwitch" href="/home.html?lang=en" lang="en" hreflang="en" aria-label="Switch homepage to English">EN</a>
 
 <header>
   <h1>步道</h1>
