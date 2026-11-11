@@ -52,7 +52,7 @@ function validateSheep(input){
 }
 function publicUser(user,sheep){
   if(!user)return null;
-  return {id:user.id,emailMasked:user.emailMasked,createdAt:user.createdAt,cardActivated:user.cardActivatedAt!=null,sheep:sheep?{
+  return {id:user.id,emailMasked:user.emailMasked,createdAt:user.createdAt,sheep:sheep?{
     id:sheep.id,bodyColor:sheep.bodyColor,headColor:sheep.headColor,marking:sheep.marking,
     appearanceVersion:Number(sheep.appearanceVersion||1),appearance:sheep.appearanceV2||null,createdAt:sheep.createdAt
   }:null};
