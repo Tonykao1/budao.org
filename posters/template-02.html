@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>步道 · 模板二 V2 · 温榆秘境 · 希望之径</title>
+<title>步道 · 模板二 V2 · 所选活动 · 希望之径</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#e9e4d9;color:#44382b;font-family:"Songti SC","Noto Serif CJK SC",serif}
 header{padding:25px max(20px,calc((100% - 1390px)/2));background:#3f4140;color:#f8f2e5}
@@ -29,9 +29,9 @@ button:disabled{opacity:.5;cursor:not-allowed}.stat{margin:15px 0;font:13px/1.8 
 
 @media(max-width:940px){.page{grid-template-columns:1fr}main{padding:12px}.poster-card{max-width:680px;margin:auto}aside{max-width:680px;margin:auto}}
 </style></head><body>
-<header><small>BUDAO / POSTER TEMPLATE 02 / V2</small><h1>希望之径 · 温榆秘境</h1><p>希望之径已接入真实路线，保留审核通过的足迹遮罩、配色及原始二维码。增加四套无 API 的艺术配色及三套已有系统字体；默认「朝圣橄榄绿 × 书卷宋体」。不复制梵蒂冈官方徽标。</p></header>
+<header><small>BUDAO / POSTER TEMPLATE 02 / V2</small><h1>希望之径 · 所选活动</h1><p>希望之径已接入真实路线，保留审核通过的足迹遮罩、配色及原始二维码。增加四套无 API 的艺术配色及三套已有系统字体；默认「朝圣橄榄绿 × 书卷宋体」。不复制梵蒂冈官方徽标。</p></header>
 <main><div class="page">
-<div class="poster-card"><canvas id="poster" width="1080" height="1530" aria-label="以原始照片与足迹遮罩绘制的步道温榆秘境活动海报"></canvas></div>
+<div class="poster-card"><canvas id="poster" width="1080" height="1530" aria-label="以原始照片与足迹遮罩绘制的步道所选活动活动海报"></canvas></div>
 <aside>
 <span class="tag">模板二 V2 · 独立试验 · 不影响模板一 V9</span>
 <h2>线条足迹 × 希望之径</h2>
@@ -55,11 +55,11 @@ button:disabled{opacity:.5;cursor:not-allowed}.stat{margin:15px 0;font:13px/1.8 
 <div class="palette-swatches" id="paletteSwatches" aria-label="当前艺术配色色卡"></div>
 <p>这次没有生成虚构的朝圣者、教堂或风景。左侧足迹是由你上传的黑色透明线稿提取的轮廓，照片与二维码从网站原始资源读取。</p>
 <p>可在四组固定典礼配色之间切换，也可选择黑体、宋体或楷体。所有切换均在浏览器本地完成，不上传照片、不调用任何 AI 或取色 API。足迹作为唯一主要图腾，内部回旋线仍然保留。</p>
-<p><strong>真实活动信息：</strong>11 月 8 日，周日 15:45；和园景逸大酒店停车场；4千米、爬升 &lt;50米、铺装路、1.5小时；全年龄段友好。</p>
+<p><strong>当前活动资料：</strong> 从公开路线实时读取日期、集合地点与路线属性；不使用演示样张的数据。</p>
 <button id="download" type="button" disabled>导出当前配色与字体 PNG（1080 × 1530）</button>
-<div class="stat" id="status">准备读取温榆秘境原始素材……</div>
+<div class="stat" id="status">准备读取所选活动原始素材……</div>
 <div class="note">当前仅用于审美研究，未来扩展成通用模板时会接入每位带领人的活动数据与个人照片。原始二维码图片保留必要白边，请勿裁除。</div>
-<p class="note">原图参考（同一素材）：</p><img class="reference" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="温榆秘境原始活动照片"/>
+<p class="note">原图参考（同一素材）：</p><img class="reference" src="../route-assets/tony/239119c6dfa54ee7e0467b5979d55045.jpg" alt="所选活动原始活动照片"/>
 </aside></div></main>
 <script src="/posters-runtime.js"></script>
 <script>
@@ -264,6 +264,7 @@ function rerender(){
   const [photo,qr,logo]=await Promise.all([loadImg(SOURCE.photo,"原始活动照片"),loadImg(SOURCE.qr,"原始二维码"),loadImg(SOURCE.logo,"步道Logo")]);
   await document.fonts.ready;
   assets={photo,qr,logo};
+  const sourcePreview=document.getElementById("sourceImage");if(sourcePreview)sourcePreview.src=R.photo;
   rerender();
  }catch(e){ready=false;download.disabled=true;status.textContent="✕ 资源或绘制失败："+String(e.message||e);}
 })();
