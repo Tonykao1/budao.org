@@ -81,9 +81,9 @@ button:disabled{opacity:.47;cursor:not-allowed}
  </div>
  <div id="status" aria-live="polite">正在读取原图和二维码…</div>
  <div class="qr-proof">
-  <img src="../route-assets/tony/b1effbd699a010eb21c7c087505cc54c.png" alt="本次活动的原始微信报名二维码">
+  <img id="qrProof" alt="本次活动的原始微信报名二维码">
   <div><strong>原始二维码核对</strong>
-  <span>原始 420×420 PNG，包含微信图标与全部白边</span>
+  <span>当前路线的原始二维码，保留原有白边与图案</span>
   <span>不重新生成，源图指纹不符则禁止导出。</span></div>
  </div>
 
@@ -404,6 +404,7 @@ async function boot(){
   const [photo,q,f,logo]=await Promise.all([bitmap(SOURCE.photo,"活动照片"),bitmap(SOURCE.qr,"二维码"),bitmap(SOURCE.footprint,"线条脚丫子"),bitmap(SOURCE.brand,"步道Logo")]);
   await document.fonts.ready;
   qr=q;foot=f;brand=logo;photoInfo=sourceHue(photo);
+  const qrPreview=document.getElementById("qrProof");if(qrPreview)qrPreview.src=R.qr;
   ui.reroll.disabled=false;ui.reset.disabled=false;draw();
  }catch(e){ready=false;ui.download.disabled=true;ui.status.textContent="✕ 资源验证失败，已阻止导出："+String(e.message||e);}
 }
