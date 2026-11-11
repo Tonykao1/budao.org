@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BUDAO 逐梦动势 · 智能取色正式版</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#172d37;background:#ecf0ef}
+header{background:#162d37;color:#f4f7f5;padding:27px max(20px,calc((100vw - 1460px)/2))}
+header h1{font-size:clamp(26px,3.4vw,42px);margin:5px 0}header p{color:#b7cccf;line-height:1.8;margin:0;font-size:14px;max-width:1060px}
+main{max-width:1500px;padding:26px 19px 60px;margin:auto}
+.diagnostics{padding:14px 18px;margin-bottom:20px;border:1px solid #b2c7cc;border-radius:9px;background:#fafdfd}
+.diagnostics strong{display:block;font-size:15px;margin-bottom:5px}
+#status{margin:6px 0;font-size:13px;line-height:1.75;color:#47616b;white-space:pre-wrap}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:23px;align-items:start}
+.panel{min-width:0}.label{font-size:15px;font-weight:750;margin-bottom:10px}
+.surface{border:1px solid #bdc9cc;background:#dce7e8;padding:9px}
+.surface img,.surface canvas{display:block;width:100%;height:auto;aspect-ratio:1080/1530;object-fit:contain;background:#d4e1e6}
+.surface canvas{image-rendering:auto}
+.actions{margin-top:15px;display:flex;flex-wrap:wrap;gap:9px}
+button,a.action{border:1px solid #92a9ac;border-radius:7px;padding:12px 16px;background:white;color:#193c48;cursor:pointer;text-decoration:none;font-size:13px;font-weight:600}
+button.primary{background:#1c4655;color:white;border-color:#1c4655}
+button:disabled{opacity:.5;cursor:not-allowed}
+small.notice{display:block;color:#667b80;margin-top:8px;line-height:1.7}
+@media(max-width:850px){.panels{grid-template-columns:1fr;max-width:570px;margin:auto}}
+
+.lab{border:1px solid #bcced1;background:#fcfdfc;padding:19px;border-radius:10px;margin-bottom:20px}
+.lab h2{margin:0 0 8px;font-size:20px}.lab p{margin:0 0 12px;color:#56717a;font-size:13px;line-height:1.65}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.control{display:flex;flex-direction:column;gap:6px;min-width:180px;flex:1}
+.control label{font-size:12px;font-weight:700;color:#395968}
+.control input,.control select{width:100%;min-height:45px;padding:9px 10px;border:1px solid #b5c5c8;border-radius:6px;background:#fff;font:inherit;font-size:13px;color:#203b43}
+button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
+.swatch{height:42px;flex:1;border-radius:4px;border:1px solid #00000018;position:relative}
+.swatch span{display:none}.analysis{line-height:1.7;color:#35505b;font-size:13px}
+.stats{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}.stats span{background:#eaf2f0;padding:5px 9px;border-radius:5px}
+.designnote{font-size:12px;color:#617680;margin-top:10px}
+</style></head><body>
+<header><p>BUDAO · ADAPTIVE PALETTE · PRIVATE COLOR LAB</p><h1>上传一张照片，让海报自动获得协调的配色</h1><p>纯浏览器本地取色 + 预设艺术配色库；无 AI、无外部 API、无服务器上传。V9 布局与文字完全锁定，本页仅研究颜色。左侧 V9 原色，右侧智能色。</p></header>
+<main>
+<section class="lab">
+ <h2>BUDAO · 智能取色引擎（实验）</h2>
+ <p>从照片计算艺术配色，并额外检测主标题覆盖区域的明暗，自动保护标题可读性。可切换网站现有的黑体、宋体与楷体字体栈。</p>
+ <div class="controls">
+   <div class="control"><label for="photoInput">① 上传本地照片（只在你的浏览器处理）</label><input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/*"></div>
+   <div class="control"><label for="paletteSelect">② 配色方式</label><select id="paletteSelect"><option value="auto">自动推荐 · 依照照片</option><option value="fixed">保留 V9 原版颜色</option></select></div>
+   <div class="control"><label for="headlineFont">③ 主标题字体（只改变右侧实验稿）</label>
+    <select id="headlineFont">
+      <option value="modern">现代黑体 · V9原版</option>
+      <option value="song">书卷宋体 · 清雅</option>
+      <option value="kai">人文楷体 · 手写气质</option>
+    </select>
+   </div>
+   <button type="button" id="resetPhoto" class="lite">使用温榆秘境原图</button>
+ </div>
+ <div id="paletteSwatches" class="swatches" aria-label="自动推荐配色"></div>
+ <div id="colorAnalysis" class="analysis">正在分析温榆秘境原始照片……</div>
+ <div class="designnote">八套艺术配色及 V9 构图保持不变。仅右侧主标题增加局部明暗保护及字体切换；未安装相应系统字体的设备会自动回退。局部对比提升不等于适用于所有照片的绝对保证。</div>
+</section>
+<div class="diagnostics"><strong>素材与渲染校验</strong><div id="status">正在读取原始资源并核对校验值…</div></div>
+<div class="panels">
+<section class="panel"><div class="label">左｜V9 定稿配色（同一张照片）</div><div class="surface">
+<canvas id="baseline" width="1080" height="1530" role="img" aria-label="与右侧使用同一张照片的V9原版颜色"></canvas>
+</div><small class="notice">锁定的 V9 保时捷蓝雾色系，始终作为比较基准。</small></section>
+<section class="panel"><div class="label">右｜BUDAO 自适应艺术配色（本地生成）</div><div class="surface">
+<canvas id="poster" width="1080" height="1530" role="img" aria-label="步道温榆秘境活动海报，Canvas 稳定渲染稿"></canvas>
+</div><div class="actions"><button id="export" class="primary" disabled type="button">导出智能配色 PNG</button><button id="retry" type="button">重新分析与绘制</button><a class="action" href="./diy-template-01-v9.svg" target="_blank" rel="noopener">查看定稿 V9 原稿</a></div>
+<small class="notice">实验版仅在浏览器本地计算照片色彩；文件不会上传。二维码沿用已发布原始素材，下载图片前建议实际扫码测试。</small>
+</section></div></main>
+<script src="/posters-runtime.js"></script>
+<script>
+(async function(){
+"use strict";
+const R=await window.BudaoPosterRuntime.load();
+
+"use strict";
+const fileDefs=[
+ {name:"活动照片",url:R.photo,sha:R.photoSha||"",mime:/\.png$/i.test(R.photo)?"image/png":/\.webp$/i.test(R.photo)?"image/webp":"image/jpeg"},
+ {name:"报名二维码",url:R.qr,sha:R.qrSha||"",mime:/\.png$/i.test(R.qr)?"image/png":/\.webp$/i.test(R.qr)?"image/webp":"image/jpeg"},
+ {name:"步道标识",url:R.logo,sha:"91e792653308c85c567971d436dc4e2d44a4691e",mime:"image/png"},
+ {name:"固定书法走字",url:R.brush,mime:"image/svg+xml"}
+];
+const c=document.getElementById("poster"),baseline=document.getElementById("baseline"),baseCtx=baseline.getContext("2d");
+let ctx=c.getContext("2d");const status=document.getElementById("status"),exportBtn=document.getElementById("export");
+const FONT_SANS='"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif';
+const FONT_SERIF='"Noto Serif CJK SC","Songti SC","SimSun",serif';
+function polygon(points){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();}
+function text(value,x,y,style,color,align="left"){ctx.save();ctx.font=style;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline="alphabetic";ctx.fillText(value,x,y);ctx.restore();}
+function line(points,color,width){ctx.save();ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();ctx.restore();}
+function curveText(str,points,font='21px '+FONT_SERIF,alpha=.5){
+ const sections=[];let total=0;
+ for(let i=0;i<points.length-1;i++){
+   const dx=points[i+1][0]-points[i][0],dy=points[i+1][1]-points[i][1],length=Math.hypot(dx,dy);
+   sections.push({from:points[i],dx,dy,length,start:total,angle:Math.atan2(dy,dx)});total+=length;
+ }
+ ctx.save();ctx.font=font;ctx.fillStyle=drawTheme.narrative;ctx.globalAlpha=alpha;
+ let at=12;
+ for(const char of Array.from(str)){
+   const advance=Math.max(12,ctx.measureText(char).width)+.5;
+   const midpoint=at+advance/2;
+   const section=sections.find(sec=>midpoint>=sec.start&&midpoint<=sec.start+sec.length);
+   if(!section)break;
+   const t=(midpoint-section.start)/section.length;
+   const x=section.from[0]+section.dx*t,y=section.from[1]+section.dy*t;
+   ctx.save();ctx.translate(x,y);ctx.rotate(section.angle);ctx.fillText(char,-advance/2,-9);ctx.restore();
+   at+=advance;
+ }
+ ctx.restore();return {used:Math.round(at),total:Math.round(total)};
+}
+async function validatedImage(info){
+ const r=await fetch(info.url,{cache:"no-store"});if(!r.ok)throw Error(info.name+" HTTP "+r.status);
+ const bytes=await r.arrayBuffer();
+ if(info.sha && crypto.subtle){
+   const prefix=new TextEncoder().encode("blob "+bytes.byteLength+"\0");
+   const pre=new Uint8Array(prefix.length+bytes.byteLength);
+   pre.set(prefix,0);pre.set(new Uint8Array(bytes),prefix.length);
+   const digest=await crypto.subtle.digest("SHA-1",pre);
+   const sha=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
+   if(sha!==info.sha)throw Error(info.name+" 校验失败，已停止绘制。实际 "+sha+"，应为 "+info.sha);
+ }
+ const blob=new Blob([bytes],{type:info.mime});
+ let bmp;
+ if(info.mime==="image/svg+xml") {
+   const objectUrl=URL.createObjectURL(blob);
+   try {bmp=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error("固定书法素材无法解码"));img.src=objectUrl;});}
+   finally {URL.revokeObjectURL(objectUrl);}
+ } else {bmp=await createImageBitmap(blob);}
+ return {bmp,bytes:bytes.byteLength};
+}
+
+// The V9 palette is frozen as the left-hand reference. It is never overwritten.
+const FIXED=Object.freeze({
+ id:"fixed",name:"V9 · 蓝雾原作",locked:true,
+ gradient:["#e4e7e5","#c6d8df","#8db2c2","#4f879e","#1d4860"],
+ glow:"#f5f6f066",topInk:"#172d3a",webInk:"#254254",photoWash:"#c0dde12a",
+ rayLight:"#fff9ed",rayAccent1:"#c8382e",rayAccent2:"#cf4033",
+ narrative:"#f8faf9",title:"#152d3e",subtitle:"#fffdf1",
+ bottomText:"#fffdf5",weekday:"#de4436",meetingLabel:"#d3e4e8",
+ factLabel:"#d0e3e8",duration:"#ffe8c5",audienceLabel:"#e8d1bd",
+ audience:"#ffdbab",qrText:"#f6f9f9",brush:"#c93028"
+});
+// Each palette is art-directed; the image chooses a family rather than inventing random RGB values.
+const ART=[
+ {id:"forest",name:"雨后松林",hue:124,gradient:["#f1efe5","#d7dfd0","#9ab7a2","#4f8272","#214f46"],ink:"#243b32",accent:"#b75a38",warm:"#f4d6a6",wash:"#a9ccb72b"},
+ {id:"jade",name:"湖岸青玉",hue:177,gradient:["#edf2eb","#cfddd5","#90b9b6","#4f888c","#214e59"],ink:"#1b4147",accent:"#cc6848",warm:"#f2cfaa",wash:"#9bd4c42b"},
+ {id:"blue",name:"远山蓝雾",hue:213,gradient:["#ecf0f0","#cedbe3","#96b1c5","#547d9f","#263f65"],ink:"#23354e",accent:"#c65b42",warm:"#f1cda5",wash:"#a9ccdb2b"},
+ {id:"violet",name:"暮山紫灰",hue:274,gradient:["#f0edf0","#ded7e5","#b6a7c5","#786e99","#423b65"],ink:"#332f4e",accent:"#bd6977",warm:"#f5cfc7",wash:"#b9a5cc2b"},
+ {id:"rose",name:"晚霞玫瑰",hue:335,gradient:["#f4ecea","#ecd4d6","#d7a2b0","#ac697a","#623f52"],ink:"#542f3e",accent:"#bb7550",warm:"#f2d2ac",wash:"#e8b7b829"},
+ {id:"terra",name:"秋林赭红",hue:18,gradient:["#f4efdf","#e7cfb7","#c59a81","#996451","#593f35"],ink:"#4b362f",accent:"#9e4a33",warm:"#f0d59b",wash:"#ddaa8129"},
+ {id:"amber",name:"麦田琥珀",hue:48,gradient:["#f3f1e4","#e7dbb5","#c5b577","#8d8b54","#484f35"],ink:"#3d4130",accent:"#aa653e",warm:"#ffdea8",wash:"#e2d4a52a"},
+ {id:"neutral",name:"山野水墨",hue:0,gradient:["#f0f0eb","#d8ddda","#a7b4b1","#657b7c","#34484d"],ink:"#30444b",accent:"#b05b46",warm:"#efd9bb",wash:"#cbd7d02b"}
+];
+function hexRGB(hex){return [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));}
+function luminance(hex){
+ const a=hexRGB(hex).map(v=>{v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);});
+ return a[0]*.2126+a[1]*.7152+a[2]*.0722;
+}
+function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+function highestContrast(background,choices){return choices.slice().sort((a,b)=>contrast(b,background)-contrast(a,background))[0];}
+function themeFor(entry){
+ if(!entry||entry.id==="fixed")return FIXED;
+ const top=highestContrast(entry.gradient[0],[entry.ink,"#142c33","#17202a"]);
+ const bottom=highestContrast(entry.gradient[4],["#fffdf5","#fff5e7","#fffdfa"]);
+ return {
+ id:entry.id,name:entry.name,locked:false,gradient:entry.gradient,glow:"#ffffff55",
+ topInk:top,webInk:top,photoWash:entry.wash,
+ rayLight:"#fff7e7",rayAccent1:entry.accent,rayAccent2:entry.accent,
+ narrative:"#fffdf1",title:entry.ink,subtitle:"#fff9ef",
+ bottomText:bottom,weekday:entry.accent,meetingLabel:"#d6e5dd",
+ factLabel:"#d6e5dd",duration:entry.warm,audienceLabel:"#e5cbb8",
+ audience:entry.warm,qrText:bottom,brush:entry.accent
+ };
+}
+function hslFromRGB(r,g,b){
+ r/=255;g/=255;b/=255;
+ const max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min,light=(max+min)/2;
+ if(!delta)return {h:0,s:0,l:light};
+ let h=max===r?((g-b)/delta)%6:max===g?(b-r)/delta+2:(r-g)/delta+4;
+ h=((h*60)%360+360)%360;
+ return {h,s:delta/(1-Math.abs(2*light-1))||0,l:light};
+}
+function analyzePhoto(bitmap){
+ const small=document.createElement("canvas");small.width=64;small.height=64;
+ const sc=small.getContext("2d",{willReadFrequently:true});sc.drawImage(bitmap,0,0,64,64);
+ const pixels=sc.getImageData(0,0,64,64).data;
+ const hist=Array(24).fill(0);let total=0,weighted=0,satSum=0,lumSum=0,valid=0,chromatic=0;
+ for(let i=0;i<pixels.length;i+=4){
+  if(pixels[i+3]<128)continue;
+  const r=pixels[i],g=pixels[i+1],b=pixels[i+2],v=hslFromRGB(r,g,b);
+  const ll=.2126*r/255+.7152*g/255+.0722*b/255;
+  lumSum+=ll;satSum+=v.s;valid++;
+  if(v.s>.12&&v.l>.06&&v.l<.94){
+   const weight=Math.pow(v.s,1.2)*(0.6+0.4*(1-Math.abs(v.l-.5)));
+   const bin=Math.floor(v.h/15)%24;hist[bin]+=weight;total+=weight;chromatic++;
+  }
+ }
+ if(!valid)throw Error("上传的照片没有有效可见像素");
+ // Two neighbouring bins smooth natural photos with mixed foliage / sky.
+ const smooth=hist.map((v,i)=>v+.65*hist[(i+23)%24]+.65*hist[(i+1)%24]);
+ let index=smooth.indexOf(Math.max(...smooth));
+ const hue=((index+.5)*15)%360, saturation=satSum/valid,lightness=lumSum/valid;
+ return {hue,saturation,lightness,chromaticRatio:chromatic/valid,samples:valid};
+}
+function hueDiff(a,b){const d=Math.abs(a-b)%360;return Math.min(d,360-d);}
+function pickArt(stats){
+ if(stats.chromaticRatio<.16||stats.saturation<.12)return ART.find(x=>x.id==="neutral");
+ return ART.filter(x=>x.id!=="neutral").sort((a,b)=>hueDiff(stats.hue,a.hue)-hueDiff(stats.hue,b.hue))[0];
+}
+let drawTheme=FIXED;
+const tintedCache=new Map();
+function drawTinted(bitmap,color,x,y,w,h){
+ const key=color+"|"+(bitmap.src||bitmap.width+"x"+bitmap.height);
+ let surface=tintedCache.get(key);
+ if(!surface){
+  surface=document.createElement("canvas");
+  surface.width=bitmap.naturalWidth||bitmap.width||400;
+  surface.height=bitmap.naturalHeight||bitmap.height||400;
+  const tc=surface.getContext("2d");
+  tc.drawImage(bitmap,0,0,surface.width,surface.height);
+  tc.globalCompositeOperation="source-in";tc.fillStyle=color;tc.fillRect(0,0,surface.width,surface.height);
+  tintedCache.set(key,surface);
+ }
+ ctx.drawImage(surface,x,y,w,h);
+}
+
+
+const HEADLINE_FONTS={
+ modern:{name:"现代黑体",family:FONT_SANS},
+ song:{name:"书卷宋体",family:'"Songti SC","Noto Serif SC","Noto Serif CJK SC",serif'},
+ kai:{name:"人文楷体",family:'"Kaiti SC","STKaiti","KaiTi","Songti SC",serif'}
+};
+let headlineDecision=null;
+function selectedHeadline(){
+ const choice=document.getElementById("headlineFont").value;
+ const option=HEADLINE_FONTS[choice]||HEADLINE_FONTS.modern;
+ let size=175;
+ {
+  ctx.save();ctx.font="900 175px "+option.family;
+  const width=ctx.measureText(R.title).width;ctx.restore();
+  if(width>760)size=Math.max(52,175*760/width);
+ }
+ return {name:option.name,font:"900 "+size.toFixed(2)+"px "+option.family};
+}
+function contrastRGB(hex,rgb){
+ const light=luminance(hex);
+ const [r,g,b]=rgb.map(x=>{x/=255;return x<=.04045?x/12.92:Math.pow((x+.055)/1.055,2.4);});
+ const shadow=.2126*r+.7152*g+.0722*b;
+ return (Math.max(light,shadow)+.05)/(Math.min(light,shadow)+.05);
+}
+function safeHeadline(theme,font){
+ // Match the precise V9 title transform using an alpha stencil, not a coarse photo average.
+ const mask=document.createElement("canvas");mask.width=1080;mask.height=1530;
+ const m=mask.getContext("2d",{willReadFrequently:true});
+ m.save();m.translate(130,159);m.translate(160,827);m.rotate(11*Math.PI/180);m.translate(-160,-827);
+ m.font=font;m.textBaseline="alphabetic";m.fillStyle="#fff";m.fillText(R.title,124,836);m.restore();
+ const alpha=m.getImageData(0,0,1080,1530).data;
+ const backdrop=ctx.getImageData(0,0,1080,1530).data;
+ const palette=[theme.title,"#fffaf0","#162b37"];
+ const samples=palette.map(()=>[]);let dark=0,bright=0;
+ for(let y=730;y<1210;y+=10)for(let x=130;x<1070;x+=10){
+  const i=(y*1080+x)*4;if(alpha[i+3]<130)continue;
+  const color=[backdrop[i],backdrop[i+1],backdrop[i+2]];
+  if((color[0]*.2126+color[1]*.7152+color[2]*.0722)/255<.43)dark++;else bright++;
+  palette.forEach((p,j)=>samples[j].push(contrastRGB(p,color)));
+ }
+ const measures=palette.map((color,j)=>{
+  const values=samples[j];const n=values.length;
+  return {fill:color,coverage:n?values.filter(v=>v>=3).length/n:1,
+   avg:n?values.reduce((total,v)=>total+Math.min(v,8),0)/n:4};
+ });
+ const best=measures.slice().sort((a,b)=>(b.coverage+.015*b.avg)-(a.coverage+.015*a.avg))[0];
+ const original=measures[0];
+ const chosen=original.coverage>=.90||best.coverage-original.coverage<.045?original:best;
+ const light=luminance(chosen.fill)>.4;
+ return {fill:chosen.fill,outline:light?"#17252b":"#fff8ed",
+  coverage:chosen.coverage,count:samples[0].length,
+  mixed:dark>0&&bright>0&&dark/(dark+bright)>.18&&bright/(dark+bright)>.18,
+  mode:chosen.fill===theme.title?"保持艺术原色":light?"启用浅色标题":"启用深色标题"};
+}
+function protectedHeadline(title,x,y,font,guard){
+ ctx.save();ctx.font=font;ctx.textBaseline="alphabetic";ctx.textAlign="left";
+ // Subtle glyph contour + halo: never introduce a new colored rectangular overlay.
+ ctx.lineJoin="round";ctx.lineWidth=guard.mixed?7.2:5.2;
+ ctx.strokeStyle=guard.outline;ctx.globalAlpha=guard.mixed?.73:.58;
+ ctx.shadowColor=guard.outline;ctx.shadowBlur=guard.mixed?19:12;
+ ctx.strokeText(title,x,y);
+ ctx.globalAlpha=1;ctx.shadowBlur=0;
+ ctx.fillStyle=guard.fill;ctx.fillText(title,x,y);
+ ctx.restore();
+}
+
+function render([photo,qr,logo,brush],targetCtx,theme){
+ ctx=targetCtx;drawTheme=theme;
+ const P=theme;
+ ctx.clearRect(0,0,1080,1530);
+ const grd=ctx.createLinearGradient(45,0,1040,1530);
+ [0,.26,.5,.77,1].forEach((stop,i)=>grd.addColorStop(stop,P.gradient[i]));
+ ctx.fillStyle=grd;ctx.fillRect(0,0,1080,1530);
+ const glow=ctx.createRadialGradient(810,460,10,810,460,720);
+ glow.addColorStop(0,P.glow);glow.addColorStop(1,"#ffffff00");
+ ctx.fillStyle=glow;ctx.fillRect(0,0,1080,1530);
+ // Top baseline: all bottom positions y=133
+ if(P.locked)ctx.drawImage(logo.bmp,56,96,53,37);else drawTinted(logo.bmp,P.topInk,56,96,53,37);
+ text("余生行走 不偏左右",540,133,"600 47px "+FONT_SERIF,P.topInk,"center");
+ text("budao.org",1024,133,"650 18px Georgia,Arial,sans-serif",P.webInk,"right");
+ // Original photo; upper fragment
+ ctx.save();polygon([[262,244],[1022,230],[1044,610],[192,750]]);ctx.clip();
+ ctx.drawImage(photo.bmp,185,201,990,558);
+ ctx.fillStyle=P.photoWash;ctx.fillRect(170,200,1010,640);
+ ctx.restore();
+ // Mirrored duplicate of exactly the same original photo
+ ctx.save();polygon([[-28,601],[790,549],[969,898],[47,1086]]);ctx.clip();
+ ctx.translate(920,0);ctx.scale(-1,1);ctx.filter="saturate(73%)";
+ ctx.drawImage(photo.bmp,-90,515,1070,601);
+ ctx.filter="none";ctx.restore();
+ // Final subtle ray-and-node system: three continuous, equally restrained strokes
+ const z=[[125,456],[918,429],[264,765],[947,1082]];
+ line([z[0],z[1]],P.rayLight,2.5);
+ line([z[1],z[2]],P.rayAccent1,2.5);
+ line([z[2],z[3]],P.rayAccent2,2.5);
+ // Two quiet joints preserve the ray + node motif
+ for(const [x,y,fill] of [[918,429,P.rayLight],[264,765,P.rayAccent1]]){
+   ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();
+ }
+ // Long description follows all segments including turn, 50% alpha
+ const description=R.description;
+ const textMeasure=curveText(description,z,'21px '+FONT_SERIF,.5);
+ // One line main title, one line subtitle with same tilt
+ // Left pane keeps V9 untouched; right pane gets local readability guarding.
+ let guard=null;
+ if(!P.locked){
+   const font=selectedHeadline();
+   guard=safeHeadline(P,font.font);
+   headlineDecision={...guard,fontName:font.name};
+ }
+ ctx.save();ctx.translate(130,159);ctx.translate(160,827);ctx.rotate(11*Math.PI/180);ctx.translate(-160,-827);
+ if(P.locked){
+  ctx.save();ctx.font="900 175px "+FONT_SANS;
+  const w=ctx.measureText(R.title).width;ctx.restore();
+  text(R.title,124,836,"900 "+Math.min(175,175*760/Math.max(w,1)).toFixed(1)+"px "+FONT_SANS,P.title);
+ }
+ else protectedHeadline(R.title,124,836,selectedHeadline().font,guard);
+ ctx.save();ctx.font="750 52px "+FONT_SANS;
+ const subtitleW=ctx.measureText(R.subtitle).width;ctx.restore();
+ text(R.subtitle,148,941,"750 "+Math.min(52,52*755/Math.max(subtitleW,1)).toFixed(1)+"px "+FONT_SANS,P.subtitle);
+ ctx.restore();
+ if(P.locked)ctx.drawImage(brush.bmp,60,944,267.3,227.7);else drawTinted(brush.bmp,P.brush,60,944,267.3,227.7);
+ // Information hierarchy; no new solid panel
+ text(R.mmdd,60,1289,"900 108px Georgia,Arial,sans-serif",P.bottomText);
+ text(R.weekday,512,1277,"800 46px "+FONT_SANS,P.weekday);
+ text(R.time,610,1277,"780 45px Arial,sans-serif",P.bottomText);
+ text("集合地点",65,1352,"640 30px "+FONT_SANS,P.meetingLabel);
+ ctx.save();ctx.font="800 34px "+FONT_SANS;const meetingW=ctx.measureText(R.meeting).width;ctx.restore();
+ text(R.meeting,217,1352,"800 "+Math.max(17,Math.min(34,34*570/Math.max(meetingW,1))).toFixed(1)+"px "+FONT_SANS,P.bottomText);
+ function item(lbl,val,x,y,valueX,accent=false){
+   text(lbl,x,y,"500 23px "+FONT_SANS,P.factLabel);
+   text(val,valueX,y,"800 29px "+FONT_SANS,accent?P.duration:P.bottomText);
+ }
+ // Four core properties on one line; unchanged label/value hierarchy.
+ item("距离",R.distance,67,1418,122);
+ item("爬升",R.elevation,246,1418,309);
+ item("路面",R.surface,421,1418,484);
+ item("时长",R.duration,592,1418,656,true);
+ // Audience is a separate, warmer invitation line.
+ text("适合人群",67,1484,"600 25px "+FONT_SERIF,P.audienceLabel);
+ text(R.suitable,197,1484,"700 30px "+FONT_SANS,P.audience);
+ // Unmodified QR pixels, including its intrinsic quiet zone (no added border).
+ text("自由参与",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
+ ctx.drawImage(qr.bmp,837,1281,184,184);
+ text("扫码同行",929,1500,"700 25px "+FONT_SANS,P.qrText,"center");
+ return {textMeasure};
+}
+
+let ready=false,baseFiles=null,currentPhoto=null,photoStats=null,detectedArt=null;
+const photoInput=document.getElementById("photoInput");
+const paletteSelect=document.getElementById("paletteSelect");
+const headlineFont=document.getElementById("headlineFont");
+const swatches=document.getElementById("paletteSwatches");
+const analysisElement=document.getElementById("colorAnalysis");
+for(const art of ART){
+ const opt=document.createElement("option");opt.value=art.id;opt.textContent=art.name;
+ paletteSelect.appendChild(opt);
+}
+function chosenTheme(){
+ const option=paletteSelect.value;
+ if(option==="fixed")return FIXED;
+ return themeFor(option==="auto"?detectedArt:ART.find(x=>x.id===option));
+}
+function showPalette(P){
+ swatches.replaceChildren();
+ for(const hex of [...P.gradient,P.topInk,P.title,P.bottomText,P.rayAccent1,P.duration,P.audience]){
+  const node=document.createElement("div");node.className="swatch";node.style.background=hex;node.title=hex;
+  const caption=document.createElement("span");caption.textContent=hex;node.appendChild(caption);swatches.appendChild(node);
+ }
+ if(!photoStats)return;
+ const metrics=[
+  "主色相："+Math.round(photoStats.hue)+"°",
+  "平均饱和度："+Math.round(photoStats.saturation*100)+"%",
+  "平均明度："+Math.round(photoStats.lightness*100)+"%",
+  "匹配色系："+P.name,
+  "顶部文字对比："+contrast(P.topInk,P.gradient[0]).toFixed(1)+":1",
+  "底部文字对比："+contrast(P.bottomText,P.gradient[4]).toFixed(1)+":1"
+ ];
+ analysisElement.replaceChildren();
+ const summary=document.createElement("div");summary.textContent=
+ "算法判定："+detectedArt.name+"。"+(paletteSelect.value==="auto"?"已自动采用。":"你正在手动查看另一套配色。");
+ analysisElement.appendChild(summary);
+ const stats=document.createElement("div");stats.className="stats";
+ for(const metric of metrics){const el=document.createElement("span");el.textContent=metric;stats.appendChild(el);}
+ analysisElement.appendChild(stats);
+ if(headlineDecision){
+  const note=document.createElement("div");note.className="designnote";
+  note.textContent="标题局部保护："+headlineDecision.fontName+" · "+headlineDecision.mode+" · 标题像素抽样中对比度≥3:1比例 "+Math.round(headlineDecision.coverage*100)+"% · "+(headlineDecision.mixed?"明暗混杂，增强细轮廓":"轻量轮廓");
+  analysisElement.appendChild(note);
+ }
+}
+function redraw(){
+ if(!baseFiles||!currentPhoto)return;
+ const files=[currentPhoto,...baseFiles.slice(1)];
+ const P=chosenTheme();
+ render(files,baseCtx,FIXED);
+ const info=render(files,c.getContext("2d"),P);
+ showPalette(P);
+ const pixel=c.getContext("2d").getImageData(0,0,1080,1530).data;
+ let vivid=0;
+ for(let i=0;i<pixel.length;i+=4000)if(pixel[i]!==pixel[i+1]||pixel[i+1]!==pixel[i+2])vivid++;
+ if(vivid<200)throw Error("渲染彩色像素不足，停止导出。");
+ exportBtn.disabled=false;ready=true;
+ status.textContent="✓ 原始网站素材已核验；本地图片已分析；双画面绘制成功。智能配色："+P.name+"；颜色像素抽样："+vivid+"；路线文字排布："+info.textMeasure.used+"/"+info.textMeasure.total+"px。";
+}
+async function reload(){
+ ready=false;exportBtn.disabled=true;status.textContent="正在检查定稿资源……";
+ try{
+  if(!baseFiles)baseFiles=await Promise.all(fileDefs.map(validatedImage));
+  if(!currentPhoto)currentPhoto=baseFiles[0];
+  photoStats=analyzePhoto(currentPhoto.bmp);
+  detectedArt=pickArt(photoStats);redraw();
+ }catch(err){status.textContent="✗ 无法完成本地配色："+(err.message||err);ready=false;exportBtn.disabled=true;}
+}
+document.getElementById("retry").addEventListener("click",reload);
+document.getElementById("resetPhoto").addEventListener("click",()=>{
+ photoInput.value="";currentPhoto=baseFiles?baseFiles[0]:null;paletteSelect.value="auto";reload();
+});
+headlineFont.addEventListener("change",()=>{
+ if(!currentPhoto)return;try{ready=false;exportBtn.disabled=true;redraw();}catch(err){status.textContent="✗ 字体预览失败："+err.message;}
+});
+paletteSelect.addEventListener("change",()=>{
+ if(!currentPhoto)return;try{ready=false;exportBtn.disabled=true;redraw();}catch(err){status.textContent="✗ "+err.message;}
+});
+photoInput.addEventListener("change",async()=>{
+ const file=photoInput.files&&photoInput.files[0];
+ if(!file)return;
+ ready=false;exportBtn.disabled=true;
+ if(!file.type.startsWith("image/")){status.textContent="请选择图片格式文件";return;}
+ if(file.size>25*1024*1024){status.textContent="图片大于25MB，请选择较小的原图";return;}
+ status.textContent="正在本地解析图片，不会上传……";
+ try{
+  const bitmap=await createImageBitmap(file);
+  const nextPhoto={bmp:bitmap,bytes:file.size};
+  // A failed decode/analysis leaves the previous image untouched.
+  const stats=analyzePhoto(bitmap),chosen=pickArt(stats);
+  currentPhoto=nextPhoto;photoStats=stats;detectedArt=chosen;
+  paletteSelect.value="auto";redraw();
+ }catch(err){status.textContent="✗ 上传图片无法在此浏览器解析："+(err.message||err);ready=false;}
+});
+exportBtn.addEventListener("click",()=>{
+ if(!ready)return;
+ c.toBlob(blob=>{
+  if(!blob){status.textContent+="\n✗ PNG 导出失败";return;}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="BUDAO-"+R.title+"-逐梦动势-"+chosenTheme().id+"-"+headlineFont.value+".png";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+ },"image/png");
+});
+reload();
+
+
+})().catch(window.BudaoPosterRuntime.error);
+</script></body></html>
