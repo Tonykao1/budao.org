@@ -115,6 +115,49 @@
     return line.textContent.replace(/\s+/g, '') === '餘生行走，不偏左右';
   }
 
+
+  // Japanese faith declaration is an editorial DRAFT, not an approved publication.
+  // Reuse the original four audio control spans and their listeners exactly.
+  const proposedJapaneseCreed = '生涯、主の道を歩み、左にも右にもそれず。';
+  function previewJapaneseCreed(documentObject, locale) {
+    if (locale !== 'ja' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const line = documentObject.querySelector('header .hero-line');
+    if (!line || typeof line.textContent !== 'string' ||
+        line.textContent.replace(/\s+/g, '') !== '余生行走，不偏左右') return false;
+    const dsp = documentObject.getElementById('dspBtn');
+    const play = documentObject.getElementById('playBtn');
+    const prev = documentObject.getElementById('prevBtn');
+    const next = documentObject.getElementById('nextBtn');
+    if (![dsp, play, prev, next].every(el => el && el.parentElement === line) ||
+        dsp.textContent !== '余' || play.textContent !== '走' ||
+        prev.textContent !== '左' || next.textContent !== '右') return false;
+    const leading = line.childNodes && line.childNodes[0];
+    const beforePlay = dsp.nextSibling;
+    const beforePrev = play.nextSibling;
+    const afterNext = next.nextSibling;
+    if (!leading || leading.nodeType !== 3 || leading.nodeValue.trim() !== '' ||
+        !beforePlay || beforePlay.nodeType !== 3 || beforePlay.nodeValue !== '生行' ||
+        !beforePrev || beforePrev.nodeType !== 3 ||
+        beforePrev.nodeValue.replace(/\s+/g, '') !== '，不偏' ||
+        !afterNext || afterNext.nodeType !== 3 || prev.nextSibling !== next ||
+        !documentObject.createTextNode || !line.insertBefore || !line.style) return false;
+
+    leading.nodeValue = '';
+    dsp.textContent = '生涯';
+    beforePlay.nodeValue = '、主の道を';
+    play.textContent = '歩み';
+    beforePrev.nodeValue = '、\n';
+    prev.textContent = '左';
+    line.insertBefore(documentObject.createTextNode('にも'), next);
+    next.textContent = '右';
+    afterNext.nodeValue = 'にもそれず。';
+    line.style.fontSize = 'clamp(12px, 1.45vw, 17px)';
+    line.style.letterSpacing = '0.01em';
+    line.style.whiteSpace = 'pre-line';
+    return line.textContent.replace(/\s+/g, '') === proposedJapaneseCreed;
+  }
+
   // Private prayer UI strings are local only: never sent to an external translation service.
 
   // Source-keyed UI strings for post-click changes made by prayer-box.js.
@@ -226,13 +269,14 @@
       root.BudaoGlobal.localize(root.document, chosen, entries);
       previewEnglishCreed(root.document, chosen);
       previewTraditionalCreed(root.document, chosen);
+      previewJapaneseCreed(root.document, chosen);
       root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
       enableEnglishNarrowNavigation(root, chosen);
     }
     // Configure last so localization of self-links cannot undo the toggle target.
     configureHomeLanguageSwitch(root, chosen);
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
