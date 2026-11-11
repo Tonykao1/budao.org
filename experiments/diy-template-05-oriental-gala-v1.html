@@ -249,8 +249,11 @@ function headerDraw(P){
   const w=53,h=w*brand.height/brand.width;c.drawImage(brand,95,83,w,h);c.restore();
  }
  write("BUDAO",165,116,28,{font:sans,weight:700,color:P.light,tracking:5});
- write("同行之约  ·  第五套",984,114,21,{font:serif,weight:500,color:P.muted,align:"right",tracking:2});
- write("东 方 · 盛 典",540,217,45,{font:serif,weight:650,color:P.gold,tracking:8,align:"center"});
+ // No template-title text on final poster. The central visual accent is purely ornamental.
+ for(const dx of [-19,0,19]){
+  const x=540+dx;c.save();c.fillStyle=alpha(P.gold,dx===0?.87:.58);
+  c.beginPath();c.moveTo(x,194);c.lineTo(x+6,202);c.lineTo(x,210);c.lineTo(x-6,202);c.closePath();c.fill();c.restore();
+ }
  // Original symmetrical ceremonial filigree around title.
  c.save();c.strokeStyle=alpha(P.gold,.65);c.lineWidth=1.7;
  for(const side of [-1,1]){
@@ -300,7 +303,6 @@ function titleRows(value){
  return rows;
 }
 function bigTitle(P,R){
- write("万千脚步 · 自成华章",540,738,23,{font:serif,weight:500,color:P.gold,align:"center",tracking:3,shadow:"#180909",blur:10});
  const lines=titleRows(R.title);
  const ideal=lines.length===1?125:lines.length===2?102:68;
  const minimum=lines.length===1?55:lines.length===2?55:42;
@@ -320,15 +322,10 @@ function bigTitle(P,R){
   write(lines[i],540,first+i*gap,size,{font:serif,weight:700,color:P.paper,align:"center"});
  }
  c.restore();
- const description=R.subtitle;
- if(description){
-  const subSize=fitLine(description,790,22,16,serif,400);
-  write(description,540,944,subSize,{font:serif,weight:400,color:P.muted,align:"center",shadow:"#12090e",blur:7});
- }
 }
 function details(P,R){
  const start=1000;
- write("DATE · 同 行 之 日",107,start+33,18,{weight:700,color:P.gold,tracking:1.4});
+ write("日期",107,start+33,18,{weight:700,color:P.gold,tracking:1.4});
  write(R.mmdd.replace(" / ","."),106,start+115,83,{font:serif,weight:600,color:P.paper,tracking:1});
  write(R.year+"  "+R.weekday+"   "+R.time,510,start+91,28,{font:sans,weight:500,color:P.paper});
  write(R.region,509,start+129,19,{font:serif,weight:500,color:P.muted});
@@ -356,7 +353,6 @@ function details(P,R){
  write(R.isPast?"历史活动 · 已结束":"扫码报名相约步道",x+size/2,1411,18,
        {font:serif,weight:600,align:"center",color:P.gold,tracking:1});
  strokeLine([[118,1447],[970,1447]],alpha(P.gold,.3),.85);
- write("余生行走，不偏左右",113,1476,19,{font:serif,weight:500,color:P.muted,tracking:2.5});
  write("budao.org",971,1476,17,{weight:500,color:P.gold,align:"right",tracking:1});
 }
 function render(){
