@@ -1726,13 +1726,11 @@ body.self-open .self-view{display:flex}
     dot?.classList.toggle('active',canUseGrass());
   }
   function openCard(){
-    // Two modules may not stay open at the same time.
+    // The approved card belongs to the outer pasture viewer, not the old
+    // internal activation-only overlay. Never infer entitlement from pixels.
     window.dispatchEvent(new Event('pasture-close-grass-for-card-v1'));
-    // Refresh the real server-backed status every time a resident opens their card.
-    frame.src='/pasture-preview/card-activation.html';
     syncCardState();
-    document.body.classList.add('budao-card-open');
-    frame.contentWindow?.focus();
+    window.parent.postMessage({type:'pasture-show-approved-card-v1'},location.origin);
   }
   function closeCard(){
     document.body.classList.remove('budao-card-open');

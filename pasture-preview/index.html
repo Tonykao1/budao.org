@@ -9,7 +9,7 @@
 #loading{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;padding:26px;background:linear-gradient(#91dcf0 0 49%,#b8d69b 49% 62%,#6ebc65 62%);text-align:center}
 .paper{padding:26px;width:min(480px,100%);background:#fff9e7;border:4px solid #2c556b;box-shadow:7px 7px #24495655}.paper h1{letter-spacing:.16em;font-size:26px;margin:4px 0 8px}.paper p{font-size:13px;line-height:1.85;margin:10px 0}
 .track{height:13px;background:#e3e9c9;border:2px solid #476b56;margin:17px 5px 10px}.fill{height:100%;width:0;background:#74a972;transition:width .15s steps(3,end)}#error{color:#994d40;font-size:12px;white-space:pre-wrap;display:none}
-</style></head><body><div id="loading"><div class="paper"><h1>同路原野</h1><p>正在开启完整数字牧场……<br>载入已完成的七大板块、步道卡与小匣。</p><div class="track"><div class="fill" id="fill"></div></div><p id="status">准备载入</p><p id="error"></p><p style="font-size:11px;color:#657f78">独立预览环境 · 步道卡正式密码方案尚待定稿 · 不进行真实交易或收款</p></div></div>
+</style></head><body><div id="loading"><div class="paper"><h1>同路原野</h1><p>正在开启完整数字牧场……<br>载入已完成的七大板块、步道卡与小匣。</p><div class="track"><div class="fill" id="fill"></div></div><p id="status">准备载入</p><p id="error"></p><p style="font-size:11px;color:#657f78">独立预览环境 · 原定稿卡面审看 · 尚未公开发卡</p></div></div>
 <script>
 (async()=>{
  const total=20,parts=Array.from({length:total},(_,i)=>'./parts/part-'+String(i).padStart(2,'0')+'.txt');
@@ -90,15 +90,34 @@
    " syncReturnButton();\n"+
    "}\n"+
    html.slice(staleSyncEnd);
- const staleFrameLoad="card.srcdoc=cardDoc;";
- if(!html.includes(staleFrameLoad))throw new Error('旧版步道卡 srcdoc 未定位');
- html=html.replace(staleFrameLoad,"card.removeAttribute('srcdoc');card.src='/pasture-preview/card-activation.html';");
- const staleShow="function showCard(){shade.classList.add('open');";
- if(!html.includes(staleShow))throw new Error('旧版步道卡按钮路由未定位');
- html=html.replace(staleShow,
-   "function showCard(){card.src='/pasture-preview/card-activation.html';shade.classList.add('open');");
- // The legacy card's localStorage state can neither unlock content nor
- // silently render the old card. A new auth-enabled card is always presented.
+ // Restore the approved six-dimensional original as the primary visual card.
+ // The personal six-dimensional assignment is NOT inferred from this preview:
+ // only the server's real receipt page can attest an issued/activated card.
+ const approvedCardDock='<div id="approvedCardDock" role="group" aria-label="步道卡展示与真实发行记录"><span id="approvedCardHint">定稿卡面展示 · 六维图案为视觉样张，不代表你的实际配卡记录</span><button type="button" id="cardReceiptToggle">查看真实发行与激活状态</button></div>';
+ const shadeMarkup='<div id="cardShade"><iframe id="cardIframe" title="像素步道卡激活交互"></iframe></div>';
+ if(!html.includes(shadeMarkup))throw Error('定稿卡片外层缺少入口');
+ html=html.replace(shadeMarkup,'<div id="cardShade"><iframe id="cardIframe" title="定稿六维步道卡"></iframe>'+approvedCardDock+'</div>');
+ const dockCss='<style>#approvedCardDock{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:101;width:min(650px,calc(100% - 25px));display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:7px 10px;background:#fff9e9f5;border:2px solid #476951;box-shadow:3px 4px #254a4666;font:700 12px/1.45 system-ui,sans-serif;color:#315044}#approvedCardHint{flex:1;min-width:140px}#cardReceiptToggle{cursor:pointer;border:2px solid #45685b;background:#d8e8c6;color:#285443;font-weight:800;padding:7px 10px}#cardReceiptToggle:focus-visible{outline:3px solid #214d7b;outline-offset:2px}@media(max-width:550px){#approvedCardDock{font-size:11px}#cardReceiptToggle{font-size:12px}}</style>';
+ html=html.replace('</head>',dockCss+'</head>');
+ const originalCardDoc="const cardDoc=approvedSixCardHTML.replace('</head>',cardOnlyStyle+shimScript(mirror)+'</head>');";
+ if(!html.includes(originalCardDoc))throw Error('定稿六维卡资源未找到');
+ // Use an isolated, empty in-iframe sample state: never restore or persist a
+ // legacy demo "active" code and never grant real card permissions from it.
+ html=html.replace(originalCardDoc,"const cardDoc=approvedSixCardHTML.replace('</head>',cardOnlyStyle+shimScript(null)+'</head>');");
+ const storeRelay="parent.postMessage({type:'budao-integrated-store',key:k,value:memory[k]},'*')";
+ if(!html.includes(storeRelay))throw Error('旧演示存储回传锚点缺失');
+ html=html.replace(storeRelay,"void 0");
+ const oldLoad="card.addEventListener('load',()=>{try{const doc=card.contentDocument;doc?.addEventListener('click',e=>{if(e.target.closest('#closeActivated'))setTimeout(hideCard,45)},true)}catch(e){};syncState()});";
+ if(!html.includes(oldLoad))throw Error('原卡装载锚点缺失');
+ const safeLoad="card.addEventListener('load',()=>{try{const doc=card.contentDocument;if(card.hasAttribute('srcdoc')&&doc){doc.addEventListener('click',e=>{if(!e.target.closest?.('#flipBtn')){e.preventDefault();e.stopImmediatePropagation()}},true);doc.addEventListener('submit',e=>{e.preventDefault();e.stopImmediatePropagation()},true);doc.querySelectorAll('button,input,select,textarea').forEach(el=>{if(el.id==='flipBtn')return;el.disabled=true;el.setAttribute('aria-disabled','true')});}}catch(e){};syncState()});";
+ html=html.replace(oldLoad,safeLoad);
+ const oldShow="card.srcdoc=cardDoc;\nfunction showCard(){shade.classList.add('open');";
+ if(!html.includes(oldShow))throw Error('原卡呈现方法缺失');
+ const newShow="card.srcdoc=cardDoc;\nconst cardReceiptToggle=$('cardReceiptToggle');let receiptOpen=false;\ncardReceiptToggle.addEventListener('click',()=>{receiptOpen=!receiptOpen;if(receiptOpen){card.removeAttribute('srcdoc');card.src='/pasture-preview/card-activation.html';cardReceiptToggle.textContent='返回定稿卡面';$('approvedCardHint').textContent='真实状态以服务器发行与核销记录为准';}else{card.removeAttribute('src');card.srcdoc=cardDoc;cardReceiptToggle.textContent='查看真实发行与激活状态';$('approvedCardHint').textContent='定稿卡面展示 · 六维图案为视觉样张，不代表你的实际配卡记录'}});\nwindow.addEventListener('message',event=>{if(event.origin===location.origin&&event.source===main.contentWindow&&event.data?.type==='pasture-show-approved-card-v1')showCard()});\nfunction showCard(){if(receiptOpen){receiptOpen=false;card.removeAttribute('src');card.srcdoc=cardDoc;cardReceiptToggle.textContent='查看真实发行与激活状态';$('approvedCardHint').textContent='定稿卡面展示 · 六维图案为视觉样张，不代表你的实际配卡记录'}shade.classList.add('open');";
+ html=html.replace(oldShow,newShow);
+ // Keep card.srcdoc as the approved source; the plain activation form remains
+ // available ONLY through the secondary explicit receipt button.
+ if(!html.includes("const cardDoc=approvedSixCardHTML.replace('</head>',cardOnlyStyle+shimScript(null)+'</head>');")||!html.includes("function showCard(){if(receiptOpen)"))throw Error('定稿卡面修复未生效');
 
  // Resident layer: public landscape first, authenticated controls second.
  html=html.replace('</head>','<link rel="stylesheet" href="/pasture-preview/pasture-resident-auth.css"><link rel="stylesheet" href="/pasture-sheep-maker-v2.css"></head>');
