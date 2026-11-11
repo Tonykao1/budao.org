@@ -33,6 +33,16 @@ function mockSql(){
         .sort((a,b)=>b.window_end.localeCompare(a.window_end))
         .map(x=>({window_end:x.window_end})).slice(0,1);
     }
+    if(text.startsWith("SELECT window_start FROM budao_daily_digest_runs")){
+      const prior=rows.values();
+      const afterBoundary=args.length===2 ? Date.parse(args[0]) : -Infinity;
+      const beforeBoundary=Date.parse(args.at(-1));
+      return [...prior].filter(x=>x.status!=="SENT" &&
+        Date.parse(x.window_end)>afterBoundary &&
+        Date.parse(x.window_end)<beforeBoundary)
+        .sort((a,b)=>a.window_start.localeCompare(b.window_start))
+        .slice(0,1).map(x=>({window_start:x.window_start}));
+    }
     if(text.startsWith("INSERT INTO budao_daily_digest_runs")){
       const [key,start,end,content]=args;
       if(!rows.has(key))rows.set(key,{key,window_start:start,window_end:end,
@@ -90,7 +100,7 @@ test("ledger sends once and returns sent when run repeatedly",async()=>{
   const first=await runDaily(sql,new Date("2026-11-11T00:15:00Z"),{},deps);
   assert.equal(first.sent,true);
   const second=await runDaily(sql,new Date("2026-11-11T00:18:00Z"),{},deps);
-  assert.equal(second.skipped,"already_sent");
+  assert.equal(second.skipped,"already_caught_up");
   assert.equal(emails,1);
   assert.equal(rows.get("2026-11-11").status,"SENT");
 });
