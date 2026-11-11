@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "collection": "BUDAO 步道图形资产",
+  "updated": "2026-11-11",
+  "assets": [
+    {
+      "id": "wordmark-budao-03",
+      "name": "步道 · 第四版行书 · 03 左低右高",
+      "status": "approved-visual-composition",
+      "purpose": "第六套《远方·召唤》固定书法主字",
+      "rights_note": "由用户选定 AI 生成第四版行书素材、衍生构图并最终审核通过第三种章法",
+      "selection": "03 左低右高",
+      "left_character": "步",
+      "right_character": "道",
+      "relative_height_step_to_dao": 0.73,
+      "source_master": {
+        "filename": "BUDAO_第六套_固定主字_03_左低右高_原始母版.png",
+        "size_px": [
+          1600,
+          920
+        ],
+        "format": "PNG RGBA",
+        "sha256": "c9caebe0e9498ec49ba3b6d39c1b3c99154c5fa29df4d292660302102b046ca8",
+        "availability": "conversation-file; NOT yet uploaded to GitHub repository"
+      },
+      "display_variant": {
+        "file": "assets/brand/wordmarks/budao-calligraphy-03-display.svg",
+        "format": "SVG, transparent background",
+        "source": "Derived by tracing selected No.03 master",
+        "fidelity": "edge-simplified; requires final preview visual confirmation before calling original-identical"
+      },
+      "usage": {
+        "templates": [
+          "06"
+        ],
+        "per_event_generation": false,
+        "color": "recolor via Canvas source-in only; preserve silhouette",
+        "replace_unapproved": false
+      },
+      "notes": "Always keep original master and derivative distinct. Do not substitute No.04 or regenerate lettering."
+    }
+  ]
+}
