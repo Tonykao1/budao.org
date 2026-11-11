@@ -546,15 +546,21 @@ function shapeOverlay(amount){
  const map=structureField(photoData);
  if(!map.active)return;
  const level=amount/40,canvas=map.canvas;
+ // Preblur once at native 160x90 mask resolution. At 1260x864 output
+ // 3px corresponds to roughly 24px of visual softness, with no giant
+ // display-sized blur filter on every slider change.
+ if(!map.softCanvas){
+  const soft=document.createElement("canvas");soft.width=canvas.width;soft.height=canvas.height;
+  const sc=soft.getContext("2d");sc.filter="blur(3px)";
+  sc.drawImage(canvas,0,0);sc.filter="none";map.softCanvas=soft;
+ }
  displayCtx.save();
  displayCtx.globalCompositeOperation="screen";
  displayCtx.imageSmoothingEnabled=true;
  displayCtx.imageSmoothingQuality="high";
- // Single low-cost blurred layer, not thousands of Canvas blur calls.
  displayCtx.globalAlpha=.21*level;
- displayCtx.filter="blur(23px)";
- displayCtx.drawImage(canvas,115,105,1260,864);
  displayCtx.filter="none";
+ displayCtx.drawImage(map.softCanvas,115,105,1260,864);
  displayCtx.globalAlpha=.072*level;
  displayCtx.drawImage(canvas,115,105,1260,864);
  displayCtx.restore();
