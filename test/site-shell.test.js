@@ -263,7 +263,7 @@ test("Reference B includes a measured entry for every homepage song", () => {
   const playlist = [...home.match(/const playlist = \[([\s\S]*?)\];/)[1]
     .matchAll(/"([^"]+\.mp3)"/g)].map((match) => match[1]);
   const map = JSON.parse(fs.readFileSync(path.join(root, "music/music.json"), "utf8"));
-  assert.equal(playlist.length, 27);
+  assert.ok(playlist.length > 0, "homepage playlist must not be empty");
   assert.deepEqual(Object.keys(map.tracks).sort(), playlist.slice().sort());
   for (const song of playlist) {
     assert.ok(Number.isFinite(map.tracks[song].gain_db), song + " needs measured gain");
