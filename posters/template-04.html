@@ -138,8 +138,8 @@ const TYPEFACE='"Helvetica Neue","Arial","PingFang SC","Noto Sans CJK SC","Micro
 const $=id=>document.getElementById(id),cv=$("light");
 const displayCtx=cv.getContext("2d",{alpha:false});
 const baseCanvas=document.createElement("canvas");
-const BASE_SCALE=2/3;
-baseCanvas.width=1280;baseCanvas.height=720;
+const BASE_SCALE=1/3;
+baseCanvas.width=640;baseCanvas.height=360;
 let ctx=baseCanvas.getContext("2d",{alpha:false});
 ctx.setTransform(BASE_SCALE,0,0,BASE_SCALE,0,0);
 const ui={upload:$("upload"),filename:$("filename"),source:$("source"),palette:$("palette"),paletteInfo:$("paletteInfo"),spread:$("spread"),spreadText:$("spreadText"),shape:$("shape"),shapeText:$("shapeText"),posterOn:$("posterOn"),posterOff:$("posterOff"),posterState:$("posterState"),abstract:$("abstract"),
