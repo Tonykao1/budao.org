@@ -1,7 +1,7 @@
 {
   "system": "余 DSP Reference B",
   "standard": "ITU-R BS.1770 / EBU R128 via ffmpeg loudnorm",
-  "target_integrated_lufs": -20,
+  "target_integrated_lufs": -20.0,
   "pre_eq_true_peak_ceiling_dbtp": -1.5,
   "note": "Per-track static loudness gain only. No dynamic compression or loudness-range reduction. Peak-limited tracks are intentionally allowed to sit slightly below target rather than altering their internal dynamics.",
   "tracks": {
@@ -21,7 +21,7 @@
       "lra_lu": 16.9,
       "threshold_lufs": -23.67,
       "gain_db": -7.31,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -7.2,
       "peak_limited": false
     },
@@ -31,7 +31,7 @@
       "lra_lu": 7.2,
       "threshold_lufs": -20.72,
       "gain_db": -9.43,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -9.41,
       "peak_limited": false
     },
@@ -41,7 +41,7 @@
       "lra_lu": 6.6,
       "threshold_lufs": -37.25,
       "gain_db": 6.96,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -4.16,
       "peak_limited": false
     },
@@ -51,7 +51,7 @@
       "lra_lu": 12.8,
       "threshold_lufs": -33.37,
       "gain_db": 2.56,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -1.59,
       "peak_limited": false
     },
@@ -61,7 +61,7 @@
       "lra_lu": 11.7,
       "threshold_lufs": -22.59,
       "gain_db": -7.76,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -8.34,
       "peak_limited": false
     },
@@ -71,7 +71,7 @@
       "lra_lu": 7.9,
       "threshold_lufs": -24.24,
       "gain_db": -6.05,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -5.98,
       "peak_limited": false
     },
@@ -81,7 +81,7 @@
       "lra_lu": 6.7,
       "threshold_lufs": -21.41,
       "gain_db": -8.82,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -8.81,
       "peak_limited": false
     },
@@ -91,7 +91,7 @@
       "lra_lu": 9.3,
       "threshold_lufs": -22.63,
       "gain_db": -7.6,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -6.33,
       "peak_limited": false
     },
@@ -101,7 +101,7 @@
       "lra_lu": 6.6,
       "threshold_lufs": -18.85,
       "gain_db": -11.23,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -9.98,
       "peak_limited": false
     },
@@ -111,7 +111,7 @@
       "lra_lu": 11.5,
       "threshold_lufs": -26.06,
       "gain_db": -4.32,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -5.66,
       "peak_limited": false
     },
@@ -121,7 +121,7 @@
       "lra_lu": 4.5,
       "threshold_lufs": -20.21,
       "gain_db": -9.98,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -10.05,
       "peak_limited": false
     },
@@ -141,17 +141,17 @@
       "lra_lu": 10.3,
       "threshold_lufs": -18.85,
       "gain_db": -11.61,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -8.93,
       "peak_limited": false
     },
     "music/04 Stofnar Falla.mp3": {
       "integrated_lufs": -11.57,
       "true_peak_dbtp": 0.25,
-      "lra_lu": 12,
+      "lra_lu": 12.0,
       "threshold_lufs": -22.07,
       "gain_db": -8.43,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -8.18,
       "peak_limited": false
     },
@@ -161,17 +161,17 @@
       "lra_lu": 7.4,
       "threshold_lufs": -25.13,
       "gain_db": -5.08,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -4.74,
       "peak_limited": false
     },
     "music/08 Fool No More.mp3": {
       "integrated_lufs": -8.69,
       "true_peak_dbtp": 0.74,
-      "lra_lu": 5,
+      "lra_lu": 5.0,
       "threshold_lufs": -18.83,
       "gain_db": -11.31,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -10.57,
       "peak_limited": false
     },
@@ -181,7 +181,7 @@
       "lra_lu": 5.6,
       "threshold_lufs": -22.63,
       "gain_db": -7.73,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -7.63,
       "peak_limited": false
     },
@@ -191,7 +191,7 @@
       "lra_lu": 5.8,
       "threshold_lufs": -17.44,
       "gain_db": -12.64,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -11.72,
       "peak_limited": false
     },
@@ -199,9 +199,9 @@
       "integrated_lufs": -7.95,
       "true_peak_dbtp": 1.31,
       "lra_lu": 3.4,
-      "threshold_lufs": -18,
+      "threshold_lufs": -18.0,
       "gain_db": -12.05,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -10.74,
       "peak_limited": false
     },
@@ -211,7 +211,7 @@
       "lra_lu": 2.6,
       "threshold_lufs": -23.08,
       "gain_db": -7.08,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -7.06,
       "peak_limited": false
     },
@@ -221,7 +221,7 @@
       "lra_lu": 5.2,
       "threshold_lufs": -20.99,
       "gain_db": -9.16,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -9.26,
       "peak_limited": false
     },
@@ -231,18 +231,18 @@
       "lra_lu": 7.4,
       "threshold_lufs": -27.21,
       "gain_db": -3.08,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -5.98,
       "peak_limited": false
     },
     "music/02 找自己.mp3": {
       "integrated_lufs": -8.37,
       "true_peak_dbtp": 0.63,
-      "lra_lu": 7,
+      "lra_lu": 7.0,
       "threshold_lufs": -18.79,
       "gain_db": -11.63,
-      "result_lufs_est": -20,
-      "result_tp_est": -11,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -11.0,
       "peak_limited": false
     },
     "music/09 你記得嗎_.mp3": {
@@ -251,7 +251,7 @@
       "lra_lu": 5.7,
       "threshold_lufs": -20.71,
       "gain_db": -9.39,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -9.61,
       "peak_limited": false
     },
@@ -271,7 +271,7 @@
       "lra_lu": 7.3,
       "threshold_lufs": -26.98,
       "gain_db": -3.43,
-      "result_lufs_est": -20,
+      "result_lufs_est": -20.0,
       "result_tp_est": -3.93,
       "peak_limited": false
     }
