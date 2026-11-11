@@ -23,7 +23,11 @@ test('Card always consults verified issuance receipt; no local demo activation',
  assert.match(card,/card\?\.status==='ISSUED'/);
  assert.match(handler,/cardStore\.residentCardReceipt\(resident\.id\)/);
  assert.match(zone,/window\.addEventListener\('pasture-open-grass-after-check-v1',openBook\)/);
- assert.match(zone,/frame\.src='\/pasture-preview\/card-activation\.html'/);
+ assert.match(zone,/type:'pasture-show-approved-card-v1'/);
+ assert.doesNotMatch(zone,/frame\.src='\/pasture-preview\/card-activation\.html'/);
+ assert.match(page,/const cardDoc=approvedSixCardHTML\.replace/);
+ assert.match(page,/shimScript\(null\)/);
+ assert.match(page,/cardReceiptToggle/);
  assert.doesNotMatch(card,/localStorage\.setItem\(['"]budao\.card/);
 });
 test('preview loader and client navigation scripts parse',()=>{
