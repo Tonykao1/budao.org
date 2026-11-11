@@ -283,6 +283,8 @@
                     '<button type="button" data-invitation-close aria-label="关闭活动请柬预览">返回</button>' +
                     '<button type="button" data-invitation-download disabled>下载图片</button>' +
                     '<button type="button" data-invitation-share disabled>确认分享</button>' +
+                '<button type="button" data-invitation-studio>四套新海报</button>' +
+                
                 '</div>' +
                 '<p class="invitation-status" aria-live="polite" aria-atomic="true"></p>' +
             '</div>';
@@ -300,11 +302,29 @@
                 releaseCurrentInvitation();
                 openInvitationForTheme(activeRoute);
             }
+            else if (event.target.closest("[data-invitation-studio]")) openPosterStudio();
             else if (event.target.closest("[data-invitation-share]")) shareInvitation();
             else if (event.target.closest("[data-invitation-download]")) downloadInvitation();
         });
         runtime.document.body.appendChild(preview);
         return preview;
+    }
+
+    function openPosterStudio() {
+        const preview = ensurePreview();
+        const routeId = String(activeRoute && (activeRoute.routeId || activeRoute.id) || "").trim();
+        if (!/^[A-Za-z0-9_.-]{4,160}$/.test(routeId)) {
+            const status = preview.querySelector(".invitation-status");
+            if (status) status.textContent = "活动标识尚未就绪，无法打开四套海报。";
+            return;
+        }
+        const url = "/posters-studio.html?route=" + encodeURIComponent(routeId);
+        // Called synchronously from a real click, so it is not blocked as a popup.
+        if (typeof runtime.open === "function") {
+            runtime.open(url, "_blank", "noopener");
+        } else if (runtime.location && typeof runtime.location.assign === "function") {
+            runtime.location.assign(url);
+        }
     }
 
     function handleDialogKeydown(event) {
