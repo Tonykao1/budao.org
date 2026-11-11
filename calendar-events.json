@@ -182,5 +182,15 @@
     "title": "静之湖暖冬半日营",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-11-15",
+    "type": "fellowship",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony-2026-11-15-e0ba81c1d469",
+    "title": "未来智谷少年行",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
