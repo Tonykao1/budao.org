@@ -124,9 +124,9 @@ let chosen="vermilion",record=null,photo=null,originalPhoto=null,footprint=null,
 const serif='"Songti SC","Noto Serif CJK SC","STSong","SimSun",serif';
 const sans='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
 const titleFaces=Object.freeze({
- song:{family:serif,weight:700},
- sans:{family:sans,weight:700},
- kai:{family:'"Kaiti SC","STKaiti","KaiTi","DFKai-SB","Noto Serif CJK SC",serif',weight:500}
+ song:{family:serif,weight:700,tracking:0},
+ sans:{family:sans,weight:700,tracking:5},
+ kai:{family:'"Kaiti SC","STKaiti","KaiTi","DFKai-SB","Noto Serif CJK SC",serif',weight:500,tracking:1.5}
 });
 function setStatus(message,error){
  E.status.textContent=message;E.status.classList.toggle("error",!!error);
@@ -316,24 +316,25 @@ function titleRows(value){
 function bigTitle(P,R){
  // Only the real route headline varies in typeface. No poster copy is added.
  const selected=titleFaces[E.titleFont.value]||titleFaces.song;
- const family=selected.family,weight=selected.weight;
+ const family=selected.family,weight=selected.weight,tracking=selected.tracking||0;
+ const widthOf=(text)=>c.measureText(text).width+Math.max(0,Array.from(text).length-1)*tracking;
  const lines=titleRows(R.title);
  const ideal=lines.length===1?125:lines.length===2?102:68;
  const minimum=lines.length===1?55:lines.length===2?55:42;
  let size=ideal;
  while(size>minimum){
   c.save();c.font=weight+" "+size+"px "+family;
-  const max=Math.max(...lines.map(x=>c.measureText(x).width));c.restore();
+  const max=Math.max(...lines.map(widthOf));c.restore();
   if(max<=820)break;size-=1;
  }
  c.save();c.font=weight+" "+size+"px "+family;
- if(lines.some(x=>c.measureText(x).width>824)){c.restore();throw Error("当前活动名称无法在可读字号内排入第五套海报");}
+ if(lines.some(x=>widthOf(x)>824)){c.restore();throw Error("当前活动名称无法在可读字号内排入第五套海报");}
  c.restore();
  const first=lines.length===1?873:lines.length===2?809:774;
  const gap=lines.length===1?0:lines.length===2?95:69;
  c.save();c.shadowColor="rgba(16,9,10,.88)";c.shadowBlur=20;
  for(let i=0;i<lines.length;i++){
-  write(lines[i],540,first+i*gap,size,{font:family,weight,color:P.paper,align:"center"});
+  write(lines[i],540,first+i*gap,size,{font:family,weight,tracking,color:P.paper,align:"center"});
  }
  c.restore();
 }
