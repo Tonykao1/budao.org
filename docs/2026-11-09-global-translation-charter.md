@@ -6,7 +6,7 @@
 
 ## 1. Non-negotiable rules from the owner
 
-1. Whenever the **brand name** 步道 occurs in translated site copy, translate it as **BUDAO**, in **all capital letters**, in every supported target language. Do not replace it with “Trails”, “Trail”, “Path”, “Budao” or another descriptive substitute. This is not a ban on translating the ordinary *non-brand* Chinese word for a trail in route descriptions.
+1. For English-language translated site copy, the **brand name** 步道 must appear as **BUDAO**, in **all capital letters**. Do not substitute “Trails”, “Trail”, “Path”, or “Budao”. **Owner's 2026-11-11 correction:** the Traditional Chinese homepage retains the native brand **步道**, in the top navigation, main heading, page title and related Chinese editorial copy, rather than replacing it with Latin-letter BUDAO. The Simplified Chinese homepage remains untouched. Ordinary non-brand words for a trail are translated by context.
 2. Homepage text and **every navigation item** require 信、达、雅: fidelity to meaning, idiomatic writing, and expressive grace. These are separate checks, not just a single machine translation score.
 3. The ministry name and previously approved standard English ministry translation **must be preserved exactly**. Do not infer that “BUDAO Church System”, “BUDAO Ministry”, or “TRUIL MINISTERIUM INTERNATIONAL” is necessarily that standard English name. Its precise wording was not independently verified in accessible records during this revision; **leave the ministry-name field blocked for publication** rather than invent it.
 4. Punctuation and spacing follow the target language. English prose uses English punctuation and question marks, not Chinese ，。！？「」. Traditional Chinese uses appropriate full-width marks and Chinese quotation marks. Chinese–Latin mixed text needs deliberate spacing review.
@@ -17,7 +17,7 @@
 | Source | Draft English | Status | Intended meaning |
 | --- | --- | --- | --- |
 | 首页 | Home | DRAFT | Entry into the site |
-| 步道 | **BUDAO** | **BRAND LOCKED** | The proper name, never Trails |
+| 步道 | **BUDAO** (English), **步道** (Traditional Chinese) | **OWNER-APPROVED LOCALE RULE** | Native Chinese brand retained in Traditional; never translated as Trails in English |
 | 童行 | Young Explorers | DRAFT | Picture books, education and journeys for young people |
 | 同道 | Companions | DRAFT | Walking in the same way, sharing ministry practice and equipping leaders |
 | 同工 | **Fellow Workers** | **COPY APPROVED — RELEASE PENDING VISUAL QA** | Persons serving together in the ministry; rooted in established Christian usage |
