@@ -3,6 +3,7 @@
 const $=id=>document.getElementById(id);
 const frame=$('approvedCardFrame'),load=$('cardLoadStatus'),dock=$('approvedCardDock');
 const toggle=$('cardReceiptToggle'),hint=$('approvedCardHint'),receipt=$('cardReceipt');
+const claimButton=$('founderCardClaim');
 let ready=false;
 const showStatus=s=>{load.textContent=s};
 const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -44,6 +45,7 @@ async function loadApprovedCard(){
  ready=true;load.hidden=true;dock.hidden=false;
 }
 async function readReceipt(){
+ claimButton.hidden=true;
  receipt.hidden=false;
  receipt.textContent='正在读取正式站的真实居民身份与卡片信息……';
  try{
@@ -53,19 +55,42 @@ async function readReceipt(){
   if(!data?.ok)throw Error('服务器未完成身份验证');
   if(!data.user?.id){receipt.textContent='请先在正式牧场完成邮箱登录，再查看个人卡片状态。';return}
   const user=data.user;
-  if(user.cardActivated===true&&data.card?.status==='ACTIVATED'){
-   receipt.textContent='服务器已确认：步道卡 '+String(data.card.serial||'')+' 已激活。';
-  }else if(user.cardActivated===true){
-   receipt.textContent='正式站居民资料已标记激活；发行与核销单据尚待同步核对。';
-  }else if(data.card?.status==='ISSUED'){
-   receipt.textContent='服务器确认已发行步道卡，尚待本人完成激活。公开发卡目前未启动。';
+  if(data.cardStatusUnavailable){
+   receipt.textContent='卡片记录暂时无法核验，请勿重新激活或重复申请。';
+  }else if(user.cardActivated===true&&data.card?.status==='ACTIVATED'){
+   receipt.textContent='正式站已核实绑定：'+String(data.card.seriesId||'创始卡')+
+    ' · 历史创始卡已激活。'+(data.card.serial?'原编号 '+String(data.card.serial):'原卡号与个人六维配卡尚待历史资料同步。')+
+    ' 当前仅开放已完成的牧场功能。';
+  }else if(data.founderClaim?.status==='PENDING'){
+   receipt.textContent='历史创始卡核对申请已登记，等待管理端核验旧卡凭据。此状态尚未激活任何权限。';
   }else{
-   receipt.textContent='正式站目前尚未提供可核对的步道卡发行／核销记录。这不否定你在开发环境已经激活的创始卡，也不需要重新领卡或输密码。';
+   receipt.textContent='正式站尚无可验证的旧卡发行记录。曾在样机显示“已激活”的持卡人可申请人工核对；不要重新抽卡或输入旧演示密码。';
+   claimButton.hidden=false;
   }
  }catch(_){receipt.textContent='当前无法核实发行与核销状态；请勿重复激活。'}
 }
+claimButton.addEventListener('click',async()=>{
+ if(claimButton.disabled)return;
+ claimButton.disabled=true;
+ receipt.textContent='正在登记历史创始卡核对申请……';
+ try{
+  const res=await fetch('/api/pasture-auth',{method:'POST',credentials:'same-origin',
+   headers:{'Content-Type':'application/json',Accept:'application/json'},
+   body:JSON.stringify({action:'requestFounderCardReview'})});
+  const data=await res.json();
+  if(res.status===202&&data.ok){
+   claimButton.hidden=true;
+   receipt.textContent='核对申请已登记。等待步道管理端核验；此操作没有发行新卡或开放功能。';
+  }else if(data.reason==='already_bound'){
+   claimButton.hidden=true;receipt.textContent='服务器已存在本账号绑定记录，请重新读取状态。';
+  }else{
+   receipt.textContent='申请未完成：'+(data.reason==='unauthorized'?'请先登录正式牧场。':'服务器暂时无法登记。');
+  }
+ }catch(_){receipt.textContent='网络异常，申请状态未确认。请重新读取状态，勿反复提交。'}
+ finally{claimButton.disabled=false}
+});
 toggle.addEventListener('click',()=>{
- if(!receipt.hidden){receipt.hidden=true;toggle.textContent='查看真实发行与激活状态';hint.textContent='定稿卡面展示 · 六维图案为视觉样张，不代表个人实际配卡';return}
+ if(!receipt.hidden){receipt.hidden=true;claimButton.hidden=true;toggle.textContent='查看真实发行与激活状态';hint.textContent='定稿卡面展示 · 六维图案为视觉样张，不代表个人实际配卡';return}
  toggle.textContent='返回定稿卡面';hint.textContent='发行、核销状态以服务器记录为准；卡面视觉样张不具备发卡效力';readReceipt();
 });
 loadApprovedCard().catch(err=>{load.textContent='步道卡暂时无法展示：'+String(err?.message||'原稿读取失败')});
