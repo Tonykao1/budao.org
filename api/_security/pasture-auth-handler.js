@@ -2,13 +2,36 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require('./http');
 const { clientIp, consume } = require('./rate-limit');
 const domain = require('./pasture-auth-domain');
 const store = require('./pasture-auth-store');
+const cardStore = require('./pasture-card-store');
+const {getAuthenticatedPublisher,isSteward} = require('./auth');
 
 module.exports = async function handler(request,response){
   try{
     await store.ensurePastureSchema();
     if(request.method==='GET'){
+      const url=new URL(request.url||'/api/pasture-auth','https://budao.org');
+      if(url.searchParams.get('founderReviews')==='1'){
+        if(!isSteward(getAuthenticatedPublisher(request)))
+          return sendJson(response,403,{ok:false,reason:'forbidden'});
+        await cardStore.ensureCardSchema();
+        return sendJson(response,200,{ok:true,claims:await cardStore.listFounderClaims()});
+      }
       const resident=await authenticatedResident(request);
-      return sendJson(response,200,{ok:true,user:resident});
+      if(!resident)return sendJson(response,200,{ok:true,user:null,card:null});
+      // The existing login must continue working even if the new card ledger
+      // is temporarily unavailable; unavailable is NOT the same as unissued.
+      try{
+        await cardStore.ensureCardSchema();
+        const [card,founderClaim]=await Promise.all([
+          cardStore.cardForUser(resident.id),cardStore.founderClaimForUser(resident.id)
+        ]);
+        return sendJson(response,200,{ok:true,
+          user:{...resident,cardActivated:card?.status==='ACTIVATED'},
+          card,founderClaim});
+      }catch(error){
+        console.error('pasture-card-read',String(error?.code||error?.message||error));
+        return sendJson(response,200,{ok:true,user:resident,card:null,cardStatusUnavailable:true});
+      }
     }
     const parsed=requireJsonPost(request);
     if(parsed.error)return sendJson(response,parsed.status,{ok:false,reason:parsed.error});
@@ -19,6 +42,8 @@ module.exports = async function handler(request,response){
     if(action==='verifyCode')return verifyCode(request,response,parsed.body);
     if(action==='saveSheep')return saveSheep(request,response,parsed.body);
     if(action==='logout')return logout(request,response);
+    if(action==='requestFounderCardReview')return requestFounderCardReview(request,response);
+    if(action==='approveFounderCardReview')return approveFounderCardReview(request,response,parsed.body);
     return sendJson(response,400,{ok:false,reason:'unknown_action'});
   }catch(error){
     if(error?.code==='PASTURE_AUTH_NOT_CONFIGURED')return sendJson(response,503,{ok:false,reason:'auth_not_configured'});
@@ -83,4 +108,31 @@ async function sendVerificationEmail(email,code){
   const result=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({from,to:email,subject:'你的数字牧场验证码',text:'你的数字牧场验证码是：'+code+'\n\n10 分钟内有效。验证以后，你会进入羊群，并在数字牧场里认出自己。\n\n若不是你本人操作，可以忽略这封邮件。'})});
   if(!result.ok){const e=new Error('pasture_email_unavailable');e.code='PASTURE_EMAIL_UNAVAILABLE';throw e}
 }
-module.exports._test={requestCode,verifyCode,saveSheep,logout,authenticatedResident,sendVerificationEmail};
+
+async function requestFounderCardReview(request,response){
+ const resident=await authenticatedResident(request);
+ if(!resident)return sendJson(response,401,{ok:false,reason:'unauthorized'});
+ await cardStore.ensureCardSchema();
+ if(await cardStore.cardForUser(resident.id))
+   return sendJson(response,409,{ok:false,reason:'already_bound'});
+ const claim=await cardStore.createFounderClaim(resident.id);
+ if(!claim)return sendJson(response,409,{ok:false,reason:'already_bound'});
+ return sendJson(response,202,{ok:true,founderClaim:claim});
+}
+async function approveFounderCardReview(request,response,body){
+ const operator=getAuthenticatedPublisher(request);
+ if(!isSteward(operator))return sendJson(response,403,{ok:false,reason:'forbidden'});
+ const claimId=String(body.claimId||'');
+ const reference=String(body.evidenceReference||'').trim();
+ // Audit reference is a trace to independently reviewed historical evidence.
+ // Never accept the demo activation password as a valid proof of ownership.
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(claimId)
+  || !/^[a-zA-Z0-9._:/#-]{8,160}$/.test(reference))
+  return sendJson(response,400,{ok:false,reason:'invalid_review_reference'});
+ await cardStore.ensureCardSchema();
+ const approved=await cardStore.approveFounderClaim(claimId,operator.id,reference);
+ if(!approved)return sendJson(response,409,{ok:false,reason:'already_resolved_or_conflict'});
+ return sendJson(response,200,{ok:true,approved:true});
+}
+
+module.exports._test={requestCode,verifyCode,saveSheep,logout,authenticatedResident,sendVerificationEmail,requestFounderCardReview,approveFounderCardReview};
