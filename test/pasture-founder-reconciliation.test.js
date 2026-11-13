@@ -10,14 +10,18 @@ const response=()=>({statusCode:200,body:null,headers:{},setHeader(k,v){this.hea
 const user={id:'00000000-0000-0000-0000-000000000001',emailMasked:'to***@example.com',status:'ACTIVE'};
 const residentCookie='budao_pasture_session=dummy';
 const request=(action,extra={},cookie=residentCookie)=>({method:'POST',url:'/api/pasture-auth',headers:{origin:'https://budao.org',host:'budao.org',cookie},body:{action,...extra}});
-const original={sessionByTokenHash:store.sessionByTokenHash,cardForUser:cards.cardForUser,
+const original={sessionByTokenHash:store.sessionByTokenHash,
+ sheepForUser:store.sheepForUser,ensurePastureSchema:store.ensurePastureSchema,
+ cardForUser:cards.cardForUser,
  claimForUser:cards.founderClaimForUser,createFounderClaim:cards.createFounderClaim,
  approveFounderClaim:cards.approveFounderClaim,ensureCardSchema:cards.ensureCardSchema};
 function putBack(){store.sessionByTokenHash=original.sessionByTokenHash;
+ store.sheepForUser=original.sheepForUser;store.ensurePastureSchema=original.ensurePastureSchema;
  cards.cardForUser=original.cardForUser;cards.founderClaimForUser=original.claimForUser;
  cards.createFounderClaim=original.createFounderClaim;cards.approveFounderClaim=original.approveFounderClaim;
  cards.ensureCardSchema=original.ensureCardSchema}
 test.afterEach(putBack);
+test.beforeEach(()=>{store.sheepForUser=async()=>null;store.ensurePastureSchema=async()=>{};});
 test('an authenticated resident can request review, but cannot activate a card',async()=>{
  store.sessionByTokenHash=async()=>({user});
  cards.ensureCardSchema=async()=>{};
@@ -73,4 +77,40 @@ test('historical activation is server-side, auditable, and does not fabricate se
  for(const id of ['grassBookBtn','windNewsBtn','partnersBtn','mailBtn','boxEntryBtn']){
   assert.match(shell,new RegExp('pasture-feature-locked" id="'+id+'"'));
  }
+});
+
+test('GET obtains authenticated entitlement from server card ledger, not a demo value',async()=>{
+ const res=response();
+ store.sessionByTokenHash=async()=>({user});
+ cards.ensureCardSchema=async()=>{};
+ cards.cardForUser=async()=>({seriesId:'CSCZ-001',serial:null,status:'ACTIVATED',source:'HISTORIC_FOUNDER'});
+ cards.founderClaimForUser=async()=>({status:'APPROVED'});
+ await handler({method:'GET',url:'/api/pasture-auth',headers:{cookie:residentCookie}},res);
+ assert.equal(res.statusCode,200);
+ assert.equal(res.body.user.cardActivated,true);
+ assert.equal(res.body.card.status,'ACTIVATED');
+ assert.equal(res.body.card.serial,null);
+});
+test('GET protects identity when not logged in, and does not claim false activation',async()=>{
+ const res=response();
+ store.sessionByTokenHash=async()=>null;
+ await handler({method:'GET',url:'/api/pasture-auth',headers:{}},res);
+ assert.equal(res.statusCode,200);
+ assert.equal(res.body.user,null);assert.equal(res.body.card,null);
+});
+test('GET keeps normal identity service available when card ledger is unavailable',async()=>{
+ const res=response();
+ store.sessionByTokenHash=async()=>({user});
+ cards.ensureCardSchema=async()=>{throw Error('not-ready')};
+ await handler({method:'GET',url:'/api/pasture-auth',headers:{cookie:residentCookie}},res);
+ assert.equal(res.statusCode,200);
+ assert.equal(res.body.cardStatusUnavailable,true);
+ assert.notEqual(res.body.user.cardActivated,true);
+});
+test('steward queue is forbidden to all callers without authenticated steward cookie',async()=>{
+ const res=response();
+ cards.ensureCardSchema=async()=>{};
+ await handler({method:'GET',url:'/api/pasture-auth?founderReviews=1',headers:{}},res);
+ assert.equal(res.statusCode,403);
+ assert.equal(res.body.reason,'forbidden');
 });
