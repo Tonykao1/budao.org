@@ -41,7 +41,7 @@ async function performAuditedPrayerAction(db, user, prayerId, action, now = new 
   ` : sql`
     WITH changed AS (
       UPDATE prayer_requests SET status = 'COMPLETED', completed_at = ${now}, delete_after = ${deleteAfter}
-      WHERE id = ${prayerId} AND status = 'PRAYING' AND assigned_slot = ${user.slot} RETURNING id
+      WHERE id = ${prayerId} AND status = 'PRAYING' AND assigned_slot = ${user.slot} AND claimed_by = ${user.id} RETURNING id
     )
     INSERT INTO prayer_audit_events (prayer_id, event_type, actor_id, actor_slot)
       SELECT id, 'COMPLETE', ${user.id}, ${user.slot} FROM changed RETURNING prayer_id
