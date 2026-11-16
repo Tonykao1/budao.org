@@ -573,7 +573,7 @@ test('Japanese preview translates all 37 homepage fields and preserves other loc
   assert.equal(homepage.entries.find(e=>e.selector==='main section:nth-of-type(1) h2').values.ja,
     '私たちは何をしているのでしょうか？');
   assert.match(homepage.entries.find(e=>e.selector==='main section:nth-of-type(2) p').values.ja,
-    /主こそ道であり、真理であり、いのちです/);
+    /イエス・キリストは道であり、真理であり、いのちです/);
   assert.equal(core.languageLink('/home.html','','','ja'),'/home.html?lang=ja');
   assert.equal(core.languageLink('/home.html','?lang=ja','','zh-Hans'),'/home.html');
 });
@@ -588,7 +588,7 @@ test('Japanese brand consistently uses approved 道行（みちゆき）', () =>
   assert.equal(bySelector('header > h1'),'道行');
   assert.equal(bySelector('title'),'道行');
   assert.equal(bySelector('main section:nth-of-type(2) h2'),'なぜ「道行」なのでしょうか？');
-  assert.equal(bySelector('main section:nth-of-type(3) h2'),'「道行」には何があるのでしょうか？');
+  assert.equal(bySelector('main section:nth-of-type(3) h2'),'「道行」で何に出会える？');
   assert.equal(bySelector('.prayer-box-return'),'道行に戻る');
   assert.match(bySelector('.prayer-box-options label:nth-of-type(1) span'),/道行のリーダー/);
   assert.match(bySelector('.prayer-box-success p'),/道行のリーダー/);
