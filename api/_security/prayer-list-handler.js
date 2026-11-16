@@ -20,7 +20,9 @@ function createPrayerListHandler(dependencies = {}) {
       const rows = await listPrayers(user, status);
       const items = rows.map((row) => ({
         id: row.id, body: decryptPrayerPayload({ ciphertext: row.bodyCiphertext, nonce: row.bodyNonce, tag: row.bodyTag }, dataKey).body,
-        visibility: row.visibility, status: row.status, createdAt: iso(row.createdAt), assignedSlot: row.assignedSlot || null,
+        visibility: row.visibility, status: row.status, wantsReply: row.wantsReply === true,
+        canViewContact: row.wantsReply === true && row.status === "PRAYING" && row.claimedBy === user.id,
+        createdAt: iso(row.createdAt), assignedSlot: row.assignedSlot || null,
         claimedAt: iso(row.claimedAt), completedAt: iso(row.completedAt)
       }));
       await auditViews(user, items.map((item) => item.id));
