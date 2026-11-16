@@ -28,29 +28,19 @@ jobs:
           import json, pathlib, re, subprocess
           from concurrent.futures import ThreadPoolExecutor
 
-          playlist = [
-              "music/14 Silent Night.mp3",
-              "music/06 The Good, The Bad, And The Ugly.mp3",
-              "music/19 Shalom Chaverim.mp3",
-              "music/Dreaming.mp3",
-              "music/07 Barrios Mangoré_ Un Sueño En La Floresta.mp3",
-              "music/08 Imagine.mp3",
-              "music/08 xindeshijie.mp3",
-              "music/02 Amarantine.mp3",
-              "music/10 Si Quieres Que Te Cortexe.mp3",
-              "music/07 Victory Is Won.mp3",
-              "music/12 Silent Night_Klusa Nakts.mp3",
-              "music/01 Suerte (Whenever, Wherever).mp3",
-              "music/02 La Vie En Rose.mp3",
-              "music/2-08 Blaze Of Glory.mp3",
-              "music/04 Stofnar Falla.mp3",
-              "music/06 You Shouldn't Kiss Me Like This.mp3",
-              "music/08 Fool No More.mp3",
-              "music/11 Sad Eyes.mp3",
-              "music/09 Heal The World.mp3",
-              "music/09 Four To The Floor.mp3",
-              "music/05 Satellite.mp3",
-          ]
+          # Read the actual homepage playlist so future additions cannot be omitted.
+          html = pathlib.Path("home.html").read_text(encoding="utf-8")
+          match = re.search(r'const playlist\s*=\s*(\[[\s\S]*?\]);', html)
+          if not match:
+              raise RuntimeError("Could not find homepage music playlist")
+          playlist = json.loads(match.group(1))
+          missing = [path for path in playlist if not pathlib.Path(path).is_file()]
+          if missing:
+              print("WARNING: playlist entries missing source files:", missing)
+          playlist = [path for path in playlist if pathlib.Path(path).is_file()]
+          if not playlist:
+              raise RuntimeError("No available playlist audio files to measure")
+
 
           # Reference B prioritizes fidelity over streaming-style loudness.
           # -20 LUFS lets the high-LRA acoustic/classical masters keep their crest factor
