@@ -640,10 +640,10 @@ test('Japanese declaration is a draft and retains all four original audio contro
   const existing=Object.values(controls);
   const count=line.childNodes.filter(n=>n.nodeType===1).length;
   assert.equal(homepage.previewJapaneseCreed(doc,'ja'),true);
-  assert.equal(line.textContent.replace(/\s+/g,''),'生涯、主の道を歩み、左にも右にもそれず。');
+  assert.equal(line.textContent.replace(/\s+/g,''),'これからの人生、主の道を歩み、右にも左にもそれず。');
   assert.equal(line.childNodes.filter(n=>n.nodeType===1).length,count);
   assert.deepEqual(line.childNodes.filter(n=>n.nodeType===1),existing);
-  assert.equal(controls.dspBtn.textContent,'生涯');
+  assert.equal(controls.dspBtn.textContent,'これからの人生');
   assert.equal(controls.playBtn.textContent,'歩み');
   assert.equal(controls.prevBtn.textContent,'左');
   assert.equal(controls.nextBtn.textContent,'右');
