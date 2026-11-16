@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "items": [
     {
+      "id": "music:music/02 TJed (John Mcentire Remix).mp3",
+      "type": "music",
+      "title": "同行之声 · TJed",
+      "description": "新曲目上线，点击即刻聆听。",
+      "url": "/home.html",
+      "track": "music/02 TJed (John Mcentire Remix).mp3",
+      "icon": "♫",
+      "published": true
+    },
+    {
       "id": "pasture-intro-2026-11",
       "title": "牧场 · 新的生命旅程",
       "description": "注册、捏羊，遇见自己的牧场",
