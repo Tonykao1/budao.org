@@ -11,3 +11,11 @@
 .pasture-approved-card-layer{position:fixed;inset:0;z-index:120;background:rgba(8,46,47,.8)}
 .pasture-approved-card-layer[hidden]{display:none!important}
 .pasture-approved-card-layer>iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
+
+/* Existing resident only: opt-in arrival animation review; never shown in the ordinary pasture. */
+.pasture-arrival-review-controls{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:85;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:9px 11px;background:#fff9e6f5;border:3px solid #31596a;box-shadow:4px 4px 0 #1b424d40;color:#294d59;font:700 12px/1.35 system-ui,sans-serif}
+.pasture-arrival-review-controls[hidden]{display:none!important}
+.pasture-arrival-review-controls button{flex:none;border:2px solid #31596a;background:#d7eeb4;color:#294d59;padding:9px 12px;font:800 13px/1.2 system-ui,sans-serif;cursor:pointer}
+.pasture-arrival-review-controls button:hover:not(:disabled),.pasture-arrival-review-controls button:focus-visible{background:#c3e498;outline:2px solid #426b60;outline-offset:2px}
+.pasture-arrival-review-controls button:disabled{opacity:.55;cursor:wait}
+@media(max-width:550px){.pasture-arrival-review-controls{left:12px;right:12px;justify-content:space-between;padding:7px 9px}.pasture-arrival-review-note{max-width:50%;font-size:11px}.pasture-arrival-review-controls button{font-size:12px}}
