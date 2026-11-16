@@ -30,5 +30,7 @@ test("prayer room client uses only protected APIs and ritual action labels", () 
   assert.match(source, /\/api\/prayer-action/);
   assert.match(source, /承接祷告/);
   assert.match(source, /已经守望/);
+  assert.match(source, /查看联系方式/);
+  assert.match(source, /action: "CONTACT"/);
   assert.doesNotMatch(source, /localStorage|sessionStorage/);
 });

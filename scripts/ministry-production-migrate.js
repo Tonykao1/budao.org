@@ -10,11 +10,13 @@ const path = require("node:path");
 
 const migrations = [
   "0001_stewardship_identity.sql",
-  "0002_prayer_requests.sql"
+  "0002_prayer_requests.sql",
+  "0003_prayer_rate_limits.sql"
 ];
 const required = {
   prayer_requests: ["created_at", "status", "wants_reply", "completed_at"],
   prayer_audit_events: ["created_at", "event_type"],
+  prayer_rate_limits: ["key_hash", "window_started_at", "count"],
   stewardship_audit_events: ["created_at", "event_type"]
 };
 
@@ -32,7 +34,7 @@ async function verify(sql) {
   const rows = await sql(
     "SELECT table_name,column_name FROM information_schema.columns " +
     "WHERE table_schema='public' AND table_name IN ('prayer_requests'," +
-    "'prayer_audit_events','stewardship_audit_events')"
+    "'prayer_audit_events','prayer_rate_limits','stewardship_audit_events')"
   );
   for (const table of tables) {
     const names = new Set(rows.filter(r => r.table_name === table).map(r => r.column_name));

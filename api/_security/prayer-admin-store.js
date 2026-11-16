@@ -2,7 +2,8 @@ const { and, asc, eq, gt, isNull, lte, or, sql } = require("drizzle-orm");
 const { prayerAuditEvents, prayerRateLimits, prayerRequests } = require("../../db/schema");
 
 const LIST_FIELDS = {
-  id: prayerRequests.id, bodyCiphertext: prayerRequests.bodyCiphertext,
+  id: prayerRequests.id, wantsReply: prayerRequests.wantsReply,
+  claimedBy: prayerRequests.claimedBy, bodyCiphertext: prayerRequests.bodyCiphertext,
   bodyNonce: prayerRequests.bodyNonce, bodyTag: prayerRequests.bodyTag,
   visibility: prayerRequests.visibility, status: prayerRequests.status,
   createdAt: prayerRequests.createdAt, assignedSlot: prayerRequests.assignedSlot,
@@ -40,13 +41,30 @@ async function performAuditedPrayerAction(db, user, prayerId, action, now = new 
   ` : sql`
     WITH changed AS (
       UPDATE prayer_requests SET status = 'COMPLETED', completed_at = ${now}, delete_after = ${deleteAfter}
-      WHERE id = ${prayerId} AND status = 'PRAYING' AND assigned_slot = ${user.slot} RETURNING id
+      WHERE id = ${prayerId} AND status = 'PRAYING' AND assigned_slot = ${user.slot} AND claimed_by = ${user.id} RETURNING id
     )
     INSERT INTO prayer_audit_events (prayer_id, event_type, actor_id, actor_slot)
       SELECT id, 'COMPLETE', ${user.id}, ${user.slot} FROM changed RETURNING prayer_id
   `);
   const rows = Array.isArray(result) ? result : result.rows || [];
   return { changed: rows.length === 1 };
+}
+
+// Contact details can be decrypted only after this exact user has claimed
+// the request, never by other publishers sharing the same tent slot.
+async function getClaimedPrayerContact(db, user, prayerId) {
+  const rows = await db.select({
+    contactCiphertext: prayerRequests.contactCiphertext,
+    contactNonce: prayerRequests.contactNonce,
+    contactTag: prayerRequests.contactTag
+  }).from(prayerRequests).where(and(
+    eq(prayerRequests.id, prayerId),
+    eq(prayerRequests.status, "PRAYING"),
+    eq(prayerRequests.claimedBy, user.id),
+    eq(prayerRequests.assignedSlot, user.slot),
+    eq(prayerRequests.wantsReply, true)
+  )).limit(1);
+  return rows[0] || null;
 }
 
 async function recordPrayerAudit(db, user, prayerIds, eventType) {
@@ -56,4 +74,4 @@ async function recordPrayerAudit(db, user, prayerIds, eventType) {
   })));
 }
 
-module.exports = { listPrayerRequests, performAuditedPrayerAction, purgeExpiredPrayers, recordPrayerAudit };
+module.exports = { listPrayerRequests, performAuditedPrayerAction, getClaimedPrayerContact, purgeExpiredPrayers, recordPrayerAudit };
