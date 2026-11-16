@@ -34,3 +34,20 @@ test("prayer room client uses only protected APIs and ritual action labels", () 
   assert.match(source, /action: "CONTACT"/);
   assert.doesNotMatch(source, /localStorage|sessionStorage/);
 });
+
+test("prayer panel masks the large entrance characters with a translucent frosted surface", () => {
+  const sharedCss = fs.readFileSync(path.join(__dirname, "../tent-style.css"), "utf8");
+  const prayerCss = fs.readFileSync(path.join(__dirname, "../tent-prayer.css"), "utf8");
+  const html = fs.readFileSync(path.join(__dirname, "../tent.html"), "utf8");
+
+  assert.match(
+    sharedCss,
+    /\.presence\.entrance-open:not\(\.route-open\):not\(\.word-open\):not\(\.prayer-open\) \.tent-entrance/,
+    "The entrance must not remain visible while the prayer room is open"
+  );
+  assert.match(prayerCss, /\.prayer-room\s*\{[^}]*background:\s*linear-gradient\([^}]*rgba\(/s);
+  assert.match(prayerCss, /\.prayer-room\s*\{[^}]*backdrop-filter:\s*blur\(/s);
+  assert.match(prayerCss, /\.prayer-room\s*\{[^}]*-webkit-backdrop-filter:\s*blur\(/s);
+  assert.match(html, /href="tent-style\.css\?v=20261116-prayer-glass"/);
+  assert.match(html, /href="tent-prayer\.css\?v=20261116-prayer-glass"/);
+});
