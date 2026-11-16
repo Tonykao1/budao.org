@@ -83,3 +83,19 @@ Rationale: `final day` evokes a lifetime to the end; `walk` retains action; `His
 - Compare screen layouts on 375px, 430px, tablet and desktop against original composition; correct text or hold release rather than editing artwork.
 - Faith texts need Scripture references and a theology-aware human reviewer; Scripture versions must be used in line with their licenses.
 - Existing routes, original HTML/CSS, invitation snapshots and permanent /i/{id} are not to be altered by localization.
+
+
+## 2026-11-16 — Japanese brand decision (OWNER APPROVED; archived)
+
+The owner approved **道行（みちゆき / michiyuki）** as the canonical Japanese-language rendering of the BUDAO brand, replacing BUDAO / ブダオ in Japanese homepage brand positions and brand references. Four canonical display forms:
+
+| Locale | Brand display |
+|---|---|
+| zh-CN | 步道 |
+| zh-Hant | 步道 |
+| en | BUDAO |
+| ja | 道行 |
+
+**Rationale and limits (discussion record):** The owner requires an independent two-kanji Japanese title rooted in traditional Japanese literary usage, not Latin lettering and not a descriptive subtitle. 道行（みちゆき） is an attested Japanese word associated with travel and journey in classical literary and performing-arts traditions. The owner favored its ability to suggest both an actual path and a lived journey. The ministry's theological reading associates 道 with Christ as the Way (John 14:6) and 行 with the human response of following Him; this is a ministry interpretation, **not** a claim that 道行 is historically a Christian doctrinal term or a lexical translation of Logos. John 1:1's Logos and John 14:6's Way are distinct Greek terms. Japanese 道行 also has non-Christian associations, including dramatic journey scenes; do not erase these nuances in editorial explanations. The Japanese brand is fixed by the owner's decision; any later change requires explicit approval.
+
+**Implementation scope:** Japanese homepage page title, main heading, brand navigation label, brand-related headings, prayer copy and footer. Accessible reading for the Japanese brand: 道行（みちゆき）. Do not change the original Chinese, Traditional Chinese or English names; preserve player and other interactive behaviors. Other Japanese translations and faith declaration remain subject to their separate editorial approvals. This decision is an archival summary of the naming discussion, not a verbatim transcript.
