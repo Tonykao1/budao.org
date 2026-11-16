@@ -569,7 +569,7 @@ test('Japanese preview translates all 37 homepage fields and preserves other loc
   }
   const heading=homepage.entries.find(e=>e.selector==='header > h1');
   assert.deepEqual({en:heading.values.en,trad:heading.values['zh-Hant'],ja:heading.values.ja},
-    {en:'BUDAO',trad:'步道',ja:'BUDAO'});
+    {en:'BUDAO',trad:'步道',ja:'道行'});
   assert.equal(homepage.entries.find(e=>e.selector==='main section:nth-of-type(1) h2').values.ja,
     '私たちは何をしているのでしょうか？');
   assert.match(homepage.entries.find(e=>e.selector==='main section:nth-of-type(2) p').values.ja,
@@ -578,23 +578,23 @@ test('Japanese preview translates all 37 homepage fields and preserves other loc
   assert.equal(core.languageLink('/home.html','?lang=ja','','zh-Hans'),'/home.html');
 });
 
-test('Japanese brand uses BUDAO first, BUDAO（ブダオ） on first introduction, then ブダオ', () => {
+test('Japanese brand consistently uses approved 道行（みちゆき）', () => {
   const bySelector = (selector) => {
     const entry = homepage.entries.find(e=>e.selector===selector);
     assert.ok(entry,selector);
     return entry.values.ja;
   };
-  assert.equal(bySelector('nav a[href="/test.html"]'),'BUDAO');
-  assert.equal(bySelector('header > h1'),'BUDAO');
-  assert.equal(bySelector('title'),'BUDAO');
-  assert.equal(bySelector('main section:nth-of-type(2) h2'),'なぜ「BUDAO（ブダオ）」なのでしょうか？');
-  assert.equal(bySelector('main section:nth-of-type(3) h2'),'ブダオには何があるのでしょうか？');
-  assert.equal(bySelector('.prayer-box-return'),'ブダオに戻る');
-  assert.match(bySelector('.prayer-box-options label:nth-of-type(1) span'),/ブダオのリーダー/);
-  assert.match(bySelector('.prayer-box-success p'),/ブダオのリーダー/);
-  assert.equal(bySelector('footer > p'),'© 2026 BUDAO budao.org');
+  assert.equal(bySelector('nav a[href="/test.html"]'),'道行');
+  assert.equal(bySelector('header > h1'),'道行');
+  assert.equal(bySelector('title'),'道行');
+  assert.equal(bySelector('main section:nth-of-type(2) h2'),'なぜ「道行」なのでしょうか？');
+  assert.equal(bySelector('main section:nth-of-type(3) h2'),'「道行」には何があるのでしょうか？');
+  assert.equal(bySelector('.prayer-box-return'),'道行に戻る');
+  assert.match(bySelector('.prayer-box-options label:nth-of-type(1) span'),/道行のリーダー/);
+  assert.match(bySelector('.prayer-box-success p'),/道行のリーダー/);
+  assert.equal(bySelector('footer > p'),'© 2026 道行 budao.org');
   const japaneseValues = homepage.entries.map(e=>e.values.ja);
-  assert.ok(japaneseValues.some(x=>x.includes('BUDAO（ブダオ）')));
+  assert.ok(japaneseValues.some(x=>x.includes('道行')));
   assert.ok(!japaneseValues.some(x=>x.includes('歩道')), 'never translate BUDAO to the Japanese word for sidewalk');
 });
 
@@ -604,8 +604,8 @@ test('Japanese proper-name annotation adds a pronunciation and discourages auto 
     attributes: {},
     setAttribute(name,value) { this.attributes[name]=value; }
   });
-  const hero = makeElement('BUDAO');
-  const nav = makeElement('BUDAO');
+  const hero = makeElement('道行');
+  const nav = makeElement('道行');
   const doc = {querySelector(selector) {
     if(selector==='header > h1') return hero;
     if(selector==='nav a[href="/test.html"]') return nav;
@@ -616,8 +616,8 @@ test('Japanese proper-name annotation adds a pronunciation and discourages auto 
   assert.deepEqual(hero.attributes,{});
   assert.equal(homepage.annotateJapaneseBrand(doc,'ja'),true);
   for (const el of [hero,nav]) {
-    assert.equal(el.textContent,'BUDAO');
-    assert.deepEqual(el.attributes,{'translate':'no','aria-label':'BUDAO（ブダオ）'});
+    assert.equal(el.textContent,'道行');
+    assert.deepEqual(el.attributes,{'translate':'no','aria-label':'道行（みちゆき）'});
   }
   const drift=makeElement('歩道');
   assert.equal(homepage.annotateJapaneseBrand({
