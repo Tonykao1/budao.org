@@ -4,3 +4,38 @@
 .prayer-card footer{flex-wrap:wrap;gap:10px 16px}
 .prayer-card .prayer-private-contact{margin-top:12px;font-size:13px;overflow-wrap:anywhere}
 .prayer-reply-note{font-size:12px;opacity:.8}
+
+
+/*
+ * Prayer is a quiet frosted panel above the tent interior, not a transparent
+ * layer through which the large entrance lettering can compete with requests.
+ */
+.prayer-room {
+  position: relative;
+  z-index: 1;
+  padding: clamp(20px, 3vw, 34px);
+  border: 1px solid rgba(231, 222, 202, 0.15);
+  border-radius: 18px;
+  background: linear-gradient(158deg, rgba(19, 27, 43, 0.79), rgba(7, 12, 23, 0.74));
+  -webkit-backdrop-filter: blur(18px) saturate(85%);
+  backdrop-filter: blur(18px) saturate(85%);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.27);
+  color: rgba(242, 235, 220, 0.91);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(225, 214, 189, 0.28) transparent;
+}
+
+@media (max-width: 620px) {
+  .prayer-room {
+    width: min(94vw, 760px);
+    max-height: 84svh;
+    padding: 20px;
+    border-radius: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prayer-room {
+    transition-duration: 1ms;
+  }
+}
