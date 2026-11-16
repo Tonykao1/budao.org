@@ -37,6 +37,14 @@
     } catch { return NaN; }
   }
 
+  function routeDurationMs(route) {
+    const duration = String(route.duration || '').trim();
+    const hours = duration.match(/(\d+(?:\.\d+)?)\s*(?:小时|小時|hours?|hrs?)/i);
+    const minutes = duration.match(/(\d+(?:\.\d+)?)\s*(?:分钟|分鐘|minutes?|mins?)/i);
+    if (!hours && !minutes) return 0;
+    return ((hours ? Number(hours[1]) * 60 : 0) + (minutes ? Number(minutes[1]) : 0)) * 60000;
+  }
+
   function routeNews(routes) {
     if (!Array.isArray(routes)) return [];
     const now = Date.now();
@@ -45,7 +53,7 @@
       route.status !== 'canceled' && !route.pending && typeof route.title === 'string' &&
       typeof (route.routeId || route.id) === 'string')
       .map(route => ({ route, startsAt: routeTimestamp(route) }))
-      .filter(x => Number.isFinite(x.startsAt) && x.startsAt >= now && x.startsAt <= endOfWindow)
+      .filter(x => Number.isFinite(x.startsAt) && x.startsAt + routeDurationMs(x.route) > now && x.startsAt <= endOfWindow)
       .sort((a, b) => a.startsAt - b.startsAt)
       .slice(0, 2)
       .map(({ route }) => ({
