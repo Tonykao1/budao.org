@@ -3,6 +3,7 @@
   'use strict';
   const STORAGE_KEY = 'budao:whats-new:seen:v1';
   const feedUrl = '/whats-new.json';
+  const routeFeedUrl = '/api/routes?scope=calendar';
   const root = document.createElement('aside');
   root.className = 'budao-news';
   root.setAttribute('aria-label', '步道新事');
@@ -11,6 +12,64 @@
   function readSeen() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } }
   function markSeen(ids) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...new Set([...readSeen(),...ids])])); } catch {} }
   let items = [], open = false, archive = false, seen = readSeen();
+
+  function routeTimestamp(route) {
+    if (!route || !/^\d{4}-\d{2}-\d{2}$/.test(String(route.date || '')) ||
+        !/^([01]?\d|2[0-3]):[0-5]\d$/.test(String(route.time || ''))) return NaN;
+    const timeZone = String(route.timezone || 'Asia/Shanghai');
+    const parts = route.date.split('-').map(Number);
+    const clock = route.time.split(':').map(Number);
+    const nominal = Date.UTC(parts[0], parts[1] - 1, parts[2], clock[0], clock[1]);
+    if (new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])).toISOString().slice(0, 10) !== route.date) return NaN;
+    try {
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+      });
+      let result = nominal;
+      for (let pass = 0; pass < 3; pass++) {
+        const values = Object.fromEntries(formatter.formatToParts(new Date(result))
+          .filter(p => p.type !== 'literal').map(p => [p.type, Number(p.value)]));
+        const represented = Date.UTC(values.year, values.month - 1, values.day, values.hour, values.minute);
+        result += nominal - represented;
+      }
+      return result;
+    } catch { return NaN; }
+  }
+
+  function routeNews(routes) {
+    if (!Array.isArray(routes)) return [];
+    const now = Date.now();
+    const endOfWindow = now + 7 * 86400000;
+    return routes.filter(route => route && route.status !== 'cancelled' &&
+      route.status !== 'canceled' && !route.pending && typeof route.title === 'string' &&
+      typeof (route.routeId || route.id) === 'string')
+      .map(route => ({ route, startsAt: routeTimestamp(route) }))
+      .filter(x => Number.isFinite(x.startsAt) && x.startsAt >= now && x.startsAt <= endOfWindow)
+      .sort((a, b) => a.startsAt - b.startsAt)
+      .slice(0, 2)
+      .map(({ route }) => ({
+        id: 'route:' + (route.routeId || route.id) + ':' + route.date,
+        type: 'route',
+        title: '即将同行 · ' + route.title,
+        description: route.date.slice(5).replace('-', '月') + '日 ' + route.time + (route.city ? ' · ' + route.city : ''),
+        url: '/test.html?route=' + encodeURIComponent(route.routeId || route.id),
+        icon: '♧'
+      }));
+  }
+
+  function applyNews(feed, routes) {
+    const safeUrl = u => typeof u === 'string' && /^\/(?!\/)[a-zA-Z0-9/_#?&=.%~-]*$/.test(u);
+    const staticItems = (Array.isArray(feed.items) ? feed.items : [])
+      .filter(x => x && typeof x.id === 'string' && typeof x.title === 'string' &&
+        typeof x.description === 'string' && safeUrl(x.url) &&
+        (x.type !== 'music' || (typeof x.track === 'string' && x.track.startsWith('music/') &&
+          x.track.endsWith('.mp3'))) && x.published === true);
+    items = [...routeNews(routes), ...staticItems].slice(0, 50);
+    if (!items.length) { root.remove(); return; }
+    open = items.some(item => !seen.includes(item.id));
+    render();
+  }
   function render() {
     const unread = items.filter(item => !seen.includes(item.id));
     if (!open) {
@@ -45,11 +104,14 @@
     root.classList.toggle('is-hidden-on-scroll', current > 180 && current > lastScroll + 3);
     lastScroll = current;
   }, {passive:true});
-  fetch(feedUrl, {cache:'no-store'}).then(r=>{if(!r.ok) throw new Error('News feed unavailable');return r.json();}).then(feed=>{
-    const safeUrl = u => typeof u === 'string' && /^\/(?!\/)[a-zA-Z0-9/_#?&=.%~-]*$/.test(u);
-    items = (Array.isArray(feed.items) ? feed.items : []).filter(x=>x && typeof x.id==='string' && typeof x.title==='string' && typeof x.description==='string' && safeUrl(x.url) && (x.type !== 'music' || (typeof x.track === 'string' && x.track.startsWith('music/') && x.track.endsWith('.mp3'))) && x.published===true).slice(0,50);
-    if (!items.length) {root.remove();return;}
-    open = items.some(item=>!seen.includes(item.id));
-    render();
-  }).catch(()=>{root.remove();});
+  Promise.all([
+    fetch(feedUrl, {cache:'no-store'}).then(r => {
+      if (!r.ok) throw new Error('news_unavailable');
+      return r.json();
+    }).catch(() => ({items: []})),
+    fetch(routeFeedUrl, {cache:'no-store'}).then(r => {
+      if (!r.ok) throw new Error('routes_unavailable');
+      return r.json();
+    }).catch(() => [])
+  ]).then(([feed, routes]) => applyNews(feed, routes)).catch(() => root.remove());
 })();
