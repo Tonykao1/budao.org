@@ -65,7 +65,8 @@ test("list decrypts only prayer body, omits contact and records content-free vie
   await handler(req("GET", null, { status: "NEW" }), response);
   assert.equal(response.statusCode, 200);
   assert.deepEqual(response.body.items[0], { id: "p1", body: "请为家人守望", visibility: "LEADERS_ONLY",
-    status: "NEW", createdAt: "2026-09-28T00:00:00.000Z", assignedSlot: null, claimedAt: null, completedAt: null });
+    status: "NEW", wantsReply: false, canViewContact: false,
+    createdAt: "2026-09-28T00:00:00.000Z", assignedSlot: null, claimedAt: null, completedAt: null });
   assert.equal(audits.length, 1);
   assert.deepEqual({ id: audits[0].user.id, role: audits[0].user.role, slot: audits[0].user.slot }, { id: "leader-1", role: "publisher", slot: "IMS" });
   assert.deepEqual(audits[0].ids, ["p1"]);
@@ -117,4 +118,36 @@ test("admin endpoints expose only generic service errors", async () => {
   await actionModule.createPrayerActionHandler({ applyAction: async () => { throw new Error("database secret"); } })(req("POST", { prayerId: crypto.randomUUID(), action: "CLAIM" }), response);
   assert.equal(response.statusCode, 503);
   assert.equal(JSON.stringify(response.body).includes("secret"), false);
+});
+
+test("claimed leader may reveal contact only with a separate audited request", async () => {
+  const contactValue = "reply@example.test";
+  const encrypted = encryptPrayerPayload({ contact: contactValue }, process.env.BUDAO_PRAYER_DATA_KEY);
+  const events = [];
+  const id = crypto.randomUUID();
+  const handler = actionModule.createPrayerActionHandler({
+    dataKey: process.env.BUDAO_PRAYER_DATA_KEY,
+    fetchContact: async (user, prayerId) => {
+      assert.equal(user.id, "leader-1"); assert.equal(prayerId, id);
+      return { contactCiphertext: encrypted.ciphertext, contactNonce: encrypted.nonce, contactTag: encrypted.tag };
+    },
+    auditContact: async (user, prayerId) => { events.push({ who: user.id, prayerId }); }
+  });
+  const response = res();
+  await handler(req("POST", { prayerId: id, action: "CONTACT" }), response);
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body, { ok: true, contact: contactValue });
+  assert.deepEqual(events, [{ who: "leader-1", prayerId: id }]);
+  assert.equal(JSON.stringify(events).includes(contactValue), false);
+});
+
+test("unclaimed contact cannot be revealed even to an authorized leader", async () => {
+  const handler = actionModule.createPrayerActionHandler({
+    fetchContact: async () => null,
+    auditContact: async () => { throw new Error("must not audit"); }
+  });
+  const response = res();
+  await handler(req("POST", { prayerId: crypto.randomUUID(), action: "CONTACT" }), response);
+  assert.equal(response.statusCode, 409);
+  assert.deepEqual(response.body, { ok: false, reason: "prayer_unavailable" });
 });
