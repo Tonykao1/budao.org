@@ -284,10 +284,78 @@
     }
     return true;
   }
-  function start() {
-    if (!root.BudaoGlobal || !root.document || !root.location) return;
-    if (root.location.pathname !== '/home.html') return;
-    const chosen = root.BudaoGlobal.requestedLocale(root.location.search);
+  // Homepage language hot-swap: reuse the SAME document, media element and DSP graph.
+  // Capture authored source nodes before the initial translation; no audio objects change.
+  let homeSourceSnapshot = null;
+  function captureHomeSource(documentObject) {
+    const items = entries.map(entry => {
+      const element = documentObject.querySelector(entry.selector);
+      if (!element) return null;
+      if (entry.mode === 'attribute') {
+        return { entry, element, value: element.getAttribute(entry.attribute) };
+      }
+      if (entry.mode === 'leading-text') {
+        const node = Array.from(element.childNodes || [])
+          .find(n => n.nodeType === 3 && n.nodeValue.trim() === entry.source);
+        return node ? { entry, node, value: node.nodeValue } : null;
+      }
+      return element.children.length ? null : { entry, element, value: element.textContent };
+    });
+    const line = documentObject.querySelector('header .hero-line');
+    const hero = line ? {
+      line,
+      originalNodes: Array.from(line.childNodes),
+      values: Array.from(line.childNodes).map(node => node.nodeType === 3
+        ? node.nodeValue : node.textContent),
+      fontSize: line.style.fontSize,
+      letterSpacing: line.style.letterSpacing,
+      whiteSpace: line.style.whiteSpace
+    } : null;
+    const heading = documentObject.querySelector('header > h1');
+    const brand = documentObject.querySelector('nav a[href="/test.html"]');
+    const sourceLinks = Array.from(documentObject.querySelectorAll('a[href]'))
+      .filter(a => /^\/home\.html(?:[?#]|$)/.test(a.getAttribute('href') || ''))
+      .map(a => ({ element: a, href: a.getAttribute('href') }));
+    return { items, hero, heading, brand, sourceLinks };
+  }
+  function restoreHomeSource(documentObject) {
+    const snapshot = homeSourceSnapshot;
+    if (!snapshot) return;
+    // Restore exact original hero text nodes without replacing interactive spans.
+    const hero = snapshot.hero;
+    if (hero) {
+      Array.from(hero.line.childNodes).forEach(node => {
+        if (!hero.originalNodes.includes(node)) hero.line.removeChild(node);
+      });
+      hero.originalNodes.forEach((node, index) => {
+        if (hero.line.childNodes[index] !== node) {
+          hero.line.insertBefore(node, hero.line.childNodes[index] || null);
+        }
+        if (node.nodeType === 3) node.nodeValue = hero.values[index];
+        else node.textContent = hero.values[index];
+      });
+      hero.line.style.fontSize = hero.fontSize;
+      hero.line.style.letterSpacing = hero.letterSpacing;
+      hero.line.style.whiteSpace = hero.whiteSpace;
+    }
+    snapshot.items.forEach(item => {
+      if (!item) return;
+      if (item.entry.mode === 'attribute') item.element.setAttribute(item.entry.attribute, item.value);
+      else if (item.node) item.node.nodeValue = item.value;
+      else item.element.textContent = item.value;
+    });
+    [snapshot.heading, snapshot.brand].forEach(element => {
+      if (!element) return;
+      element.removeAttribute('translate');
+      element.removeAttribute('aria-label');
+    });
+    snapshot.sourceLinks.forEach(({element, href}) => element.setAttribute('href', href));
+    if (documentObject.documentElement) documentObject.documentElement.lang = 'zh-Hans';
+  }
+  function applyHomepageLocale(locale) {
+    if (!homeSourceSnapshot) return false;
+    const chosen = root.BudaoGlobal.normalizeLocale(locale) || root.BudaoGlobal.SOURCE;
+    restoreHomeSource(root.document);
     if (chosen !== root.BudaoGlobal.SOURCE) {
       root.BudaoGlobal.localize(root.document, chosen, entries);
       previewEnglishCreed(root.document, chosen);
@@ -295,10 +363,56 @@
       previewJapaneseCreed(root.document, chosen);
       annotateJapaneseBrand(root.document, chosen);
       root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
-      enableEnglishNarrowNavigation(root, chosen);
     }
-    // Configure last so localization of self-links cannot undo the toggle target.
+    enableHomeNavigationForLocale(root, chosen);
     configureHomeLanguageSwitch(root, chosen);
+    return true;
+  }
+  // One media-query listener across any number of language changes.
+  let navigationSync = null;
+  function enableHomeNavigationForLocale(windowObject, locale) {
+    if (!windowObject.matchMedia) return;
+    const nav = windowObject.document.querySelector('body > nav');
+    if (!nav) return;
+    if (!navigationSync) {
+      const mq = windowObject.matchMedia('(max-width: 1200px)');
+      navigationSync = () => {
+        if (mq.matches && ['en','zh-Hant','ja'].includes(
+          windowObject.BudaoGlobal.requestedLocale(windowObject.location.search))) {
+          nav.style.overflowX = 'auto';
+          nav.style.justifyContent = 'flex-start';
+        } else {
+          nav.style.removeProperty('overflow-x');
+          nav.style.removeProperty('justify-content');
+        }
+      };
+      if (typeof mq.addEventListener === 'function') mq.addEventListener('change', navigationSync);
+    }
+    navigationSync();
+  }
+  function onHomeLocaleClick(event) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey ||
+        event.ctrlKey || event.shiftKey || event.altKey) return;
+    const anchor = event.target && event.target.closest && event.target.closest('a');
+    if (!anchor || !root.document.getElementById('homeLanguageSwitch').contains(anchor)) return;
+    const href = anchor.getAttribute('href');
+    if (!href || !/^\/home\.html(?:[?#]|$)/.test(href)) return;
+    const next = new URL(href, root.location.href);
+    if (next.origin !== root.location.origin || next.pathname !== root.location.pathname) return;
+    const locale = root.BudaoGlobal.requestedLocale(next.search);
+    event.preventDefault();
+    if (next.href !== root.location.href) root.history.pushState(null, '', next.pathname + next.search + next.hash);
+    applyHomepageLocale(locale);
+  }
+  function start() {
+    if (!root.BudaoGlobal || !root.document || !root.location ||
+        root.location.pathname !== '/home.html') return;
+    homeSourceSnapshot = captureHomeSource(root.document);
+    applyHomepageLocale(root.BudaoGlobal.requestedLocale(root.location.search));
+    const switcher = root.document.getElementById('homeLanguageSwitch');
+    if (switcher) switcher.addEventListener('click', onHomeLocaleClick);
+    root.addEventListener('popstate', () =>
+      applyHomepageLocale(root.BudaoGlobal.requestedLocale(root.location.search)));
   }
   if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, annotateJapaneseBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
   if (root.document) {
