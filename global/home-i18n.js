@@ -19,7 +19,7 @@
     { selector:'main section:nth-of-type(1) p', source:'健行于天地，相知于彼此，在旷野经历与祂的同在。', values:{en:'We walk the earth beneath the heavens, come to know one another, and encounter His presence in the wilderness.', 'zh-Hant':'健行於天地，相知於彼此，在曠野經歷與祂的同在。', ja:'空と大地の間を歩み、互いを知り、荒野で主の臨在に触れます。'} },
     { selector:'main section:nth-of-type(2) h2', source:'为什么是“步道”？', values:{en:'Why BUDAO?', 'zh-Hant':'為什麼是「步道」？', ja:'なぜ「道行」なのでしょうか？'} },
     { selector:'main section:nth-of-type(2) p', source:'祂就是道路、真理、生命。唯有祂亲自感动你同行天路，共步主道。', values:{en:'He is the way, the truth, and the life. He alone can stir our hearts to journey heavenward together, following His way.', 'zh-Hant':'祂就是道路、真理、生命。唯有祂親自感動你同行天路，共步主道。', ja:'イエス・キリストは道であり、真理であり、いのちです。主ご自身が私たちの心を動かしてくださるとき、私たちは天の御国を目指し、主の道をともに歩むのです。'} },
-    { selector:'main section:nth-of-type(3) h2', source:'“步道”有什么？', values:{en:'What will you find at BUDAO?', 'zh-Hant':'「步道」有什麼？', ja:'「道行」には何があるのでしょうか？'} },
+    { selector:'main section:nth-of-type(3) h2', source:'“步道”有什么？', values:{en:'What will you find at BUDAO?', 'zh-Hant':'「步道」有什麼？', ja:'「道行」で何に出会える？'} },
     { selector:'main section:nth-of-type(3) p', mode:'leading-text', source:'· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 ·', values:{en:'· EMBRACE · TRAIL · STORY · SCRIPTURE · ', 'zh-Hant':'· 一個擁抱 · 一條線路 · 一則故事 · 一段經文 · ', ja:'· 抱擁 · コース · 物語 · 聖句 · '} },
     { selector:'#prayerBoxTrigger', source:'一起祷告', values:{en:'PRAYER', 'zh-Hant':'一起禱告', ja:'祈り'} },
     { selector:'.prayer-box-backdrop', mode:'attribute', attribute:'aria-label', source:'关闭一起祷告', values:{en:'Close prayer dialog', 'zh-Hant':'關閉一起禱告', ja:'祈りの画面を閉じる'} },
