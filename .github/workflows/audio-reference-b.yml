@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/audio-reference-b.yml"
+      - "home.html"
   workflow_dispatch:
 
 permissions:
