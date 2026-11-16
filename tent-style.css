@@ -424,7 +424,7 @@ body {
   text-align: center;
 }
 
-.presence.entrance-open:not(.route-open):not(.word-open) .tent-entrance {
+.presence.entrance-open:not(.route-open):not(.word-open):not(.prayer-open) .tent-entrance {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
