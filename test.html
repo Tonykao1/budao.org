@@ -884,6 +884,21 @@ function renderActiveRoutes(routes){
     if(countdownTimer) window.clearInterval(countdownTimer);
     countdownTimer = window.setInterval(updateAll,1000);
 }
+/* Deep-link from What's New: use the existing calendar feed and card renderer. */
+const requestedNewsRouteId = new URLSearchParams(window.location.search).get('route');
+function focusRequestedNewsRoute() {
+    if (!requestedNewsRouteId || requestedNewsRouteId.length > 180) return;
+    calendarRouteRequest.then(routes=>{
+        const selected = routes.find(route=>String(route.routeId || route.id || '') === requestedNewsRouteId &&
+            route.status !== 'cancelled' && route.status !== 'canceled');
+        if (!selected) return;
+        renderActiveRoutes([selected]);
+        requestAnimationFrame(()=>{
+            const card = document.querySelector('#routeGrid .route-card');
+            if (card) card.scrollIntoView({behavior:'smooth',block:'start'});
+        });
+    }).catch(()=>{});
+}
 function activateRoutes(routes){
     normalSlotRoutes = routes.slice();
     activeRoutes = sortRoutesByStart(routes);
@@ -897,6 +912,7 @@ function activateRoutes(routes){
     }
 
     countdownTimer = window.setInterval(updateAll,1000);
+    focusRequestedNewsRoute();
 }
 
 function prepareEvents(routes){
