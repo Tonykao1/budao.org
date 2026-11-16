@@ -1,0 +1,28 @@
+/* BUDAO What's New — independent floating note, no page layout changes */
+.budao-news{position:fixed;right:24px;bottom:24px;z-index:9000;font-family:inherit;pointer-events:none;color:#394637}
+.budao-news *{box-sizing:border-box}
+.budao-news button,.budao-news a{pointer-events:auto}
+.budao-news__card{width:min(330px,calc(100vw - 32px));padding:17px 17px 14px;background:#f6f0df;border:1px solid #ded3b8;border-radius:5px;box-shadow:0 12px 36px rgba(34,40,28,.13);transform-origin:bottom right;animation:budao-note-in .36s cubic-bezier(.2,.8,.25,1) both}
+.budao-news__top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.budao-news__eyebrow{font-size:10px;letter-spacing:.12em;color:#8b8067}
+.budao-news__heading{margin:7px 0 0;font-size:21px;font-weight:500;line-height:1.25;color:#394637}
+.budao-news__heading small{font-size:11px;color:#7d866e;font-weight:400}
+.budao-news__close{border:0;background:transparent;color:#6e7966;font-size:21px;line-height:1;cursor:pointer;padding:2px 5px;min-width:32px;min-height:32px}
+.budao-news__rule{height:1px;background:#d9cdb2;margin:13px 0}
+.budao-news__entries{display:grid;gap:15px;max-height:min(46vh,325px);overflow:auto}
+.budao-news__entry{display:flex;gap:11px;text-decoration:none;color:inherit;align-items:flex-start}
+.budao-news__entry-icon{font-size:18px;color:#6e7c5e;line-height:1.2;width:20px;flex:none}
+.budao-news__entry strong{display:block;font-size:13px;font-weight:500;color:#434b3d;line-height:1.45}
+.budao-news__entry span:last-child{display:block;color:#777467;font-size:12px;line-height:1.55;margin-top:2px}
+.budao-news__foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.budao-news__archive{border:0;padding:5px 0;background:transparent;color:#657257;font-size:12px;cursor:pointer}
+.budao-news__mark{color:#8b967f;font-size:20px}
+.budao-news__tab{display:flex;gap:9px;align-items:center;padding:11px 13px;min-height:44px;border:1px solid #ded3b8;border-radius:10px;background:#f6f0df;color:#394637;box-shadow:0 6px 22px rgba(34,40,28,.1);cursor:pointer;font-size:13px}
+.budao-news__dot{display:inline-block;width:7px;height:7px;background:#b56d49;border-radius:50%;margin-left:4px}
+.budao-news__tab-icon{font-size:16px;color:#657257}
+.budao-news button:focus-visible,.budao-news a:focus-visible{outline:2px solid #657257;outline-offset:3px}
+.budao-news.is-hidden-on-scroll .budao-news__tab{transform:translateY(calc(100% + 30px));opacity:0;pointer-events:none}
+.budao-news__tab{transition:transform .32s ease,opacity .32s ease}
+@keyframes budao-note-in{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:700px){.budao-news{right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}.budao-news__card{width:min(330px,calc(100vw - 32px))}}
+@media(prefers-reduced-motion:reduce){.budao-news__card{animation:none}.budao-news__tab{transition:none}}
