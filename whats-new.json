@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "pasture-intro-2026-11",
+      "title": "牧场 · 新的生命旅程",
+      "description": "注册、捏羊，遇见自己的牧场",
+      "url": "/pasture.html",
+      "icon": "♧",
+      "published": false
+    },
+    {
+      "id": "home-languages-2026-11",
+      "title": "步道 · 更多语言",
+      "description": "English · 繁體中文 · 日本語",
+      "url": "/home.html",
+      "icon": "◎",
+      "published": true
+    },
+    {
+      "id": "campfire-memories-2026-11",
+      "title": "营火之地 · 三段记忆",
+      "description": "每一次重逢，都有不同的同行风景",
+      "url": "/campfire.html",
+      "icon": "✧",
+      "published": false
+    }
+  ]
+}
