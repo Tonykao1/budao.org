@@ -274,6 +274,16 @@
       "result_lufs_est": -20.0,
       "result_tp_est": -3.93,
       "peak_limited": false
+    },
+    "music/02 TJed (John Mcentire Remix).mp3": {
+      "integrated_lufs": -13.67,
+      "true_peak_dbtp": 0.58,
+      "lra_lu": 5.2,
+      "threshold_lufs": -23.98,
+      "gain_db": -6.33,
+      "result_lufs_est": -20.0,
+      "result_tp_est": -5.75,
+      "peak_limited": false
     }
   }
 }
