@@ -645,8 +645,8 @@ test('Japanese declaration is a draft and retains all four original audio contro
   assert.deepEqual(line.childNodes.filter(n=>n.nodeType===1),existing);
   assert.equal(controls.dspBtn.textContent,'これからの人生');
   assert.equal(controls.playBtn.textContent,'歩み');
-  assert.equal(controls.prevBtn.textContent,'左');
-  assert.equal(controls.nextBtn.textContent,'右');
+  assert.equal(controls.prevBtn.textContent,'右');
+  assert.equal(controls.nextBtn.textContent,'左');
   assert.equal(homepage.previewJapaneseCreed(doc,'ja'),false);
   assert.equal(homepage.previewJapaneseCreed(buildMockOriginalCreed().doc,'en'),false);
 });
