@@ -786,6 +786,23 @@ async function resumeCurrentTrack() {
   resetClockProbe();
 }
 
+/* 点击步道新事中的曲目：复用已有播放链路，保留 DSP、续播与媒体会话。 */
+window.budaoPlayNewsTrack = async function (trackPath) {
+  const index = playlist.findIndex(path => path === trackPath);
+  if (index < 0) return false;
+  currentTrack = index;
+  playbackDirection = 1;
+  playBtn.classList.remove('reverse-playback');
+  try {
+    await playCurrentTrack();
+  } catch (error) {
+    /* 浏览器若阻止播放，曲目仍已选好，用户可点击原来的“走”继续。 */
+    console.info('News track is ready; press 走 to start playback.', error);
+  }
+  playBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return true;
+};
+
 /* 点击“走” */
 playBtn.addEventListener("click", async () => {
   if (!isPlaying) {

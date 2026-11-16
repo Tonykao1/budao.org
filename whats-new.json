@@ -24,6 +24,16 @@
       "url": "/campfire.html",
       "icon": "✧",
       "published": false
+    },
+    {
+      "id": "music-example-unpublished",
+      "type": "music",
+      "title": "同行之声 · 新曲目",
+      "description": "点击即可聆听这段新的同行之声",
+      "url": "/home.html",
+      "track": "music/14 Silent Night.mp3",
+      "icon": "♫",
+      "published": false
     }
   ]
 }
