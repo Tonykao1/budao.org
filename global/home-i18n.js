@@ -118,7 +118,7 @@
 
   // Japanese faith declaration is an editorial DRAFT, not an approved publication.
   // Reuse the original four audio control spans and their listeners exactly.
-  const proposedJapaneseCreed = '生涯、主の道を歩み、左にも右にもそれず。';
+  const proposedJapaneseCreed = 'これからの人生、主の道を歩み、右にも左にもそれず。';
   function previewJapaneseCreed(documentObject, locale) {
     if (locale !== 'ja' || !documentObject ||
         typeof documentObject.querySelector !== 'function') return false;
@@ -144,13 +144,13 @@
         !documentObject.createTextNode || !line.insertBefore || !line.style) return false;
 
     leading.nodeValue = '';
-    dsp.textContent = '生涯';
+    dsp.textContent = 'これからの人生';
     beforePlay.nodeValue = '、主の道を';
     play.textContent = '歩み';
     beforePrev.nodeValue = '、\n';
-    prev.textContent = '左';
+    prev.textContent = '右';
     line.insertBefore(documentObject.createTextNode('にも'), next);
-    next.textContent = '右';
+    next.textContent = '左';
     afterNext.nodeValue = 'にもそれず。';
     line.style.fontSize = 'clamp(12px, 1.45vw, 17px)';
     line.style.letterSpacing = '0.01em';
