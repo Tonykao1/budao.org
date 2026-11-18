@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>BUDAO 第六套《远方·召唤》V1.1｜固定03书法资产与顶栏路线说明</title>
-<meta name="description" content="步道第六套可真实预览与导出 PNG 的全幅摄影海报。真实活动照片、固定03书法主字、右上路线说明与原始报名二维码。无需 AI 绘图。">
+<title>BUDAO 步道｜06 远方·召唤</title>
+<meta name="description" content="BUDAO 步道远方·召唤海报：全幅实景照片、固定步道书法主字、真实路线说明与报名二维码。">
 <style>
 :root{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#edece9;color:#252c2d}
 *{box-sizing:border-box}body{margin:0;min-height:100vh}
@@ -49,31 +49,31 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 </head>
 <body>
 <header class="header">
-<small>BUDAO · TEMPLATE 06 · APPROVED WORDMARK 03 · V1.1</small>
-<h1>远方·召唤 <span style="color:#98c4be;font-weight:320">/ 全幅摄影与醒目口号</span></h1>
-<p>参考 Tourism Australia 的目的地广告表达：用一张真实照片唤起出发愿望，主口号成为第一视觉焦点。此页为 BUDAO 独立设计实验，不使用澳大利亚旅游局商标、广告图像或 AI 重绘。</p>
+<small>BUDAO 步道 · 海报 06</small>
+<h1>远方·召唤 <span style="color:#98c4be;font-weight:320">/ 全幅摄影与书法主字</span></h1>
+<p>让真实山野成为画面的主角，以固定的「步道」书法主字唤起出发的心意。路线说明位于右上方，活动信息与二维码取自所选路线。</p>
 </header>
 <main class="shell">
 <section class="poster-wrap">
 <canvas id="poster" width="1080" height="1530" role="img" aria-label="步道第六套远方召唤海报真实预览"></canvas>
-<p class="poster-caption">FULL BLEED PHOTO · FIXED WORDMARK 03 · ORIGINAL ROUTE QR · 1080 × 1530</p>
+<p class="poster-caption">BUDAO 步道 · 全幅实景 · 原始二维码 · 1080 × 1530</p>
 </section>
 <aside class="sidebar">
 <section class="panel">
-<div class="kicker">TEMPLATE 06 / DESIGN EXPLORATION</div>
-<h2>第六套 V1.1 · 书法主字验收</h2>
-<p class="lead">全图保留真实摄影。第一视觉固定为已选第03号「步道」行书章法；右上放路线原文，左上小Logo略放大。二维码仍来自当前活动，不重新生成。</p>
+<div class="kicker">步道海报 · 样式设置</div>
+<h2>远方·召唤 · 样式设置</h2>
+<p class="lead">真实照片铺满画面，固定「步道」书法主字作为视觉中心。可调取景位置与明暗，顶部保留路线说明和步道标识。</p>
 <label for="route">选择真实步道活动</label>
 <select id="route"><option>正在读取路线……</option></select>
-<label>固定宣传主字</label>
-<p class="hint"><strong>步道 · 第03号「左低·右高」</strong>（「步」比「道」小27%）。已从图形资产库读取透明书法字形，不再使用网页字体生成或编辑口号。</p>
-<label>固定书法主字颜色</label>
-<div class="color-row" role="group" aria-label="口号颜色">
+<label>步道书法主字</label>
+<p class="hint"><strong>步道 · 第03号「左低·右高」</strong>（「步」比「道」小27%）。采用步道图形资产中的固定字形，每次活动均复用同一版本。</p>
+<label>书法主字颜色</label>
+<div class="color-row" role="group" aria-label="书法主字颜色">
 <button type="button" class="choice" data-tone="auto" aria-pressed="true"><b>照片自适应</b><small>推荐</small></button>
 <button type="button" class="choice" data-tone="light" aria-pressed="false"><b>明亮白字</b><small>强对比</small></button>
 <button type="button" class="choice" data-tone="dark" aria-pressed="false"><b>深墨字</b><small>明亮背景</small></button>
 </div>
-<label for="placement">口号位置</label>
+<label for="placement">书法主字位置</label>
 <select id="placement">
 <option value="auto" selected>智能取景（默认）</option>
 <option value="high">上部偏左</option>
@@ -85,9 +85,9 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 <input type="range" id="vertical" min="0" max="100" step="5" value="50"/>
 <div class="flexline"><label for="exposure">照片明暗微调</label><output id="exposureVal">0</output></div>
 <input type="range" id="exposure" min="-15" max="15" step="3" value="0"/>
-<label for="localPhoto">在本机尝试另一张真实照片（可选）</label>
+<label for="localPhoto">替换照片（仅当前预览）</label>
 <input id="localPhoto" type="file" accept="image/jpeg,image/png,image/webp"/>
-<p class="hint">照片仅在当前浏览器试用，不上传、不修改步道活动；二维码仍取对应活动的原始报名图。</p>
+<p class="hint">替换照片只影响当前预览，不会修改网站活动资料。二维码仍使用该活动的原始文件。</p>
 <div class="actions">
 <button class="action main" id="download" type="button" disabled>导出海报 PNG</button>
 <button class="action" id="reset" type="button">复位</button>
@@ -95,14 +95,14 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 <p class="status" id="status" role="status" aria-live="polite">正在加载活动原始照片及报名二维码……</p>
 </section>
 <section class="panel">
-<div class="kicker">PRODUCTION RULES · DO NOT CHANGE</div>
-<h2>只保留画面的力量</h2>
+<div class="kicker">步道海报 · 使用提示</div>
+<h2>使用须知</h2>
 <ol class="rules">
-<li>真实摄影占满画布，没有相框、拼贴或伪造山河</li>
-<li>固定03「步道」书法主字，保持73%比例与左低右高章法</li>
-<li>右上路线说明、活动标题、日期、时间和参数来自同一活动原始记录</li>
-<li>原始二维码像素不重绘、不替换；没有二维码则不能导出</li>
-<li>不引入 AI 绘图费用，不使用澳大利亚旅游局官方素材</li>
+<li>活动实景照片铺满画面，主字与文字融入风景</li>
+<li>「步道」书法主字为固定品牌资产，不随活动更换</li>
+<li>路线说明、标题、时间和路线资料均来自当前活动</li>
+<li>报名二维码保留原图；活动缺少二维码则无法下载</li>
+<li>替换照片仅作用于当前预览，不会修改活动资料</li>
 </ol>
 </section>
 </aside>
@@ -429,7 +429,7 @@ UI.download.addEventListener("click",()=>{
  UI.canvas.toBlob(blob=>{
   if(!blob){fail(Error("导出 PNG 失败"));return;}
   const href=URL.createObjectURL(blob),link=document.createElement("a");
-  link.href=href;link.download="BUDAO-"+data.title+"-远方召唤-V1.1-书法03.png";link.click();
+  link.href=href;link.download="BUDAO-"+data.title+"-远方召唤.png";link.click();
   setTimeout(()=>URL.revokeObjectURL(href),3000);
  },"image/png");
 });

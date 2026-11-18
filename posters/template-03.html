@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>BUDAO · 模板三 V5 · 品牌对比与二维码原件</title>
+<title>BUDAO 步道｜03 色彩引爆</title>
 <style>
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -54,19 +54,19 @@ button:disabled{opacity:.47;cursor:not-allowed}
 </head>
 <body>
 <header>
-<small>BUDAO / INVITATION EXPERIMENT / TEMPLATE NO.03</small>
-<h1>色彩爆发，文字归于安静。</h1>
-<p>V5 保留柔和滴溅与苹果式轻字体，修正中央纯白足迹的比例与线条力度，增强线路标题，补全集合地点标签及底部品牌落款；原始二维码经文件指纹验证后才用于海报。</p>
+<small>BUDAO 步道 · 海报 03</small>
+<h1>色彩引爆</h1>
+<p>让步道的自然色彩跃然纸上，以轻盈文字承载真实活动信息。上传照片可调整色彩，原始报名二维码始终保持不变。</p>
 </header>
 <main>
 <section class="poster-wrap">
  <div class="poster-frame"><canvas id="poster" width="1080" height="1530" role="img" aria-label="白底上半部多彩真实质感颜料泼溅，中央白色步道足迹，下半部轻质衬线字体展示活动信息及二维码"></canvas></div>
- <div class="frame-note"><strong>BUDAO / CHROMA BURST / V5</strong><span>1080 × 1530 · Apple-inspired, BUDAO original</span></div>
+ <div class="frame-note"><strong>BUDAO 步道 · 色彩引爆</strong><span>1080 × 1530 · 步道原创视觉</span></div>
 </section>
 <aside>
- <div class="eyebrow">03 / NO PRESETS / ONE SOURCE IMAGE</div>
- <h2>用颜色放肆，用文字收敛。</h2>
- <p>从上传照片提取一个可信中心色相，生成随之变化的高饱和颜料。不是模板一的八套预设，也不是模板二的固定典礼色。</p>
+ <div class="eyebrow">步道原创设计 · 照片取色</div>
+ <h2>色彩与照片</h2>
+ <p>根据当前活动照片提取主色，生成独特的泼彩效果。你可以上传另一张照片，随时查看不同配色。</p>
  <div class="upload">
   <strong id="fileName">上传一张照片，改变整张泼彩</strong>
   <span>JPG / PNG / WebP · 仅本地分析 · 最大 24MB</span>
@@ -75,13 +75,13 @@ button:disabled{opacity:.47;cursor:not-allowed}
  <div class="subhead"><strong>从照片提取 → 爆发色域</strong><span id="hue">计算中…</span></div>
  <div id="swatches" class="swatches" aria-label="从输入图片提取的中心色相与六个跳色"></div>
  <div class="action-row">
-  <button id="reroll" disabled type="button">再甩一次</button>
+  <button id="reroll" disabled type="button">重新生成色彩</button>
   <button id="reset" disabled type="button">恢复原始构图</button>
   <button id="download" class="primary" disabled type="button">导出 1080 × 1530 PNG</button>
  </div>
  <div id="status" aria-live="polite">正在读取原图和二维码…</div>
  <div class="qr-proof">
-  <img id="qrProof" alt="本次活动的原始微信报名二维码">
+  <img id="qrProof" alt="当前活动原始报名二维码">
   <div><strong>原始二维码核对</strong>
   <span>当前路线的原始二维码，保留原有白边与图案</span>
   <span>不重新生成，源图指纹不符则禁止导出。</span></div>
@@ -93,8 +93,8 @@ button:disabled{opacity:.47;cursor:not-allowed}
    <div><b>内容：</b>线路、日期、时间、集合、难度、距离、爬升、时长、路面、适合人群、装备及唯一真实二维码。</div>
  </div>
  <div class="scope">
-  <strong>独立 V5 艺术实验 / 尚未正式发布</strong>
-  正式版从选定路线读取真实活动资料，照片取色仍在浏览器完成。不调用 AI 或付费图像 API。字体是否有 Light 字重取决于设备实际安装情况，正式接入前需跨平台核验。
+  <strong>步道海报 · 已开放使用</strong>
+  海报使用当前活动的真实资料。照片只在浏览器中取色，效果可能随设备字体略有差异；分享前请核对文字和二维码。
  </div>
 </aside>
 </main>
@@ -372,7 +372,7 @@ function draw(){
   "\n✓ 已排版真实线路事实（单一轻质衬线字体）"+
   "\n✓ 活动真实二维码已载入，支持本地 PNG 导出";
   ready=true;ui.download.disabled=false;
- }catch(e){ui.status.textContent="✕ 无法绘制 V5："+String(e.message||e);}
+ }catch(e){ui.status.textContent="✕ 海报绘制失败："+String(e.message||e);}
 }
 async function verifyOriginalQR(blob){
  const expected=R.qrSha||null;
@@ -426,7 +426,7 @@ ui.download.addEventListener("click",()=>{
  cv.toBlob(blob=>{
   if(!blob){ui.status.textContent+="\n✕ PNG 导出失败";return;}
   const url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="BUDAO-"+R.title+"-色彩引爆-V5.png";a.click();
+  a.href=url;a.download="BUDAO-"+R.title+"-色彩引爆.png";a.click();
   setTimeout(()=>URL.revokeObjectURL(url),2500);
  },"image/png");
 });

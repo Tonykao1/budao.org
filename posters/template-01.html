@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BUDAO 逐梦动势 · 智能取色正式版</title>
+<title>BUDAO 步道｜01 逐梦·动势</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#172d37;background:#ecf0ef}
 header{background:#162d37;color:#f4f7f5;padding:27px max(20px,calc((100vw - 1460px)/2))}
@@ -33,17 +33,17 @@ button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
 .stats{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}.stats span{background:#eaf2f0;padding:5px 9px;border-radius:5px}
 .designnote{font-size:12px;color:#617680;margin-top:10px}
 </style></head><body>
-<header><p>BUDAO · ADAPTIVE PALETTE · PRIVATE COLOR LAB</p><h1>上传一张照片，让海报自动获得协调的配色</h1><p>纯浏览器本地取色 + 预设艺术配色库；无 AI、无外部 API、无服务器上传。V9 布局与文字完全锁定，本页仅研究颜色。左侧 V9 原色，右侧智能色。</p></header>
+<header><p>BUDAO 步道 · 海报 01</p><h1>逐梦·动势</h1><p>双层实景影像与灵动光线，呈现步道同行的力量。为当前活动选择配色与标题字体，实时预览并下载海报。</p></header>
 <main>
 <section class="lab">
- <h2>BUDAO · 智能取色引擎（实验）</h2>
- <p>从照片计算艺术配色，并额外检测主标题覆盖区域的明暗，自动保护标题可读性。可切换网站现有的黑体、宋体与楷体字体栈。</p>
+ <h2>海报配色与字体</h2>
+ <p>配色可根据活动照片自动推荐，也可以选择固定色系。主标题可切换字体，系统会尽量保持文字清晰。</p>
  <div class="controls">
-   <div class="control"><label for="photoInput">① 上传本地照片（只在你的浏览器处理）</label><input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/*"></div>
-   <div class="control"><label for="paletteSelect">② 配色方式</label><select id="paletteSelect"><option value="auto">自动推荐 · 依照照片</option><option value="fixed">保留 V9 原版颜色</option></select></div>
-   <div class="control"><label for="headlineFont">③ 主标题字体（只改变右侧实验稿）</label>
+   <div class="control"><label for="photoInput">替换照片（仅当前预览）</label><input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/*"></div>
+   <div class="control"><label for="paletteSelect">配色方案</label><select id="paletteSelect"><option value="auto">自动推荐 · 依照照片</option><option value="fixed">步道·蓝雾经典</option></select></div>
+   <div class="control"><label for="headlineFont">主标题字体（右侧预览）</label>
     <select id="headlineFont">
-      <option value="modern">现代黑体 · V9原版</option>
+      <option value="modern">现代黑体 · 经典</option>
       <option value="song">书卷宋体 · 清雅</option>
       <option value="kai">人文楷体 · 手写气质</option>
     </select>
@@ -52,16 +52,16 @@ button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
  </div>
  <div id="paletteSwatches" class="swatches" aria-label="自动推荐配色"></div>
  <div id="colorAnalysis" class="analysis">正在分析所选活动原始照片……</div>
- <div class="designnote">八套艺术配色及 V9 构图保持不变。仅右侧主标题增加局部明暗保护及字体切换；未安装相应系统字体的设备会自动回退。局部对比提升不等于适用于所有照片的绝对保证。</div>
+ <div class="designnote">左侧展示经典配色，右侧展示当前可下载的海报。照片仅在浏览器内处理，未安装的字体会自动使用相近字体。</div>
 </section>
-<div class="diagnostics"><strong>素材与渲染校验</strong><div id="status">正在读取原始资源并核对校验值…</div></div>
+<div class="diagnostics"><strong>生成状态</strong><div id="status">正在读取原始资源并核对校验值…</div></div>
 <div class="panels">
-<section class="panel"><div class="label">左｜V9 定稿配色（同一张照片）</div><div class="surface">
-<canvas id="baseline" width="1080" height="1530" role="img" aria-label="与右侧使用同一张照片的V9原版颜色"></canvas>
-</div><small class="notice">锁定的 V9 保时捷蓝雾色系，始终作为比较基准。</small></section>
-<section class="panel"><div class="label">右｜BUDAO 自适应艺术配色（本地生成）</div><div class="surface">
+<section class="panel"><div class="label">左｜步道经典配色</div><div class="surface">
+<canvas id="baseline" width="1080" height="1530" role="img" aria-label="与右侧使用同一张活动照片的经典配色"></canvas>
+</div><small class="notice">经典蓝雾配色，供你与右侧效果对照。</small></section>
+<section class="panel"><div class="label">右｜当前海报预览</div><div class="surface">
 <canvas id="poster" width="1080" height="1530" role="img" aria-label="步道当前活动海报，Canvas 稳定渲染稿"></canvas>
-</div><div class="actions"><button id="export" class="primary" disabled type="button">导出智能配色 PNG</button><button id="retry" type="button">重新分析与绘制</button><a class="action" href="./diy-template-01-v9.svg" target="_blank" rel="noopener">查看定稿 V9 原稿</a></div>
+</div><div class="actions"><button id="export" class="primary" disabled type="button">下载当前海报 PNG</button><button id="retry" type="button">重新生成预览</button></div>
 <small class="notice">照片在当前浏览器内分析；二维码来自所选活动的原始文件。下载前请检查扫码可用性。</small>
 </section></div></main>
 <script src="/posters-runtime.js"></script>
@@ -127,7 +127,7 @@ async function validatedImage(info){
 
 // The V9 palette is frozen as the left-hand reference. It is never overwritten.
 const FIXED=Object.freeze({
- id:"fixed",name:"V9 · 蓝雾原作",locked:true,
+ id:"fixed",name:"步道·蓝雾经典",locked:true,
  gradient:["#e4e7e5","#c6d8df","#8db2c2","#4f879e","#1d4860"],
  glow:"#f5f6f066",topInk:"#172d3a",webInk:"#254254",photoWash:"#c0dde12a",
  rayLight:"#fff9ed",rayAccent1:"#c8382e",rayAccent2:"#cf4033",
@@ -447,7 +447,7 @@ function redraw(){
  status.textContent="✓ 原始网站素材已核验；本地图片已分析；双画面绘制成功。智能配色："+P.name+"；颜色像素抽样："+vivid+"；路线文字排布："+info.textMeasure.used+"/"+info.textMeasure.total+"px。";
 }
 async function reload(){
- ready=false;exportBtn.disabled=true;status.textContent="正在检查定稿资源……";
+ ready=false;exportBtn.disabled=true;status.textContent="正在核对活动照片及报名二维码……";
  try{
   if(!baseFiles)baseFiles=await Promise.all(fileDefs.map(validatedImage));
   if(!currentPhoto)currentPhoto=baseFiles[0];
