@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>步道 · 四套海报</title><meta name="description" content="步道活动海报系统：逐梦动势、希望之径、色彩引爆、光学预告。每条路线绑定自己的原图、报名二维码和活动资料。">
+<title>步道 · 六套海报</title><meta name="description" content="步道活动六套海报：逐梦动势、希望之径、色彩引爆、光学预告、东方盛典、远方召唤。每条路线绑定自己的原图、报名二维码和活动资料。">
 <style>
 :root{color-scheme:light;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#e9edf0;color:#16212d}
 *{box-sizing:border-box}body{margin:0}header{background:#111923;color:#f8fbfc;padding:29px max(22px,calc((100% - 1480px)/2)) 33px}header small{display:block;color:#92aabd;letter-spacing:.22em;font-size:11px}
@@ -10,7 +10,7 @@ main{max-width:1530px;padding:23px 22px 55px;margin:auto}.toolbar{display:flex;a
 button,.action{font-size:13px;font-weight:600;border:1px solid #c8d1dd;border-radius:6px;background:#f7f9fc;color:#233244;padding:12px 16px;cursor:pointer;text-decoration:none;display:inline-flex;justify-content:center;align-items:center}
 button:hover,.action:hover{background:#eaf0f6}button:focus-visible,select:focus-visible,.action:focus-visible{outline:2px solid #637e9e;outline-offset:3px}
 button.primary{color:#fff;background:#1a2e45;border-color:#1a2e45}button.primary:hover{background:#29415b}
-button:disabled{opacity:.5;cursor:not-allowed}.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:18px 0}
+button:disabled{opacity:.5;cursor:not-allowed}.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}
 .tile{display:block;text-align:left;padding:17px 17px 16px;background:white;border:1px solid #d4dce4;border-radius:9px;min-height:102px}
 .tile[aria-pressed=true]{border:2px solid #284966;background:#e7edf4;padding:16px 16px 15px}
 .tile b{display:block;font-size:17px;font-weight:580;margin-bottom:5px;color:#192b3c}
@@ -25,7 +25,7 @@ footer{margin-top:26px;text-align:center;color:#8794a3;font-size:11px}
 @media(max-width:900px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}iframe{min-height:850px}}@media(max-width:540px){main{padding:13px 10px}.tiles{gap:7px}.tile{padding:12px;min-height:104px}.tile b{font-size:15px}iframe{height:1100px}.toolbar{padding:13px}}
 </style></head>
 <body>
-<header><small>BUDAO · FOUR POSTERS / TENT INVITATION</small><h1>四种表达，同一程同行。</h1>
+<header><small>BUDAO · SIX POSTERS / TENT INVITATION</small><h1>六种表达，同一程同行。</h1>
 <p>选择已发布的步道活动，再选择海报风格。标题、时间、地点、照片及二维码全部来自所选路线；图片在你的浏览器中完成绘制，不调用 AI 图像服务。</p></header>
 <main>
 <section class="toolbar">
@@ -34,11 +34,13 @@ footer{margin-top:26px;text-align:center;color:#8794a3;font-size:11px}
 <button class="primary" id="download" disabled>导出当前海报 PNG</button>
 <a class="action" id="external" href="#" target="_blank" rel="noopener">单独打开</a>
 </section>
-<nav class="tiles" role="group" aria-label="四套已审定的海报视觉风格">
+<nav class="tiles" role="group" aria-label="六套步道活动海报视觉风格">
 <button class="tile" type="button" data-style="1" aria-pressed="true"><b>01 · 逐梦·动势</b><small>V9 动势构图 · 八套自适应配色</small></button>
 <button class="tile" type="button" data-style="2" aria-pressed="false"><b>02 · 希望之径</b><small>禧年足迹 · 四种配色 · 三种字体</small></button>
 <button class="tile" type="button" data-style="3" aria-pressed="false"><b>03 · 色彩引爆</b><small>Apple 式轻文字 · 原图取色与圆润滴溅</small></button>
 <button class="tile" type="button" data-style="4" aria-pressed="false"><b>04 · 光学预告</b><small>SONY 式纵深光场 · 光束聚合处报名</small></button>
+<button class="tile" type="button" data-style="5" aria-pressed="false"><b>05 · 东方·盛典</b><small>央视春晚礼序启发 · 绛红鎏金 · 连续步道纹样</small></button>
+<button class="tile" type="button" data-style="6" aria-pressed="false"><b>06 · 远方·召唤</b><small>全幅实景摄影 · 03 号固定书法主字 · 顶部路线说明</small></button>
 </nav>
 <section class="preview-box"><div class="preview-title"><b id="selectedStyle">01 · 逐梦·动势</b><span>保留各套原有字体、配色与取景控制</span></div>
 <iframe id="poster" title="活动海报可调预览" loading="eager" referrerpolicy="same-origin"></iframe></section>
@@ -51,12 +53,12 @@ footer{margin-top:26px;text-align:center;color:#8794a3;font-size:11px}
 (function(){
 "use strict";
 const runtime=window.BudaoPosterRuntime;
-const names={1:"逐梦·动势",2:"希望之径",3:"色彩引爆",4:"光学预告"};
-const filenames={1:"template-01.html",2:"template-02.html",3:"template-03.html",4:"template-04.html"};
+const names={1:"逐梦·动势",2:"希望之径",3:"色彩引爆",4:"光学预告",5:"东方·盛典",6:"远方·召唤"};
+const filenames={1:"template-01.html",2:"template-02.html",3:"template-03.html",4:"template-04.html",5:"template-05.html",6:"template-06.html"};
 const $=id=>document.getElementById(id);
 let selected="1",routeId="",loadIndex=0,available=[];
 const params=new URLSearchParams(location.search);
-if(/^[1-4]$/.test(params.get("style")||""))selected=params.get("style");
+if(/^[1-6]$/.test(params.get("style")||""))selected=params.get("style");
 function explain(s){$("status").textContent=s}
 function update(){
 const buttons=document.querySelectorAll("[data-style]");

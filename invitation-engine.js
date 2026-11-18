@@ -283,7 +283,7 @@
                     '<button type="button" data-invitation-close aria-label="关闭活动请柬预览">返回</button>' +
                     '<button type="button" data-invitation-download disabled>下载图片</button>' +
                     '<button type="button" data-invitation-share disabled>确认分享</button>' +
-                '<button type="button" data-invitation-studio>四套新海报</button>' +
+                '<button type="button" data-invitation-studio>六套活动海报</button>' +
                 
                 '</div>' +
                 '<p class="invitation-status" aria-live="polite" aria-atomic="true"></p>' +
@@ -315,7 +315,7 @@
         const routeId = String(activeRoute && (activeRoute.routeId || activeRoute.id) || "").trim();
         if (!/^[A-Za-z0-9_.-]{4,160}$/.test(routeId)) {
             const status = preview.querySelector(".invitation-status");
-            if (status) status.textContent = "活动标识尚未就绪，无法打开四套海报。";
+            if (status) status.textContent = "活动标识尚未就绪，无法打开六套海报。";
             return;
         }
         const url = "/posters-studio.html?route=" + encodeURIComponent(routeId);
