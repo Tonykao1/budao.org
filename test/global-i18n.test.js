@@ -413,7 +413,7 @@ test('English mobile navigation uses scroll, not clipping or changed navbar geom
   const mock={
     document:{querySelector:selector=>selector==='body > nav'?nav:null},
     matchMedia:media=>{
-      assert.equal(media,'(max-width: 1200px)');
+      assert.equal(media,'(max-width: 699px)');
       return {get matches(){return matches;},addEventListener:(event,fn)=>{
         assert.equal(event,'change');callback=fn;
       }};
@@ -660,4 +660,50 @@ test('Japanese homepage is opt-in; no other site pages acquire Japanese labels',
   const a={href:'/tongdao.html',getAttribute(){return this.href;},setAttribute(){throw Error('must not set')}}
   const document={querySelectorAll:()=>[a]};
   assert.deepEqual(core.carryLocaleOnLinks(document,'ja',['/home.html']),{changed:0});
+});
+
+
+test('Tesla and tablet widths get six equal centered homepage nav cells', () => {
+  const fs=require('node:fs'),path=require('node:path');
+  const html=fs.readFileSync(path.join(__dirname,'../home.html'),'utf8');
+  const css=fs.readFileSync(path.join(__dirname,'../style.css'),'utf8');
+  assert.match(html, /@media \(min-width: 700px\) and \(max-width: 1400px\)/);
+  assert.match(html, /body > nav\s*\{[\s\S]*?display: grid;[\s\S]*?grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/);
+  assert.match(html, /body > nav > a\s*\{[\s\S]*?text-align: center;[\s\S]*?white-space: normal;/);
+  assert.match(html, /@media \(min-width: 700px\) and \(max-width: 1200px\)/);
+  assert.match(html, /@media \(max-width: 699px\)/);
+  assert.match(html, /overflow-x: auto;/);
+  assert.match(html, /body > nav > a:first-child \{ margin-inline-start: auto; \}/);
+  assert.match(html, /body > nav > a:last-child \{ margin-inline-end: auto; \}/);
+  assert.match(css,/nav \{[\s\S]*?display: flex;[\s\S]*?justify-content: center;/);
+  // The global site CSS and all other pages remain unchanged.
+  assert.equal((html.match(/<nav>([\s\S]*?)<\/nav>/g)||[]).length,1);
+  const nav=html.match(/<nav>([\s\S]*?)<\/nav>/)[1];
+  assert.equal((nav.match(/<a href=/g)||[]).length,6);
+  assert.doesNotMatch(nav,/homeLanguageSwitch/);
+});
+
+test('localized navigation does not force left alignment in Tesla grid widths', () => {
+  const styles={};
+  const nav={
+    style: {
+      set overflowX(value){styles.overflowX=value;},
+      set justifyContent(value){styles.justifyContent=value;},
+      removeProperty(property){delete styles[property==='overflow-x'?'overflowX':'justifyContent'];}
+    },
+    querySelectorAll:()=>['/home.html','/test.html','/tongxing.html','/tongdao.html','/what.html','/tonglu.html']
+      .map(href=>({getAttribute:()=>href}))
+  };
+  let query;
+  const root={document:{querySelector:()=>nav},matchMedia:condition=>{
+    query=condition;return {matches:false,addEventListener(){}};
+  }};
+  assert.equal(homepage.enableEnglishNarrowNavigation(root,'ja'),true);
+  assert.equal(query,'(max-width: 699px)');
+  assert.deepEqual(styles,{});
+  assert.equal(homepage.enableEnglishNarrowNavigation(root,'en'),true);
+  assert.deepEqual(styles,{});
+  assert.equal(homepage.enableEnglishNarrowNavigation(root,'zh-Hant'),true);
+  assert.deepEqual(styles,{});
+  assert.equal(homepage.enableEnglishNarrowNavigation(root,'zh-Hans'),false);
 });
