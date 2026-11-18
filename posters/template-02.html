@@ -198,8 +198,18 @@ function metadata(label,value,x,y,allowTwoLines=false){
   c.save();c.font='700 '+size+'px '+SANS;
   const out=[];let line="";
   for(const ch of Array.from(str)){
-   if(c.measureText(line+ch).width>maxWidth&&line){out.push(line);line=ch;}
-   else line+=ch;
+   if(c.measureText(line+ch).width>maxWidth&&line){
+    // Prefer a word boundary after a Chinese list separator, and never start a
+    // new line with punctuation such as "、" or "，".
+    const cut=Math.max(line.lastIndexOf("、"),line.lastIndexOf("，"),line.lastIndexOf("；"));
+    const suffix=cut>=0?line.slice(cut+1)+ch:"";
+    if(cut>0&&c.measureText(suffix).width<=maxWidth){
+     out.push(line.slice(0,cut+1));line=suffix;
+    }else if(/[、，。；：]/.test(ch)&&Array.from(line).length>1){
+     const chars=Array.from(line),last=chars.pop();
+     out.push(chars.join(""));line=last+ch;
+    }else{out.push(line);line=ch;}
+   }else line+=ch;
   }
   if(line)out.push(line);
   c.restore();return out;
