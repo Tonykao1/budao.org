@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>步道 · 六套海报</title><meta name="description" content="步道活动六套海报：逐梦动势、希望之径、色彩引爆、光学预告、东方盛典、远方召唤。每条路线绑定自己的原图、报名二维码和活动资料。">
+<title>BUDAO 步道｜六套活动海报生成器</title><meta name="description" content="步道活动六套海报：逐梦动势、希望之径、色彩引爆、光学预告、东方盛典、远方召唤。每条路线绑定自己的原图、报名二维码和活动资料。">
 <style>
 :root{color-scheme:light;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#e9edf0;color:#16212d}
 *{box-sizing:border-box}body{margin:0}header{background:#111923;color:#f8fbfc;padding:29px max(22px,calc((100% - 1480px)/2)) 33px}header small{display:block;color:#92aabd;letter-spacing:.22em;font-size:11px}
@@ -25,27 +25,27 @@ footer{margin-top:26px;text-align:center;color:#8794a3;font-size:11px}
 @media(max-width:900px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}iframe{min-height:850px}}@media(max-width:540px){main{padding:13px 10px}.tiles{gap:7px}.tile{padding:12px;min-height:104px}.tile b{font-size:15px}iframe{height:1100px}.toolbar{padding:13px}}
 </style></head>
 <body>
-<header><small>BUDAO · SIX POSTERS / TENT INVITATION</small><h1>六种表达，同一程同行。</h1>
-<p>选择已发布的步道活动，再选择海报风格。标题、时间、地点、照片及二维码全部来自所选路线；图片在你的浏览器中完成绘制，不调用 AI 图像服务。</p></header>
+<header><small>BUDAO 步道 · 六套活动海报</small><h1>六种风格，记录每一次同行。</h1>
+<p>选择活动与设计风格，即可预览、调整并下载步道海报。标题、时间、地点及报名二维码均来自所选活动，图像在浏览器中生成。</p></header>
 <main>
 <section class="toolbar">
-<div class="route-picker"><label for="route">要制作哪一程的海报？</label>
+<div class="route-picker"><label for="route">选择活动</label>
 <select id="route" aria-label="选择已发布活动"><option value="">正在读取步道活动…</option></select></div>
-<button class="primary" id="download" disabled>导出当前海报 PNG</button>
-<a class="action" id="external" href="#" target="_blank" rel="noopener">单独打开</a>
+<button class="primary" id="download" disabled>下载海报 PNG</button>
+<a class="action" id="external" href="#" target="_blank" rel="noopener">打开独立编辑页</a>
 </section>
 <nav class="tiles" role="group" aria-label="六套步道活动海报视觉风格">
-<button class="tile" type="button" data-style="1" aria-pressed="true"><b>01 · 逐梦·动势</b><small>V9 动势构图 · 八套自适应配色</small></button>
-<button class="tile" type="button" data-style="2" aria-pressed="false"><b>02 · 希望之径</b><small>禧年足迹 · 四种配色 · 三种字体</small></button>
-<button class="tile" type="button" data-style="3" aria-pressed="false"><b>03 · 色彩引爆</b><small>Apple 式轻文字 · 原图取色与圆润滴溅</small></button>
-<button class="tile" type="button" data-style="4" aria-pressed="false"><b>04 · 光学预告</b><small>SONY 式纵深光场 · 光束聚合处报名</small></button>
-<button class="tile" type="button" data-style="5" aria-pressed="false"><b>05 · 东方·盛典</b><small>央视春晚礼序启发 · 绛红鎏金 · 连续步道纹样</small></button>
-<button class="tile" type="button" data-style="6" aria-pressed="false"><b>06 · 远方·召唤</b><small>全幅实景摄影 · 03 号固定书法主字 · 顶部路线说明</small></button>
+<button class="tile" type="button" data-style="1" aria-pressed="true"><b>01 · 逐梦·动势</b><small>双层影像 · 照片智能配色</small></button>
+<button class="tile" type="button" data-style="2" aria-pressed="false"><b>02 · 希望之径</b><small>同行足迹 · 四种配色 · 三种字体</small></button>
+<button class="tile" type="button" data-style="3" aria-pressed="false"><b>03 · 色彩引爆</b><small>自然取色 · 灵动泼彩 · 清雅文字</small></button>
+<button class="tile" type="button" data-style="4" aria-pressed="false"><b>04 · 光学预告</b><small>流动光影 · 深邃光场 · 聚光报名</small></button>
+<button class="tile" type="button" data-style="5" aria-pressed="false"><b>05 · 东方·盛典</b><small>东方礼序 · 绛红鎏金 · 连续足迹</small></button>
+<button class="tile" type="button" data-style="6" aria-pressed="false"><b>06 · 远方·召唤</b><small>全幅实景 · 固定「步道」书法主字</small></button>
 </nav>
-<section class="preview-box"><div class="preview-title"><b id="selectedStyle">01 · 逐梦·动势</b><span>保留各套原有字体、配色与取景控制</span></div>
+<section class="preview-box"><div class="preview-title"><b id="selectedStyle">01 · 逐梦·动势</b><span>在下方调整所选设计的细节</span></div>
 <iframe id="poster" title="活动海报可调预览" loading="eager" referrerpolicy="same-origin"></iframe></section>
 <p id="status" role="status" aria-live="polite"></p>
-<aside>报名二维码直接使用当前活动的原始文件，不生成替代二维码。如果活动未提供照片、二维码或必需的时间地点，系统会阻止导出并明确提示。已结束的活动可以作为历史设计参考，不代表仍开放报名；发布前请在手机上核实扫码可用性。</aside>
+<aside>使用提示：报名二维码取自当前活动原始文件，不重新生成。活动缺少照片、二维码或必要资料时无法下载；已结束活动仅供存档展示。分享前请用手机核实二维码是否可用。</aside>
 <footer>BUDAO · 余生行走，不偏左右 · budao.org</footer>
 </main>
 <script src="/posters-runtime.js"></script>
@@ -92,7 +92,7 @@ const pollStart=Date.now();
 const poll=()=>{
  if(own!==loadIndex)return;
  const btn=findCurrent();
- if(btn){$("download").disabled=false;explain("海报绘制完成。可点击“导出当前海报 PNG”，或在模板内直接导出。");return;}
+ if(btn){$("download").disabled=false;explain("海报绘制完成。可点击“下载海报 PNG”，或在模板内直接导出。");return;}
  const info=$("poster").contentDocument?.getElementById("status")?.textContent||"";
  if(/✕|✗|失败|无法|禁止导出|资料不足/.test(info)){explain(info);$("download").disabled=true;return;}
  if(Date.now()-pollStart>45000){explain("海报生成超时，请尝试减少图片尺寸或在模板独立页面中检查。");return;}
