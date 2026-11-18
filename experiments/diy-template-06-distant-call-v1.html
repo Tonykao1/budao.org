@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>BUDAO 第六套《远方·召唤》V1｜全图 + 鲜明口号</title>
+<meta name="description" content="步道第六套可真实预览与导出 PNG 的全幅摄影海报。真实活动图、口号、参数与原始报名二维码。无需 AI 绘图。">
+<style>
+:root{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#edece9;color:#252c2d}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}
+.header{background:#14232b;color:#fff;padding:23px max(18px,calc((100% - 1490px)/2)) 26px}
+.header small{color:#9ab0bc;font-size:10px;letter-spacing:.21em;font-weight:650}
+.header h1{font-size:clamp(28px,3.7vw,49px);font-weight:560;letter-spacing:-.035em;margin:9px 0 8px}
+.header p{max-width:920px;color:#c1cdd2;font-size:13px;line-height:1.8;margin:0}
+.shell{max-width:1500px;margin:0 auto;padding:27px 22px 55px;display:grid;grid-template-columns:minmax(0,760px) minmax(305px,1fr);gap:24px;align-items:start}
+.poster-wrap{background:#19272a;padding:13px 13px 15px;border-radius:5px;box-shadow:0 20px 55px #20272033;display:flex;align-items:center;flex-direction:column}
+canvas{display:block;width:min(100%,585px);height:auto;background:#455e66;aspect-ratio:1080/1530;box-shadow:0 5px 28px #0005}
+.poster-caption{font-size:11px;color:#bbd1d2;line-height:1.7;text-align:center;margin:13px 2px 0}
+.panel{background:#fff;border:1px solid #d9dedb;padding:23px 23px 24px;border-radius:7px;box-shadow:0 6px 24px #2736330c}
+.panel+.panel{margin-top:14px}
+.kicker{font-size:10px;letter-spacing:.17em;color:#4b8c84;font-weight:750}
+.panel h2{font-size:24px;letter-spacing:-.022em;font-weight:570;margin:7px 0 9px}
+.panel .lead{font-size:12px;line-height:1.8;color:#606b6b;margin:0 0 12px}
+label{display:block;color:#344547;font-size:12px;font-weight:660;margin:17px 0 7px}
+select,input[type=text],input[type=file]{display:block;width:100%;padding:10px 11px;color:#173638;background:#f9fbfa;border:1px solid #c8d7d5;border-radius:5px;font-size:13px;font-family:inherit}
+input[type=file]{padding:9px;font-size:11px}
+input[type=range]{width:100%;accent-color:#26776d}
+.flexline{display:flex;gap:10px;align-items:center;justify-content:space-between}
+output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
+.color-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.choice{cursor:pointer;text-align:left;border:1px solid #d0dfdc;border-radius:5px;min-height:63px;padding:9px;background:#fff}
+.choice[aria-pressed=true]{border:2px solid #247e73;padding:8px;background:#edf8f6}
+.choice b{font-size:12px;display:block;font-weight:660}
+.choice small{display:block;font-size:10px;color:#69817d;margin-top:4px}
+.actions{display:flex;gap:9px;margin-top:20px}
+.action{border:1px solid #438d7e;color:#2e766c;background:#fff;font:600 13px system-ui,sans-serif;border-radius:5px;padding:12px 15px;cursor:pointer}
+.action.main{color:#fff;background:#165d52;border-color:#165d52;flex:1}
+.action:disabled{opacity:.49;cursor:not-allowed}
+.choice:focus-visible,.action:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #8dcec3;outline-offset:2px}
+.hint{color:#667875;font-size:11px;line-height:1.75;margin:12px 0 0}
+.status{font-size:11px;line-height:1.85;color:#1c6c61;border:1px solid #d9e8e5;background:#f4faf8;border-radius:5px;padding:11px 12px;margin:15px 0 0;white-space:pre-wrap;min-height:42px}
+.status.fail{color:#a43e3c;background:#fff6f5;border-color:#f1cdca}
+.examples{display:flex;gap:11px;margin-top:13px;align-items:center;flex-wrap:wrap}
+.examples button{font:600 11px system-ui,sans-serif;padding:8px 10px;border:1px solid #cbd9d6;background:#f7faf9;border-radius:4px;color:#2e5855;cursor:pointer}
+.rules{margin:10px 0 0;padding-left:21px;font-size:12px;color:#5c6c68;line-height:2}
+@media(max-width:1100px){.shell{max-width:810px;grid-template-columns:1fr}.poster-wrap{order:2}.sidebar{order:1}}
+@media(max-width:560px){.shell{padding:12px}.panel{padding:18px}.header{padding:21px}}
+</style>
+</head>
+<body>
+<header class="header">
+<small>BUDAO · TEMPLATE 06 · INDEPENDENT DESIGN STUDY · V1</small>
+<h1>远方·召唤 <span style="color:#98c4be;font-weight:320">/ 全幅摄影与醒目口号</span></h1>
+<p>参考 Tourism Australia 的目的地广告表达：用一张真实照片唤起出发愿望，主口号成为第一视觉焦点。此页为 BUDAO 独立设计实验，不使用澳大利亚旅游局商标、广告图像或 AI 重绘。</p>
+</header>
+<main class="shell">
+<section class="poster-wrap">
+<canvas id="poster" width="1080" height="1530" role="img" aria-label="步道第六套远方召唤海报真实预览"></canvas>
+<p class="poster-caption">FULL BLEED PHOTO · 1080 × 1530 · REAL ROUTE DATA · ORIGINAL QR</p>
+</section>
+<aside class="sidebar">
+<section class="panel">
+<div class="kicker">TEMPLATE 06 / DESIGN EXPLORATION</div>
+<h2>第六套 V1 · 设计验收</h2>
+<p class="lead">从摄影出发，而不是从装饰出发。大口号先唤起感受，真实活动信息随后清楚呈现。当前为独立实验，不会改变已正式上线的海报。</p>
+<label for="route">选择真实步道活动</label>
+<select id="route"><option>正在读取路线……</option></select>
+<label for="slogan">主口号（可手动修改）</label>
+<input id="slogan" type="text" maxlength="14" value="去远方。" aria-describedby="sloganHint"/>
+<p class="hint" id="sloganHint">默认「去远方。」；只显示你明确填写的文案，不通过 AI 自动创作。</p>
+<div class="examples" aria-label="口号示例">
+<button type="button" data-slogan="去远方。">去远方。</button>
+<button type="button" data-slogan="出发吧。">出发吧。</button>
+<button type="button" data-slogan="现在就走。">现在就走。</button>
+</div>
+<label>主口号颜色</label>
+<div class="color-row" role="group" aria-label="口号颜色">
+<button type="button" class="choice" data-tone="auto" aria-pressed="true"><b>照片自适应</b><small>推荐</small></button>
+<button type="button" class="choice" data-tone="light" aria-pressed="false"><b>明亮白字</b><small>强对比</small></button>
+<button type="button" class="choice" data-tone="dark" aria-pressed="false"><b>深墨字</b><small>明亮背景</small></button>
+</div>
+<label for="placement">口号位置</label>
+<select id="placement">
+<option value="auto" selected>智能取景（默认）</option>
+<option value="high">上部偏左</option>
+<option value="middle">中部偏左</option>
+</select>
+<div class="flexline"><label for="horizontal">照片横向取景</label><output id="horizontalVal">50%</output></div>
+<input type="range" id="horizontal" min="0" max="100" step="5" value="50"/>
+<div class="flexline"><label for="vertical">照片纵向取景</label><output id="verticalVal">50%</output></div>
+<input type="range" id="vertical" min="0" max="100" step="5" value="50"/>
+<div class="flexline"><label for="exposure">照片明暗微调</label><output id="exposureVal">0</output></div>
+<input type="range" id="exposure" min="-15" max="15" step="3" value="0"/>
+<label for="localPhoto">在本机尝试另一张真实照片（可选）</label>
+<input id="localPhoto" type="file" accept="image/jpeg,image/png,image/webp"/>
+<p class="hint">照片仅在当前浏览器试用，不上传、不修改步道活动；二维码仍取对应活动的原始报名图。</p>
+<div class="actions">
+<button class="action main" id="download" type="button" disabled>导出海报 PNG</button>
+<button class="action" id="reset" type="button">复位</button>
+</div>
+<p class="status" id="status" role="status" aria-live="polite">正在加载活动原始照片及报名二维码……</p>
+</section>
+<section class="panel">
+<div class="kicker">PRODUCTION RULES · DO NOT CHANGE</div>
+<h2>只保留画面的力量</h2>
+<ol class="rules">
+<li>真实摄影占满画布，没有相框、拼贴或伪造山河</li>
+<li>固定默认口号「去远方。」；用户可以自行改口号</li>
+<li>活动标题、日期、时间、集合地与重要参数来自当前路线</li>
+<li>原始二维码像素不重绘、不替换；没有二维码则不能导出</li>
+<li>不引入 AI 绘图费用，不使用澳大利亚旅游局官方素材</li>
+</ol>
+</section>
+</aside>
+</main>
+<script src="/posters-runtime.js"></script>
+<script>
+(async function(){
+"use strict";
+const rt=window.BudaoPosterRuntime;
+const $=id=>document.getElementById(id);
+const UI={canvas:$("poster"),route:$("route"),slogan:$("slogan"),placement:$("placement"),
+ horizontal:$("horizontal"),vertical:$("vertical"),exposure:$("exposure"),
+ horizontalVal:$("horizontalVal"),verticalVal:$("verticalVal"),exposureVal:$("exposureVal"),
+ upload:$("localPhoto"),download:$("download"),reset:$("reset"),status:$("status")};
+const ctx=UI.canvas.getContext("2d",{alpha:false,willReadFrequently:true});
+const FONT='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif';
+const BOLD='"Arial Black","PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif';
+let data=null,photo=null,basePhoto=null,qr=null,brand=null,valid=false,sceneTone="auto",selectedTone="auto",token=0;
+const text=v=>String(v==null?"":v).trim();
+function fail(e){valid=false;UI.download.disabled=true;UI.status.classList.add("fail");UI.status.textContent="✕ "+text(e.message||e);}
+function info(message){UI.status.classList.remove("fail");UI.status.textContent=message;}
+function clamp(x,a,b){return Math.min(b,Math.max(a,x));}
+function font(px,weight,family){return weight+" "+px+"px "+(family||FONT);}
+function write(t,x,y,size,options){
+ const o=options||{};
+ ctx.save();ctx.font=font(size,o.weight||500,o.family||FONT);ctx.fillStyle=o.color||"#fff";
+ ctx.textBaseline="alphabetic";ctx.textAlign=o.align||"left";
+ if(o.shadow){ctx.shadowColor=o.shadow;ctx.shadowBlur=o.shadowBlur||15;ctx.shadowOffsetY=o.shadowY||3;}
+ ctx.fillText(text(t),x,y);ctx.restore();
+}
+function drawPhoto(){
+ const W=1080,H=1530,sw=photo.width,sh=photo.height;
+ const scale=Math.max(W/sw,H/sh),dw=sw*scale,dh=sh*scale;
+ const fx=Number(UI.horizontal.value)/100,fy=Number(UI.vertical.value)/100;
+ const dx=(W-dw)*fx,dy=(H-dh)*fy;
+ ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+ ctx.drawImage(photo,dx,dy,dw,dh);
+ const e=Number(UI.exposure.value);
+ if(e!==0){
+  ctx.fillStyle=e>0?"rgba(255,255,255,"+(e/100)+")":"rgba(0,0,0,"+(-e/80)+")";
+  ctx.fillRect(0,0,W,H);
+ }
+ ctx.restore();
+}
+function sampleBox(x,y,w,h){
+ const pix=ctx.getImageData(x,y,w,h).data;let count=0,lum=0,lum2=0,sat=0;
+ for(let i=0;i<pix.length;i+=4*11){
+  const r=pix[i],g=pix[i+1],b=pix[i+2];
+  const l=.2126*r+.7152*g+.0722*b;lum+=l;lum2+=l*l;
+  sat+=Math.max(r,g,b)-Math.min(r,g,b);count++;
+ }
+ const mean=lum/Math.max(1,count),variance=lum2/Math.max(1,count)-mean*mean;
+ return {mean,variance:Math.max(0,variance),sat:sat/Math.max(1,count)};
+}
+function pickVisual(){
+ // Choose between two usable upper-left text zones by actual photograph texture.
+ const high=sampleBox(84,290,665,205),middle=sampleBox(84,505,665,205);
+ const highScore=high.variance*.75+Math.abs(high.mean-120)*3;
+ const middleScore=middle.variance*.75+Math.abs(middle.mean-120)*3;
+ const which=UI.placement.value==="high"?"high":UI.placement.value==="middle"?"middle":highScore<=middleScore?"high":"middle";
+ const sample=which==="high"?high:middle;
+ const tone=selectedTone==="auto"?(sample.mean>178&&sample.variance<4300?"dark":"light"):selectedTone;
+ const accent=sample.sat>67?"#f3e7d7":"#f8f4ee";
+ return {which,tone,y:which==="high"?406:621,mean:sample.mean,variance:sample.variance,accent};
+}
+function gradientFor(look){
+ // Gentle local soft shade only, never a framed rectangle over the landscape.
+ ctx.save();
+ const light=look.tone==="light";
+ const radial=ctx.createRadialGradient(70,look.y-135,45,200,look.y-130,830);
+ radial.addColorStop(0,light?"rgba(0,0,0,.45)":"rgba(255,255,255,.27)");
+ radial.addColorStop(.48,light?"rgba(0,0,0,.28)":"rgba(255,255,255,.11)");
+ radial.addColorStop(1,"rgba(0,0,0,0)");
+ ctx.fillStyle=radial;ctx.fillRect(0,0,1080,1150);
+ const bottom=ctx.createLinearGradient(0,942,0,1530);
+ bottom.addColorStop(0,"rgba(0,11,14,0)");
+ bottom.addColorStop(.35,"rgba(1,14,17,.34)");
+ bottom.addColorStop(.67,"rgba(2,18,22,.73)");
+ bottom.addColorStop(1,"rgba(3,18,23,.91)");
+ ctx.fillStyle=bottom;ctx.fillRect(0,900,1080,630);
+ const side=ctx.createLinearGradient(0,0,1080,0);
+ side.addColorStop(0,"rgba(0,0,0,.15)");side.addColorStop(.65,"rgba(0,0,0,0)");
+ ctx.fillStyle=side;ctx.fillRect(0,0,1080,1530);
+ ctx.restore();
+}
+function graphemes(str){return Array.from(text(str));}
+function sloganLines(str){
+ const chars=graphemes(str);
+ if(chars.length<1||chars.length>14)throw Error("口号长度需要在 1–14 个字符之间");
+ if(chars.length<=6)return [chars.join("")];
+ if(chars.length<=12){
+  const split=Math.ceil(chars.length/2);
+  return [chars.slice(0,split).join(""),chars.slice(split).join("")];
+ }
+ const n=Math.ceil(chars.length/3),lines=[];
+ for(let k=0;k<chars.length;k+=n)lines.push(chars.slice(k,k+n).join(""));
+ return lines;
+}
+function blockLines(input,width,px,maxLines,weight){
+ const chars=graphemes(input);if(!chars.length)return [];
+ const lines=[];let segment="";
+ ctx.save();ctx.font=font(px,weight||600);
+ for(const ch of chars){
+  if(ctx.measureText(segment+ch).width>width&&segment){lines.push(segment);segment=ch;}
+  else segment+=ch;
+ }
+ if(segment)lines.push(segment);ctx.restore();
+ if(lines.length>maxLines)throw Error("本次路线信息过长，无法清晰排版，请使用简短的活动标题和集合地点");
+ return lines;
+}
+function drawSlogan(look){
+ const lines=sloganLines(UI.slogan.value);
+ const startX=76,maxWidth=938;
+ let px=lines.length===1?175:lines.length===2?136:103;
+ for(;px>=68;px-=2){
+  ctx.save();ctx.font=font(px,850,BOLD);
+  const max=Math.max(...lines.map(v=>ctx.measureText(v).width));ctx.restore();
+  if(max<=maxWidth)break;
+ }
+ if(px<68)throw Error("口号太长，无法放在海报上");
+ const step=Math.round(px*1.11);
+ const y0=look.y-(lines.length-1)*step/2;
+ const fg=look.tone==="light"?"#fffdfa":"#152c30";
+ for(let i=0;i<lines.length;i++){
+  write(lines[i],startX,y0+i*step,px,{weight:850,family:BOLD,color:fg,
+   shadow:look.tone==="light"?"rgba(0,0,0,.44)":"rgba(255,255,255,.33)",shadowBlur:23,shadowY:3});
+ }
+ const labelY=y0+(lines.length-1)*step+72;
+ const title=blockLines(data.title,820,49,2,700);
+ let ty=labelY;
+ for(const row of title){
+  write(row,84,ty,49,{weight:700,color:look.tone==="light"?"#ffffff":"#172d2e",
+   shadow:look.tone==="light"?"rgba(0,0,0,.53)":"rgba(255,255,255,.26)",shadowBlur:12});
+  ty+=62;
+ }
+ if(ty>=985)throw Error("口号或活动名称过长，已经侵入活动信息区，请缩短口号");
+}
+function drawBottom(){
+ // Low visual weight info hierarchy; no blocks or badges.
+ const white="#fffdf7",muted="#e0e9e8";
+ write(data.region.toUpperCase(),84,1138,19,{weight:600,color:muted});
+ write(data.mmdd.replace(" / ","."),80,1242,93,{weight:800,color:white,family:BOLD});
+ write(data.year+"  "+data.weekday+"  "+data.time,86,1287,28,{weight:570,color:white});
+ const meetingLines=blockLines(data.meeting,612,26,2,570);
+ write("集合地点",86,1340,18,{weight:620,color:"#d6e5df"});
+ let yy=1376;
+ for(const line of meetingLines){write(line,86,yy,26,{weight:580,color:white});yy+=34;}
+ const facts=[
+  data.distance?"距离 "+data.distance:"",
+  data.difficulty?"难度 "+data.difficulty:"",
+  data.duration?"时长 "+data.duration:"",
+  data.elevation?"爬升 "+data.elevation:""
+ ].filter(Boolean).join("  ·  ");
+ if(facts){
+  ctx.save();let size=20;
+  while(size>15){ctx.font=font(size,500);if(ctx.measureText(facts).width<=615)break;size-=1;}
+  ctx.restore();write(facts,86,1465,size,{weight:500,color:muted});
+ }
+ if(brand){
+  // BUDAO own small logo only. The full-bleed photo stays dominant.
+  ctx.save();ctx.filter="brightness(0) invert(1)";ctx.globalAlpha=.93;
+  const w=27,h=w*brand.height/brand.width;
+  ctx.drawImage(brand,86,58,w,h);ctx.restore();
+ }
+ // Preserve exact source QR pixels, including its own built-in quiet zone.
+ const size=198,x=797,y=1222,margin=6;
+ ctx.fillStyle="#fff";ctx.fillRect(x-margin,y-margin,size+2*margin,size+2*margin);
+ ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(qr,x,y,size,size);ctx.restore();
+ write(data.isPast?"活动已结束":"扫码报名",x+size/2,1464,22,{weight:650,color:white,align:"center"});
+ write("budao.org",1010,1497,17,{weight:500,color:muted,align:"right"});
+}
+function draw(){
+ UI.download.disabled=true;valid=false;
+ if(!data||!photo||!qr||!brand)return;
+ try{
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.filter="none";
+  drawPhoto();const look=pickVisual();gradientFor(look);drawSlogan(look);drawBottom();
+  ctx.restore();
+  const alpha=ctx.getImageData(540,400,1,1).data[3];if(alpha!==255)throw Error("图片没有完整绘制");
+  valid=true;UI.download.disabled=false;
+  info("✓ 原始活动照片全幅铺满，无 AI 绘制内容\n✓ 口号位置："+(look.which==="high"?"上部偏左":"中部偏左")+"；文字："+(look.tone==="light"?"白色":"深墨色")+"\n✓ 活动信息和原始报名二维码已绑定同一活动\n✓ 1080 × 1530 PNG 可导出"+(data.isPast?"\n提示：这是已结束活动的历史海报。":""));
+ }catch(err){ctx.restore();fail(err);}
+}
+async function imageFrom(src){
+ const resp=await fetch(src,{cache:"no-store",credentials:"same-origin"});
+ if(!resp.ok)throw Error("活动素材读取失败（HTTP "+resp.status+"）");
+ const blob=await resp.blob();
+ if(!blob.type.startsWith("image/"))throw Error("读取到的素材不是有效图片");
+ return await createImageBitmap(blob);
+}
+async function originalQR(record){
+ const resp=await fetch(record.qr,{cache:"no-store",credentials:"same-origin"});
+ if(!resp.ok)throw Error("原始报名二维码读取失败（HTTP "+resp.status+"）");
+ const blob=await resp.blob();
+ if(!/^image\/(png|jpeg|webp|gif)$/.test(blob.type))throw Error("二维码不是支持的原始图片格式");
+ if(record.qrSha){
+  if(!crypto.subtle)throw Error("当前浏览器不支持校验报名二维码");
+  const bytes=new Uint8Array(await blob.arrayBuffer());
+  const prefix=new TextEncoder().encode("blob "+bytes.length+"\0");
+  const full=new Uint8Array(prefix.length+bytes.length);
+  full.set(prefix);full.set(bytes,prefix.length);
+  const hash=new Uint8Array(await crypto.subtle.digest("SHA-1",full));
+  const sha=Array.from(hash,x=>x.toString(16).padStart(2,"0")).join("");
+  if(sha!==record.qrSha)throw Error("活动原始二维码指纹不符，拒绝导出");
+ }
+ const bmp=await createImageBitmap(blob);
+ if(bmp.width<90||bmp.height<90||Math.abs(bmp.width-bmp.height)>2)throw Error("原始二维码尺寸不合法");
+ return bmp;
+}
+const all=await rt.routes();
+const routes=all.filter(r=>r&&(r.routeId||r.id)&&r.title).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+if(!routes.length)throw Error("当前没有可用于制作海报的活动");
+UI.route.replaceChildren();
+for(const route of routes){
+ const option=document.createElement("option");option.value=text(route.routeId||route.id);
+ option.textContent=text(route.date)+" · "+text(route.title);
+ UI.route.appendChild(option);
+}
+const queryRoute=new URL(location.href).searchParams.get("route");
+if(queryRoute&&routes.some(r=>text(r.routeId||r.id)===queryRoute))UI.route.value=queryRoute;
+else{
+ const valid=routes.find(r=>r.qrCode||r.registrationQrCode||r.qr);
+ if(valid)UI.route.value=text(valid.routeId||valid.id);
+}
+brand=await imageFrom("/budao-logo-mark.png");
+async function activate(){
+ const current=++token;UI.download.disabled=true;valid=false;info("正在校验该活动原始照片和报名二维码……");
+ try{
+  const raw=routes.find(r=>text(r.routeId||r.id)===UI.route.value);
+  if(!raw)throw Error("请选择一条有效的步道活动");
+  const record=rt.normalized(raw);
+  const [pic,qrb]=await Promise.all([imageFrom(record.photo),originalQR(record)]);
+  if(current!==token){pic.close?.();qrb.close?.();return;}
+  data=record;photo=pic;basePhoto=pic;qr=qrb;
+  UI.upload.value="";UI.horizontal.value="50";UI.vertical.value="50";
+  UI.horizontalVal.textContent="50%";UI.verticalVal.textContent="50%";
+  const newURL=new URL(location.href);newURL.searchParams.set("route",record.id);
+  history.replaceState(null,"",newURL.pathname+newURL.search);
+  draw();
+ }catch(err){if(current!==token)return;data=null;photo=null;qr=null;fail(err);}
+}
+UI.route.addEventListener("change",activate);
+UI.slogan.addEventListener("input",draw);
+UI.placement.addEventListener("change",draw);
+for(const choice of document.querySelectorAll("[data-tone]")){
+ choice.addEventListener("click",()=>{
+  selectedTone=choice.dataset.tone;
+  document.querySelectorAll("[data-tone]").forEach(x=>x.setAttribute("aria-pressed",String(x===choice)));
+  draw();
+ });
+}
+for(const button of document.querySelectorAll("[data-slogan]")){
+ button.addEventListener("click",()=>{UI.slogan.value=button.dataset.slogan;draw();});
+}
+for(const control of [UI.horizontal,UI.vertical,UI.exposure]){
+ control.addEventListener("input",()=>{
+  UI.horizontalVal.textContent=UI.horizontal.value+"%";
+  UI.verticalVal.textContent=UI.vertical.value+"%";
+  UI.exposureVal.textContent=UI.exposure.value;
+  draw();
+ });
+}
+UI.upload.addEventListener("change",async()=>{
+ const f=UI.upload.files?.[0];if(!f)return;
+ if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>24*1024*1024){fail(Error("请选择 24MB 以内的 JPG、PNG 或 WebP 照片"));return;}
+ try{photo=await createImageBitmap(f);draw();}catch(e){fail(e);}
+});
+UI.reset.addEventListener("click",()=>{
+ UI.slogan.value="去远方。";UI.placement.value="auto";selectedTone="auto";
+ document.querySelectorAll("[data-tone]").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.tone==="auto")));
+ UI.horizontal.value="50";UI.vertical.value="50";UI.exposure.value="0";
+ UI.horizontalVal.textContent="50%";UI.verticalVal.textContent="50%";UI.exposureVal.textContent="0";
+ UI.upload.value="";photo=basePhoto;draw();
+});
+UI.download.addEventListener("click",()=>{
+ if(!valid||!data)return;
+ UI.canvas.toBlob(blob=>{
+  if(!blob){fail(Error("导出 PNG 失败"));return;}
+  const href=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=href;link.download="BUDAO-"+data.title+"-远方召唤-V1.png";link.click();
+  setTimeout(()=>URL.revokeObjectURL(href),3000);
+ },"image/png");
+});
+await activate();
+})().catch(e=>{
+ const s=document.getElementById("status");s.classList.add("fail");s.textContent="✕ "+String(e?.message||e);
+ document.getElementById("download").disabled=true;
+});
+</script>
+</body>
+</html>
