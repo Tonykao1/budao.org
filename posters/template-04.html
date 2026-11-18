@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>BUDAO · 第四套 V10｜真实光束交汇报名二维码</title>
+<title>BUDAO 步道｜04 光学预告</title>
 <style>
 :root{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;color:#21293a;background:#e9eaee}
 *{box-sizing:border-box}
@@ -67,17 +67,17 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 </head>
 <body>
 <header>
-<small>BUDAO / OPTICAL TEASER / TYPE STUDY 10 · QR AT LIGHT FOCUS</small>
-<h1>有光的黑场。</h1>
-<p>第四套「光学预告版」V10：在 V9 真实 Canvas 画布中，将原始报名二维码移到发散光束即将聚合的位置，呈现八字“扫码报名相约步道”。已通过的 V7 光场、真实取色和 V9 字体适配都保持不变；不使用 AI 绘图。</p>
+<small>BUDAO 步道 · 海报 04</small>
+<h1>光学预告</h1>
+<p>从活动原始照片提取光色，形成具有纵深感的步道光影海报。标题、时间与报名二维码取自当前活动，可调整光场强度与画面效果。</p>
 </header>
 <main>
 <section class="preview"><canvas id="light" width="1920" height="1080" role="img" aria-label="来自原始活动照片横向亮度采样生成的抽象光学预告视觉：黑场与柔和光带"></canvas></section>
-<div class="caption"><strong>V10 / 光场交汇处扫码 × 八字报名引导 / 1920 × 1080</strong><span>SONY α1 预告设计语言研究 · 非官方作品</span></div>
+<div class="caption"><strong>BUDAO 步道 · 光学预告 · 1920 × 1080</strong><span>真实照片取色 · 步道原创光影</span></div>
 <div class="workspace">
 <section class="panel">
-<h2>01 · 已通过的光场</h2>
-<p>仍由照片决定光的真实色相，V7 黑场、纵深发散和柔化显影原封不动；下方仅为原本已有的图像参数。</p>
+<h2>光影效果</h2>
+<p>光线色彩来自当前活动照片。可调整光场强弱、发散范围与形体轮廓，实时预览效果。</p>
 <label class="upload"><strong id="filename">更换一张活动照片</strong><small>JPEG / PNG / WebP · ≤24MB · 只在浏览器本地处理</small><input id="upload" type="file" accept="image/jpeg,image/png,image/webp" aria-label="上传照片作为光学取样源"></label>
 <div class="origin"><img id="source" alt="当前活动活动原图">
 <div><strong>当前取样：当前活动</strong><span>源图不是海报背景，而是光带数据来源</span></div></div>
@@ -90,8 +90,8 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 <input type="range" id="abstract" min="60" max="96" value="82" step="1"></div>
 </section>
 <section class="panel">
-<h2>02 · 只验收文字编排</h2>
-<p>标题原则上优先 1–2 行，集合点过长可换行，不缩小至无法阅读。保留 SONY 预告的白色标题、日期及极轻辅助字；二维码缩小但不改原图。</p>
+<h2>文字与信息</h2>
+<p>活动标题与时间优先清晰显示；较长的集合地点自动适配。报名二维码保持原始图案与必要白边。</p>
 <div class="fieldhead">黑场中的光强</div>
 <div class="modes" role="group" aria-label="光场强度">
 <button type="button" data-mode="subtle" aria-pressed="false">静谧</button>
@@ -102,20 +102,20 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 <input type="range" id="spread" min="55" max="100" value="88" step="1"></div>
 <div class="field"><div class="fieldhead"><label for="shape">形体光影显现</label><output id="shapeText">16%</output></div>
 <input type="range" id="shape" min="0" max="40" value="16" step="1">
-<small class="soft-note">0% = V5 原始光场 · 16% = 轻微光影 · 40% = 形体更明显。没有额外扫描横线。</small>
+<small class="soft-note">0% 为最轻光影，16% 为柔和显现，40% 为更鲜明的形体轮廓。</small>
 </div>
 <div class="field"><div class="fieldhead"><span>检查文字对光场的影响</span><output id="posterState">完整邀请函</output></div>
 <div class="modes" role="group" aria-label="显示完整海报或仅光场">
 <button id="posterOn" type="button" aria-pressed="true">完整海报</button>
 <button id="posterOff" type="button" aria-pressed="false">仅光场</button></div></div>
-<div class="note"><strong>这一轮只审查四件事：</strong>
-<ul><li>主标题是否像 SONY 原作那样在黑场中独立、明亮、醒目</li><li>日期时间的字号与间距是否准确、克制</li><li>完整活动参数是否不破坏留白和视觉中心</li><li>原始二维码和步道标识能否自然落位</li></ul>
+<div class="note"><strong>分享前请检查：</strong>
+<ul><li>活动标题在深色背景中是否清楚醒目</li><li>日期时间的字号与间距是否准确、克制</li><li>完整活动参数是否不破坏留白和视觉中心</li><li>原始二维码和步道标识能否自然落位</li></ul>
 </div>
 <div class="buttons"><button id="reroll" type="button" disabled>另一组光形</button><button id="download" type="button" disabled>导出完整邀请函 PNG</button></div>
 <div id="status" aria-live="polite">正在读取活动照片与原始二维码…</div>
 <div class="qr-proof"><img id="qrProof" alt="当前活动活动原始微信报名二维码">
 <div><strong>原始二维码</strong><span>活动原始二维码 · 保留原尺寸与白边</span><span>指纹不符则禁止导出完整请柬</span></div></div>
-<small class="legal">本页使用已发布活动的真实数据，沿用 V10 光束交汇处原始二维码与八字报名文案；图片只在浏览器绘制，无 AI 费用。</small>
+<small class="legal">使用当前活动真实资料与原始报名二维码，图片在浏览器内生成。分享前请检查活动信息及扫码可用性。</small>
 </section>
 </div>
 </main>
@@ -193,7 +193,7 @@ async function imageFromURL(src){
  if(!blob.type.startsWith("image/"))throw Error("不是支持的图片格式");
  return decode(blob);
 }
-// Color science: light hue must be derived from the photograph, not three fixed Sony-like hues.
+// Derive light hues from the route photo; do not use fixed arbitrary hues.
 function rgbToHsl(r,g,b){
  r/=255;g/=255;b/=255;
  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,l=(max+min)/2;
@@ -731,11 +731,11 @@ function compose(){
  posterType();
  const compositing=Math.round(performance.now()-start);
  ready=!posterVisible||(verifiedQR&&qr&&brand);ui.download.disabled=!ready;ui.reroll.disabled=false;
- ui.status.textContent="✓ 已认可的 V7 光场、发散、取色和性能缓存完全保留"+
+ ui.status.textContent="✓ 照片取色与光影效果已生成"+
   "\n✓ 新的形体显现不使用任何短横线；强度 "+ui.shape.value+"%"+
   "\n✓ 本次叠加耗时 "+compositing+"ms；基础光场最近生成 "+Math.round(baseDuration)+"ms"+
   "\n✓ 光场缓存生成次数 "+baseBuildCount+"；仅改变显影时不重算"+
-  "\n✓ V8 SONY 式文字编排："+(posterVisible?"完整请柬":"仅光场")+
+  "\n✓ 步道活动信息已排版："+(posterVisible?"完整请柬":"仅光场")+
   "\n✓ 当前活动原始二维码："+(verifiedQR?"文件指纹已核对":"未通过，禁止完整导出")+
   "\n✓ 1920×1080 横版 PNG · 未接入正式 Tent";
 }
@@ -820,7 +820,7 @@ ui.download.addEventListener("click",()=>{
  cv.toBlob(blob=>{
   if(!blob){ui.status.textContent+="\n✕ 样张导出失败";return}
   const url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="BUDAO-"+R.title+"-光学预告-V10.png";a.click();
+  a.href=url;a.download="BUDAO-"+R.title+"-光学预告.png";a.click();
   setTimeout(()=>URL.revokeObjectURL(url),2500);
  },"image/png");
 });
