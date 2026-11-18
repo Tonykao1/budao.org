@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>BUDAO · 第五套《东方·盛典》V1.3 · 顶部 logo 右侧路线说明</title>
-<meta name="description" content="BUDAO 第五套东方盛典真实 Canvas 海报实验：源自步道自身脚步线稿的连续礼序纹样，照片叙事，中轴构图与原创绛红鎏金色彩。无需 AI 绘图。">
+<title>BUDAO 步道｜05 东方·盛典</title>
+<meta name="description" content="BUDAO 步道东方·盛典海报：原创足迹纹样、东方礼序、真实活动照片与报名二维码。">
 <style>
 :root{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#1d2733;background:#f0efed}
 *{box-sizing:border-box}body{margin:0;min-height:100vh}
@@ -50,21 +50,21 @@ a{color:#7b4b30}
 </head>
 <body>
 <header>
-<small>BUDAO · TEMPLATE 05 / EDITORIAL VISUAL RESEARCH / V1</small>
+<small>BUDAO 步道 · 海报 05</small>
 <h1>东方·盛典 <span style="font-weight:300;color:#c0a47a">/ 典礼之序</span></h1>
-<p>对标国家级大型文艺活动的中轴秩序、东方纹样与典礼色彩，但不复制任何央视节目标识、官方徽章或国家象征。每一枚纹样均由步道自有的脚步线稿在 Canvas 中生成；活动照片和报名二维码来自所选步道原始资料。</p>
+<p>以中轴秩序、东方色彩和连续足迹纹样，呈现步道同行的庄重与美感。活动照片、信息及报名二维码均来自所选路线。</p>
 </header>
 <main>
 <section class="poster-zone">
 <canvas id="poster" width="1080" height="1530" role="img" aria-label="步道第五套东方盛典海报预览"></canvas>
-<p class="poster-note">1080 × 1530 · 第五套 V1.3 · 顶部 logo 右侧路线说明 · 原始二维码不变</p>
+<p class="poster-note">1080 × 1530 · BUDAO 步道原创设计 · 原始二维码</p>
 </section>
 <section class="controls">
 <div class="panel">
-<div class="eyebrow">DESIGN REVIEW · FIRST STUDY</div>
-<h2>第五套 / V1.3 设计复核</h2>
-<p class="lead">纠正 V1.2 的位置：海报最顶部左侧保留现有脚丫 logo，右侧横向空间显示真实路线说明（最多两行，超长以省略号标记）。主标题下方不放说明。原有 30% 标题行距、字体选择及二维码原图保持不变。</p>
-<label for="route">真实活动数据</label>
+<div class="eyebrow">步道海报 · 样式设置</div>
+<h2>东方·盛典 · 样式设置</h2>
+<p class="lead">顶部左侧保留步道标识，右侧呈现活动路线说明。可调整标题字体、配色和照片效果；报名二维码始终使用当前活动原图。</p>
+<label for="route">选择活动</label>
 <select id="route"><option>正在读取已发布活动……</option></select>
 <label for="titleFont">活动主标题字体</label>
 <select id="titleFont" aria-label="活动主标题字体">
@@ -84,22 +84,22 @@ a{color:#7b4b30}
 <input id="light" type="range" min="20" max="100" step="5" value="58">
 <div class="control-line"><label for="crop">照片取景缩放</label><output id="cropVal">100%</output></div>
 <input id="crop" type="range" min="100" max="155" step="5" value="100">
-<label for="localPhoto">本地替换照片（仅视觉实验）</label>
+<label for="localPhoto">替换照片（仅当前预览）</label>
 <input id="localPhoto" type="file" accept="image/jpeg,image/png,image/webp">
 <div class="actions">
-<button type="button" class="action primary" id="download" disabled>导出真实 PNG</button>
+<button type="button" class="action primary" id="download" disabled>下载海报 PNG</button>
 <button type="button" class="action" id="reset">恢复默认</button>
 </div>
 <p id="status" class="status" role="status" aria-live="polite">正在准备当前活动及真实素材……</p>
 <p class="warning">上传照片只在本地浏览器中预览，不会更改网站活动资料。原始二维码始终绑定所选活动；没有可用二维码则禁止导出。</p>
 </div>
 <div class="panel">
-<div class="eyebrow">V1 DESIGN CONTRACT</div>
-<h2>验收四项</h2>
+<div class="eyebrow">步道海报 · 使用提示</div>
+<h2>使用须知</h2>
 <ul class="crit">
 <li>真实照片是主角，不让装饰盖过人的真实同行</li>
 <li>BUDAO 原始脚步图案形成连续、成列的原创东方礼序</li>
-<li>真实路线说明位于海报顶部 logo 右侧；主标题下方不再重复展示</li>
+<li>路线说明位于步道标识右侧，取自当前活动原始资料</li>
 <li>报名二维码保留原始像素与白边，并在视觉末端承担行动引导</li>
 </ul>
 </div>
@@ -316,7 +316,7 @@ function titleRows(value){
   return [chars.slice(0,split).join(""),chars.slice(split).join("")];
  }
  const lineCount=chars.length<=40?3:4;
- if(lineCount===4)throw Error("第五套 V1 暂不支持超过40字的主标题");
+ if(lineCount===4)throw Error("活动标题过长，无法清晰排版");
  const n=Math.ceil(chars.length/lineCount),rows=[];
  for(let i=0;i<chars.length;i+=n)rows.push(chars.slice(i,i+n).join(""));
  return rows;
@@ -413,7 +413,7 @@ function render(){
   const check=c.getImageData(533,475,1,1).data;
   if(check[3]!==255)throw Error("海报画面未完整渲染");
   ready=true;E.download.disabled=false;
-  setStatus("✓ 已读取原始活动照片及本次活动的报名二维码\n✓ 已绘制 BUDAO 连续脚步礼序纹样，背景未使用 AI 绘画\n✓ 已排入活动真实标题、时间、集合点和路线参数\n✓ V1.3：顶部保留脚丫 logo，原文路线说明置于其右侧；标题下方无说明\n✓ 多行标题基线间距较 V1.1 增加30%；二维码不变\n✓ 1080 × 1530 PNG 已就绪"+(record.isPast?"\n注意：该活动已结束，海报仅作历史样张。":""));
+  setStatus("✓ 已载入当前活动的真实照片及报名二维码\n✓ 已完成步道足迹纹样、标题与路线说明排版\n✓ 日期、集合点和路线参数已对应当前活动\n✓ 1080 × 1530 PNG 可下载"+(record.isPast?"\n注意：该活动已结束，海报仅作历史样张。":""));
  }catch(err){
   c.restore();setStatus("✕ 无法绘制：" + String(err.message||err),true);ready=false;E.download.disabled=true;
  }
@@ -526,7 +526,7 @@ E.download.addEventListener("click",()=>{
  cv.toBlob(blob=>{
   if(!blob){setStatus("✕ PNG 导出失败",true);return;}
   const url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="BUDAO-"+record.title+"-东方盛典-V1.3-"+chosen+"-"+E.titleFont.value+".png";a.click();
+  a.href=url;a.download="BUDAO-"+record.title+"-东方盛典-"+chosen+"-"+E.titleFont.value+".png";a.click();
   setTimeout(()=>URL.revokeObjectURL(url),3000);
  },"image/png");
 });
