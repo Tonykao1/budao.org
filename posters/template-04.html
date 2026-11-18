@@ -79,10 +79,10 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 <h2>光影效果</h2>
 <p>光线色彩来自当前活动照片。可调整光场强弱、发散范围与形体轮廓，实时预览效果。</p>
 <label class="upload"><strong id="filename">更换一张活动照片</strong><small>JPEG / PNG / WebP · ≤24MB · 只在浏览器本地处理</small><input id="upload" type="file" accept="image/jpeg,image/png,image/webp" aria-label="上传照片作为光学取样源"></label>
-<div class="origin"><img id="source" alt="当前活动活动原图">
+<div class="origin"><img id="source" alt="当前活动原图">
 <div><strong>当前取样：当前活动</strong><span>源图不是海报背景，而是光带数据来源</span></div></div>
 <div class="palette-proof" aria-label="原始照片色相与光栅色相的对应关系">
-<strong>真实取色 / PHOTO → LIGHT</strong>
+<strong>活动照片 → 步道光影</strong>
 <div class="palette-grid" id="palette"><span class="loading-palette">正在采样原图色相…</span></div>
 <div class="palette-info" id="paletteInfo">只有照片具有可信的彩色区域时，才提取彩色光源。</div>
 </div>
@@ -113,7 +113,7 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 </div>
 <div class="buttons"><button id="reroll" type="button" disabled>另一组光形</button><button id="download" type="button" disabled>导出完整邀请函 PNG</button></div>
 <div id="status" aria-live="polite">正在读取活动照片与原始二维码…</div>
-<div class="qr-proof"><img id="qrProof" alt="当前活动活动原始微信报名二维码">
+<div class="qr-proof"><img id="qrProof" alt="当前活动原始报名二维码">
 <div><strong>原始二维码</strong><span>活动原始二维码 · 保留原尺寸与白边</span><span>指纹不符则禁止导出完整请柬</span></div></div>
 <small class="legal">使用当前活动真实资料与原始报名二维码，图片在浏览器内生成。分享前请检查活动信息及扫码可用性。</small>
 </section>
