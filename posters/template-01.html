@@ -349,18 +349,39 @@ function render([photo,qr,logo,brush],targetCtx,theme){
  text("集合地点",65,1352,"640 30px "+FONT_SANS,P.meetingLabel);
  ctx.save();ctx.font="800 34px "+FONT_SANS;const meetingW=ctx.measureText(R.meeting).width;ctx.restore();
  text(R.meeting,217,1352,"800 "+Math.max(17,Math.min(34,34*570/Math.max(meetingW,1))).toFixed(1)+"px "+FONT_SANS,P.bottomText);
- function item(lbl,val,x,y,valueX,accent=false){
-   text(lbl,x,y,"500 23px "+FONT_SANS,P.factLabel);
-   text(val,valueX,y,"800 29px "+FONT_SANS,accent?P.duration:P.bottomText);
+ // Measured text layout: no fact may render into its neighbor's column.
+ // Long "路面" runs on a dedicated full-width row instead of colliding with "时长".
+ // Extreme data is explicitly marked with an ellipsis, never silently clipped.
+ function fittedFact(value,x,y,maxWidth,baseSize,minSize,color,weight=800){
+   const original=String(value==null?"":value);
+   const measure=(str,sz)=>{
+     ctx.save();ctx.font=weight+" "+sz+"px "+FONT_SANS;
+     const w=ctx.measureText(str).width;ctx.restore();return w;
+   };
+   let size=baseSize;
+   while(size>minSize&&measure(original,size)>maxWidth)size--;
+   let visible=original;
+   if(measure(visible,size)>maxWidth){
+     const chars=Array.from(original);
+     while(chars.length&&measure(chars.join("")+"…",size)>maxWidth)chars.pop();
+     visible=chars.join("")+"…";
+   }
+   text(visible,x,y,weight+" "+size+"px "+FONT_SANS,color);
  }
- // Four core properties on one line; unchanged label/value hierarchy.
- item("距离",R.distance,67,1418,122);
- item("爬升",R.elevation,246,1418,309);
- item("路面",R.surface,421,1418,484);
- item("时长",R.duration,592,1418,656,true);
- // Audience is a separate, warmer invitation line.
- text("适合人群",67,1484,"600 25px "+FONT_SERIF,P.audienceLabel);
- text(R.suitable,197,1484,"700 30px "+FONT_SANS,P.audience);
+ function item(lbl,val,x,y,valueX,maxWidth,accent=false){
+   text(lbl,x,y,"500 23px "+FONT_SANS,P.factLabel);
+   fittedFact(val,valueX,y,maxWidth,29,19,accent?P.duration:P.bottomText);
+ }
+ // First line: compact numerical properties. All fields remain route-sourced.
+ item("距离",R.distance,67,1406,122,116);
+ item("爬升",R.elevation,246,1406,309,140);
+ item("时长",R.duration,474,1406,538,258,true);
+ // Second line: surface has 654px of its own, not a 100px leftover slot.
+ text("路面",67,1453,"500 23px "+FONT_SANS,P.factLabel);
+ fittedFact(R.surface,139,1453,654,27,19,P.bottomText);
+ // Audience stays on a dedicated line, below the surface field.
+ text("适合人群",67,1507,"600 25px "+FONT_SERIF,P.audienceLabel);
+ fittedFact(R.suitable,197,1507,602,30,20,P.audience,700);
  // Unmodified QR pixels, including its intrinsic quiet zone (no added border).
  text("自由参与",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
  ctx.drawImage(qr.bmp,837,1281,184,184);
