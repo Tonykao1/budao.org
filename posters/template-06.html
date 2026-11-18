@@ -66,7 +66,7 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 <label for="route">选择真实步道活动</label>
 <select id="route"><option>正在读取路线……</option></select>
 <label>步道书法主字</label>
-<p class="hint"><strong>步道 · 第03号「左低·右高」</strong>（「步」比「道」小27%）。已从图形资产库读取透明书法字形，不再使用网页字体生成或编辑口号。</p>
+<p class="hint"><strong>步道 · 第03号「左低·右高」</strong>（「步」比「道」小27%）。采用步道图形资产中的固定字形，每次活动均复用同一版本。</p>
 <label>书法主字颜色</label>
 <div class="color-row" role="group" aria-label="书法主字颜色">
 <button type="button" class="choice" data-tone="auto" aria-pressed="true"><b>照片自适应</b><small>推荐</small></button>
@@ -87,7 +87,7 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 <input type="range" id="exposure" min="-15" max="15" step="3" value="0"/>
 <label for="localPhoto">替换照片（仅当前预览）</label>
 <input id="localPhoto" type="file" accept="image/jpeg,image/png,image/webp"/>
-<p class="hint">照片仅在当前浏览器试用，不上传、不修改步道活动；二维码仍取对应活动的原始报名图。</p>
+<p class="hint">替换照片只影响当前预览，不会修改网站活动资料。二维码仍使用该活动的原始文件。</p>
 <div class="actions">
 <button class="action main" id="download" type="button" disabled>导出海报 PNG</button>
 <button class="action" id="reset" type="button">复位</button>
