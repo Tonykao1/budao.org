@@ -110,6 +110,50 @@
       }
     }
   </style>
+  <!-- Home-only nav repair: six equal optical columns for vehicle/tablet viewports.
+       Does not touch other pages or original six anchors. -->
+  <style>
+    @media (min-width: 700px) and (max-width: 1400px) {
+      body > nav {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        align-items: center;
+        justify-content: initial;
+        column-gap: 0;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 18px clamp(20px, 12vw, 180px);
+        overflow-x: visible;
+      }
+      body > nav > a {
+        min-width: 0;
+        text-align: center;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.35;
+        font-size: clamp(14px, 1.5vw, 19px);
+        letter-spacing: clamp(0.2px, 0.08vw, 1.5px);
+      }
+    }
+    @media (min-width: 700px) and (max-width: 1200px) {
+      body > nav { padding-inline: clamp(16px, 3vw, 42px); }
+    }
+    @media (max-width: 699px) {
+      body > nav {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      body > nav::-webkit-scrollbar { display: none; }
+      body > nav > a:first-child { margin-inline-start: auto; }
+      body > nav > a:last-child { margin-inline-end: auto; }
+    }
+  </style>
   <script src="/global/i18n-core.js" defer></script>
   <script src="/global/home-i18n.js" defer></script>
 </head>
