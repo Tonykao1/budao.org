@@ -238,6 +238,8 @@
       locale === 'zh-Hant' ? '首頁語言切換' : '首页语言切换');
     return true;
   }
+  // Full-width and vehicle/tablet navigation is balanced by the homepage's
+  // six-column CSS grid at widths >=700px. Never impose flex-start above it.
   // English labels are longer than the original six Chinese labels. Keep the
   // site's single-row navigation, existing typography and links, but make the
   // English row horizontally scrollable on narrow screens rather than clipping
@@ -251,7 +253,7 @@
     const anchors = Array.from(nav.querySelectorAll('a'));
     if (anchors.length !== expected.length ||
         !anchors.every((anchor,index) => anchor.getAttribute('href')?.split('?')[0] === expected[index])) return false;
-    const mq = windowObject.matchMedia('(max-width: 1200px)');
+    const mq = windowObject.matchMedia('(max-width: 699px)');
     const sync = () => {
       if (mq.matches) {
         nav.style.overflowX = 'auto';
@@ -375,7 +377,7 @@
     const nav = windowObject.document.querySelector('body > nav');
     if (!nav) return;
     if (!navigationSync) {
-      const mq = windowObject.matchMedia('(max-width: 1200px)');
+      const mq = windowObject.matchMedia('(max-width: 699px)');
       navigationSync = () => {
         if (mq.matches && ['en','zh-Hant','ja'].includes(
           windowObject.BudaoGlobal.requestedLocale(windowObject.location.search))) {
