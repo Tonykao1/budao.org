@@ -165,6 +165,17 @@
         const bubble=make("article","camp-p2-letter"+(letter.mine?" camp-p2-letter-mine":""));
         bubble.append(make("small","",letter.mine?"我 · "+date(letter.createdAt):"对方 · "+date(letter.createdAt)));
         bubble.append(make("p","",letter.body));
+        if(!letter.mine)bubble.append(btn("举报此信",async()=>{
+          const explanation=window.prompt("请简要说明举报原因（可留空；取消将不提交）：","");
+          if(explanation===null)return;
+          try{
+            await request("POST",{},{
+              action:"reportLetter",connectionId:id,letterId:letter.id,
+              reason:explanation.slice(0,120)
+            });
+            announce("举报已提交给高级管理员。你也可以主动结束这段联系。");
+          }catch(e){announce(reason(e));}
+        },"camp-thread-tool"));
         list.append(bubble);
       }
       panel.append(list);
