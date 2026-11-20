@@ -168,6 +168,59 @@ async function close(req,res,data,ctx) {
   await ctx.query("DELETE FROM campfire_letters WHERE connection_id=$1::uuid",[data.connectionId]);
   return ctx.sendJson(res,200,{ok:true,closed:true});
 }
+
+async function reportLetter(req,res,data,ctx) {
+  const visitor=visitorFor(req,res,ctx);
+  if(!visitor)return error(res,403,"visitor_session_required");
+  if(!isUuid(data.connectionId)||!isUuid(data.letterId))
+    return error(res,400,"invalid_target");
+  const reason=clean(data.reason||"",120);
+  const matches=await ctx.query(
+    "SELECT l.id FROM campfire_letters l JOIN campfire_connections c ON c.id=l.connection_id "+
+    "WHERE l.id=$1::uuid AND l.connection_id=$2::uuid AND c.status='ACCEPTED' "+
+    "AND c.expires_at>NOW() AND (c.sender_hash=$3 OR c.recipient_hash=$3) "+
+    "AND l.sender_hash<>$3 LIMIT 1",
+    [data.letterId,data.connectionId,visitor]);
+  if(!matches.length)return error(res,404,"letter_unavailable");
+  if(!await quota(ctx,req,visitor,"report"))return error(res,429,"rate_limited");
+  await ctx.query(
+    "INSERT INTO campfire_letter_reports(letter_id,connection_id,reporter_hash,reason) "+
+    "VALUES($1::uuid,$2::uuid,$3,$4) "+
+    "ON CONFLICT(letter_id,reporter_hash) DO NOTHING",
+    [data.letterId,data.connectionId,visitor,reason]);
+  return ctx.sendJson(res,200,{ok:true,reported:true});
+}
+async function listReports(query) {
+  const rows=await query(
+    'SELECT r.id,r.connection_id AS "connectionId",l.body,r.reason,'+
+    'r.created_at AS "createdAt" '+
+    "FROM campfire_letter_reports r JOIN campfire_letters l ON l.id=r.letter_id "+
+    "WHERE r.resolved_at IS NULL ORDER BY r.created_at DESC LIMIT 100");
+  return rows.map(row=>({id:row.id,connectionId:row.connectionId,
+    body:row.body,reason:row.reason,createdAt:row.createdAt}));
+}
+async function moderateReport(req,res,data,ctx) {
+  if(!ctx.adminFor(req))return error(res,403,"forbidden");
+  if(!isUuid(data.reportId)||!["DISMISS","CLOSE"].includes(data.decision))
+    return error(res,400,"invalid_moderation");
+  const reports=await ctx.query(
+    "SELECT connection_id FROM campfire_letter_reports "+
+    "WHERE id=$1::uuid AND resolved_at IS NULL LIMIT 1",[data.reportId]);
+  if(!reports.length)return error(res,404,"report_unavailable");
+  const connectionId=reports[0].connection_id;
+  if(data.decision==="CLOSE"){
+    await ctx.query(
+      "UPDATE campfire_connections SET status='REVOKED',"+
+      "intro='已由管理员终止',expires_at=NOW(),updated_at=NOW() "+
+      "WHERE id=$1::uuid AND status IN ('PENDING','ACCEPTED')",[connectionId]);
+    // The letter FK cascades report rows. Admin can only inspect flagged letters.
+    await ctx.query("DELETE FROM campfire_letters WHERE connection_id=$1::uuid",[connectionId]);
+  }else{
+    await ctx.query("UPDATE campfire_letter_reports SET resolved_at=NOW() WHERE id=$1::uuid",[data.reportId]);
+  }
+  return ctx.sendJson(res,200,{ok:true,decision:data.decision});
+}
+
 async function readNotice(req,res,data,ctx) {
   const visitor=visitorFor(req,res,ctx);
   if(!visitor)return error(res,403,"visitor_session_required");
@@ -191,7 +244,8 @@ async function handlePost(req,res,data,ctx) {
     case "letter":return sendLetter(req,res,data,ctx);
     case "closeConnection":return close(req,res,data,ctx);
     case "readNotice":return readNotice(req,res,data,ctx);
+    case "reportLetter":return reportLetter(req,res,data,ctx);
     default:return error(res,400,"invalid_action");
   }
 }
-module.exports={handleGet,handlePost,notifyReply,clean};
+module.exports={handleGet,handlePost,notifyReply,listReports,moderateReport,clean};
