@@ -100,6 +100,17 @@
     }
     #homeLanguageSwitch a:hover { background: rgba(255,255,255,0.17); }
     #homeLanguageSwitch a:focus-visible { outline: 2px solid #e9d6a8; outline-offset: -3px; }
+    /* Four alternative languages need their own row on Tesla-width screens.
+       The six existing primary navigation links remain untouched. */
+    @media (min-width: 1201px) and (max-width: 1400px) {
+      #homeLanguageSwitch {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: max-content;
+        margin: 6px 10px -30px auto;
+      }
+    }
     @media (max-width: 1200px) {
       body > header {
         position: relative;
@@ -173,6 +184,7 @@
     <a href="/home.html?lang=zh-Hant" lang="zh-Hant" hreflang="zh-Hant" target="_top" aria-label="切換至繁體中文首頁">繁</a>
     <a href="/home.html?lang=en" lang="en" hreflang="en" target="_top" aria-label="Switch homepage to English">EN</a>
     <a href="/home.html?lang=ja" lang="ja" hreflang="ja" target="_top" aria-label="日本語のホームページに切り替える">日</a>
+  <a href="/home.html?lang=ko" lang="ko" hreflang="ko" target="_top" aria-label="한국어 홈페이지로 전환">한</a>
   </div>
   <h1>步道</h1>
   <p class="hero-line">
