@@ -9,6 +9,7 @@ const { getAuthenticatedPublisher, isSteward } = require("./auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./http");
 const { clientIp, consume } = require("./rate-limit");
 const { consumeGuestQuota } = require("./campfire-guest-quota");
+const phase2 = require("./campfire-phase2");
 const archive = require("../../data/campfire-archive.json");
 
 const photos = new Map();
@@ -101,7 +102,9 @@ async function moderationQueue(req,res) {
     "c.photo_id AS \"photoId\",c.body,c.status FROM campfire_reports r "+
     "JOIN campfire_comments c ON c.id=r.comment_id WHERE r.resolved_at IS NULL "+
     "ORDER BY r.created_at DESC LIMIT 100");
-  return sendJson(res,200,{ok:true,pending,reports});
+  const privateReports = process.env.CAMPFIRE_PHASE2_ENABLED==="true"
+    ? await phase2.listReports(query) : [];
+  return sendJson(res,200,{ok:true,pending,reports,privateReports});
 }
 async function react(req,res,data) {
   const photoId = data.photoId;
@@ -133,13 +136,15 @@ async function addComment(req,res,data) {
   const name=admin?"步道 · 主理人":clean(data.name||"",32)||"同行者";
   if (body.length<2 || /https?:\/\/|www\./i.test(body)) return error(res,400,"invalid_comment");
   let parent=null;
+  let replyRecipient=null;
   if (data.parentId) {
     if (!UUID.test(data.parentId)) return error(res,400,"invalid_reply");
     const found=await query(
-      "SELECT id,parent_id FROM campfire_comments WHERE id=$1::uuid AND photo_id=$2 AND status='APPROVED'",
+      "SELECT id,parent_id,visitor_hash FROM campfire_comments WHERE id=$1::uuid AND photo_id=$2 AND status='APPROVED'",
       [data.parentId,photoId]);
     if (!found.length) return error(res,404,"reply_target_unavailable");
     parent=found[0].parent_id||found[0].id;
+    replyRecipient=found[0].visitor_hash || null;
   }
   const visitor=admin?null:guestHash(req,res,true);
   if (visitor && !await consumeGuestQuota(query,req,visitor,"comment"))
@@ -149,6 +154,9 @@ async function addComment(req,res,data) {
     "INSERT INTO campfire_comments(photo_id,album_id,parent_id,visitor_hash,display_name,body,status,official,consent_version) "+
     "VALUES($1,$2,$3::uuid,$4,$5,$6,$7,$8,$9) RETURNING id",
     [photoId,photos.get(photoId),parent,visitor,name,body,status,!!admin,admin?null:"campfire-v1"]);
+  // A private notice becomes visible only once the reply is approved.
+  // The recipient is the explicitly replied-to author, not every participant.
+  await phase2.notifyReply(query,replyRecipient,inserted[0].id,visitor);
   return sendJson(res,201,{ok:true,id:inserted[0].id,status});
 }
 async function moderate(req,res,data) {
@@ -210,7 +218,15 @@ async function handler(req,res) {
   const u=new URL(req.url||"/api/campfire","https://budao.org");
   try {
     if (req.method==="GET") {
-      if (u.searchParams.get("view")==="config") return sendJson(res,200,{ok:true,guestWritesEnabled:guestWritesEnabled()});
+      if (u.searchParams.get("view")==="config") return sendJson(res,200,{
+        ok:true,guestWritesEnabled:guestWritesEnabled(),
+        phase2Enabled:guestWritesEnabled()&&process.env.CAMPFIRE_PHASE2_ENABLED==="true"
+      });
+      if (["inbox","letters"].includes(u.searchParams.get("view"))) {
+        return phase2.handleGet(req,res,u.searchParams.get("view"),u,{
+          query,guestHash,validPhoto,photos,sendJson,guestWritesEnabled
+        });
+      }
       if (u.searchParams.get("view")==="moderation") return await moderationQueue(req,res);
       if (u.searchParams.get("view")==="memories") return await albumMemories(req,res,u.searchParams.get("albumId"));
       return await thread(req,res,u.searchParams.get("photoId"));
@@ -228,6 +244,12 @@ async function handler(req,res) {
       case "moderate":return await moderate(req,res,data);
       case "report":return await report(req,res,data);
       case "withdraw":return await withdrawOwnComment(req,res,data);
+      case "moderatePrivate":
+        return phase2.moderateReport(req,res,data,{query,sendJson,adminFor});
+      case "invite":case "respond":case "letter":case "markLettersRead":case "reportLetter":case "closeConnection":case "readNotice":
+        return phase2.handlePost(req,res,data,{
+          query,guestHash,validPhoto,photos,sendJson,guestWritesEnabled
+        });
       default:return error(res,400,"invalid_action");
     }
   } catch(e) {

@@ -113,6 +113,11 @@
     spark.disabled=likedAlready||(!enabled&&!admin);
     tools.append(spark);
     if(enabled||admin)tools.append(button("回复","camp-thread-tool",()=>replyTo(c)));
+    if(enabled && !admin && !c.mine && !c.official) {
+      tools.append(button("邀请再同行","camp-thread-tool camp-p2-invite-tool",()=>{
+        window.CampfirePhase2?.openInvite(c,photo);
+      }));
+    }
     tools.append(button("举报","camp-thread-tool",()=>reportComment(c)));
     if(c.mine && !c.official) {
       tools.append(button("撤回我的留言","camp-thread-tool",async()=>{
@@ -212,7 +217,7 @@
     try {
       const d=await get(api+"?view=moderation");
       root.replaceChildren();
-      if(!d.pending.length&&!d.reports.length)
+      if(!d.pending.length&&!d.reports.length&&!(d.privateReports||[]).length)
         root.append(create("p","camp-thread-empty","没有待处理的留言或举报。"));
       for(const c of d.pending){
         const row=create("article","camp-moderation-row");
@@ -233,6 +238,24 @@
         row.append(create("small","", "收到举报 · "+report.photoId));
         row.append(create("p","",report.body));
         row.append(button("隐藏此评论","camp-thread-tool",()=>changeStatus(report.commentId,"HIDDEN")));
+        root.append(row);
+      }
+      for(const report of d.privateReports||[]){
+        const row=create("article","camp-moderation-row");
+        row.append(create("small","", "私密信件举报 · "+new Date(report.createdAt).toLocaleDateString("zh-CN")));
+        row.append(create("p","", "被举报内容："+report.body));
+        if(report.reason)row.append(create("p","", "举报原因："+report.reason));
+        const action=async(decision)=>{
+          const confirmText=decision==="CLOSE"
+            ?"确认终止双方联系并清除私密信件吗？":"确认将这项举报标记为已处理吗？";
+          if(!window.confirm(confirmText))return;
+          try{
+            await post({action:"moderatePrivate",reportId:report.id,decision});
+            state("私密信件举报已处理。");await loadModeration();
+          }catch(e){state(reason(e));}
+        };
+        row.append(button("结束联系并清除私信","camp-thread-tool camp-manage-tool",()=>action("CLOSE")));
+        row.append(button("核查完毕 · 不采取措施","camp-thread-tool",()=>action("DISMISS")));
         root.append(row);
       }
     }catch(e){root.replaceChildren(create("p","camp-thread-empty",reason(e)));}
