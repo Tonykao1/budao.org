@@ -150,6 +150,11 @@ async function addComment(req,res,data) {
     "INSERT INTO campfire_comments(photo_id,album_id,parent_id,visitor_hash,display_name,body,status,official,consent_version) "+
     "VALUES($1,$2,$3::uuid,$4,$5,$6,$7,$8,$9) RETURNING id",
     [photoId,photos.get(photoId),parent,visitor,name,body,status,!!admin,admin?null:"campfire-v1"]);
+  if (data.parentId && inserted[0]?.id) {
+    await query("INSERT INTO campfire_reply_targets(comment_id,replied_to_id) "+
+      "VALUES($1::uuid,$2::uuid) ON CONFLICT(comment_id) DO NOTHING",
+      [inserted[0].id,data.parentId]);
+  }
   return sendJson(res,201,{ok:true,id:inserted[0].id,status});
 }
 async function moderate(req,res,data) {
