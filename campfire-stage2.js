@@ -167,6 +167,14 @@
     const div=el("article","camp-room-message"+(message.mine?" is-mine":""));
     div.append(el("small","",message.mine?"我":"同行者"),
       textBlock(message.body));
+    if(message.mine&&!message.redacted)
+      div.append(btn("撤回我的消息",async()=>{
+        if(!window.confirm("撤回后，消息正文将被清除。确定吗？"))return;
+        try{
+          await request("",{action:"private-withdraw",inviteId:roomId,messageId:message.id});
+          await openRoom(roomId);
+        }catch(e){state(humanError(e));}
+      }));
     if(!message.mine&&!message.redacted)
       div.append(btn("举报此消息并屏蔽",()=>{
         if(window.confirm("举报后将立即屏蔽双方的联系，管理员会收到消息内容。是否继续？"))
