@@ -181,7 +181,7 @@ test("country / province / city produce exactly one canonical uneditable locatio
   assert.equal(location.compose({ country: "中国", city: "", region: "顺义" }), "");
   assert.equal(location.compose({ country: "中国", city: "北·京", region: "顺义" }), "");
   assert.equal(location.compose({ country: "中国", city: "北京", region: "顺义·后沙峪" }), "");
-  assert.equal(location.compose({ country: "中国", city: "北京\\n天津", region: "顺义" }), "");
+  assert.equal(location.compose({ country: "中国", city: "北京\n天津", region: "顺义" }), "");
   assert.equal(location.compose({ country: "中国", city: "北京", region: "顺义", location: "spoofed" }),
     "中国 · 北京 · 顺义");
   assert.deepEqual(location.parseLegacy("中国 · 北京 · 顺义"),
