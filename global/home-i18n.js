@@ -158,6 +158,49 @@
     return line.textContent.replace(/\s+/g, '') === proposedJapaneseCreed;
   }
 
+  // Korean editorial draft of the shared faith declaration, using Korean
+  // Christian idiom "좌로나 우로나 치우치지". This is authored prose, not a
+  // verbatim Bible quotation. All four pre-existing audio controls survive.
+  const proposedKoreanCreed =
+    '남은 생애, 주님의 길을 걸으며,\n좌로나 우로나 치우치지 않겠습니다.';
+  function previewKoreanCreed(documentObject, locale) {
+    if (locale !== 'ko' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const line = documentObject.querySelector('header .hero-line');
+    if (!line || typeof line.textContent !== 'string' ||
+        line.textContent.replace(/\s+/g,'') !== '余生行走，不偏左右') return false;
+    const dsp = documentObject.getElementById('dspBtn');
+    const play = documentObject.getElementById('playBtn');
+    const prev = documentObject.getElementById('prevBtn');
+    const next = documentObject.getElementById('nextBtn');
+    if (![dsp, play, prev, next].every(el => el && el.parentElement === line) ||
+        dsp.textContent !== '余' || play.textContent !== '走' ||
+        prev.textContent !== '左' || next.textContent !== '右') return false;
+    const leading = line.childNodes && line.childNodes[0];
+    const beforePlay = dsp.nextSibling;
+    const beforePrev = play.nextSibling;
+    const afterNext = next.nextSibling;
+    if (!leading || leading.nodeType !== 3 || leading.nodeValue.trim() !== '' ||
+        !beforePlay || beforePlay.nodeType !== 3 || beforePlay.nodeValue !== '生行' ||
+        !beforePrev || beforePrev.nodeType !== 3 ||
+        beforePrev.nodeValue.replace(/\s+/g,'') !== '，不偏' ||
+        !afterNext || afterNext.nodeType !== 3 || prev.nextSibling !== next ||
+        !documentObject.createTextNode || !line.insertBefore || !line.style) return false;
+    leading.nodeValue = '';
+    dsp.textContent = '남은 생애';
+    beforePlay.nodeValue = ', 주님의 길을 ';
+    play.textContent = '걸으며';
+    beforePrev.nodeValue = ',\n';
+    prev.textContent = '좌';
+    line.insertBefore(documentObject.createTextNode('로나 '), next);
+    next.textContent = '우';
+    afterNext.nodeValue = '로나 치우치지 않겠습니다.';
+    line.style.fontSize = 'clamp(12px, 1.45vw, 17px)';
+    line.style.letterSpacing = '0.01em';
+    line.style.whiteSpace = 'pre-line';
+    return line.textContent === proposedKoreanCreed;
+  }
+
   // Private prayer UI strings are local only: never sent to an external translation service.
 
   // Source-keyed UI strings for post-click changes made by prayer-box.js.
@@ -369,7 +412,9 @@
       previewEnglishCreed(root.document, chosen);
       previewTraditionalCreed(root.document, chosen);
       previewJapaneseCreed(root.document, chosen);
+      previewKoreanCreed(root.document, chosen);
       annotateJapaneseBrand(root.document, chosen);
+      annotateKoreanBrand(root.document, chosen);
       root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
     }
     enableHomeNavigationForLocale(root, chosen);
@@ -422,7 +467,7 @@
     root.addEventListener('popstate', () =>
       applyHomepageLocale(root.BudaoGlobal.requestedLocale(root.location.search)));
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, annotateJapaneseBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, previewKoreanCreed, proposedKoreanCreed, annotateJapaneseBrand, annotateKoreanBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
