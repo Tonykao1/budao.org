@@ -16,6 +16,7 @@
   <script src="/campfire.js" defer></script>
   <script src="/campfire-interactions.js" defer></script>
   <script src="/campfire-sparks-to-steps.js" defer></script>
+  <script src="/campfire-phase2.js" defer></script>
   <title>营火之地｜步道影像与同行回响</title>
 </head>
 <body class="campfire-page">
@@ -115,6 +116,24 @@
             <a href="/test.html">看看未来的步道 ↗</a>
           </article>
         </div>
+        <section id="camp-inbox" class="camp-inbox" aria-labelledby="camp-inbox-heading">
+          <div class="camp-inbox-heading">
+            <span class="camp-s2s-glyph" aria-hidden="true">✉</span>
+            <div>
+              <p class="camp-kicker">PRIVATE ECHOES · MUTUAL CONSENT</p>
+              <h3 id="camp-inbox-heading">回响信箱</h3>
+              <p>有些话，值得被回应；有些同行，需要双方都愿意。</p>
+            </div>
+            <button type="button" id="camp-inbox-open" aria-expanded="false" aria-controls="camp-inbox-body">翻开信箱</button>
+          </div>
+          <div id="camp-inbox-body" hidden>
+            <p class="camp-inbox-privacy">不需要传统账号。留言获审核通过后，对方的回复会出现在这个浏览器的信箱；只有双方分别同意，才能开启私密对话。不交换真实姓名、手机号或邮箱。清除 Cookie 或换设备可能无法找回。</p>
+            <div id="camp-inbox-notices" aria-live="polite"></div>
+            <div id="camp-inbox-connections" aria-live="polite"></div>
+            <p id="camp-inbox-status" role="status" aria-live="polite"></p>
+            <button type="button" id="camp-inbox-refresh" class="camp-quiet-button">刷新回响</button>
+          </div>
+        </section>
         <div id="camp-footprints-panel" class="camp-footprints-panel" hidden>
           <div class="camp-footprints-top">
             <div><h3>我的足迹 · 私人收藏</h3><p>仅存于本设备，您可随时清空。换设备后不会自动同步。</p></div>
@@ -234,6 +253,22 @@
     </div>
   </dialog>
 
+  <dialog id="camp-invite-dialog" class="camp-invite-dialog" aria-labelledby="camp-invite-heading">
+    <form id="camp-invite-form">
+      <p class="camp-kicker">SPARKS TO STEPS · TWO-WAY CONSENT</p>
+      <h3 id="camp-invite-heading">邀请再次同行</h3>
+      <p id="camp-invite-target"></p>
+      <p>你需要先在同一次活动下留下审核通过的回忆。邀请将只发送至对方在本浏览器内的「回响信箱」；对方主动同意后才能开启私密对话。</p>
+      <textarea id="camp-invite-body" maxlength="240" minlength="10" rows="4" required placeholder="写下一份简短、真诚的同行邀请（不填写电话号码、邮箱或联系方式）……"></textarea>
+      <label class="camp-consent-check"><input id="camp-invite-consent" type="checkbox" required>
+        我已年满十八周岁，并同意按照<a href="/campfire-privacy.html" target="_blank" rel="noopener noreferrer">隐私与社区规则</a>发送一次自愿的邀请。</label>
+      <p class="camp-invite-status" id="camp-invite-status" role="status" aria-live="polite"></p>
+      <div class="camp-invite-actions">
+        <button type="button" id="camp-invite-cancel" class="camp-quiet-button">取消</button>
+        <button type="submit" class="camp-button camp-button-gold" id="camp-invite-send">发送邀请</button>
+      </div>
+    </form>
+  </dialog>
   <footer class="camp-footer">
     <div class="camp-container camp-footer-layout">
       <p><a href="/home.html">步道</a> <span>· 余生行走，不偏左右。</span></p>
