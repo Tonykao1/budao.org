@@ -257,16 +257,17 @@
     if (!wrap || wrap.tagName !== 'DIV' ||
         typeof wrap.querySelectorAll !== 'function') return false;
     const links = Array.from(wrap.querySelectorAll('a'));
-    if (links.length !== 3 ||
+    if (links.length !== 4 ||
         !links.every(link => typeof link.getAttribute === 'function' &&
           /^\/home\.html(?:\?[^#]*)?(?:#[-\w.%]*)?$/.test(link.getAttribute('href') || ''))) return false;
     const names = Object.freeze({
       'zh-Hans': ['简','切换至简体中文首页'],
       'zh-Hant': ['繁','切換至繁體中文首頁'],
       en: ['EN','Switch homepage to English'],
-      ja: ['日','日本語のホームページに切り替える']
+      ja: ['日','日本語のホームページに切り替える'],
+      ko: ['한','한국어 홈페이지로 전환']
     });
-    const languages = ['zh-Hans','zh-Hant','en','ja'];
+    const languages = ['zh-Hans','zh-Hant','en','ja','ko'];
     if (!languages.includes(locale)) return false;
     const prepared = languages.filter(lang => lang !== locale).map(lang => ({
       lang,label:names[lang][0],description:names[lang][1],
@@ -282,6 +283,7 @@
       links[i].textContent=target.label;
     });
     wrap.setAttribute('aria-label',
+      locale === 'ko' ? '홈페이지 언어 변경' :
       locale === 'ja' ? 'ホームページの言語切り替え' :
       locale === 'en' ? 'Homepage languages' :
       locale === 'zh-Hant' ? '首頁語言切換' : '首页语言切换');
@@ -294,7 +296,7 @@
   // English row horizontally scrollable on narrow screens rather than clipping
   // the first and last links. Never affects the original Chinese experience.
   function enableEnglishNarrowNavigation(windowObject, locale) {
-    if (!['en','zh-Hant','ja'].includes(locale) || !windowObject || !windowObject.document ||
+    if (!['en','zh-Hant','ja','ko'].includes(locale) || !windowObject || !windowObject.document ||
         typeof windowObject.matchMedia !== 'function') return false;
     const nav = windowObject.document.querySelector('body > nav');
     if (!nav || !nav.style || typeof nav.querySelectorAll !== 'function') return false;
@@ -335,6 +337,26 @@
     }
     return true;
   }
+  // Preserve the Korean homepage's international BUDAO proper name and
+  // provide Hangul pronunciation for assistive technology. Native review
+  // of the reading is still required before production authorization.
+  function annotateKoreanBrand(documentObject, locale) {
+    if (locale !== 'ko' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const heading = documentObject.querySelector('header > h1');
+    const navBrand = documentObject.querySelector('nav a[href="/test.html"]');
+    if (!heading || !navBrand ||
+        heading.textContent.trim() !== 'BUDAO' ||
+        navBrand.textContent.trim() !== 'BUDAO' ||
+        typeof heading.setAttribute !== 'function' ||
+        typeof navBrand.setAttribute !== 'function') return false;
+    for (const element of [heading, navBrand]) {
+      element.setAttribute('translate','no');
+      element.setAttribute('aria-label','BUDAO(부다오)');
+    }
+    return true;
+  }
+
   // Homepage language hot-swap: reuse the SAME document, media element and DSP graph.
   // Capture authored source nodes before the initial translation; no audio objects change.
   let homeSourceSnapshot = null;
@@ -430,7 +452,7 @@
     if (!navigationSync) {
       const mq = windowObject.matchMedia('(max-width: 699px)');
       navigationSync = () => {
-        if (mq.matches && ['en','zh-Hant','ja'].includes(
+        if (mq.matches && ['en','zh-Hant','ja','ko'].includes(
           windowObject.BudaoGlobal.requestedLocale(windowObject.location.search))) {
           nav.style.overflowX = 'auto';
           nav.style.justifyContent = 'flex-start';
