@@ -8,8 +8,11 @@ test('normalizes supported languages; unknown language stays on Chinese', () => 
   assert.equal(core.normalizeLocale('en-GB'), 'en');
   assert.equal(core.normalizeLocale('ja'), 'ja');
   assert.equal(core.normalizeLocale('ja-JP'), 'ja');
-  assert.equal(core.normalizeLocale('ko'), null);
+  assert.equal(core.normalizeLocale('ko'), 'ko');
+  assert.equal(core.normalizeLocale('ko-KR'), 'ko');
+  assert.equal(core.normalizeLocale('fr'), null);
   assert.equal(core.requestedLocale('?lang=ja'), 'ja');
+  assert.equal(core.requestedLocale('?lang=ko'), 'ko');
   assert.equal(core.requestedLocale(''), 'zh-Hans');
   assert.equal(core.requestedLocale('?lang=en'), 'en');
 });
@@ -456,14 +459,20 @@ test('homepage is the only page with three-language controls and six original na
   assert.match(html, /href="\/home\.html\?lang=zh-Hant"/);
   assert.match(html, /href="\/home\.html\?lang=en"/);
   assert.match(html, /href="\/home\.html\?lang=ja"/);
+  assert.match(html, /href="\/home\.html\?lang=ko"/);
   assert.equal((html.match(/id="homeLanguageSwitch"/g)||[]).length,1);
-  assert.equal((html.match(/target="_top"/g)||[]).length,3);
+  assert.equal((html.match(/target="_top"/g)||[]).length,4);
   assert.match(html, /#homeLanguageSwitch a:focus-visible/);
   assert.match(html, /min-height: 44px/);
 });
 
-test('homepage-only selector offers OTHER three of four locales with safe language links', () => {
-  const attrs=[{href:'/home.html?lang=zh-Hant'},{href:'/home.html?lang=en'},{href:'/home.html?lang=ja'}];
+test('homepage-only selector offers other four of five locales with Korean', () => {
+  const attrs=[
+    {href:'/home.html?lang=zh-Hant'},
+    {href:'/home.html?lang=en'},
+    {href:'/home.html?lang=ja'},
+    {href:'/home.html?lang=ko'}
+  ];
   const links=attrs.map(a=>({
     getAttribute:key=>a[key]??null,
     setAttribute:(key,v)=>{a[key]=v;},
@@ -486,21 +495,32 @@ test('homepage-only selector offers OTHER three of four locales with safe langua
   };
 
   assert.equal(homepage.configureHomeLanguageSwitch(mk('',''),'zh-Hans'),true);
-  expect(['繁','EN','日'],['/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
+  expect(['繁','EN','日','한'],[
+    '/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja','/home.html?lang=ko']);
 
   assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=en&from=go','#top'),'en'),true);
-  expect(['简','繁','日'],['/home.html?from=go#top','/home.html?lang=zh-Hant&from=go#top','/home.html?lang=ja&from=go#top']);
+  expect(['简','繁','日','한'],[
+    '/home.html?from=go#top','/home.html?lang=zh-Hant&from=go#top',
+    '/home.html?lang=ja&from=go#top','/home.html?lang=ko&from=go#top']);
   assert.equal(wrapAttributes['aria-label'],'Homepage languages');
 
   assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=zh-Hant'),'zh-Hant'),true);
-  expect(['简','EN','日'],['/home.html','/home.html?lang=en','/home.html?lang=ja']);
+  expect(['简','EN','日','한'],[
+    '/home.html','/home.html?lang=en','/home.html?lang=ja','/home.html?lang=ko']);
 
   assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=ja'),'ja'),true);
-  expect(['简','繁','EN'],['/home.html','/home.html?lang=zh-Hant','/home.html?lang=en']);
+  expect(['简','繁','EN','한'],[
+    '/home.html','/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ko']);
   assert.equal(wrapAttributes['aria-label'],'ホームページの言語切り替え');
 
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=ko'),'ko'),true);
+  expect(['简','繁','EN','日'],[
+    '/home.html','/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
+  assert.equal(wrapAttributes['aria-label'],'홈페이지 언어 변경');
+
   assert.equal(homepage.configureHomeLanguageSwitch(mk('',''),'zh-Hans'),true);
-  expect(['繁','EN','日'],['/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
+  expect(['繁','EN','日','한'],[
+    '/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja','/home.html?lang=ko']);
 });
 
 test('selector refuses non-homepage routes and unexpected markup', () => {
@@ -510,7 +530,7 @@ test('selector refuses non-homepage routes and unexpected markup', () => {
     location:{pathname,search:'',hash:''},
     document:{getElementById:()=>wrap}
   });
-  const wrap={tagName:'DIV',querySelectorAll:()=>[good,good,good],setAttribute(){}};
+  const wrap={tagName:'DIV',querySelectorAll:()=>[good,good,good,good],setAttribute(){}};
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/test.html',wrap),'en'),false);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/tongdao.html',wrap),'zh-Hant'),false);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/home.html',{...wrap,tagName:'A'}),'en'),false);
@@ -706,4 +726,94 @@ test('localized navigation does not force left alignment in Tesla grid widths', 
   assert.equal(homepage.enableEnglishNarrowNavigation(root,'zh-Hant'),true);
   assert.deepEqual(styles,{});
   assert.equal(homepage.enableEnglishNarrowNavigation(root,'zh-Hans'),false);
+});
+
+
+test('Korean opt-in homepage translates all 37 source-guarded strings without altering other languages', () => {
+  assert.equal(homepage.entries.length,37);
+  assert.ok(homepage.entries.every(entry =>
+    typeof entry.values.ko==='string' && entry.values.ko.trim()), 'no missing Korean values');
+  const get=(selector)=>homepage.entries.find(e=>e.selector===selector).values.ko;
+  assert.equal(get('header > h1'),'BUDAO');
+  assert.equal(get('nav a[href="/test.html"]'),'BUDAO');
+  assert.equal(get('nav a[href="/what.html"]'),'동역자');
+  assert.equal(get('main section:nth-of-type(1) h2'),'우리는 무엇을 하나요?');
+  assert.match(get('main section:nth-of-type(1) p'),/주님의 임재/);
+  assert.match(get('main section:nth-of-type(2) p'),/예수 그리스도는 길이요 진리요 생명이십니다/);
+  assert.equal(get('main section:nth-of-type(2) h2'),'왜 BUDAO(부다오)인가요?');
+  assert.equal(get('footer > p'),'© 2026 BUDAO budao.org');
+  assert.equal(core.requestedLocale('?lang=ko-KR'),'ko');
+  assert.equal(core.languageLink('/home.html','','','ko'),'/home.html?lang=ko');
+  assert.equal(core.languageLink('/home.html','?lang=ko','','zh-Hans'),'/home.html');
+});
+
+test('Korean five ones express a specific route, a Bible passage and praying together', () => {
+  const lead=homepage.entries.find(e=>e.selector==='main section:nth-of-type(3) p');
+  const prayer=homepage.entries.find(e=>e.selector==='#prayerBoxTrigger');
+  assert.equal(lead.source,'· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 ·');
+  assert.equal(prayer.source,'一起祷告');
+  const parts=lead.values.ko.split('·').map(x=>x.trim()).filter(Boolean);
+  parts.push(prayer.values.ko);
+  assert.deepEqual(parts,[
+    '한 번의 포옹','하나의 걷기 코스','하나의 이야기','한 대목의 성경 말씀','함께 기도해요'
+  ]);
+  const html=require('node:fs').readFileSync(require('node:path').join(__dirname,'../home.html'),'utf8');
+  assert.match(html,/· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 · <button id="prayerBoxTrigger"/);
+  assert.match(html,/aria-controls="prayerBox" aria-expanded="false"/);
+});
+
+test('Korean prayer copy keeps original consent scope, privacy and response choices', () => {
+  const get=(selector)=>homepage.entries.find(e=>e.selector===selector).values.ko;
+  assert.match(get('.prayer-box-options label:nth-of-type(1) span'),/인도자만/);
+  assert.match(get('.prayer-box-options label:nth-of-type(2) span'),/동의합니다/);
+  assert.match(get('.prayer-box-reply-choice span'),/비공개 답변/);
+  assert.match(get('.prayer-box-privacy'),/공개되지 않습니다/);
+  assert.equal(get('.prayer-box-submit'),'기도 요청 보내기');
+  assert.equal(homepage.runtimeCopy('正在送达…','ko'),'보내는 중…');
+  assert.equal(homepage.runtimeCopy('提交祷告','ko'),'기도 요청 보내기');
+  assert.match(homepage.runtimeCopy('暂时没有送达，请稍后再试。','ko'),/다시 시도해 주세요/);
+  assert.equal(homepage.runtimeCopy('正在送达…','en'),'Sending…');
+  assert.equal(homepage.runtimeCopy('正在送达…','zh-Hans'),'正在送达…');
+});
+
+test('Korean declaration keeps all four interactive audio spans and the original Chinese guard', () => {
+  const first=buildMockOriginalCreed();
+  const elements=Object.values(first.controls);
+  const handlers=elements.map(el=>el.onClick);
+  assert.equal(homepage.previewKoreanCreed(first.doc,'en'),false);
+  assert.equal(homepage.previewKoreanCreed(first.doc,'ko'),true);
+  assert.equal(first.line.textContent,homepage.proposedKoreanCreed);
+  assert.deepEqual(first.line.childNodes.filter(el=>el.nodeType===1),elements);
+  assert.deepEqual(elements.map(el=>el.onClick),handlers);
+  assert.deepEqual(elements.map(el=>el.textContent),['남은 생애','걸으며','좌','우']);
+  assert.equal(first.line.style.whiteSpace,'pre-line');
+  assert.equal(homepage.previewKoreanCreed(first.doc,'ko'),false);
+  const untouched=buildMockOriginalCreed();
+  assert.equal(homepage.previewKoreanCreed(untouched.doc,'zh-Hans'),false);
+  assert.match(untouched.line.textContent,/余生行走/);
+});
+
+test('Korean BUDAO metadata provides readable Hangul without changing brand visuals', () => {
+  const mk=value=>({textContent:value,attributes:{},setAttribute(k,v){this.attributes[k]=v}});
+  const h=mk('BUDAO'),n=mk('BUDAO');
+  const doc={querySelector:key=>key==='header > h1'?h:key==='nav a[href="/test.html"]'?n:null};
+  assert.equal(homepage.annotateKoreanBrand(doc,'en'),false);
+  assert.equal(homepage.annotateKoreanBrand(doc,'ko'),true);
+  assert.deepEqual(h.attributes,{'translate':'no','aria-label':'BUDAO(부다오)'});
+  assert.deepEqual(n.attributes,h.attributes);
+  assert.equal(homepage.annotateKoreanBrand({querySelector:()=>mk('步道')},'ko'),false);
+});
+
+test('Korean is homepage-only and Tesla six-item primary navigation remains unchanged', () => {
+  const fs=require('node:fs'),path=require('node:path');
+  const html=fs.readFileSync(path.join(__dirname,'../home.html'),'utf8');
+  const nav=html.match(/<nav>([\s\S]*?)<\/nav>/);
+  assert.ok(nav);
+  assert.equal((nav[1].match(/<a href=/g)||[]).length,6);
+  assert.doesNotMatch(nav[1],/lang=ko/);
+  assert.match(html,/href="\/home\.html\?lang=ko"/);
+  assert.match(html,/@media \(min-width: 1201px\) and \(max-width: 1400px\)/);
+  assert.equal((html.match(/target="_top"/g)||[]).length,4);
+  assert.equal(core.languageLink('/tongxing.html','','','ko'),'/tongxing.html?lang=ko');
+  assert.deepEqual(core.carryLocaleOnLinks({querySelectorAll:()=>[]},'ko',['/home.html']),{changed:0});
 });
