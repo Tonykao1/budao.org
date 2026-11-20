@@ -9,13 +9,17 @@ on:
       - "data/campfire-archive.json"
       - "test/campfire-page.test.js"
       - "campfire-interactions.js"
+      - "campfire-stage2.js"
       - "campfire-sparks-to-steps.js"
       - "campfire-privacy.html"
       - "api/_security/campfire-handler.js"
+      - "api/_security/campfire-stage2.js"
+      - "db/migrations/20261120_campfire_relations.sql"
+      - "test/campfire-stage2.test.js"
       - "api/_security/campfire-guest-quota.js"
       - "db/migrations/20261110_campfire_guest_limits.sql"
       - "test/campfire-guest-quota.test.js"
-      - "test/campfire-guest-handler.test.js"
+      - "test/campfire-guest-handler.test.js test/campfire-stage2.test.js"
       - "db/migrations/20261106_campfire_interactions.sql"
       - "api/publish-route.js"
       - "vercel.json"
@@ -31,9 +35,13 @@ on:
       - "data/campfire-archive.json"
       - "test/campfire-page.test.js"
       - "campfire-interactions.js"
+      - "campfire-stage2.js"
       - "campfire-sparks-to-steps.js"
       - "campfire-privacy.html"
       - "api/_security/campfire-handler.js"
+      - "api/_security/campfire-stage2.js"
+      - "db/migrations/20261120_campfire_relations.sql"
+      - "test/campfire-stage2.test.js"
       - "api/_security/campfire-guest-quota.js"
       - "db/migrations/20261110_campfire_guest_limits.sql"
       - "test/campfire-guest-quota.test.js"
@@ -60,7 +68,7 @@ jobs:
       - name: Validate campfire JavaScript
         run: node --check campfire.js
       - name: Validate interaction JavaScript
-        run: node --check campfire-interactions.js && node --check api/_security/campfire-handler.js && node --check api/_security/campfire-guest-quota.js
+        run: node --check campfire-interactions.js && node --check api/_security/campfire-handler.js && node --check api/_security/campfire-guest-quota.js && node --check api/_security/campfire-stage2.js && node --check campfire-stage2.js
       - name: Validate Sparks to Steps JavaScript
         run: node --check campfire-sparks-to-steps.js
       - name: Run campfire regression suite
