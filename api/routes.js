@@ -10,6 +10,7 @@ const { requireJsonPost, requireSameOrigin, sendJson: sendProtectedJson } = requ
 const { clientIp, consume } = require("./_security/rate-limit");
 const { readAltarState, writeAltarState, applySupervisionAction, routeSupervision } = require("./_altar/store");
 const cancellation = require("../route-cancellation-core");
+const { routeWriteBlockReason } = require("./_security/route-write-target");
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -34,7 +35,7 @@ module.exports = async function handler(request, response) {
     const scope = requestScope(request);
     // Independent public GitHub reads run concurrently, without changing
     // private authorization paths or the result's supervision filtering.
-    const publicSupervision = scope !== "mine" && scope !== "altar"
+    const publicSupervision = scope !== "mine" && scope !== "mine-all" && scope !== "altar"
       ? readAltarState().then((state) => state.routes || {}).catch(() => ({}))
       : null;
     const routes = await readRoutes();
@@ -46,10 +47,10 @@ module.exports = async function handler(request, response) {
       return sendJson(response, 200, projectCalendarRoutes(routes, supervisionRoutes));
     }
 
-    if (scope === "mine") {
+    if (scope === "mine" || scope === "mine-all") {
       const publisher = getAuthenticatedPublisher(request);
       if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
-      return sendJson(response, 200, privateRoutesForLeader(routes, publisher));
+      return sendJson(response, 200, privateRoutesForLeader(routes, publisher, scope === "mine-all"));
     }
 
     if (scope === "altar") {
@@ -63,6 +64,10 @@ module.exports = async function handler(request, response) {
     sendJson(response, 200, projectPublicRoutes(routes, new Date(), supervisionRoutes));
   } catch (error) {
     response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    const scope = requestScope(request);
+    if (scope === "mine" || scope === "mine-all" || scope === "altar") {
+      return sendProtectedJson(response, 503, { ok: false, reason: "routes_unavailable" });
+    }
     sendJson(response, 200, []);
   }
 };
@@ -74,6 +79,8 @@ async function handleLeaderStatusAction(request, response) {
 
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
+  const environmentError = routeWriteBlockReason(branch);
+  if (environmentError) return sendProtectedJson(response, 403, { ok: false, reason: environmentError });
   if (!consume("route-status:" + publisher.id + ":" + clientIp(request), 12, 60_000)) {
     return sendProtectedJson(response, 429, { ok: false, reason: "rate_limited" });
   }
@@ -165,6 +172,8 @@ async function handleAltarAction(request, response) {
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
   if (!isSteward(publisher)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
+  const environmentError = routeWriteBlockReason(branch);
+  if (environmentError) return sendProtectedJson(response, 403, { ok: false, reason: environmentError });
   if (!consume("altar:" + publisher.id + ":" + clientIp(request), 30, 60_000)) {
     return sendProtectedJson(response, 429, { ok: false, reason: "rate_limited" });
   }
@@ -280,7 +289,7 @@ function projectCalendarRoutes(routes, supervisionRoutes = {}) {
   });
 }
 
-function privateRoutesForLeader(routes, publisher) {
+function privateRoutesForLeader(routes, publisher, all = false) {
   const owned = (Array.isArray(routes) ? routes : []).filter(function (route) {
     return belongsToPublisher(route, publisher);
   }).sort(function (left, right) {
@@ -288,7 +297,9 @@ function privateRoutesForLeader(routes, publisher) {
   });
 
   if (!owned.length) return [];
-  return [{ ...owned[0], slot: "" }];
+  return (all ? owned : [owned[0]]).map(function (route) {
+    return { ...route, slot: "" };
+  });
 }
 
 function belongsToPublisher(route, publisher) {
