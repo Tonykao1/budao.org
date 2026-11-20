@@ -8,8 +8,12 @@ test('normalizes supported languages; unknown language stays on Chinese', () => 
   assert.equal(core.normalizeLocale('en-GB'), 'en');
   assert.equal(core.normalizeLocale('ja'), 'ja');
   assert.equal(core.normalizeLocale('ja-JP'), 'ja');
+  assert.equal(core.normalizeLocale('es'), 'es');
+  assert.equal(core.normalizeLocale('es-MX'), 'es');
+  assert.equal(core.normalizeLocale('es-ES'), 'es');
   assert.equal(core.normalizeLocale('ko'), null);
   assert.equal(core.requestedLocale('?lang=ja'), 'ja');
+  assert.equal(core.requestedLocale('?lang=es'), 'es');
   assert.equal(core.requestedLocale(''), 'zh-Hans');
   assert.equal(core.requestedLocale('?lang=en'), 'en');
 });
@@ -456,14 +460,20 @@ test('homepage is the only page with three-language controls and six original na
   assert.match(html, /href="\/home\.html\?lang=zh-Hant"/);
   assert.match(html, /href="\/home\.html\?lang=en"/);
   assert.match(html, /href="\/home\.html\?lang=ja"/);
+  assert.match(html, /href="\/home\.html\?lang=es"/);
   assert.equal((html.match(/id="homeLanguageSwitch"/g)||[]).length,1);
-  assert.equal((html.match(/target="_top"/g)||[]).length,3);
+  assert.equal((html.match(/target="_top"/g)||[]).length,4);
   assert.match(html, /#homeLanguageSwitch a:focus-visible/);
   assert.match(html, /min-height: 44px/);
 });
 
-test('homepage-only selector offers OTHER three of four locales with safe language links', () => {
-  const attrs=[{href:'/home.html?lang=zh-Hant'},{href:'/home.html?lang=en'},{href:'/home.html?lang=ja'}];
+test('homepage-only selector offers the other four of five locales, with round-trip links', () => {
+  const attrs=[
+    {href:'/home.html?lang=zh-Hant'},
+    {href:'/home.html?lang=en'},
+    {href:'/home.html?lang=ja'},
+    {href:'/home.html?lang=es'}
+  ];
   const links=attrs.map(a=>({
     getAttribute:key=>a[key]??null,
     setAttribute:(key,v)=>{a[key]=v;},
@@ -484,23 +494,28 @@ test('homepage-only selector offers OTHER three of four locales with safe langua
     assert.deepEqual(links.map(x=>x.textContent),labels);
     assert.deepEqual(attrs.map(x=>x.href),hrefs);
   };
-
   assert.equal(homepage.configureHomeLanguageSwitch(mk('',''),'zh-Hans'),true);
-  expect(['繁','EN','日'],['/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
-
+  expect(['繁','EN','日','ES'],[
+    '/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja','/home.html?lang=es']);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=en&from=go','#top'),'en'),true);
-  expect(['简','繁','日'],['/home.html?from=go#top','/home.html?lang=zh-Hant&from=go#top','/home.html?lang=ja&from=go#top']);
+  expect(['简','繁','日','ES'],[
+    '/home.html?from=go#top','/home.html?lang=zh-Hant&from=go#top',
+    '/home.html?lang=ja&from=go#top','/home.html?lang=es&from=go#top']);
   assert.equal(wrapAttributes['aria-label'],'Homepage languages');
-
   assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=zh-Hant'),'zh-Hant'),true);
-  expect(['简','EN','日'],['/home.html','/home.html?lang=en','/home.html?lang=ja']);
-
+  expect(['简','EN','日','ES'],[
+    '/home.html','/home.html?lang=en','/home.html?lang=ja','/home.html?lang=es']);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=ja'),'ja'),true);
-  expect(['简','繁','EN'],['/home.html','/home.html?lang=zh-Hant','/home.html?lang=en']);
+  expect(['简','繁','EN','ES'],[
+    '/home.html','/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=es']);
   assert.equal(wrapAttributes['aria-label'],'ホームページの言語切り替え');
-
+  assert.equal(homepage.configureHomeLanguageSwitch(mk('?lang=es'),'es'),true);
+  expect(['简','繁','EN','日'],[
+    '/home.html','/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
+  assert.equal(wrapAttributes['aria-label'],'Idiomas de la página de inicio');
   assert.equal(homepage.configureHomeLanguageSwitch(mk('',''),'zh-Hans'),true);
-  expect(['繁','EN','日'],['/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja']);
+  expect(['繁','EN','日','ES'],[
+    '/home.html?lang=zh-Hant','/home.html?lang=en','/home.html?lang=ja','/home.html?lang=es']);
 });
 
 test('selector refuses non-homepage routes and unexpected markup', () => {
@@ -510,7 +525,7 @@ test('selector refuses non-homepage routes and unexpected markup', () => {
     location:{pathname,search:'',hash:''},
     document:{getElementById:()=>wrap}
   });
-  const wrap={tagName:'DIV',querySelectorAll:()=>[good,good,good],setAttribute(){}};
+  const wrap={tagName:'DIV',querySelectorAll:()=>[good,good,good,good],setAttribute(){}};
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/test.html',wrap),'en'),false);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/tongdao.html',wrap),'zh-Hant'),false);
   assert.equal(homepage.configureHomeLanguageSwitch(mk('/home.html',{...wrap,tagName:'A'}),'en'),false);
@@ -706,4 +721,86 @@ test('localized navigation does not force left alignment in Tesla grid widths', 
   assert.equal(homepage.enableEnglishNarrowNavigation(root,'zh-Hant'),true);
   assert.deepEqual(styles,{});
   assert.equal(homepage.enableEnglishNarrowNavigation(root,'zh-Hans'),false);
+});
+
+
+test('Spanish draft covers all 37 homepage fields with brand and scripture meaning intact', () => {
+  assert.equal(homepage.entries.length,37);
+  assert.ok(homepage.entries.every(entry=>typeof entry.values.es === 'string' && entry.values.es.trim()),
+    'No missing Spanish translation keys');
+  const get=(selector)=>homepage.entries.find(entry=>entry.selector===selector).values.es;
+  assert.equal(get('nav a[href="/home.html"]'),'Inicio');
+  assert.equal(get('nav a[href="/test.html"]'),'BUDAO');
+  assert.equal(get('header > h1'),'BUDAO');
+  assert.equal(get('main section:nth-of-type(1) h2'),'¿Qué hacemos?');
+  assert.equal(get('main section:nth-of-type(2) h2'),'¿Por qué BUDAO?');
+  assert.match(get('main section:nth-of-type(2) p'),/Él es el camino, la verdad y la vida/);
+  assert.equal(get('main section:nth-of-type(3) h2'),'¿Qué encontrarás en BUDAO?');
+  assert.equal(get('main section:nth-of-type(3) p'),
+    '· ABRAZO · SENDERO · HISTORIA · ESCRITURA · ');
+  assert.equal(get('#prayerBoxTrigger'),'ORACIÓN');
+  assert.equal(get('footer .campfire-link:not(.spark-link)'),'✦ La hoguera');
+  assert.equal(get('footer .campfire-link.spark-link'),'❦ Chispas del camino');
+  assert.equal(get('footer > p'),'© 2026 BUDAO budao.org');
+  assert.equal(core.requestedLocale('?lang=es-AR'),'es');
+  assert.equal(core.languageLink('/home.html','','','es'),'/home.html?lang=es');
+});
+
+test('Spanish prayer and permission copy are local, source-guarded and independent of payload', () => {
+  const get=(selector)=>homepage.entries.find(entry=>entry.selector===selector).values.es;
+  assert.equal(get('.prayer-box-privacy'),'Tu petición no se hará pública.');
+  assert.match(get('.prayer-box-options label:nth-of-type(2) span'),/Autorizo al líder/);
+  assert.equal(homepage.runtimeCopy('正在送达…','es'),'Enviando…');
+  assert.equal(homepage.runtimeCopy('提交祷告','es'),'Enviar petición');
+  assert.match(homepage.runtimeCopy('暂时没有送达，请稍后再试。','es'),/No se pudo enviar/);
+  assert.equal(core.carryLocaleOnLinks({querySelectorAll:()=>[]},'es',['/home.html']).changed,0);
+});
+
+test('Spanish declaration preserves audio-control identity and never leaks to existing locales', () => {
+  const {doc,line,controls}=buildMockOriginalCreed();
+  const preserved=Object.values(controls);
+  const handlers=preserved.map(el=>el.onClick);
+  assert.equal(homepage.previewSpanishCreed(doc,'en'),false);
+  assert.equal(homepage.previewSpanishCreed(doc,'es'),true);
+  assert.equal(line.textContent.replace(/\s+/g,' ').trim(),
+    'Hasta el último día, andaremos por su camino; sin desviarnos ni a la izquierda ni a la derecha.');
+  assert.deepEqual(line.childNodes.filter(node=>node.nodeType===1),preserved);
+  assert.deepEqual(preserved.map(el=>el.onClick),handlers);
+  assert.deepEqual(preserved.map(el=>el.textContent),['Hasta','andaremos','izquierda','derecha']);
+  assert.equal(line.style.whiteSpace,'pre-line');
+  assert.equal(homepage.previewSpanishCreed(doc,'es'),false);
+  const original=buildMockOriginalCreed();
+  assert.equal(homepage.previewSpanishCreed(original.doc,'zh-Hans'),false);
+  assert.match(original.line.textContent,/余生行走/);
+});
+
+test('Spanish BUDAO is excluded from machine translation only in Spanish', () => {
+  const mk=(text)=>({textContent:text,attrs:{},setAttribute(k,v){this.attrs[k]=v}});
+  const heading=mk('BUDAO'),nav=mk('BUDAO');
+  const doc={querySelector(sel)=>
+    sel==='header > h1'?heading:sel==='nav a[href="/test.html"]'?nav:null};
+  assert.equal(homepage.annotateSpanishBrand(doc,'en'),false);
+  assert.deepEqual(heading.attrs,{});
+  assert.equal(homepage.annotateSpanishBrand(doc,'es'),true);
+  assert.equal(heading.attrs.translate,'no');
+  assert.equal(nav.attrs.translate,'no');
+  assert.equal(heading.textContent,'BUDAO');
+  assert.equal(nav.textContent,'BUDAO');
+  const modified={querySelector(sel)=>
+    sel==='header > h1'?mk('Mudado'):nav};
+  assert.equal(homepage.annotateSpanishBrand(modified,'es'),false);
+});
+
+test('Spanish is homepage-only; the expanded language control remains outside six-link nav', () => {
+  const fs=require('node:fs'),path=require('node:path');
+  const html=fs.readFileSync(path.join(__dirname,'../home.html'),'utf8');
+  const nav=html.match(/<nav>([\s\S]*?)<\/nav>/);
+  assert.ok(nav);
+  assert.equal((nav[1].match(/<a href=/g)||[]).length,6);
+  assert.doesNotMatch(nav[1],/lang=es/);
+  assert.match(html, /href="\/home\.html\?lang=es"/);
+  assert.match(html, /@media \(min-width: 1201px\) and \(max-width: 1400px\)/);
+  assert.equal((html.match(/target="_top"/g)||[]).length,4);
+  assert.equal(core.safePage('/contact.html'),false);
+  assert.equal(core.languageLink('/contact.html','','','es'),null);
 });
