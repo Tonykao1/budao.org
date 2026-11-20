@@ -140,6 +140,9 @@
     // Never accept the prior free-text location: compute a canonical
     // three-level string from separately validated geography fields.
     payload.location = locationCore.compose(payload);
+    for (const name of ["country", "city", "region"]) {
+      payload[name] = locationCore.normalize(payload[name]);
+    }
     return payload;
   }
 
@@ -351,6 +354,11 @@
     }
     if (!values.location) {
       throw new Error("无法生成正确的地点层级，请检查国家、省市信息。");
+    }
+    if (values.location.length > 240) {
+      field("region").setAttribute("aria-invalid", "true");
+      field("region").focus();
+      throw new Error("地点层级总长度不能超过240字，请缩短国家、省市名称。");
     }
     const date = values.date;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
