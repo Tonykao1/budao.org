@@ -16,6 +16,7 @@
   <script src="/campfire.js" defer></script>
   <script src="/campfire-interactions.js" defer></script>
   <script src="/campfire-sparks-to-steps.js" defer></script>
+  <script src="/campfire-stage2.js" defer></script>
   <title>营火之地｜步道影像与同行回响</title>
 </head>
 <body class="campfire-page">
@@ -57,6 +58,7 @@
         <a href="#camp-gallery">影像</a>
         <a href="#camp-voices">评论</a>
         <a href="#camp-sparks-to-steps">星火同行</a>
+        <a href="#camp-inbox">我的回响 <span id="camp-inbox-dot" class="camp-inbox-dot" hidden aria-label="有新的回响"></span></a>
         <a href="#camp-history">足迹</a>
         <a href="#camp-contribute">留下回忆</a>
       </div>
@@ -122,6 +124,46 @@
           </div>
           <div id="camp-footprints-list" class="camp-footprints-list" aria-live="polite"></div>
           <p id="camp-footprints-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="camp-inbox" class="camp-section camp-inbox-section" aria-labelledby="camp-inbox-title">
+      <div class="camp-container">
+        <div class="camp-inbox-heading">
+          <div>
+            <p class="camp-kicker">BUDAO · YOUR FIRESIDE INBOX</p>
+            <h2 id="camp-inbox-title">我的回响 <span class="camp-inbox-badge" id="camp-inbox-badge" hidden>有新回响</span></h2>
+            <p>有人回应你的评论，或愿意再次同行，都在这里悄悄发生。</p>
+          </div>
+          <button type="button" class="camp-button camp-button-gold" id="camp-inbox-open" aria-expanded="false" aria-controls="camp-inbox-panel">打开我的回响</button>
+        </div>
+        <div id="camp-inbox-panel" class="camp-inbox-panel" hidden>
+          <p class="camp-inbox-note">不需要注册。回响只与本浏览器的匿名标记相连；清除 Cookie 或换设备后可能无法找回。没有邮件推送，也不公开真实联系方式。</p>
+          <div class="camp-inbox-actions">
+            <button type="button" id="camp-inbox-refresh">刷新回响</button>
+            <button type="button" id="camp-inbox-read" hidden>我已读过这些回响</button>
+          </div>
+          <div id="camp-inbox-list" aria-live="polite"></div>
+          <div id="camp-conversation-room" class="camp-conversation-room" hidden>
+            <div class="camp-room-head">
+              <h3 id="camp-room-title">两人之间的同行回响</h3>
+              <button type="button" id="camp-room-close">收起对话</button>
+            </div>
+            <p class="camp-inbox-note">只有对方接受邀请后才能发站内短消息。请勿发送手机号、邮箱或其他私人资料；遇到骚扰可屏蔽并举报。</p>
+            <div id="camp-room-messages" class="camp-room-messages" aria-live="polite"></div>
+            <form id="camp-room-form">
+              <label for="camp-room-body">站内留言（最多 300 字）</label>
+              <textarea id="camp-room-body" rows="3" minlength="2" maxlength="300" required placeholder="邀请已被接受，留下你的回应……"></textarea>
+              <button type="submit" class="camp-button camp-button-gold">发送私密回应</button>
+            </form>
+            <div class="camp-room-walk">
+              <button type="button" id="camp-room-walk-intent" aria-pressed="false">我愿意寻找下一次同行</button>
+              <p id="camp-room-walk-status" role="status" aria-live="polite"></p>
+              <a href="/test.html">查看下一次步道 ↗</a>
+            </div>
+            <p id="camp-room-state" role="status" aria-live="polite"></p>
+          </div>
         </div>
       </div>
     </section>
@@ -202,6 +244,22 @@
         <div class="camp-walk-again">
           <p>若这张照片使你想起同行的美好——</p>
           <a id="camp-walk-again-link" href="/test.html">去看看下一次步道 <span aria-hidden="true">↗</span></a>
+        </div>
+        <div id="camp-invite-form" class="camp-peer-invite" hidden>
+          <h4>邀请留下回忆的同行者</h4>
+          <p id="camp-peer-invite-label"></p>
+          <p class="camp-inbox-note">只有你也曾在同一张照片下发表审核通过的评论，才能发送邀请。对方可以拒绝；任何人的真实身份与联系方式都不会公开。</p>
+          <label for="camp-peer-invite-note">一句简短的邀请（可选）</label>
+          <textarea id="camp-peer-invite-note" maxlength="200" rows="2" placeholder="谢谢你分享那一天的记忆……"></textarea>
+          <label class="camp-consent-check">
+            <input type="checkbox" id="camp-peer-invite-consent">
+            我自愿发起站内联系，仅用于这一段同行交流。
+          </label>
+          <div class="camp-comment-form-actions">
+            <button type="button" class="camp-quiet-button" id="camp-peer-invite-cancel">取消</button>
+            <button type="button" class="camp-button camp-button-gold" id="camp-peer-invite-submit">发送邀请</button>
+          </div>
+          <p id="camp-peer-invite-status" role="status" aria-live="polite"></p>
         </div>
         <div class="camp-thread" id="camp-thread" aria-live="polite"></div>
         <form class="camp-comment-form" id="camp-comment-form">
