@@ -14,6 +14,9 @@
   const qrFile = $("#qrFile");
   const publishButton = $("#publishButton");
   const defaultTimezone = "Asia/Shanghai";
+  // Vercel preview deployments may inherit production publish credentials.
+  // Refuse all mobile writes until this page reaches the reviewed main site.
+  const previewOnly = /\.vercel\.app$/i.test(window.location.hostname);
   const draftPrefix = "budao.mobile-tent.draft.v1:";
   const labels = {
     title: "线路名称",
@@ -36,6 +39,12 @@
     surface: "路面信息",
     description: "行程说明"
   };
+  if (previewOnly) {
+    $("#environmentNote").hidden = false;
+    publishButton.disabled = true;
+    publishButton.textContent = "预览站不开放正式发布";
+  }
+
   const calendarTypes = {
     budao: "标准步道",
     pioneer: "线路探索",
@@ -466,6 +475,10 @@
   }
 
   publishButton.addEventListener("click", async function () {
+    if (previewOnly) {
+      status($("#publishMessage"), "开发预览站不能写入正式线路库，请待审核上线后使用。");
+      return;
+    }
     if (submitting || !pendingRoute) return;
     submitting = true;
     publishButton.disabled = true;
