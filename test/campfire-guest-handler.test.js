@@ -43,9 +43,9 @@ async function fakeQuery(statement,params=[]) {
       .map(c=>({id:c.id,parentId:c.parentId,name:c.name,body:c.body,official:c.official,
         createdAt:c.createdAt,mine:!!c.visitorHash&&c.visitorHash===params[1]}));
   }
-  if (statement.startsWith("SELECT id,parent_id FROM")) {
+  if (statement.startsWith("SELECT id,parent_id,visitor_hash FROM")) {
     const c=get(params[0]);
-    return c&&c.photoId===params[1]&&c.status==="APPROVED"?[{id:c.id,parent_id:c.parentId}]:[];
+    return c&&c.photoId===params[1]&&c.status==="APPROVED"?[{id:c.id,parent_id:c.parentId,visitor_hash:c.visitorHash}]:[];
   }
   if (statement.startsWith("SELECT id,status FROM campfire_comments")) {
     const c=get(params[0]);return c?[{id:c.id,status:c.status}]:[];
@@ -76,6 +76,7 @@ async function fakeQuery(statement,params=[]) {
     return [...store.comments.values()].filter(c=>c.albumId===params[0]&&c.status==="APPROVED");
   }
   if (statement.startsWith("INSERT INTO campfire_reports"))return [];
+  if (statement.startsWith("INSERT INTO campfire_notifications")) return [];
   throw new Error("unmocked database query: "+statement.slice(0,95));
 }
 // Stub only external persistence, leaving the real handler validation, HMAC,
