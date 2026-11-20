@@ -106,6 +106,7 @@ a{color:#7b4b30}
 </section>
 </main>
 <script src="/posters-runtime.js"></script>
+<script src="/posters-qr.js"></script>
 <script>
 (async function(){
 "use strict";
@@ -396,7 +397,7 @@ function details(P,R){
  // Preserve the QR image and its own quiet zone, original pixel size and location.
  const outerMargin=13/5;
  roundRect(x-outerMargin,qy-outerMargin,size+2*outerMargin,size+2*outerMargin,1,"#fff",alpha(P.gold,.85),2);
- c.save();c.imageSmoothingEnabled=false;c.drawImage(qr,x,qy,size,size);c.restore();
+ c.save();c.imageSmoothingEnabled=false;window.BudaoPosterQR.draw(c,qr,x,qy,size,size);c.restore();
  write(R.isPast?"历史活动 · 已结束":"扫码报名相约步道",x+size/2,1411,18,
        {font:serif,weight:600,align:"center",color:P.gold,tracking:1});
  strokeLine([[118,1447],[970,1447]],alpha(P.gold,.3),.85);
@@ -451,7 +452,7 @@ async function qrFromRoute(R){
   if(sha!==R.qrSha)throw Error("原始报名二维码指纹不符，禁止导出");
  }
  const bitmap=await createImageBitmap(blob);
- if(bitmap.width<80||bitmap.height<80||Math.abs(bitmap.width-bitmap.height)>2)throw Error("原始报名二维码尺寸不合法");
+ if(bitmap.width<80||bitmap.height<80)throw Error("原始报名二维码尺寸过小");
  return bitmap;
 }
 let selectionToken=0;const routes=await runtime.routes();
