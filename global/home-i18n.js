@@ -158,6 +158,49 @@
     return line.textContent.replace(/\s+/g, '') === proposedJapaneseCreed;
   }
 
+
+  // Spanish homepage declaration is an editorial draft. It preserves all four
+  // original music-control spans and never changes their handlers.
+  const proposedSpanishCreed =
+    'Hasta el último día, andaremos por su camino; sin desviarnos ni a la izquierda ni a la derecha.';
+  function previewSpanishCreed(documentObject, locale) {
+    if (locale !== 'es' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const line = documentObject.querySelector('header .hero-line');
+    if (!line || typeof line.textContent !== 'string' ||
+        line.textContent.replace(/\s+/g, '') !== '余生行走，不偏左右') return false;
+    const dsp = documentObject.getElementById('dspBtn');
+    const play = documentObject.getElementById('playBtn');
+    const prev = documentObject.getElementById('prevBtn');
+    const next = documentObject.getElementById('nextBtn');
+    if (![dsp, play, prev, next].every(el => el && el.parentElement === line) ||
+        dsp.textContent !== '余' || play.textContent !== '走' ||
+        prev.textContent !== '左' || next.textContent !== '右') return false;
+    const leading = line.childNodes && line.childNodes[0];
+    const beforePlay = dsp.nextSibling;
+    const beforePrev = play.nextSibling;
+    const afterNext = next.nextSibling;
+    if (!leading || leading.nodeType !== 3 || leading.nodeValue.trim() !== '' ||
+        !beforePlay || beforePlay.nodeType !== 3 || beforePlay.nodeValue !== '生行' ||
+        !beforePrev || beforePrev.nodeType !== 3 ||
+        beforePrev.nodeValue.replace(/\s+/g, '') !== '，不偏' ||
+        !afterNext || afterNext.nodeType !== 3 || prev.nextSibling !== next ||
+        !documentObject.createTextNode || !line.insertBefore || !line.style) return false;
+    leading.nodeValue = '';
+    dsp.textContent = 'Hasta';
+    beforePlay.nodeValue = ' el último día, ';
+    play.textContent = 'andaremos';
+    beforePrev.nodeValue = ' por su camino;\nsin desviarnos ni a la ';
+    prev.textContent = 'izquierda';
+    line.insertBefore(documentObject.createTextNode(' ni a la '), next);
+    next.textContent = 'derecha';
+    afterNext.nodeValue = '.';
+    line.style.fontSize = 'clamp(12px, 1.35vw, 16px)';
+    line.style.letterSpacing = '0.01em';
+    line.style.whiteSpace = 'pre-line';
+    return line.textContent.replace(/\s+/g, ' ').trim() === proposedSpanishCreed;
+  }
+
   // Private prayer UI strings are local only: never sent to an external translation service.
 
   // Source-keyed UI strings for post-click changes made by prayer-box.js.
@@ -369,7 +412,9 @@
       previewEnglishCreed(root.document, chosen);
       previewTraditionalCreed(root.document, chosen);
       previewJapaneseCreed(root.document, chosen);
+      previewSpanishCreed(root.document, chosen);
       annotateJapaneseBrand(root.document, chosen);
+      annotateSpanishBrand(root.document, chosen);
       root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
     }
     enableHomeNavigationForLocale(root, chosen);
@@ -422,7 +467,7 @@
     root.addEventListener('popstate', () =>
       applyHomepageLocale(root.BudaoGlobal.requestedLocale(root.location.search)));
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, annotateJapaneseBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, previewSpanishCreed, proposedSpanishCreed, annotateJapaneseBrand, annotateSpanishBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
