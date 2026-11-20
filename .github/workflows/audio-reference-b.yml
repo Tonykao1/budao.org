@@ -5,7 +5,12 @@ on:
     paths:
       - ".github/workflows/audio-reference-b.yml"
       - "home.html"
+      - "music/*.mp3"
   workflow_dispatch:
+
+concurrency:
+  group: audio-reference-b-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -117,4 +122,24 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add music/music.json
           git commit -m "audio: measure Reference B loudness map"
-          git push
+          # The site can receive concurrent commits while ffmpeg measures the MP3s.
+          # Rebase before pushing; never force-push or silently drop the new data.
+          for attempt in 1 2 3 4; do
+            git fetch origin "$GITHUB_REF_NAME"
+            git rebase "origin/$GITHUB_REF_NAME"
+            python3 - <<'PY'
+          import json, pathlib, re
+          html = pathlib.Path("home.html").read_text(encoding="utf-8")
+          match = re.search(r'const playlist\s*=\s*(\[[\s\S]*?\]);', html)
+          if not match:
+              raise SystemExit("Homepage playlist was changed; refusing stale DSP map")
+          playlist = json.loads(match.group(1))
+          tracks = json.loads(pathlib.Path("music/music.json").read_text(encoding="utf-8"))["tracks"]
+          if list(tracks) != playlist:
+              raise SystemExit("Playlist changed during measurement; next workflow must regenerate DSP map")
+          PY
+            if git push origin "HEAD:$GITHUB_REF_NAME"; then exit 0; fi
+            sleep "$attempt"
+          done
+          echo "::error::Could not push DSP measurements after four safe rebases"
+          exit 1

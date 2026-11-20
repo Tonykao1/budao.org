@@ -284,6 +284,16 @@
       "result_lufs_est": -20.0,
       "result_tp_est": -5.75,
       "peak_limited": false
+    },
+    "music/05 Beethoven_ Piano Sonata No. 14 in C-Sharp Minor, Op. 27 No. 2 _Moonlight__ I. Adagio sostenuto.mp3": {
+      "integrated_lufs": -29.29,
+      "true_peak_dbtp": -5.8,
+      "lra_lu": 15.0,
+      "threshold_lufs": -40.04,
+      "gain_db": 4.3,
+      "result_lufs_est": -24.99,
+      "result_tp_est": -1.5,
+      "peak_limited": true
     }
   }
 }

@@ -317,6 +317,25 @@ const LONG_PRESS_MS = 800;
 let referenceBTracks = {};
 let referenceBPromise = null;
 
+/* Never route an unmeasured or unsafe playlist through the Reference B graph. */
+function isValidReferenceBMap(data) {
+  if (!data || data.system !== "余 DSP Reference B" ||
+      !data.tracks || typeof data.tracks !== "object" || Array.isArray(data.tracks)) return false;
+  const ceiling = Number(data.pre_eq_true_peak_ceiling_dbtp);
+  if (!Number.isFinite(ceiling) || Object.keys(data.tracks).length !== playlist.length) return false;
+
+  return playlist.every((path) => {
+    const entry = data.tracks[path];
+    if (!entry) return false;
+    const keys = ["integrated_lufs", "true_peak_dbtp", "gain_db", "result_lufs_est", "result_tp_est"];
+    if (!keys.every((key) => typeof entry[key] === "number" && Number.isFinite(entry[key]))) return false;
+    return Math.abs(entry.integrated_lufs + entry.gain_db - entry.result_lufs_est) <= 0.06 &&
+      Math.abs(entry.true_peak_dbtp + entry.gain_db - entry.result_tp_est) <= 0.06 &&
+      entry.result_tp_est <= ceiling + 0.03 &&
+      entry.gain_db <= ceiling - entry.true_peak_dbtp + 0.03;
+  });
+}
+
 function loadReferenceBMap() {
   if (referenceBPromise) return referenceBPromise;
 
@@ -326,15 +345,15 @@ function loadReferenceBMap() {
       return response.json();
     })
     .then((data) => {
-      if (!data || data.system !== "余 DSP Reference B" || !data.tracks) {
-        throw new Error("Invalid Reference B loudness map");
+      if (!isValidReferenceBMap(data)) {
+        throw new Error("Incomplete or unsafe Reference B loudness map");
       }
       referenceBTracks = data.tracks;
       applyCurrentTrackGain(true);
       return data;
     })
     .catch((error) => {
-      console.warn("Reference B loudness map unavailable; using 0 dB track gain", error);
+      console.warn("Reference B loudness map unavailable or invalid; native playback remains available", error);
       referenceBTracks = {};
       return null;
     });
@@ -777,7 +796,8 @@ window.setInterval(() => {
 }, 1000);
 
 async function toggleDsp() {
-  await loadReferenceBMap();
+  const referenceB = await loadReferenceBMap();
+  if (!referenceB) return;
 
   if (!dspEnabled) {
     await ensureAudioEngineReady();
