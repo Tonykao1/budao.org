@@ -10,6 +10,7 @@ const { requireJsonPost, requireSameOrigin, sendJson: sendProtectedJson } = requ
 const { clientIp, consume } = require("./_security/rate-limit");
 const { readAltarState, writeAltarState, applySupervisionAction, routeSupervision } = require("./_altar/store");
 const cancellation = require("../route-cancellation-core");
+const { routeWriteBlockReason } = require("./_security/route-write-target");
 
 module.exports = async function handler(request, response) {
   setCorsHeaders(response);
@@ -55,6 +56,8 @@ module.exports = async function handler(request, response) {
     if (scope === "altar") {
       const publisher = getAuthenticatedPublisher(request);
       if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
+  const environmentError = routeWriteBlockReason(branch);
+  if (environmentError) return sendProtectedJson(response, 403, { ok: false, reason: environmentError });
       if (!isSteward(publisher)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
       return handleAltarRead(response, routes);
     }
@@ -63,6 +66,10 @@ module.exports = async function handler(request, response) {
     sendJson(response, 200, projectPublicRoutes(routes, new Date(), supervisionRoutes));
   } catch (error) {
     response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    const scope = requestScope(request);
+    if (scope === "mine" || scope === "mine-all" || scope === "altar") {
+      return sendProtectedJson(response, 503, { ok: false, reason: "routes_unavailable" });
+    }
     sendJson(response, 200, []);
   }
 };
