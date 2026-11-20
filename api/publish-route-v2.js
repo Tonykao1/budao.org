@@ -53,7 +53,9 @@ module.exports = async function handler(request, response) {
         const supervision = routeSupervision(altar, existing.routeId || existing.id);
         if (supervision.locked) return sendJson(response, 423, { ok: false, reason: "route_locked" });
       } catch (error) {
-        // Fail open for ordinary publication: the altar must never become a single point of failure.
+        // Mobile publishing must not bypass a possible route lock when
+        // supervision cannot be checked. Preserve legacy Tent behavior.
+        if (mobile) return sendJson(response, 503, { ok: false, reason: "supervision_unavailable" });
       }
     }
 
