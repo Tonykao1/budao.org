@@ -172,6 +172,8 @@ async function handleAltarAction(request, response) {
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
   if (!isSteward(publisher)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
+  const environmentError = routeWriteBlockReason(branch);
+  if (environmentError) return sendProtectedJson(response, 403, { ok: false, reason: environmentError });
   if (!consume("altar:" + publisher.id + ":" + clientIp(request), 30, 60_000)) {
     return sendProtectedJson(response, 429, { ok: false, reason: "rate_limited" });
   }
