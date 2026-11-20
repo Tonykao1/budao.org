@@ -51,7 +51,7 @@ async function main() {
   const stage2Sql = fs.readFileSync(
     path.join(__dirname, "..", "db", "migrations", "20261120_campfire_relations.sql"), "utf8"
   );
-  statements.push(...parseStatements(stage2Sql, 8));
+  statements.push(...parseStatements(stage2Sql, 9));
 
   const { neon } = require("@neondatabase/serverless");
   const sql = neon(process.env.DATABASE_URL);
