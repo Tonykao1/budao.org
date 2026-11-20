@@ -270,6 +270,7 @@
     if (!Array.isArray(list)) throw new Error("无法读取带领人线路，请刷新重试。");
     routes = list.filter(function (route) { return route && routeId(route); });
     setRouteOptions();
+    $("#previewButton").disabled = false;
   }
 
   async function signedIn(username) {
@@ -281,7 +282,8 @@
     } catch (error) {
       routes = [];
       setRouteOptions();
-      status($("#saveState"), "无法加载旧线路，仍可新建；修改旧线路请稍后重试。");
+      $("#previewButton").disabled = true;
+      status($("#saveState"), "暂时无法核对现有线路，已停止提交以避免误发布。请刷新页面后重试。");
     }
   }
 
@@ -624,6 +626,11 @@
       // because refreshing the editor's list encounters a temporary outage.
       try {
         await loadRoutes();
+        const savedId = routeId(published.route);
+        if (routes.some(function (item) { return routeId(item) === savedId; })) {
+          routePicker.value = savedId;
+          selectRoute(savedId);
+        }
       } catch (_error) {}
     } catch (error) {
       if (error.status === 401) {
