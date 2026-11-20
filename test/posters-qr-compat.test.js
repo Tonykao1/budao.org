@@ -4,6 +4,7 @@ const fs=require("node:fs");
 const path=require("node:path");
 const zlib=require("node:zlib");
 const test=require("node:test");
+const vm=require("node:vm");
 const root=path.join(__dirname,"..");
 const qr=require("../posters-qr");
 
@@ -152,4 +153,25 @@ test("photo-like and blank images are not falsely cropped",()=>{
   const band=imageData(220,300);
   for(let y=80;y<210;y++)for(let x=30;x<188;x++)pixel(band,220,x,y,12,16,20);
   assert.equal(qr.locatePixels(band,220,300),null);
+});
+
+test("all six inline poster scripts parse without syntax errors",()=>{
+  for(let i=1;i<=6;i++){
+    const name="template-"+String(i).padStart(2,"0")+".html";
+    const src=fs.readFileSync(path.join(root,"posters",name),"utf8");
+    const inline=Array.from(src.matchAll(/<script(?:\s+[^>]*)?>([\s\S]*?)<\/script>/g))
+      .map(match=>match[1]).filter(x=>x.trim());
+    assert.ok(inline.length>0,"expected a poster render script in "+name);
+    for(const code of inline)assert.doesNotThrow(()=>new vm.Script(code,{filename:name}));
+  }
+});
+test("01 and 02 hide missing optional route fields; 02 avoids duplicated short descriptions",()=>{
+  const first=fs.readFileSync(path.join(root,"posters/template-01.html"),"utf8");
+  const second=fs.readFileSync(path.join(root,"posters/template-02.html"),"utf8");
+  assert.match(first,/if\(!String\(val==null\?"":val\)\.trim\(\)\)return/);
+  assert.match(first,/if\(R\.surface\)/);
+  assert.match(first,/if\(R\.suitable\)/);
+  assert.match(second,/if\(!String\(value==null\?"":value\)\.trim\(\)\)return/);
+  assert.match(second,/if\(DESCRIPTION\.trim\(\)!==R\.subtitle\.trim\(\)\)/);
+  assert.match(second,/if\(R\.suitable\)/);
 });
