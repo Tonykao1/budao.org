@@ -14,7 +14,7 @@ const approval=[
  {id:idA,visitor_hash:anna,album_id:album,photo_id:photo,status:"APPROVED",name:"小山"},
  {id:idB,visitor_hash:ben,album_id:album,photo_id:photo,status:"APPROVED",name:"小河"}
 ];
-const store={comments:approval,connections:[],letters:[],notices:[],quota:new Map()};
+const store={comments:approval,connections:[],letters:[],notices:[],reports:[],quota:new Map()};
 function rowsFor(sql,args) {
   if(sql.startsWith("INSERT INTO campfire_write_limits")){
     const [scope,key,bucket,max]=args;const k=[scope,key,bucket].join(":");
@@ -89,6 +89,33 @@ function rowsFor(sql,args) {
   if(sql.startsWith("DELETE FROM campfire_letters")){
     store.letters=store.letters.filter(l=>l.connection_id!==args[0]);return [];
   }
+  if(sql.startsWith("SELECT l.id FROM campfire_letters l JOIN campfire_connections")){
+    const [letterId,connectionId,reporter]=args;
+    const c=store.connections.find(c=>c.id===connectionId&&c.status==="ACCEPTED");
+    const letter=store.letters.find(l=>l.id===letterId&&l.connection_id===connectionId);
+    return c&&letter&&(c.sender_hash===reporter||c.recipient_hash===reporter)&&letter.sender_hash!==reporter
+      ?[{id:letterId}]:[];
+  }
+  if(sql.startsWith("INSERT INTO campfire_letter_reports")){
+    const [letterId,connectionId,reporter,reason]=args;
+    if(!store.reports.some(r=>r.letter_id===letterId&&r.reporter_hash===reporter))
+      store.reports.push({id:crypto.randomUUID(),letter_id:letterId,connection_id:connectionId,
+        reporter_hash:reporter,reason,created_at:new Date().toISOString(),resolved_at:null});
+    return [];
+  }
+  if(sql.startsWith('SELECT r.id,r.connection_id AS "connectionId"')){
+    return store.reports.filter(r=>!r.resolved_at).flatMap(r=>{
+      const letter=store.letters.find(l=>l.id===r.letter_id);
+      return letter?[{id:r.id,connectionId:r.connection_id,body:letter.body,
+        reason:r.reason,createdAt:r.created_at}]:[];
+    });
+  }
+  if(sql.startsWith("SELECT connection_id FROM campfire_letter_reports")){
+    return store.reports.filter(r=>r.id===args[0]&&!r.resolved_at).map(r=>({connection_id:r.connection_id}));
+  }
+  if(sql.startsWith("UPDATE campfire_letter_reports SET resolved_at")){
+    const r=store.reports.find(r=>r.id===args[0]);if(r)r.resolved_at=new Date().toISOString();return [];
+  }
   if(sql.startsWith("UPDATE campfire_notifications SET read_at")){
     const n=store.notices.find(n=>n.id===args[0]&&n.recipient_hash===args[1]&&!n.read_at);
     if(!n)return [];n.read_at=new Date().toISOString();return [{id:n.id}];
@@ -101,7 +128,8 @@ const ctx={
   validPhoto:s=>s===photo,
   photos:new Map([[photo,album]]),
   sendJson:(res,status,body)=>res.status(status).json(body),
-  guestWritesEnabled:()=>true
+  guestWritesEnabled:()=>true,
+  adminFor:req=>req.isAdmin?{id:"test-admin"}:null
 };
 function response(){
   return {statusCode:null,payload:null,
@@ -152,6 +180,21 @@ test("two-sided consent is enforced; no anonymous identity inference or public i
   assert.equal(privateLetters.payload.letters.length,1);
   assert.equal(privateLetters.payload.letters[0].mine,false);
   assert.equal((await get(eve,"letters",id)).statusCode,404);
+  const letterId=store.letters[0].id;
+  assert.equal((await post(eve,"reportLetter",{connectionId:id,letterId})).statusCode,404);
+  assert.equal((await post(anna,"reportLetter",{connectionId:id,letterId})).statusCode,404);
+  const reported=await post(ben,"reportLetter",{connectionId:id,letterId,reason:"令人不适的信件"});
+  assert.equal(reported.statusCode,200);
+  const adminQueue=await phase2.listReports(ctx.query);
+  assert.equal(adminQueue.length,1);
+  assert.equal(adminQueue[0].body,store.letters[0].body);
+  let adminRes=response();
+  await phase2.moderateReport({isAdmin:false},adminRes,{reportId:adminQueue[0].id,decision:"DISMISS"},ctx);
+  assert.equal(adminRes.statusCode,403);
+  adminRes=response();
+  await phase2.moderateReport({isAdmin:true},adminRes,{reportId:adminQueue[0].id,decision:"DISMISS"},ctx);
+  assert.equal(adminRes.statusCode,200);
+  assert.equal((await phase2.listReports(ctx.query)).length,0);
   const closed=await post(ben,"closeConnection",{connectionId:id});
   assert.equal(closed.statusCode,200);assert.equal(store.letters.length,0);
   assert.equal((await get(anna,"letters",id)).statusCode,404);
