@@ -192,6 +192,7 @@ function fitFootprint(photo){
 // without pushing into the "时长" column or the following "适合人群" row.
 // Too-long values are visibly abbreviated with "…"; the source data is not changed.
 function metadata(label,value,x,y,allowTwoLines=false){
+ if(!String(value==null?"":value).trim())return;
  const maxWidth=x<700?232:222;
  const raw=String(value==null?"":value);
  const minSize=allowTwoLines?22:21;
@@ -246,7 +247,9 @@ function draw(photo,qr,logo){
  // Jubilee-inspired rhythm rendered as non-figurative strokes and colored marks.
  line(508,471,945,471,P.softLine,1.6);
  for(let i=0;i<4;i++){c.fillStyle=P.accents[i];c.beginPath();c.arc(516+38*i,472,5.4,0,Math.PI*2);c.fill();}
- textWrap(DESCRIPTION,507,534,470,'500 21px '+CN,35,P.ink,5);
+ if(DESCRIPTION.trim()!==R.subtitle.trim()){
+   textWrap(DESCRIPTION,507,534,470,'500 21px '+CN,35,P.ink,5);
+ }
  title(R.month,504,788,'700 126px Georgia,serif',P.wine);
  title("/",666,781,'400 66px Georgia,serif',P.gold);
  title(R.day,720,788,'700 126px Georgia,serif',P.wine);
@@ -263,9 +266,11 @@ function draw(photo,qr,logo){
  metadata("爬升",R.elevation,766,1032);
  metadata("路面",R.surface,509,1130,true);
  metadata("时长",R.duration,766,1130);
- title("适合人群",508,1251,'600 23px '+CN,P.olive);
- title(R.suitable,508,1294,'700 29px '+CN,P.wine);
- line(508,1322,750,1322,P.softLine,1);
+ if(R.suitable){
+   title("适合人群",508,1251,'600 23px '+CN,P.olive);
+   title(R.suitable,508,1294,'700 29px '+CN,P.wine);
+   line(508,1322,750,1322,P.softLine,1);
+ }
  if(R.difficulty||R.equipment)title([R.difficulty&&"难度 "+R.difficulty,R.equipment&&"装备 "+R.equipment].filter(Boolean).join(" · "),508,1376,'400 18px '+SANS,P.ink);
  // QR is always the unmodified original bitmap, quiet zone included.
  title("自由参与",919,1227,'600 22px '+SANS,P.wine,"center");
