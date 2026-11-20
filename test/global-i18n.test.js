@@ -452,7 +452,7 @@ test('homepage is the only page with three-language controls and six original na
   assert.ok(nav);
   assert.equal((nav[1].match(/<a href=/g)||[]).length,6);
   assert.doesNotMatch(nav[1],/homeLanguageSwitch/);
-  assert.match(html, /<\/nav>\s*<div id="homeLanguageSwitch" role="navigation"/);
+  assert.match(html, /<\/nav>\s*<header>\s*<div id="homeLanguageSwitch" role="navigation"/);
   assert.match(html, /href="\/home\.html\?lang=zh-Hant"/);
   assert.match(html, /href="\/home\.html\?lang=en"/);
   assert.match(html, /href="\/home\.html\?lang=ja"/);
