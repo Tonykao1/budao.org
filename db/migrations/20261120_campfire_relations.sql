@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS campfire_peer_invites (
   recipient_wants_walk boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT NOW(),
   updated_at timestamptz NOT NULL DEFAULT NOW(),
+  responded_at timestamptz,
   UNIQUE(sender_hash,target_comment_id),
   CHECK (sender_hash <> recipient_hash)
 );
@@ -51,4 +52,10 @@ CREATE INDEX IF NOT EXISTS campfire_private_reports_queue_idx
 CREATE TABLE IF NOT EXISTS campfire_inbox_state (
   visitor_hash char(64) PRIMARY KEY,
   last_read_at timestamptz NOT NULL DEFAULT NOW()
+);
+
+-- Preserve the exact addressed reply, while parent_id keeps a two-level UI.
+CREATE TABLE IF NOT EXISTS campfire_reply_targets (
+  comment_id uuid PRIMARY KEY REFERENCES campfire_comments(id) ON DELETE CASCADE,
+  replied_to_id uuid REFERENCES campfire_comments(id) ON DELETE SET NULL
 );
