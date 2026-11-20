@@ -28,3 +28,15 @@ test("Global guest quotas use an additive table and expiry index", () => {
   assert.match(statements[1],/^CREATE INDEX IF NOT EXISTS campfire_write_limits_expiry_idx/);
   assert.doesNotMatch(file,/DROP|TRUNCATE|ALTER TABLE|raw_ip|latitude|longitude/i);
 });
+
+
+test("Stage 2 consent-only inbox schema contains nine additive statements", () => {
+  const file=fs.readFileSync(path.join(__dirname,"../db/migrations/20261120_campfire_relations.sql"),"utf8");
+  const stmts=parseStatements(file,9);
+  assert.equal(stmts.filter(s=>/^CREATE TABLE/.test(s)).length,5);
+  assert.equal(stmts.filter(s=>/^CREATE INDEX/.test(s)).length,4);
+  assert.match(file,/UNIQUE\(sender_hash,target_comment_id\)/);
+  assert.match(file,/CHECK \(sender_hash <> recipient_hash\)/);
+  assert.match(file,/campfire_reply_targets/);
+  assert.doesNotMatch(file,/DROP TABLE|TRUNCATE TABLE|raw_ip|phone_number|email_address/i);
+});
