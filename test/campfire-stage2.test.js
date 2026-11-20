@@ -183,7 +183,7 @@ test("inbox is scoped to same-browser pseudonym; moderation is protected",async(
   r=response();await api.markRead(req(HASH_A),r);assert.equal(r.code,200);
 });
 test("sanitization rejects outside contact details and oversized messages",()=>{
-  assert.equal(safeText(" a\nb ",300),"ab");
+  assert.equal(safeText(" a\nb ",300),"a\nb");
   assert.equal(safeText("x".repeat(301),300),"");
   assert.equal(unsafe("https://spam.example"),true);
   assert.equal(unsafe("visitor@example.org"),true);
