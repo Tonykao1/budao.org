@@ -217,7 +217,7 @@
     try {
       const d=await get(api+"?view=moderation");
       root.replaceChildren();
-      if(!d.pending.length&&!d.reports.length)
+      if(!d.pending.length&&!d.reports.length&&!(d.privateReports||[]).length)
         root.append(create("p","camp-thread-empty","没有待处理的留言或举报。"));
       for(const c of d.pending){
         const row=create("article","camp-moderation-row");
