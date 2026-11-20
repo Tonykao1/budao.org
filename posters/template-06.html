@@ -108,6 +108,7 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 </aside>
 </main>
 <script src="/posters-runtime.js"></script>
+<script src="/posters-qr.js"></script>
 <script>
 (async function(){
 "use strict";
@@ -305,7 +306,7 @@ function drawBottom(){
  // Preserve exact source QR pixels, including its own built-in quiet zone.
  const size=198,x=797,y=1222,margin=6;
  ctx.fillStyle="#fff";ctx.fillRect(x-margin,y-margin,size+2*margin,size+2*margin);
- ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(qr,x,y,size,size);ctx.restore();
+ ctx.save();ctx.imageSmoothingEnabled=false;window.BudaoPosterQR.draw(ctx,qr,x,y,size,size);ctx.restore();
  write(data.isPast?"活动已结束":"扫码报名",x+size/2,1464,22,{weight:650,color:white,align:"center"});
  write("budao.org",1010,1497,17,{weight:500,color:muted,align:"right"});
 }
@@ -344,7 +345,7 @@ async function originalQR(record){
   if(sha!==record.qrSha)throw Error("活动原始二维码指纹不符，拒绝导出");
  }
  const bmp=await createImageBitmap(blob);
- if(bmp.width<90||bmp.height<90||Math.abs(bmp.width-bmp.height)>2)throw Error("原始二维码尺寸不合法");
+ if(bmp.width<90||bmp.height<90)throw Error("原始二维码尺寸过小");
  return bmp;
 }
 const all=await rt.routes();
