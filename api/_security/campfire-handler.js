@@ -246,7 +246,7 @@ async function handler(req,res) {
       case "withdraw":return await withdrawOwnComment(req,res,data);
       case "moderatePrivate":
         return phase2.moderateReport(req,res,data,{query,sendJson,adminFor});
-      case "invite":case "respond":case "letter":case "reportLetter":case "closeConnection":case "readNotice":
+      case "invite":case "respond":case "letter":case "markLettersRead":case "reportLetter":case "closeConnection":case "readNotice":
         return phase2.handlePost(req,res,data,{
           query,guestHash,validPhoto,photos,sendJson,guestWritesEnabled
         });
