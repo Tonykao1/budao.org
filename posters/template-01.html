@@ -65,6 +65,7 @@ button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
 <small class="notice">照片在当前浏览器内分析；二维码来自所选活动的原始文件。下载前请检查扫码可用性。</small>
 </section></div></main>
 <script src="/posters-runtime.js"></script>
+<script src="/posters-qr.js"></script>
 <script>
 (async function(){
 "use strict";
@@ -384,7 +385,7 @@ function render([photo,qr,logo,brush],targetCtx,theme){
  fittedFact(R.suitable,197,1507,602,30,20,P.audience,700);
  // Unmodified QR pixels, including its intrinsic quiet zone (no added border).
  text("自由参与",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
- ctx.drawImage(qr.bmp,837,1281,184,184);
+ window.BudaoPosterQR.draw(ctx,qr.bmp,837,1281,184,184);
  text("扫码同行",929,1500,"700 25px "+FONT_SANS,P.qrText,"center");
  return {textMeasure};
 }
