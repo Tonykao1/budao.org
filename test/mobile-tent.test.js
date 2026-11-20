@@ -67,6 +67,7 @@ test("mobile editor includes required route data, preview, photos, and safe logi
   assert.match(js, /\/api\/auth\/login/);
   assert.match(js, /\/api\/auth\/session/);
   assert.match(js, /\/api\/routes\?scope=mine-all/);
+  assert.match(js, /routeForm\.reset\(\);\s*routePicker\.value = selectedRoute \? routeId\(selectedRoute\) : "";/);
   assert.match(js, /\/api\/upload-route-image/);
   assert.match(js, /\/api\/publish-route-v2/);
   assert.match(js, /const previewOnly = \/\\.vercel\\.app\$/);
