@@ -26,15 +26,20 @@ function make({query,guestHash,validPhoto,photos,guestWritesEnabled,adminFor}) {
       "SELECT r.id,r.photo_id AS \"photoId\",r.display_name AS name,"+
       "r.official,r.created_at AS \"createdAt\",LEFT(r.body,180) AS snippet "+
       "FROM campfire_comments r "+
-      "JOIN campfire_comments p ON p.id=r.parent_id "+
+      "LEFT JOIN campfire_reply_targets t ON t.comment_id=r.id "+
+      "JOIN campfire_comments p ON p.id=COALESCE(t.replied_to_id,r.parent_id) "+
       "WHERE p.visitor_hash=$1 AND p.status='APPROVED' "+
       "AND r.status='APPROVED' AND (r.visitor_hash IS NULL OR r.visitor_hash<>$1) "+
       "ORDER BY r.created_at DESC LIMIT 45",[visitor]);
     const invites=await query(
       "SELECT id,photo_id AS \"photoId\",sender_name AS \"senderName\","+
       "recipient_name AS \"recipientName\",note,status,created_at AS \"createdAt\","+
-      "updated_at AS \"updatedAt\",sender_wants_walk AS \"senderWantsWalk\","+
+      "updated_at AS \"updatedAt\",responded_at AS \"respondedAt\","+
+      "sender_wants_walk AS \"senderWantsWalk\","+
       "recipient_wants_walk AS \"recipientWantsWalk\", "+
+      "(SELECT MAX(m.created_at) FROM campfire_private_messages m "+
+      "WHERE m.invite_id=campfire_peer_invites.id "+
+      "AND m.sender_hash<>$1 AND m.status='ACTIVE') AS \"lastOtherMessageAt\", "+
       "(sender_hash=$1) AS mine "+
       "FROM campfire_peer_invites "+
       "WHERE sender_hash=$1 OR recipient_hash=$1 "+
@@ -105,8 +110,9 @@ function make({query,guestHash,validPhoto,photos,guestWritesEnabled,adminFor}) {
       : "((sender_hash=$2 OR recipient_hash=$2) AND status IN ('PENDING','ACCEPTED'))";
     const next=operation==="accept"?"ACCEPTED":operation==="decline"?"DECLINED":
       operation==="block"?"BLOCKED":"CANCELLED";
+    const responseTime=(operation==="accept"||operation==="decline")?"responded_at=NOW(),":"";
     const result=await query(
-      "UPDATE campfire_peer_invites SET status=$3,updated_at=NOW() "+
+      "UPDATE campfire_peer_invites SET status=$3,"+responseTime+"updated_at=NOW() "+
       "WHERE id=$1::uuid AND "+eligible+" RETURNING id",
       [data.inviteId,visitor,next]);
     if(!result.length)return bad(res,404,"invitation_unavailable");
