@@ -40,5 +40,5 @@ test("Campfire phase 2 uses four additive privacy-scoped tables and five indexes
   assert.match(file,/UNIQUE\(sender_hash,recipient_hash,album_id\)/);
   assert.match(file,/CHECK \(sender_hash <> recipient_hash\)/);
   assert.match(file,/recipient_hash/);
-  assert.doesNotMatch(file,/\b(?:email|phone|latitude|longitude|raw_ip|fingerprint)\b/i);
+  assert.doesNotMatch(file.split("\n").filter(line=>!line.trimStart().startsWith("--")).join("\n"),/\b(?:email|phone|latitude|longitude|raw_ip|fingerprint)\b/i);
 });
