@@ -207,9 +207,10 @@
     selectedRoute = routes.find(function (item) { return routeId(item) === id; }) || null;
     const base = selectedRoute || {};
     const draft = readDraft();
-    putFields(Object.assign({}, base, draft || {}));
+    // Clear stale photo choices, then restore both the route picker and fields.
+    // routeForm.reset() would otherwise display "new" while editing an old ID.
     routeForm.reset();
-    // Resetting clears photo pickers and select defaults; restore text after reset.
+    routePicker.value = selectedRoute ? routeId(selectedRoute) : "";
     putFields(Object.assign({}, base, draft || {}));
     updateImageNotes();
     status($("#saveState"), draft ? "已恢复本机文字草稿" : "填写后自动保存文字草稿", Boolean(draft));
