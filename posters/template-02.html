@@ -62,6 +62,7 @@ button:disabled{opacity:.5;cursor:not-allowed}.stat{margin:15px 0;font:13px/1.8 
 <p class="note">原图参考（来自当前路线）：</p><img class="reference" id="sourceImage" alt="当前活动原始照片"/>
 </aside></div></main>
 <script src="/posters-runtime.js"></script>
+<script src="/posters-qr.js"></script>
 <script>
 (async function(){
 "use strict";
@@ -268,7 +269,7 @@ function draw(photo,qr,logo){
  if(R.difficulty||R.equipment)title([R.difficulty&&"难度 "+R.difficulty,R.equipment&&"装备 "+R.equipment].filter(Boolean).join(" · "),508,1376,'400 18px '+SANS,P.ink);
  // QR is always the unmodified original bitmap, quiet zone included.
  title("自由参与",919,1227,'600 22px '+SANS,P.wine,"center");
- c.drawImage(qr,838,1255,162,162);
+ window.BudaoPosterQR.draw(c,qr,838,1255,162,162);
  title("扫码同行",919,1453,'600 22px '+SANS,P.wine,"center");
  title("步道  ·  BUDAO",65,1421,'700 28px '+CN,P.wine);
  
