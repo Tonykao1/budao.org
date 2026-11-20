@@ -69,6 +69,9 @@ test("mobile editor includes required route data, preview, photos, and safe logi
   assert.match(js, /\/api\/routes\?scope=mine-all/);
   assert.match(js, /\/api\/upload-route-image/);
   assert.match(js, /\/api\/publish-route-v2/);
+  assert.match(js, /const previewOnly = \/\\.vercel\\.app\$/);
+  assert.match(js, /if \(previewOnly\) \{/);
+  assert.match(html, /id="environmentNote"/);
   assert.match(js, /window\.localStorage\.setItem\(draftKey\(\), JSON\.stringify\(readFields\(\)\)\)/);
   assert.doesNotMatch(js, /localStorage\.setItem\([^)]*password/);
   assert.match(css, /@media\(max-width:390px\)/);
