@@ -331,3 +331,4 @@ module.exports.leaderRouteId = leaderRouteId;
 module.exports.stripPresentationSlot = stripPresentationSlot;
 module.exports.hasPersistedPresentationSlots = hasPersistedPresentationSlots;
 module.exports.preserveCancellationState = preserveCancellationState;
+module.exports.findExistingRoute = findExistingRoute;
