@@ -113,6 +113,11 @@
     spark.disabled=likedAlready||(!enabled&&!admin);
     tools.append(spark);
     if(enabled||admin)tools.append(button("回复","camp-thread-tool",()=>replyTo(c)));
+    if(enabled && !admin && !c.mine && !c.official) {
+      tools.append(button("邀请再同行","camp-thread-tool camp-p2-invite-tool",()=>{
+        window.CampfirePhase2?.openInvite(c,photo);
+      }));
+    }
     tools.append(button("举报","camp-thread-tool",()=>reportComment(c)));
     if(c.mine && !c.official) {
       tools.append(button("撤回我的留言","camp-thread-tool",async()=>{
