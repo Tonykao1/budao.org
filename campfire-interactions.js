@@ -240,6 +240,24 @@
         row.append(button("隐藏此评论","camp-thread-tool",()=>changeStatus(report.commentId,"HIDDEN")));
         root.append(row);
       }
+      for(const report of d.privateReports||[]){
+        const row=create("article","camp-moderation-row");
+        row.append(create("small","", "私密信件举报 · "+new Date(report.createdAt).toLocaleDateString("zh-CN")));
+        row.append(create("p","", "被举报内容："+report.body));
+        if(report.reason)row.append(create("p","", "举报原因："+report.reason));
+        const action=async(decision)=>{
+          const confirmText=decision==="CLOSE"
+            ?"确认终止双方联系并清除私密信件吗？":"确认将这项举报标记为已处理吗？";
+          if(!window.confirm(confirmText))return;
+          try{
+            await post({action:"moderatePrivate",reportId:report.id,decision});
+            state("私密信件举报已处理。");await loadModeration();
+          }catch(e){state(reason(e));}
+        };
+        row.append(button("结束联系并清除私信","camp-thread-tool camp-manage-tool",()=>action("CLOSE")));
+        row.append(button("核查完毕 · 不采取措施","camp-thread-tool",()=>action("DISMISS")));
+        root.append(row);
+      }
     }catch(e){root.replaceChildren(create("p","camp-thread-empty",reason(e)));}
   }
   function refreshCardButtons(){
