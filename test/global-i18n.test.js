@@ -62,7 +62,7 @@ test('mixed content translation touches only existing leading text node', () => 
   const item = homepage.entries.find(e=>e.mode==='leading-text');
   const doc = {querySelector:q=>q===item.selector?el:null,documentElement:{lang:'zh'}};
   assert.equal(core.localize(doc,'en',[item]).changed,1);
-  assert.equal(node.nodeValue, '· EMBRACE · TRAIL · STORY · SCRIPTURE · ');
+  assert.equal(node.nodeValue, '· ONE EMBRACE · ONE ROUTE · ONE STORY · ONE SCRIPTURE PASSAGE · ');
   assert.equal(el.children[0],button);
   assert.equal(button.textContent,'一起祷告');
 });
@@ -213,17 +213,31 @@ test('prayer submission failures are translated only for an opted-in homepage lo
 });
 
 
-test('homepage five elements are parallel uppercase nouns without articles', () => {
+test('the five ones faithfully preserve four specific gifts plus praying together', () => {
   const leading = homepage.entries.find(e => e.selector === 'main section:nth-of-type(3) p');
   const prayer = homepage.entries.find(e => e.selector === '#prayerBoxTrigger');
   assert.ok(leading && prayer);
-  const words = leading.values.en.split('·').map(v => v.trim()).filter(Boolean);
-  words.push(prayer.values.en);
-  assert.deepEqual(words, ['EMBRACE', 'TRAIL', 'STORY', 'SCRIPTURE', 'PRAYER']);
-  assert.equal(words.length, 5);
-  assert.ok(words.every(word => /^[A-Z]+$/.test(word)));
-  assert.equal(leading.values['zh-Hant'], '· 一個擁抱 · 一條線路 · 一則故事 · 一段經文 · ');
-  assert.equal(prayer.values['zh-Hant'], '一起禱告');
+  const expected = {
+    en: ['ONE EMBRACE','ONE ROUTE','ONE STORY','ONE SCRIPTURE PASSAGE','PRAY TOGETHER'],
+    'zh-Hant':['一個擁抱','一條線路','一則故事','一段經文','一起禱告'],
+    ja: ['ひとつの抱擁','ひとつのコース','ひとつの物語','聖書の一箇所','ともに祈る'],
+    es: ['UN ABRAZO','UNA RUTA','UNA HISTORIA','UN PASAJE BÍBLICO','OREMOS JUNTOS']
+  };
+  assert.equal(leading.source,'· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 ·');
+  assert.equal(prayer.source,'一起祷告');
+  for (const [locale,correct] of Object.entries(expected)) {
+    const words=leading.values[locale].split('·').map(value=>value.trim()).filter(Boolean);
+    words.push(prayer.values[locale]);
+    assert.deepEqual(words,correct,locale);
+    assert.equal(words.length,5,locale);
+  }
+  // The route is a planned itinerary, not a generic trail.
+  assert.doesNotMatch(leading.values.en,/\bTRAIL\b/);
+  assert.doesNotMatch(leading.values.es,/\bSENDERO\b/);
+  // A Bible passage is more specific than writing or the entire Bible.
+  assert.doesNotMatch(leading.values.es,/\bESCRITURA\b/);
+  assert.ok(prayer.values.en.includes('TOGETHER'));
+  assert.ok(prayer.values.es.includes('JUNTOS'));
 });
 
 test('five elements still use existing source text and existing prayer button', () => {
@@ -233,7 +247,7 @@ test('five elements still use existing source text and existing prayer button', 
   assert.match(html, /· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 · <button id="prayerBoxTrigger"/);
   assert.match(html, /class="prayer-box-trigger" type="button" aria-controls="prayerBox"/);
   const cta = homepage.entries.find(e=>e.selector==='#prayerBoxTrigger');
-  assert.equal(cta.values.en,'PRAYER');
+  assert.equal(cta.values.en,'PRAY TOGETHER');
 });
 
 function buildMockOriginalCreed(overrides = {}) {
@@ -737,8 +751,8 @@ test('Spanish draft covers all 37 homepage fields with brand and scripture meani
   assert.match(get('main section:nth-of-type(2) p'),/Él es el camino, la verdad y la vida/);
   assert.equal(get('main section:nth-of-type(3) h2'),'¿Qué encontrarás en BUDAO?');
   assert.equal(get('main section:nth-of-type(3) p'),
-    '· ABRAZO · SENDERO · HISTORIA · ESCRITURA · ');
-  assert.equal(get('#prayerBoxTrigger'),'ORACIÓN');
+    '· UN ABRAZO · UNA RUTA · UNA HISTORIA · UN PASAJE BÍBLICO · ');
+  assert.equal(get('#prayerBoxTrigger'),'OREMOS JUNTOS');
   assert.equal(get('footer .campfire-link:not(.spark-link)'),'✦ La hoguera');
   assert.equal(get('footer .campfire-link.spark-link'),'❦ Chispas del camino');
   assert.equal(get('footer > p'),'© 2026 BUDAO budao.org');
