@@ -70,7 +70,7 @@
     const c=new AbortController();
     const timer=setTimeout(()=>c.abort(),20000);
     try{
-      const response=await fetch("/api/routes?source=poster-studio",{cache:"no-store",credentials:"same-origin",signal:c.signal});
+      const response=await fetch("/api/routes?scope=calendar",{cache:"no-store",credentials:"same-origin",signal:c.signal});
       if(!response.ok)throw Error("无法读取当前公开活动（HTTP "+response.status+"）");
       const json=await response.json();
       const list=Array.isArray(json)?json:Array.isArray(json.routes)?json.routes:Array.isArray(json.items)?json.items:null;
