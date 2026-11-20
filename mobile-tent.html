@@ -152,9 +152,10 @@
 
       <section id="successView" hidden class="card success" role="status" aria-live="polite">
         <div class="success-symbol" aria-hidden="true">✓</div>
-        <h2>这一程，已交付步道。</h2>
-        <p>线路已写入正式线路库。首页 Slot 只显示按时间规则选出的三条线路；其他线路仍可在对应的日历中查看。</p>
-        <a id="seeSite" href="/test.html" class="primary link-button">查看步道网站</a>
+        <h2>线路写入已确认</h2>
+        <p id="publicationState" aria-live="polite">正在核对线路在公开日历中的呈现…</p>
+        <p class="hint">首页 Slot 只显示按时间规则选出的三条线路；其他线路可在对应日历查看。若路线被暂停或需修改，公开日历会遵守监督状态。</p>
+        <a id="seeSite" href="/test.html" class="primary link-button">前往步道活动日历</a>
         <button type="button" id="continueButton" class="secondary">继续编辑线路</button>
       </section>
     </main>
