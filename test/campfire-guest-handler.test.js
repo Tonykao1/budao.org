@@ -22,6 +22,11 @@ async function fakeQuery(statement,params=[]) {
     return [{request_count:n}];
   }
   if (statement.startsWith("DELETE FROM campfire_write_limits")) return [];
+  if (statement.startsWith("INSERT INTO campfire_reply_targets")) {
+    // Stage 2 records the original addressed comment separately from
+    // the two-level display parent for accurate inbox notifications.
+    return [];
+  }
   if (statement.startsWith("INSERT INTO campfire_reactions")) {
     const key=params.slice(0,3).join(":");
     if(store.reactions.has(key)) return [];
