@@ -204,6 +204,16 @@
     "cancelCode": ""
   },
   {
+    "date": "2026-11-20",
+    "type": "fellowship",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-moses-2026-11-20-22bbeec97d34",
+    "title": "奥森南园",
+    "status": "scheduled",
+    "cancelCode": ""
+  },
+  {
     "date": "2026-11-21",
     "type": "budao",
     "source": "tent",
