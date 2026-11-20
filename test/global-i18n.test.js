@@ -777,7 +777,7 @@ test('Spanish declaration preserves audio-control identity and never leaks to ex
 test('Spanish BUDAO is excluded from machine translation only in Spanish', () => {
   const mk=(text)=>({textContent:text,attrs:{},setAttribute(k,v){this.attrs[k]=v}});
   const heading=mk('BUDAO'),nav=mk('BUDAO');
-  const doc={querySelector(sel)=>
+  const doc={querySelector:sel=>
     sel==='header > h1'?heading:sel==='nav a[href="/test.html"]'?nav:null};
   assert.equal(homepage.annotateSpanishBrand(doc,'en'),false);
   assert.deepEqual(heading.attrs,{});
@@ -786,7 +786,7 @@ test('Spanish BUDAO is excluded from machine translation only in Spanish', () =>
   assert.equal(nav.attrs.translate,'no');
   assert.equal(heading.textContent,'BUDAO');
   assert.equal(nav.textContent,'BUDAO');
-  const modified={querySelector(sel)=>
+  const modified={querySelector:sel=>
     sel==='header > h1'?mk('Mudado'):nav};
   assert.equal(homepage.annotateSpanishBrand(modified,'es'),false);
 });
