@@ -10,6 +10,8 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/ht
 const { clientIp, consume } = require("./_security/rate-limit");
 const { validateRoute } = require("./_security/route-schema");
 const { isManagedRouteImageUrl } = require("./_security/route-image");
+const { routeWriteBlockReason } = require("./_security/route-write-target");
+const { validateMobileRoutePublish } = require("./_security/mobile-route-publish");
 const { readAltarState, routeSupervision } = require("./_altar/store");
 
 module.exports = async function handler(request, response) {
@@ -19,6 +21,8 @@ module.exports = async function handler(request, response) {
 
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  const environmentError = routeWriteBlockReason(branch);
+  if (environmentError) return sendJson(response, 403, { ok: false, reason: environmentError });
   if (!consume("publish:" + publisher.id + ":" + clientIp(request), 10, 60_000)) {
     return sendJson(response, 429, { ok: false, reason: "rate_limited" });
   }
@@ -26,10 +30,21 @@ module.exports = async function handler(request, response) {
 
   const validated = validateRoute(parsed.body);
   if (validated.error) return sendJson(response, 400, { ok: false, reason: validated.error });
+  const mobile = String(request.headers && request.headers["x-budao-mobile-tent"] || "") === "1";
+  if (mobile) {
+    const mobileError = validateMobileRoutePublish(validated.value);
+    if (mobileError) return sendJson(response, 400, { ok: false, reason: mobileError });
+  }
 
   try {
     const current = await readRoutesFile();
     const existing = findExistingRoute(current.routes, publisher, validated.value);
+    const requestedId = String(validated.value.routeId || validated.value.id || "").trim();
+    // Mobile clients must not silently create a new route if a selected route
+    // has been removed, transferred or forged. Legacy Tent matching is retained.
+    if (mobile && requestedId && (!existing || String(existing.routeId || existing.id || "") !== requestedId)) {
+      return sendJson(response, 404, { ok: false, reason: "route_not_found" });
+    }
     const uniqueId = existing && (existing.routeId || existing.id) || uniqueLeaderRouteId(publisher, validated.value);
 
     if (existing) {
