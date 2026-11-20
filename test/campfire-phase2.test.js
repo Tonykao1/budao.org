@@ -14,7 +14,7 @@ const approval=[
  {id:idA,visitor_hash:anna,album_id:album,photo_id:photo,status:"APPROVED",name:"小山"},
  {id:idB,visitor_hash:ben,album_id:album,photo_id:photo,status:"APPROVED",name:"小河"}
 ];
-const store={comments:approval,connections:[],letters:[],notices:[],reports:[],quota:new Map()};
+const store={comments:approval,connections:[],letters:[],walk:[],notices:[],reports:[],quota:new Map()};
 function rowsFor(sql,args) {
   if(sql.startsWith("INSERT INTO campfire_write_limits")){
     const [scope,key,bucket,max]=args;const k=[scope,key,bucket].join(":");
@@ -80,6 +80,21 @@ function rowsFor(sql,args) {
   if(sql.startsWith('SELECT id,sender_hash=$2 AS mine')){
     return store.letters.filter(l=>l.connection_id===args[0]).map(l=>({id:l.id,
       mine:l.sender_hash===args[1],body:l.body,createdAt:l.created_at}));
+  }
+  if(sql.startsWith("SELECT participant_hash=$2 AS mine")){
+    return store.walk.filter(w=>w.connection_id===args[0])
+      .map(w=>({mine:w.participant_hash===args[1],interested:w.interested}));
+  }
+  if(sql.startsWith("INSERT INTO campfire_walk_intentions")){
+    const c=store.connections.find(c=>c.id===args[0]&&c.status==="ACCEPTED"&&
+      (c.sender_hash===args[1]||c.recipient_hash===args[1]));
+    if(!c)return [];
+    let w=store.walk.find(w=>w.connection_id===args[0]&&w.participant_hash===args[1]);
+    if(!w){w={connection_id:args[0],participant_hash:args[1]};store.walk.push(w);}
+    w.interested=args[2];return [{connection_id:args[0]}];
+  }
+  if(sql.startsWith("DELETE FROM campfire_walk_intentions")){
+    store.walk=store.walk.filter(w=>w.connection_id!==args[0]);return [];
   }
   if(sql.startsWith("UPDATE campfire_letters SET recipient_read_at")){
     for(const letter of store.letters)
@@ -186,6 +201,19 @@ test("two-sided consent is enforced; no anonymous identity inference or public i
   assert.equal(privateLetters.statusCode,200);
   assert.equal(privateLetters.payload.letters.length,1);
   assert.equal(privateLetters.payload.letters[0].mine,false);
+  const outsiderIntent=await post(eve,"walkIntent",{connectionId:id,interested:true});
+  assert.equal(outsiderIntent.statusCode,404);
+  const oneInterested=await post(anna,"walkIntent",{connectionId:id,interested:true});
+  assert.equal(oneInterested.statusCode,200);
+  assert.equal(oneInterested.payload.mutualInterest,false);
+  const bothInterested=await post(ben,"walkIntent",{connectionId:id,interested:true});
+  assert.equal(bothInterested.statusCode,200);
+  assert.equal(bothInterested.payload.mutualInterest,true);
+  const checkIntent=await get(anna,"letters",id);
+  assert.equal(checkIntent.payload.myInterest,true);
+  assert.equal(checkIntent.payload.mutualInterest,true);
+  const withdrawnIntent=await post(anna,"walkIntent",{connectionId:id,interested:false});
+  assert.equal(withdrawnIntent.payload.mutualInterest,false);
   const beforeRead=await get(ben,"inbox");
   assert.equal(beforeRead.payload.connections[0].hasNewLetters,true);
   const readNotice=await post(ben,"markLettersRead",{connectionId:id});
@@ -210,6 +238,7 @@ test("two-sided consent is enforced; no anonymous identity inference or public i
   assert.equal((await phase2.listReports(ctx.query)).length,0);
   const closed=await post(ben,"closeConnection",{connectionId:id});
   assert.equal(closed.statusCode,200);assert.equal(store.letters.length,0);
+  assert.equal(store.walk.length,0,"Ending a contact erases their shared-walk wishes");
   assert.equal((await get(anna,"letters",id)).statusCode,404);
 });
 test("reply notice becomes visible only after approval, then can be marked read by recipient",async()=>{
