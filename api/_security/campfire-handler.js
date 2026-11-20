@@ -10,6 +10,7 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require("./http");
 const { clientIp, consume } = require("./rate-limit");
 const { consumeGuestQuota } = require("./campfire-guest-quota");
 const archive = require("../../data/campfire-archive.json");
+const {make:makeStage2} = require("./campfire-stage2");
 
 const photos = new Map();
 const albums = new Map();
@@ -206,12 +207,18 @@ async function withdrawOwnComment(req,res,data) {
   return sendJson(res,200,{ok:true,withdrawn:true});
 }
 
+const stage2 = makeStage2({query,guestHash,validPhoto,photos,guestWritesEnabled,adminFor});
+
 async function handler(req,res) {
   const u=new URL(req.url||"/api/campfire","https://budao.org");
   try {
     if (req.method==="GET") {
       if (u.searchParams.get("view")==="config") return sendJson(res,200,{ok:true,guestWritesEnabled:guestWritesEnabled()});
       if (u.searchParams.get("view")==="moderation") return await moderationQueue(req,res);
+      if (u.searchParams.get("view")==="inbox") return await stage2.inbox(req,res);
+      if (u.searchParams.get("view")==="conversation")
+        return await stage2.conversation(req,res,u.searchParams.get("inviteId"));
+      if (u.searchParams.get("view")==="private-reports") return await stage2.privateReports(req,res);
       if (u.searchParams.get("view")==="memories") return await albumMemories(req,res,u.searchParams.get("albumId"));
       return await thread(req,res,u.searchParams.get("photoId"));
     }
@@ -228,6 +235,16 @@ async function handler(req,res) {
       case "moderate":return await moderate(req,res,data);
       case "report":return await report(req,res,data);
       case "withdraw":return await withdrawOwnComment(req,res,data);
+      case "inbox-read":return await stage2.markRead(req,res);
+      case "invite":return await stage2.invite(req,res,data);
+      case "invite-accept":return await stage2.invitation(req,res,data,"accept");
+      case "invite-decline":return await stage2.invitation(req,res,data,"decline");
+      case "invite-cancel":return await stage2.invitation(req,res,data,"cancel");
+      case "invite-block":return await stage2.invitation(req,res,data,"block");
+      case "walk-intent":return await stage2.toggleWalk(req,res,data);
+      case "private-message":return await stage2.privateMessage(req,res,data);
+      case "private-report":return await stage2.reportPrivate(req,res,data);
+      case "private-moderate":return await stage2.moderatePrivate(req,res,data);
       default:return error(res,400,"invalid_action");
     }
   } catch(e) {
