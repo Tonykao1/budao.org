@@ -183,6 +183,20 @@ function make({query,guestHash,validPhoto,photos,guestWritesEnabled,adminFor}) {
     return sendJson(res,201,{ok:true,id:written[0].id});
   }
 
+  async function withdrawPrivate(req,res,data) {
+    if(!validId(data.inviteId)||!validId(data.messageId))
+      return bad(res,400,"invalid_target");
+    const visitor=guestHash(req,res,false);
+    if(!visitor)return bad(res,403,"visitor_session_required");
+    const removed=await query(
+      "UPDATE campfire_private_messages SET status='REDACTED',body='此内容已由作者撤回' "+
+      "WHERE id=$1::uuid AND invite_id=$2::uuid AND sender_hash=$3 "+
+      "AND status='ACTIVE' RETURNING id",
+      [data.messageId,data.inviteId,visitor]);
+    if(!removed.length)return bad(res,404,"message_unavailable");
+    return sendJson(res,200,{ok:true,withdrawn:true});
+  }
+
   async function reportPrivate(req,res,data) {
     if(!validId(data.inviteId)||!validId(data.messageId))
       return bad(res,400,"invalid_target");
@@ -237,6 +251,6 @@ function make({query,guestHash,validPhoto,photos,guestWritesEnabled,adminFor}) {
   }
 
   return {inbox,markRead,invite,invitation,toggleWalk,conversation,
-    privateMessage,reportPrivate,privateReports,moderatePrivate};
+    privateMessage,withdrawPrivate,reportPrivate,privateReports,moderatePrivate};
 }
 module.exports={make,safeText,unsafe};
