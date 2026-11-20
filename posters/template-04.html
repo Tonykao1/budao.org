@@ -120,6 +120,7 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 </div>
 </main>
 <script src="/posters-runtime.js"></script>
+<script src="/posters-qr.js"></script>
 <script>
 (async function(){
 "use strict";
@@ -679,10 +680,10 @@ function layoutDetails(facts){
 }
 function originalQR(){
  if(!verifiedQR||!qr)throw Error("本次活动二维码原件不可用");
- if(qr.width<80||qr.height<80||Math.abs(qr.width-qr.height)>2)throw Error("当前活动二维码不是有效方形图像");
+ if(qr.width<80||qr.height<80)throw Error("当前活动二维码图片尺寸过小");
  const c=displayCtx;c.save();
  c.globalAlpha=1;c.filter="none";c.imageSmoothingEnabled=false;
- c.drawImage(qr,0,0,qr.width,qr.height,1439,455,152,152);
+ window.BudaoPosterQR.draw(c,qr,1439,455,152,152);
  c.restore();
 }
 function brandMark(){
@@ -773,7 +774,7 @@ async function load(){
    originalArtwork(URLS.qr,"本次活动原始二维码",true),
    originalArtwork(URLS.brand,"步道品牌图",false)
  ]);
- if(q.width<80||q.height<80||Math.abs(q.width-q.height)>2)throw Error("当前活动原始二维码格式不正确");
+ if(q.width<80||q.height<80)throw Error("当前活动原始二维码尺寸过小");
  photo=img;photoData=samplePhoto(photo);qr=q;brand=logo;verifiedQR=true;
  if(ui.source)ui.source.src=R.photo;
  const qrPreview=document.getElementById("qrProof");if(qrPreview)qrPreview.src=R.qr;
