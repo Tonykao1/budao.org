@@ -99,6 +99,7 @@ button:disabled{opacity:.47;cursor:not-allowed}
 </aside>
 </main>
 <script src="/posters-runtime.js"></script>
+<script src="/posters-qr.js"></script>
 <script>
 (async function(){
 "use strict";
@@ -337,10 +338,10 @@ function renderType(){
 }
 function drawQR(){
  if(!qr)throw Error("本次活动原始二维码未读取成功");
- if(qr.width<80||qr.height<80||Math.abs(qr.width-qr.height)>2)throw Error("活动二维码不是有效方形图像");
+ if(qr.width<80||qr.height<80)throw Error("活动二维码图片尺寸过小");
  const size=210,x=(1080-size)/2,y=1296;
  c.save();c.globalAlpha=1;c.imageSmoothingEnabled=false;
- c.drawImage(qr,0,0,qr.width,qr.height,x,y,size,size);c.restore();
+ window.BudaoPosterQR.draw(c,qr,x,y,size,size);c.restore();
 }
 function drawBrandFooter(){
  if(!brand)throw Error("步道原始品牌图片未加载");
