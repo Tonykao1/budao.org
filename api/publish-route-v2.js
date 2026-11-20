@@ -180,9 +180,16 @@ function uniqueLeaderRouteId(publisher, value) {
 }
 
 function findExistingRoute(routes, publisher, incoming) {
+  // Resolve ownership before looking at any client-provided ID. A forged routeId
+  // cannot authorize edits to another leader's route.
   const list = (Array.isArray(routes) ? routes : []).filter((route) => belongsToLeader(route, publisher));
-  // A leader can publish multiple independent events. A legacy leader-scoped
-  // routeId must never cause an unrelated event to be overwritten.
+  const requestedId = String(incoming.routeId || incoming.id || "").trim();
+  if (requestedId) {
+    const ownMatch = list.find((route) => String(route.routeId || route.id || "") === requestedId);
+    if (ownMatch) return ownMatch;
+  }
+  // Backward-compatible fallback for Tent's older clients (which generate
+  // draft IDs locally). Distinct title/date pairs stay separate.
   return list.find((route) =>
     normalizeDate(route.date) === normalizeDate(incoming.date) &&
     String(route.title || "").trim() === String(incoming.title || "").trim()
