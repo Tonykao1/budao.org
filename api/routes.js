@@ -34,7 +34,7 @@ module.exports = async function handler(request, response) {
     const scope = requestScope(request);
     // Independent public GitHub reads run concurrently, without changing
     // private authorization paths or the result's supervision filtering.
-    const publicSupervision = scope !== "mine" && scope !== "altar"
+    const publicSupervision = scope !== "mine" && scope !== "mine-all" && scope !== "altar"
       ? readAltarState().then((state) => state.routes || {}).catch(() => ({}))
       : null;
     const routes = await readRoutes();
@@ -46,10 +46,10 @@ module.exports = async function handler(request, response) {
       return sendJson(response, 200, projectCalendarRoutes(routes, supervisionRoutes));
     }
 
-    if (scope === "mine") {
+    if (scope === "mine" || scope === "mine-all") {
       const publisher = getAuthenticatedPublisher(request);
       if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
-      return sendJson(response, 200, privateRoutesForLeader(routes, publisher));
+      return sendJson(response, 200, privateRoutesForLeader(routes, publisher, scope === "mine-all"));
     }
 
     if (scope === "altar") {
@@ -280,7 +280,7 @@ function projectCalendarRoutes(routes, supervisionRoutes = {}) {
   });
 }
 
-function privateRoutesForLeader(routes, publisher) {
+function privateRoutesForLeader(routes, publisher, all = false) {
   const owned = (Array.isArray(routes) ? routes : []).filter(function (route) {
     return belongsToPublisher(route, publisher);
   }).sort(function (left, right) {
@@ -288,7 +288,9 @@ function privateRoutesForLeader(routes, publisher) {
   });
 
   if (!owned.length) return [];
-  return [{ ...owned[0], slot: "" }];
+  return (all ? owned : [owned[0]]).map(function (route) {
+    return { ...route, slot: "" };
+  });
 }
 
 function belongsToPublisher(route, publisher) {
