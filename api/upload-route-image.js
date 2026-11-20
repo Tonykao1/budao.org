@@ -3,6 +3,7 @@ const { getAuthenticatedPublisher } = require("./_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/http");
 const { clientIp, consume } = require("./_security/rate-limit");
 const { managedImagePath, managedImageUrl, validateRouteImageUpload } = require("./_security/route-image");
+const { routeWriteBlockReason } = require("./_security/route-write-target");
 
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
@@ -16,6 +17,8 @@ module.exports = async function handler(request, response) {
 
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  const environmentError = routeWriteBlockReason(branch);
+  if (environmentError) return sendJson(response, 403, { ok: false, reason: environmentError });
   if (!consume("route-image:" + publisher.id + ":" + clientIp(request), 8, 60_000)) {
     return sendJson(response, 429, { ok: false, reason: "rate_limited" });
   }
