@@ -30,12 +30,12 @@ test("Global guest quotas use an additive table and expiry index", () => {
 });
 
 
-test("Campfire phase 2 uses three additive privacy-scoped tables and four indexes", () => {
+test("Campfire phase 2 uses four additive privacy-scoped tables and five indexes", () => {
   const file=fs.readFileSync(path.join(__dirname,"../db/migrations/20261120_campfire_phase2.sql"),"utf8");
-  const statements=parseStatements(file,7);
-  assert.equal(statements.filter(x=>/^CREATE TABLE/.test(x)).length,3);
-  assert.equal(statements.filter(x=>/^CREATE INDEX/.test(x)).length,4);
-  for(const table of ["campfire_notifications","campfire_connections","campfire_letters"])
+  const statements=parseStatements(file,9);
+  assert.equal(statements.filter(x=>/^CREATE TABLE/.test(x)).length,4);
+  assert.equal(statements.filter(x=>/^CREATE INDEX/.test(x)).length,5);
+  for(const table of ["campfire_notifications","campfire_connections","campfire_letters","campfire_letter_reports"])
     assert.match(file,new RegExp("CREATE TABLE IF NOT EXISTS "+table));
   assert.match(file,/UNIQUE\(sender_hash,recipient_hash,album_id\)/);
   assert.match(file,/CHECK \(sender_hash <> recipient_hash\)/);
