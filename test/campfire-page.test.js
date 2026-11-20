@@ -308,3 +308,34 @@ test("较长阻尼区间持续减速并且精确停靠，无反弹或突跳", ()
   assert.ok(script.includes('document.addEventListener("visibilitychange", onVisibilityChange)'));
   assert.ok(script.includes('document.removeEventListener("visibilitychange", onVisibilityChange)'));
 });
+
+
+test("星火同行第二阶段保留匿名访客、双向同意信箱与清除联系通道", () => {
+  const phase2=read("campfire-phase2.js");
+  const server=read("api/_security/campfire-phase2.js");
+  const privacy=read("campfire-privacy.html");
+  const migrator=read("scripts/campfire-production-migrate.js");
+  assert.match(html,/campfire-phase2\.js/);
+  for(const id of ["camp-inbox","camp-inbox-notices","camp-inbox-connections",
+    "camp-invite-dialog","camp-invite-consent","camp-invite-body"])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(css,/camp-inbox/);
+  assert.match(css,/camp-p2-letter/);
+  assert.match(phase2,/CampfirePhase2/);
+  assert.match(phase2,/action:"invite"/);
+  assert.match(phase2,/action:"respond"/);
+  assert.match(phase2,/action:"closeConnection"/);
+  assert.match(phase2,/action:"letter"/);
+  assert.match(phase2,/action:"reportLetter"/);
+  assert.match(phase2,/replaceChildren/);
+  assert.doesNotMatch(phase2,/innerHTML\s*=/);
+  assert.match(server,/own_approved_memory_required/);
+  assert.match(server,/sender_hash=\$1/);
+  assert.match(server,/recipient_hash=\$2/);
+  assert.match(server,/notifyReply/);
+  assert.match(server,/moderateReport/);
+  assert.match(migrator,/20261120_campfire_phase2\.sql/);
+  assert.match(privacy,/双方/);
+  assert.match(privacy,/端到端加密/);
+  assert.doesNotMatch(phase2,/navigator\.geolocation|fingerprint|document\.cookie/i);
+});
