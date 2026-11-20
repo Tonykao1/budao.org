@@ -243,6 +243,7 @@ async function handler(req,res) {
       case "invite-block":return await stage2.invitation(req,res,data,"block");
       case "walk-intent":return await stage2.toggleWalk(req,res,data);
       case "private-message":return await stage2.privateMessage(req,res,data);
+      case "private-withdraw":return await stage2.withdrawPrivate(req,res,data);
       case "private-report":return await stage2.reportPrivate(req,res,data);
       case "private-moderate":return await stage2.moderatePrivate(req,res,data);
       default:return error(res,400,"invalid_action");
