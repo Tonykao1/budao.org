@@ -8,13 +8,14 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const SOURCE = 'zh-Hans';
-  const SUPPORTED = Object.freeze(['zh-Hans', 'zh-Hant', 'en', 'ja']);
+  const SUPPORTED = Object.freeze(['zh-Hans', 'zh-Hant', 'en', 'ja', 'ko']);
   function normalizeLocale(value) {
     const text = String(value || '').trim().replace(/_/g, '-').toLowerCase();
     if (text === 'zh-hant' || /^zh-(tw|hk|mo)(-|$)/.test(text) || text.startsWith('zh-hant-')) return 'zh-Hant';
     if (text === 'zh' || text === 'zh-hans' || /^zh-(cn|sg)(-|$)/.test(text) || text.startsWith('zh-hans-')) return SOURCE;
     if (text === 'en' || text.startsWith('en-')) return 'en';
     if (text === 'ja' || text.startsWith('ja-')) return 'ja';
+    if (text === 'ko' || text.startsWith('ko-')) return 'ko';
     return null;
   }
   // This phase is explicit opt-in only. Never automatically redirect by IP or browser language.
