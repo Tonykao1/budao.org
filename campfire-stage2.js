@@ -67,7 +67,13 @@
     const seen=snapshot.lastReadAt?new Date(snapshot.lastReadAt).getTime():0;
     const entries=[
       ...snapshot.replies.map(x=>({time:x.createdAt})),
-      ...snapshot.invites.map(x=>({time:x.updatedAt||x.createdAt}))
+      ...snapshot.invites.flatMap(x=>{
+        const events=[];
+        if(!x.mine && x.status==="PENDING")events.push({time:x.createdAt});
+        if(x.mine && x.respondedAt)events.push({time:x.respondedAt});
+        if(x.lastOtherMessageAt)events.push({time:x.lastOtherMessageAt});
+        return events;
+      })
     ];
     return entries.some(x=>new Date(x.time).getTime()>seen);
   }
