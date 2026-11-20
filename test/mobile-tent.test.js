@@ -13,6 +13,7 @@ process.env.GITHUB_PUBLISH_BRANCH = "main";
 const { validateRoute } = require("../api/_security/route-schema");
 const routesApi = require("../api/routes");
 const publish = require("../api/publish-route-v2");
+const location = require("../mobile-tent-location");
 
 function signedCookie(id, username) {
   const payload = Buffer.from(JSON.stringify({
@@ -51,7 +52,7 @@ test("mobile editor includes required route data, preview, photos, and safe logi
   const html = fs.readFileSync(path.join(root, "mobile-tent.html"), "utf8");
   const js = fs.readFileSync(path.join(root, "mobile-tent.js"), "utf8");
   const css = fs.readFileSync(path.join(root, "mobile-tent.css"), "utf8");
-  const fieldNames = ["title", "calendarType", "date", "time", "timezone", "location",
+  const fieldNames = ["title", "calendarType", "date", "time", "timezone",
     "country", "city", "region", "meetingPlace", "duration", "distance", "elevation",
     "difficulty", "suitableFor", "equipmentMinimum", "participantRequirements",
     "surface", "description"];
@@ -59,6 +60,15 @@ test("mobile editor includes required route data, preview, photos, and safe logi
     assert.ok(html.includes('name="' + name + '"'), name + " is missing from mobile form");
   }
   assert.match(html, /name="password" type="password"/);
+  assert.doesNotMatch(html, /name="location"/);
+  assert.match(html, /id="locationPreview"/);
+  assert.match(html, /src="\/mobile-tent-location\.js"/);
+  for (const name of ["country", "city", "region", "surface"]) {
+    assert.match(html, new RegExp('name="' + name + '"[^>]*\\brequired\\b'));
+  }
+  assert.match(js, /payload\.location = locationCore\.compose\(payload\)/);
+  assert.match(js, /"country", "city", "region", "surface", "meetingPlace"/);
+  assert.match(js, /locationCore\.parseLegacy\(source\.location\)/);
   assert.match(html, /id="routePicker"/);
   assert.match(html, /id="coverFile" accept="image\/\*"/);
   assert.match(html, /id="qrFile" accept="image\/\*"/);
@@ -161,4 +171,21 @@ test("QR processing keeps entire image while cover can crop to 16:9", () => {
   assert.match(js, /const scale = Math\.min\(1, 1400 \/ Math\.max\(sourceW, sourceH\)\)/);
   assert.match(js, /context\.drawImage\(image, 0, 0, canvas\.width, canvas\.height\)/);
   assert.match(js, /if \(selectedRoute && selectedRoute\.qrCode\)/);
+});
+
+test("country / province / city produce exactly one canonical uneditable location", () => {
+  const china = { country: " 中国 ", city: " 北京 ", region: " 顺义 " };
+  assert.equal(location.compose(china), "中国 · 北京 · 顺义");
+  assert.equal(location.compose({ country: "美国", city: "加州", region: "奥克兰" }),
+    "美国 · 加州 · 奥克兰");
+  assert.equal(location.compose({ country: "中国", city: "", region: "顺义" }), "");
+  assert.equal(location.compose({ country: "中国", city: "北·京", region: "顺义" }), "");
+  assert.equal(location.compose({ country: "中国", city: "北京", region: "顺义·后沙峪" }), "");
+  assert.equal(location.compose({ country: "中国", city: "北京\\n天津", region: "顺义" }), "");
+  assert.equal(location.compose({ country: "中国", city: "北京", region: "顺义", location: "spoofed" }),
+    "中国 · 北京 · 顺义");
+  assert.deepEqual(location.parseLegacy("中国 · 北京 · 顺义"),
+    { country: "中国", city: "北京", region: "顺义" });
+  assert.equal(location.parseLegacy("中国北京顺义"), null);
+  assert.equal(location.parseLegacy("中国 · 北京 · 顺义 · 后沙峪"), null);
 });
