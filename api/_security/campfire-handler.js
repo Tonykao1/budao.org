@@ -102,7 +102,9 @@ async function moderationQueue(req,res) {
     "c.photo_id AS \"photoId\",c.body,c.status FROM campfire_reports r "+
     "JOIN campfire_comments c ON c.id=r.comment_id WHERE r.resolved_at IS NULL "+
     "ORDER BY r.created_at DESC LIMIT 100");
-  return sendJson(res,200,{ok:true,pending,reports});
+  const privateReports = process.env.CAMPFIRE_PHASE2_ENABLED==="true"
+    ? await phase2.listReports(query) : [];
+  return sendJson(res,200,{ok:true,pending,reports,privateReports});
 }
 async function react(req,res,data) {
   const photoId = data.photoId;
@@ -242,7 +244,9 @@ async function handler(req,res) {
       case "moderate":return await moderate(req,res,data);
       case "report":return await report(req,res,data);
       case "withdraw":return await withdrawOwnComment(req,res,data);
-      case "invite":case "respond":case "letter":case "closeConnection":case "readNotice":
+      case "moderatePrivate":
+        return phase2.moderateReport(req,res,data,{query,sendJson,adminFor});
+      case "invite":case "respond":case "letter":case "reportLetter":case "closeConnection":case "readNotice":
         return phase2.handlePost(req,res,data,{
           query,guestHash,validPhoto,photos,sendJson,guestWritesEnabled
         });
