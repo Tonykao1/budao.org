@@ -198,9 +198,13 @@
       const next=make("a","camp-p2-next","一起看看下一次步道 ↗");
       next.href="/test.html";
       panel.append(next);
-      await request("POST",{}, {action:"markLettersRead",connectionId:id});
-      const label=panel.closest(".camp-p2-connection")?.querySelector(".camp-p2-state");
-      if(label)label.textContent="双方已同意 · 可私密交流";
+      try{
+        await request("POST",{}, {action:"markLettersRead",connectionId:id});
+        const label=panel.closest(".camp-p2-connection")?.querySelector(".camp-p2-state");
+        if(label)label.textContent="双方已同意 · 可私密交流";
+      }catch{
+        announce("信件已经载入，已读状态暂时无法更新。");
+      }
     }catch(e){panel.replaceChildren(make("p","camp-thread-empty",reason(e)));}
   }
   async function openInvite(comment,photo){
