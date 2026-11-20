@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS campfire_letters (
   connection_id uuid NOT NULL REFERENCES campfire_connections(id) ON DELETE CASCADE,
   sender_hash char(64) NOT NULL,
   body varchar(500) NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT NOW()
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  recipient_read_at timestamptz
 );
 CREATE INDEX IF NOT EXISTS campfire_letters_thread_idx
   ON campfire_letters(connection_id,created_at ASC);
