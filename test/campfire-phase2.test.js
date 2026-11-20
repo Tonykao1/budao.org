@@ -40,7 +40,8 @@ function rowsFor(sql,args) {
     return store.connections.filter(c=>c.sender_hash===args[0]||c.recipient_hash===args[0])
       .map(c=>({id:c.id,photoId:c.photo_id,albumId:c.album_id,intro:c.intro,
         status:c.status,createdAt:c.requested_at,expiresAt:c.expires_at,
-        sentByMe:c.sender_hash===args[0],receivedByMe:c.recipient_hash===args[0]}));
+        sentByMe:c.sender_hash===args[0],receivedByMe:c.recipient_hash===args[0],
+        hasNewLetters:store.letters.some(l=>l.connection_id===c.id&&l.sender_hash!==args[0]&&!l.recipient_read_at)}));
   }
   if(sql.startsWith("SELECT id,visitor_hash,photo_id,album_id")){
     const x=store.comments.find(c=>c.id===args[0]&&c.status==="APPROVED"&&c.visitor_hash);
@@ -74,11 +75,17 @@ function rowsFor(sql,args) {
   }
   if(sql.startsWith("INSERT INTO campfire_letters")){
     const id=crypto.randomUUID();store.letters.push({id,connection_id:args[0],sender_hash:args[1],
-      body:args[2],created_at:new Date().toISOString()});return [{id}];
+      body:args[2],created_at:new Date().toISOString(),recipient_read_at:null});return [{id}];
   }
   if(sql.startsWith('SELECT id,sender_hash=$2 AS mine')){
     return store.letters.filter(l=>l.connection_id===args[0]).map(l=>({id:l.id,
       mine:l.sender_hash===args[1],body:l.body,createdAt:l.created_at}));
+  }
+  if(sql.startsWith("UPDATE campfire_letters SET recipient_read_at")){
+    for(const letter of store.letters)
+      if(letter.connection_id===args[0]&&letter.sender_hash!==args[1]&&!letter.recipient_read_at)
+        letter.recipient_read_at=new Date().toISOString();
+    return [];
   }
   if(sql.startsWith("UPDATE campfire_connections SET status='REVOKED'")){
     const c=store.connections.find(c=>c.id===args[0]&&(c.sender_hash===args[1]||c.recipient_hash===args[1])&&
@@ -179,6 +186,12 @@ test("two-sided consent is enforced; no anonymous identity inference or public i
   assert.equal(privateLetters.statusCode,200);
   assert.equal(privateLetters.payload.letters.length,1);
   assert.equal(privateLetters.payload.letters[0].mine,false);
+  const beforeRead=await get(ben,"inbox");
+  assert.equal(beforeRead.payload.connections[0].hasNewLetters,true);
+  const readNotice=await post(ben,"markLettersRead",{connectionId:id});
+  assert.equal(readNotice.statusCode,200);
+  assert.equal((await get(ben,"inbox")).payload.connections[0].hasNewLetters,false);
+  assert.equal((await post(eve,"markLettersRead",{connectionId:id})).statusCode,404);
   assert.equal((await get(eve,"letters",id)).statusCode,404);
   const letterId=store.letters[0].id;
   assert.equal((await post(eve,"reportLetter",{connectionId:id,letterId})).statusCode,404);
