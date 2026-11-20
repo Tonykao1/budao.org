@@ -49,6 +49,20 @@ English parallelism proposed for review:
 - Status: **DRAFT FOR OWNER REVIEW**. Do not mark official until the target-language meaning, and desktop/mobile fit in the original Chinese composition, have been accepted.
 - The Chinese default view and Traditional Chinese translations remain untouched. No aesthetic redesign is authorized.
 
+
+### 2026-11-20 — “五个一” semantic alignment update (OWNER-APPROVED AS MEANING)
+
+This section **supersedes the preliminary five-uppercase-nouns simplification** for future draft translations; it does not overwrite existing published pages until separately approved.
+
+- Canonical Chinese: **一个拥抱 · 一条线路 · 一则故事 · 一段经文 · 一起祷告** (Traditional: **一個擁抱 · 一條線路 · 一則故事 · 一段經文 · 一起禱告**).
+- These are **four tangible gifts and one shared action**. Repeating “one” where natural is preferred to five detached topic labels; however, the fifth item is “together” and must remain an invitation to act.
+- **一条线路** denotes a planned walking route/itinerary with specific leader-supplied detail, *not* just a footpath or generic natural trail. Proposed: EN **ONE ROUTE**, JA **ひとつのコース**, ES **UNA RUTA**.
+- **一段经文** denotes a **passage of the Bible** (one verse or several); do not replace it with “writing”, the whole Scripture, or a compulsory single verse. Proposed: EN **ONE SCRIPTURE PASSAGE**, JA **聖書の一箇所**, ES **UN PASAJE BÍBLICO**.
+- **一起祷告** is a co-participation invitation and a **working prayer-box button**; not merely a generic noun “prayer”. Proposed: EN **PRAY TOGETHER**, JA **ともに祈る**, ES **OREMOS JUNTOS**. Keep the original button ID `prayerBoxTrigger`, permissions, form, and API unchanged.
+- **一个拥抱 / 一则故事** remain concrete and human. Proposed EN **ONE EMBRACE / ONE STORY**, JA **ひとつの抱擁 / ひとつの物語**, ES **UN ABRAZO / UNA HISTORIA**.
+- Future language reviews must show **Chinese source → target → independent Chinese backtranslation → theological/meaning owner sign-off → native-language check → visual and functional tests**. Technical CI alone does not certify translation quality.
+- English and Japanese wording above is **proposed in the Spanish review branch, not published**. The owner has approved semantic alignment, **not the unreviewed foreign-language wording**. See `docs/2026-11-20-home-spanish-editorial-review.md` for the bilingual matrix and backtranslations.
+
 ## 3B. Footer names — OWNER-APPROVED
 
 | Chinese source | English official name | Traditional Chinese | UI treatment |
