@@ -113,6 +113,8 @@
     spark.disabled=likedAlready||(!enabled&&!admin);
     tools.append(spark);
     if(enabled||admin)tools.append(button("回复","camp-thread-tool",()=>replyTo(c)));
+    if(enabled&&!c.mine&&!c.official)
+      tools.append(button("邀请同行","camp-thread-tool",()=>window.CampfireStage2?.inviteTo(c,photo)));
     tools.append(button("举报","camp-thread-tool",()=>reportComment(c)));
     if(c.mine && !c.official) {
       tools.append(button("撤回我的留言","camp-thread-tool",async()=>{
