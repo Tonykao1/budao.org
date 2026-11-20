@@ -371,7 +371,8 @@ body{
     align-content:flex-start;
 }
 
-.route-info button{
+.route-info button,
+.route-info .route-fact-missing{
     width:100%;
     min-height:38px;
     padding:10px 12px;
@@ -388,6 +389,18 @@ body{
     transition:transform 240ms ease,background-color 240ms ease,color 240ms ease,border-color 240ms ease;
     font-variant-numeric:tabular-nums;
     font-feature-settings:"tnum" 1,"lnum" 1;
+}
+
+/* Fixed 4x2 fact rhythm: blank optional values are shown honestly, never fabricated. */
+.route-info .route-fact-missing{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#faf9f6;
+    border-style:dashed;
+    color:#99948b;
+    cursor:default;
+    user-select:none;
 }
 
 .route-info button:hover,
@@ -1051,15 +1064,7 @@ function renderRoutes(routes){
             </div>
         `;
 
-        const infoHtml = route.pending ? "" : `
-                    ${parameterButton("time", route.time, route.time + " 集合")}
-                    ${parameterButton("duration", route.duration, route.duration)}
-                    ${parameterButton("distance", route.distance, route.distance)}
-                    ${parameterButton("surface", route.surface, route.surface)}
-                    ${parameterButton("elevation", route.elevation, route.elevation)}
-                    ${route.difficulty ? parameterButton("difficulty", route.difficulty, "难度 " + route.difficulty) : ""}
-                    ${route.suitableFor ? parameterButton("suitableFor", route.suitableFor, route.suitableFor) : ""}
-                    ${route.equipmentMinimum ? parameterButton("equipmentMinimum", route.equipmentMinimum, "装备 " + route.equipmentMinimum) : ""}`;
+        const infoHtml = route.pending ? "" : routeFactsHtml(route);
 
         const actionHtml = route.pending ?
             `<button class="route-button" type="button" disabled>等待安放</button>` :
@@ -1118,6 +1123,31 @@ function meetingPlaceHtml(route){
             </div>
         </div>
     `;
+}
+
+// Every published route occupies the same eight factual positions.
+// Missing information is a noninteractive, explicitly labelled placeholder
+// rather than an invented statistic or an empty clickable button.
+function routeFact(type,value,label,missingLabel){
+    const actual = String(value == null ? "" : value).trim();
+    if(!actual){
+        const message = missingLabel + "待补充";
+        return `<span class="route-fact-missing" data-fact="${escapeAttribute(type)}" title="${escapeAttribute(missingLabel + "尚未填写")}" aria-label="${escapeAttribute(message)}">${escapeHtml(message)}</span>`;
+    }
+    return parameterButton(type,actual,label);
+}
+
+function routeFactsHtml(route){
+    return [
+        routeFact("time",route.time,route.time ? route.time + " 集合" : "","时间"),
+        routeFact("duration",route.duration,route.duration,"时长"),
+        routeFact("distance",route.distance,route.distance,"距离"),
+        routeFact("surface",route.surface,route.surface,"路面"),
+        routeFact("elevation",route.elevation,route.elevation,"爬升"),
+        routeFact("difficulty",route.difficulty,route.difficulty,"难度"),
+        routeFact("suitableFor",route.suitableFor,route.suitableFor,"适合人群"),
+        routeFact("equipmentMinimum",route.equipmentMinimum,route.equipmentMinimum,"装备要求")
+    ].join("\n");
 }
 
 function parameterButton(type,value,label){
