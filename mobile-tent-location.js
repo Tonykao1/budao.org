@@ -16,15 +16,15 @@
     const text = normalize(value);
     // Keep the three-level public location string unambiguous. Middle dots
     // belong exclusively to the formatter, never to individual user fields.
-    return Boolean(text) && text.length <= maximum &&
-      !/[·•\u0000-\u001f\u007f]/.test(text);
+    return typeof value === "string" && Boolean(text) && text.length <= maximum &&
+      !/[·•\u0000-\u001f\u007f]/.test(value);
   }
 
   function compose(parts) {
     if (!parts || typeof parts !== "object") return "";
     const values = ["country", "city", "region"].map(function (name) {
-      const value = normalize(parts[name]);
-      return validPart(value, limits[name]) ? value : "";
+      const raw = parts[name];
+      return validPart(raw, limits[name]) ? normalize(raw) : "";
     });
     return values.every(Boolean) ? values.join(separator) : "";
   }
