@@ -56,8 +56,6 @@ module.exports = async function handler(request, response) {
     if (scope === "altar") {
       const publisher = getAuthenticatedPublisher(request);
       if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
-  const environmentError = routeWriteBlockReason(branch);
-  if (environmentError) return sendProtectedJson(response, 403, { ok: false, reason: environmentError });
       if (!isSteward(publisher)) return sendProtectedJson(response, 403, { ok: false, reason: "forbidden" });
       return handleAltarRead(response, routes);
     }
@@ -81,6 +79,8 @@ async function handleLeaderStatusAction(request, response) {
 
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendProtectedJson(response, 401, { ok: false, reason: "unauthorized" });
+  const environmentError = routeWriteBlockReason(branch);
+  if (environmentError) return sendProtectedJson(response, 403, { ok: false, reason: environmentError });
   if (!consume("route-status:" + publisher.id + ":" + clientIp(request), 12, 60_000)) {
     return sendProtectedJson(response, 429, { ok: false, reason: "rate_limited" });
   }
