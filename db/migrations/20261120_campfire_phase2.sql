@@ -42,3 +42,17 @@ CREATE TABLE IF NOT EXISTS campfire_letters (
 );
 CREATE INDEX IF NOT EXISTS campfire_letters_thread_idx
   ON campfire_letters(connection_id,created_at ASC);
+
+-- Reports expose only explicitly flagged private letters to authorized stewards.
+CREATE TABLE IF NOT EXISTS campfire_letter_reports (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  letter_id uuid NOT NULL REFERENCES campfire_letters(id) ON DELETE CASCADE,
+  connection_id uuid NOT NULL REFERENCES campfire_connections(id) ON DELETE CASCADE,
+  reporter_hash char(64) NOT NULL,
+  reason varchar(120),
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  resolved_at timestamptz,
+  UNIQUE(letter_id,reporter_hash)
+);
+CREATE INDEX IF NOT EXISTS campfire_letter_reports_queue_idx
+  ON campfire_letter_reports(resolved_at,created_at DESC);
