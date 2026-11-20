@@ -48,6 +48,10 @@ async function main() {
     "utf8"
   );
   statements.push(...parseStatements(guestLimitsSql, 2));
+  const stage2Sql = fs.readFileSync(
+    path.join(__dirname, "..", "db", "migrations", "20261120_campfire_relations.sql"), "utf8"
+  );
+  statements.push(...parseStatements(stage2Sql, 8));
 
   const { neon } = require("@neondatabase/serverless");
   const sql = neon(process.env.DATABASE_URL);
@@ -59,9 +63,11 @@ async function main() {
 
   const check = await sql(
     "SELECT to_regclass('public.campfire_comments') IS NOT NULL AS comments_ready, " +
-    "to_regclass('public.campfire_write_limits') IS NOT NULL AS limits_ready"
+    "to_regclass('public.campfire_write_limits') IS NOT NULL AS limits_ready, " +
+    "to_regclass('public.campfire_peer_invites') IS NOT NULL AS invites_ready, " +
+    "to_regclass('public.campfire_private_messages') IS NOT NULL AS messages_ready"
   );
-  if (!check[0] || !check[0].comments_ready || !check[0].limits_ready) {
+  if (!check[0] || !check[0].comments_ready || !check[0].limits_ready || !check[0].invites_ready || !check[0].messages_ready) {
     throw new Error("Campfire migration verification failed");
   }
   process.stdout.write("Campfire schema ready: moderated comments and persistent abuse limits verified.\n");
