@@ -101,7 +101,7 @@
     const head=make("div","camp-p2-connection-heading");
     const status={
       PENDING:c.receivedByMe?"等待你的决定":"等待对方回应",
-      ACCEPTED:"双方已同意 · 可私密交流",
+      ACCEPTED:c.hasNewLetters?"✉ 有新回响":"双方已同意 · 可私密交流",
       DECLINED:"对方已婉拒",
       REVOKED:"同行联系已结束",
       EXPIRED:"邀请或联系已到期"
@@ -198,6 +198,9 @@
       const next=make("a","camp-p2-next","一起看看下一次步道 ↗");
       next.href="/test.html";
       panel.append(next);
+      await request("POST",{}, {action:"markLettersRead",connectionId:id});
+      const label=panel.closest(".camp-p2-connection")?.querySelector(".camp-p2-state");
+      if(label)label.textContent="双方已同意 · 可私密交流";
     }catch(e){panel.replaceChildren(make("p","camp-thread-empty",reason(e)));}
   }
   async function openInvite(comment,photo){
