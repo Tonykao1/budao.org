@@ -51,7 +51,9 @@ async function inbox(req,res,ctx) {
   const connections=await ctx.query(
     'SELECT id,photo_id AS "photoId",album_id AS "albumId",intro,status,'+
     'requested_at AS "createdAt",expires_at AS "expiresAt",'+
-    'sender_hash=$1 AS "sentByMe",recipient_hash=$1 AS "receivedByMe" '+
+    'sender_hash=$1 AS "sentByMe",recipient_hash=$1 AS "receivedByMe",'+
+    'EXISTS (SELECT 1 FROM campfire_letters l WHERE l.connection_id=campfire_connections.id '+
+    'AND l.sender_hash<>$1 AND l.recipient_read_at IS NULL) AS "hasNewLetters" '+
     "FROM campfire_connections WHERE sender_hash=$1 OR recipient_hash=$1 "+
     "ORDER BY requested_at DESC LIMIT 70",[visitor]);
   // Only currently approved public photos are ever linked in the inbox.
@@ -65,6 +67,7 @@ async function inbox(req,res,ctx) {
       id:c.id,photoId:c.photoId,albumId:c.albumId,intro:c.intro,
       status:new Date(c.expiresAt)<new Date() && ["PENDING","ACCEPTED"].includes(c.status)?"EXPIRED":c.status,
       sentByMe:!!c.sentByMe,receivedByMe:!!c.receivedByMe,
+      hasNewLetters:!!c.hasNewLetters,
       createdAt:c.createdAt,expiresAt:c.expiresAt
     }))
   });
@@ -137,6 +140,18 @@ async function letters(req,res,id,ctx) {
     [id,visitor]);
   return ctx.sendJson(res,200,{ok:true,connectionId:id,photoId:c.photoId,
     letters:rows.map(row=>({id:row.id,mine:!!row.mine,body:row.body,createdAt:row.createdAt}))});
+}
+async function markLettersRead(req,res,data,ctx) {
+  const visitor=visitorFor(req,res,ctx);
+  if(!visitor)return error(res,403,"visitor_session_required");
+  const c=await connectionFor(ctx,data.connectionId,visitor);
+  if(!c||c.status!=="ACCEPTED"||new Date(c.expiresAt)<=new Date()||
+      !ctx.validPhoto(c.photoId))return error(res,404,"conversation_unavailable");
+  await ctx.query(
+    "UPDATE campfire_letters SET recipient_read_at=NOW() WHERE connection_id=$1::uuid "+
+    "AND sender_hash<>$2 AND recipient_read_at IS NULL",
+    [data.connectionId,visitor]);
+  return ctx.sendJson(res,200,{ok:true});
 }
 async function sendLetter(req,res,data,ctx) {
   const visitor=visitorFor(req,res,ctx);
@@ -242,6 +257,7 @@ async function handlePost(req,res,data,ctx) {
     case "invite":return invite(req,res,data,ctx);
     case "respond":return respond(req,res,data,ctx);
     case "letter":return sendLetter(req,res,data,ctx);
+    case "markLettersRead":return markLettersRead(req,res,data,ctx);
     case "closeConnection":return close(req,res,data,ctx);
     case "readNotice":return readNotice(req,res,data,ctx);
     case "reportLetter":return reportLetter(req,res,data,ctx);
