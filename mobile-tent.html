@@ -7,6 +7,7 @@
   <meta name="description" content="BUDAO 掌上帐篷：带领人在手机上编辑、预览与发布同行线路。">
   <title>掌上帐篷 · BUDAO</title>
   <link rel="stylesheet" href="/mobile-tent.css">
+  <script src="/mobile-tent-location.js" defer></script>
   <script src="/mobile-tent.js" defer></script>
 </head>
 <body>
@@ -85,15 +86,19 @@
                 <option value="Australia/Sydney">澳大利亚 · 悉尼</option>
               </select>
             </label>
-            <label>地点层级 <em>必填</em><input name="location" maxlength="240" required placeholder="例如：中国 · 北京 · 顺义"></label>
+            <div class="geo-fields" aria-labelledby="geoTitle">
+              <h3 id="geoTitle">国家、省市与线路地形 <span class="required-note">以下四项必填</span></h3>
+              <label>国家 / 地区 <em>必填</em><input name="country" maxlength="80" required placeholder="例如：中国" autocomplete="off"></label>
+              <label>省 / 州 / 直辖市 <em>必填</em><input name="city" maxlength="80" required placeholder="例如：北京" autocomplete="off"></label>
+              <label>城市 / 区县 <em>必填</em><input name="region" maxlength="120" required placeholder="例如：顺义" autocomplete="off"></label>
+              <label>路面 / 地形 <em>必填</em><input name="surface" maxlength="240" required placeholder="例如：木栈道、林间土路、砂石路"></label>
+              <div class="location-generated" aria-live="polite">
+                <span>地点层级（系统自动生成，不可编辑）</span>
+                <output id="locationPreview" aria-label="自动生成的地点层级">请先填写国家、省州、城市区县</output>
+                <p class="hint">固定格式：国家 · 省／州 · 城市／区县。路面地形单独记录，不进入地点层级。</p>
+              </div>
+            </div>
             <label>集合地点 <em>必填</em><textarea name="meetingPlace" rows="2" maxlength="500" required placeholder="具体到哪个门、哪个停车场或标志建筑"></textarea></label>
-            <details class="extra">
-              <summary>细分国家、省市及路线地形（选填）</summary>
-              <label>国家<input name="country" maxlength="80" placeholder="中国"></label>
-              <label>城市<input name="city" maxlength="80" placeholder="北京"></label>
-              <label>地区<input name="region" maxlength="120" placeholder="顺义"></label>
-              <label>路面信息<input name="surface" maxlength="240" placeholder="栈道、林间土路、砂石路等"></label>
-            </details>
           </section>
 
           <section class="card" aria-labelledby="paceTitle">
