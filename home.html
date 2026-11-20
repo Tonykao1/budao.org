@@ -109,6 +109,16 @@
         margin: 6px 10px -30px auto;
       }
     }
+    /* Keep the expanded five-language switch away from Tesla-width nav cells. */
+    @media (min-width: 1201px) and (max-width: 1400px) {
+      #homeLanguageSwitch {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: max-content;
+        margin: 6px 10px -30px auto;
+      }
+    }
   </style>
   <!-- Home-only nav repair: six equal optical columns for vehicle/tablet viewports.
        Does not touch other pages or original six anchors. -->
@@ -171,6 +181,7 @@
   <a href="/home.html?lang=zh-Hant" lang="zh-Hant" hreflang="zh-Hant" target="_top" aria-label="切換至繁體中文首頁">繁</a>
   <a href="/home.html?lang=en" lang="en" hreflang="en" target="_top" aria-label="Switch homepage to English">EN</a>
   <a href="/home.html?lang=ja" lang="ja" hreflang="ja" target="_top" aria-label="日本語のホームページに切り替える">日</a>
+  <a href="/home.html?lang=es" lang="es" hreflang="es" target="_top" aria-label="Cambiar a la página de inicio en español">ES</a>
 </div>
 
 <header>
