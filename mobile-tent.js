@@ -92,7 +92,15 @@
       invalid_field: "某个字段格式或长度不符合要求。",
       invalid_calendar_type: "活动性质无效。",
       untrusted_image_url: "图片地址未通过安全验证，请重新上传。",
-      network_failed: "网络连接失败，请稍后重试。"
+      network_failed: "网络连接失败，请稍后重试。",
+      preview_write_disabled: "当前为预览环境，服务器禁止写入正式线路库。",
+      publish_target_mismatch: "发布目标与正式网站不一致，操作已被安全拦截。",
+      invalid_location: "地点层级校验未通过，请重新核对国家、省州和城市区县。",
+      missing_required_field: "仍有必填项目未完成，请返回编辑检查。",
+      invalid_date: "活动日期无效，请返回修改。",
+      invalid_time: "集合时间无效，请返回修改。",
+      route_not_found: "原线路已不存在或无权修改。请刷新线路列表后重试。",
+      routes_unavailable: "线路库暂时无法读取，无法安全核对发布结果。"
     };
     return descriptions[reason] || fallback || "操作暂未完成，请重试。";
   }
@@ -117,10 +125,10 @@
     return data;
   }
 
-  function postJson(url, data) {
+  function postJson(url, data, extraHeaders) {
     return requestJson(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: Object.assign({ "Content-Type": "application/json" }, extraHeaders || {}),
       body: JSON.stringify(data)
     });
   }
@@ -522,6 +530,50 @@
     return result.url;
   }
 
+  function waitForCalendar(delay) {
+    return new Promise(function (resolve) { setTimeout(resolve, delay); });
+  }
+
+  async function verifyPublishedRoute(saved) {
+    const expectedId = routeId(saved);
+    if (!expectedId) return "服务器未返回线路编号，请联系步道管理员核查发布记录。";
+
+    try {
+      const owned = await requestJson("/api/routes?scope=mine-all");
+      const match = Array.isArray(owned) && owned.find(function (item) {
+        return routeId(item) === expectedId && item.title === saved.title &&
+          item.date === saved.date && item.time === saved.time;
+      });
+      if (!match) {
+        return "写入请求已获服务器确认，但暂未在个人线路库读到最新内容；请勿重复提交，稍后刷新核对。";
+      }
+    } catch (_error) {
+      return "服务器已确认写入；个人线路库的再次核对暂未完成，请稍后进入帐篷检查。";
+    }
+
+    if (saved.status === "cancelled") {
+      return "已在个人线路库核实保存成功。这条线路保持原有取消状态，因此不会出现在公开日历。";
+    }
+    let lastReadSucceeded = false;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const calendar = await requestJson("/api/routes?scope=calendar");
+        if (Array.isArray(calendar)) {
+          lastReadSucceeded = true;
+          const visible = calendar.some(function (item) {
+            return routeId(item) === expectedId && item.title === saved.title &&
+              item.date === saved.date && item.time === saved.time;
+          });
+          if (visible) return "已完成双重核对：线路写入成功，并已出现在步道公开活动日历。";
+        }
+      } catch (_error) {}
+      if (attempt < 2) await waitForCalendar(900);
+    }
+    return lastReadSucceeded ?
+      "已确认写入个人线路库，但公开日历尚未展示该线路。可能正在同步，或受线路监督状态影响；请勿重复提交。" :
+      "已确认写入个人线路库，公开日历暂时无法核验。请勿重复提交，稍后前往步道网站查看。";
+  }
+
   publishButton.addEventListener("click", async function () {
     if (previewOnly) {
       status($("#publishMessage"), "开发预览站不能写入正式线路库，请待审核上线后使用。");
@@ -554,12 +606,22 @@
         payload.qrCode = selectedRoute.qrCode;
       }
       status($("#publishMessage"), "正在写入步道线路库…");
-      const published = await postJson("/api/publish-route-v2", payload);
-      if (!published || !published.ok) throw new Error("发布结果未确认，请检查线路后再尝试。");
+      const published = await postJson("/api/publish-route-v2", payload, {
+        "X-Budao-Mobile-Tent": "1"
+      });
+      if (!published || !published.ok || !published.route || !routeId(published.route) ||
+          (!published.idempotent && !published.commit)) {
+        throw new Error("服务器未确认成功写入线路库，请勿立即重复提交，先核对已发布线路。");
+      }
+      if (selectedRoute && routeId(published.route) !== routeId(selectedRoute)) {
+        throw new Error("保存结果的线路编号与原线路不一致。请勿重复提交，并联系步道管理员核查。");
+      }
       clearDraft();
       disposePreviewImage();
       show(successView);
-      // Refresh selection data without making a successful publication look failed.
+      $("#publicationState").textContent = await verifyPublishedRoute(published.route);
+      // A successful commit must never appear as a failed publication solely
+      // because refreshing the editor's list encounters a temporary outage.
       try {
         await loadRoutes();
       } catch (_error) {}
