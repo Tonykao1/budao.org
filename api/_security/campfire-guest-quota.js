@@ -16,7 +16,10 @@ const RULES = Object.freeze({
   react: Object.freeze({ browser: 100, network: 400 }),
   comment: Object.freeze({ browser: 6, network: 50 }),
   report: Object.freeze({ browser: 8, network: 70 }),
-  withdraw: Object.freeze({ browser: 12, network: 50 })
+  withdraw: Object.freeze({ browser: 12, network: 50 }),
+  invite: Object.freeze({ browser: 3, network: 30 }),
+  connection: Object.freeze({ browser: 12, network: 60 }),
+  letter: Object.freeze({ browser: 12, network: 70 })
 });
 let lastPrune = 0;
 
