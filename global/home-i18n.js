@@ -6,43 +6,43 @@
 (function (root) {
   'use strict';
   const entries = [
-    { selector:'nav a[href="/home.html"]', source:'首页', values:{en:'Home', 'zh-Hant':'首頁', ja:'ホーム', ko:'홈'} },
-    { selector:'nav a[href="/test.html"]', source:'步道', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'道行', ko:'BUDAO'} },
-    { selector:'nav a[href="/tongxing.html"]', source:'童行', values:{en:'Young Explorers', 'zh-Hant':'童行', ja:'子どもと歩む', ko:'아이들과 함께'} },
-    { selector:'nav a[href="/tongdao.html"]', source:'同道', values:{en:'Companions', 'zh-Hant':'同道', ja:'ともに歩む', ko:'동행'} },
-    { selector:'nav a[href="/what.html"]', source:'同工', values:{en:'Fellow Workers', 'zh-Hant':'同工', ja:'ともに仕える人々', ko:'동역자'} },
-    { selector:'nav a[href="/tonglu.html"]', source:'牧场', values:{en:'Pasture', 'zh-Hant':'牧場', ja:'牧場', ko:'목장'} },
-    { selector:'#dspBtn', mode:'attribute', attribute:'aria-label', source:'同行之声母带处理', values:{en:'Audio master processing', 'zh-Hant':'同行之聲母帶處理', ja:'同行の声：音声マスター処理', ko:'동행의 소리 마스터링'} },
-    { selector:'title', source:'步道 budao', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'道行', ko:'BUDAO'} },
-    { selector:'header > h1', source:'步道', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'道行', ko:'BUDAO'} },
-    { selector:'main section:nth-of-type(1) h2', source:'我们在做什么？', values:{en:'What do we do?', 'zh-Hant':'我們在做什麼？', ja:'私たちは何をしているのでしょうか？', ko:'우리는 무엇을 하나요?'} },
-    { selector:'main section:nth-of-type(1) p', source:'健行于天地，相知于彼此，在旷野经历与祂的同在。', values:{en:'We walk the earth beneath the heavens, come to know one another, and encounter His presence in the wilderness.', 'zh-Hant':'健行於天地，相知於彼此，在曠野經歷與祂的同在。', ja:'空と大地の間を歩み、互いを知り、荒野で主の臨在に触れます。', ko:'하늘과 땅 사이를 걸으며 서로를 알아 가고, 광야에서 주님의 임재를 경험합니다.'} },
-    { selector:'main section:nth-of-type(2) h2', source:'为什么是“步道”？', values:{en:'Why BUDAO?', 'zh-Hant':'為什麼是「步道」？', ja:'なぜ「道行」なのでしょうか？', ko:'왜 BUDAO(부다오)인가요?'} },
-    { selector:'main section:nth-of-type(2) p', source:'祂就是道路、真理、生命。唯有祂亲自感动你同行天路，共步主道。', values:{en:'He is the way, the truth, and the life. He alone can stir our hearts to journey heavenward together, following His way.', 'zh-Hant':'祂就是道路、真理、生命。唯有祂親自感動你同行天路，共步主道。', ja:'イエス・キリストは道であり、真理であり、いのちです。主ご自身が私たちの心を動かしてくださるとき、私たちは天の御国を目指し、主の道をともに歩むのです。', ko:'예수 그리스도는 길이요 진리요 생명이십니다. 오직 주님께서 우리의 마음을 움직이실 때, 우리는 하나님 나라를 향해 함께 걸으며 주님의 길을 따릅니다.'} },
-    { selector:'main section:nth-of-type(3) h2', source:'“步道”有什么？', values:{en:'What will you find at BUDAO?', 'zh-Hant':'「步道」有什麼？', ja:'「道行」で何に出会える？', ko:'BUDAO에는 무엇이 있나요?'} },
-    { selector:'main section:nth-of-type(3) p', mode:'leading-text', source:'· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 ·', values:{en:'· EMBRACE · TRAIL · STORY · SCRIPTURE · ', 'zh-Hant':'· 一個擁抱 · 一條線路 · 一則故事 · 一段經文 · ', ja:'· 抱擁 · コース · 物語 · 聖句 · ', ko:'· 한 번의 포옹 · 하나의 걷기 코스 · 하나의 이야기 · 한 대목의 성경 말씀 · '} },
-    { selector:'#prayerBoxTrigger', source:'一起祷告', values:{en:'PRAYER', 'zh-Hant':'一起禱告', ja:'祈り', ko:'함께 기도해요'} },
-    { selector:'.prayer-box-backdrop', mode:'attribute', attribute:'aria-label', source:'关闭一起祷告', values:{en:'Close prayer dialog', 'zh-Hant':'關閉一起禱告', ja:'祈りの画面を閉じる', ko:'함께 기도하기 창 닫기'} },
-    { selector:'.prayer-box-close', mode:'attribute', attribute:'aria-label', source:'关闭', values:{en:'Close', 'zh-Hant':'關閉', ja:'閉じる', ko:'닫기'} },
-    { selector:'.prayer-box-header h2', source:'一起祷告', values:{en:'Pray Together', 'zh-Hant':'一起禱告', ja:'ともに祈る', ko:'함께 기도해요'} },
-    { selector:'.prayer-box-header p', source:'有什么想让我们陪你一起记念？', values:{en:'Is there something you would like us to remember in prayer?', 'zh-Hant':'有什麼想讓我們陪你一起記念？', ja:'私たちと一緒に祈ってほしいことはありますか？', ko:'우리가 함께 기도하기를 바라는 일이 있나요?'} },
-    { selector:'.prayer-box-sr-only', source:'代祷事项', values:{en:'Prayer request', 'zh-Hant':'代禱事項', ja:'祈ってほしいこと', ko:'기도 제목'} },
-    { selector:'.prayer-box-options legend', source:'关于这份祷告', values:{en:'About your prayer request', 'zh-Hant':'關於這份禱告', ja:'この祈りについて', ko:'이 기도 요청에 관하여'} },
-    { selector:'.prayer-box-options label:nth-of-type(1) span', source:'仅由步道带领人阅读和代祷', values:{en:'Only BUDAO leaders may read this and pray for me', 'zh-Hant':'僅由步道帶領人閱讀和代禱', ja:'道行のリーダーだけが内容を読み、あなたのために祈ります', ko:'BUDAO 인도자만 이 내용을 읽고 저를 위해 기도합니다'} },
-    { selector:'.prayer-box-options label:nth-of-type(2) span', source:'同意带领人邀请受托同工一起代祷', values:{en:'I agree that the leader may invite trusted fellow workers to pray too', 'zh-Hant':'同意帶領人邀請受託同工一起代禱', ja:'リーダーが信頼できる奉仕者にも祈りを依頼することに同意します', ko:'인도자가 신뢰할 수 있는 동역자에게도 기도를 부탁하는 데 동의합니다'} },
-    { selector:'.prayer-box-reply-choice span', source:'希望带领人私下回应我', values:{en:'I would like a private reply from a BUDAO leader', 'zh-Hant':'希望帶領人私下回應我', ja:'リーダーから個別に返信を希望します', ko:'인도자의 비공개 답변을 받고 싶습니다'} },
-    { selector:'.prayer-box-contact > span', source:'联系方式', values:{en:'Contact information', 'zh-Hant':'聯絡方式', ja:'連絡先', ko:'연락처'} },
-    { selector:'.prayer-box-contact > small', source:'仅在希望获得回应时填写', values:{en:'Only if you would like a reply', 'zh-Hant':'僅在希望獲得回應時填寫', ja:'返信をご希望の場合のみご記入ください', ko:'답변을 원하는 경우에만 입력해 주세요'} },
-    { selector:'.prayer-box-privacy', mode:'leading-text', source:'你的内容不会公开。', values:{en:'Your request will not be made public.', 'zh-Hant':'你的內容不會公開。', ja:'あなたの内容が公開されることはありません。', ko:'작성하신 내용은 공개되지 않습니다.'} },
-    { selector:'.prayer-box-privacy', mode:'leading-text', source:'我们会谨慎承接，只用于代祷与必要的关怀。', values:{en:'We will treat it with care, using it only for prayer and necessary support.', 'zh-Hant':'我們會謹慎承接，只用於代禱與必要的關懷。', ja:'祈りと必要なケアのためにのみ、慎重に取り扱います。', ko:'기도와 필요한 돌봄을 위해서만 신중하게 다룹니다.'} },
-    { selector:'.prayer-box-submit', source:'提交祷告', values:{en:'Send prayer request', 'zh-Hant':'提交禱告', ja:'祈りを送信', ko:'기도 요청 보내기'} },
-    { selector:'.prayer-box-success h2', source:'已经收到了。', values:{en:'Received.', 'zh-Hant':'已經收到了。', ja:'受け付けました。', ko:'기도 요청을 받았습니다.'} },
-    { selector:'.prayer-box-success p', source:'会有一位步道带领人安静地承接这份祷告。愿你在前面的路上，得着平安与同行。', values:{en:'A BUDAO leader will receive your prayer request with care. May you find peace and companionship on the road ahead.', 'zh-Hant':'會有一位步道帶領人安靜地承接這份禱告。願你在前面的路上，得著平安與同行。', ja:'道行のリーダーが、あなたの祈りを大切に受け止めます。これからの道のりに、平安とともに歩む仲間がありますように。', ko:'BUDAO 인도자가 이 기도 제목을 소중히 받아 기도하겠습니다. 앞으로 걸어갈 길에 평안과 함께할 이들이 있기를 바랍니다.'} },
-    { selector:'.prayer-box-return', source:'回到步道', values:{en:'Return to BUDAO', 'zh-Hant':'回到步道', ja:'道行に戻る', ko:'BUDAO로 돌아가기'} },
-    { selector:'.footer-sister-links', mode:'attribute', attribute:'aria-label', source:'事工展示', values:{en:'Ministry stories', 'zh-Hant':'事工展示', ja:'活動の紹介', ko:'사역 소개'} },
-    { selector:'footer .campfire-link:not(.spark-link)', source:'✦ 营火之地', values:{en:'✦ Campfire', 'zh-Hant':'✦ 營火之地', ja:'✦ キャンプファイヤー', ko:'✦ 모닥불 자리'} },
-    { selector:'footer .campfire-link.spark-link', source:'❦ 路上星火', values:{en:'❦ Sparks', 'zh-Hant':'❦ 路上星火', ja:'❦ 道を照らす小さな灯', ko:'❦ 길 위의 불씨'} },
-    { selector:'footer > p', mode:'leading-text', source:'© 2026 步道 budao.org', values:{en:'© 2026 BUDAO budao.org', 'zh-Hant':'© 2026 步道 budao.org', ja:'© 2026 道行 budao.org', ko:'© 2026 BUDAO budao.org'} }
+    { selector:'nav a[href="/home.html"]', source:'首页', values:{en:'Home', 'zh-Hant':'首頁', ja:'ホーム', ko:'홈', es:'Inicio'} },
+    { selector:'nav a[href="/test.html"]', source:'步道', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'道行', ko:'BUDAO', es:'BUDAO'} },
+    { selector:'nav a[href="/tongxing.html"]', source:'童行', values:{en:'Young Explorers', 'zh-Hant':'童行', ja:'子どもと歩む', ko:'아이들과 함께', es:'Niños en camino'} },
+    { selector:'nav a[href="/tongdao.html"]', source:'同道', values:{en:'Companions', 'zh-Hant':'同道', ja:'ともに歩む', ko:'동행', es:'Compañeros de camino'} },
+    { selector:'nav a[href="/what.html"]', source:'同工', values:{en:'Fellow Workers', 'zh-Hant':'同工', ja:'ともに仕える人々', ko:'동역자', es:'Colaboradores'} },
+    { selector:'nav a[href="/tonglu.html"]', source:'牧场', values:{en:'Pasture', 'zh-Hant':'牧場', ja:'牧場', ko:'목장', es:'Pradera'} },
+    { selector:'#dspBtn', mode:'attribute', attribute:'aria-label', source:'同行之声母带处理', values:{en:'Audio master processing', 'zh-Hant':'同行之聲母帶處理', ja:'同行の声：音声マスター処理', ko:'동행의 소리 마스터링', es:'Procesamiento de audio de las voces del camino'} },
+    { selector:'title', source:'步道 budao', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'道行', ko:'BUDAO', es:'BUDAO'} },
+    { selector:'header > h1', source:'步道', values:{en:'BUDAO', 'zh-Hant':'步道', ja:'道行', ko:'BUDAO', es:'BUDAO'} },
+    { selector:'main section:nth-of-type(1) h2', source:'我们在做什么？', values:{en:'What do we do?', 'zh-Hant':'我們在做什麼？', ja:'私たちは何をしているのでしょうか？', ko:'우리는 무엇을 하나요?', es:'¿Qué hacemos?'} },
+    { selector:'main section:nth-of-type(1) p', source:'健行于天地，相知于彼此，在旷野经历与祂的同在。', values:{en:'We walk the earth beneath the heavens, come to know one another, and encounter His presence in the wilderness.', 'zh-Hant':'健行於天地，相知於彼此，在曠野經歷與祂的同在。', ja:'空と大地の間を歩み、互いを知り、荒野で主の臨在に触れます。', ko:'하늘과 땅 사이를 걸으며 서로를 알아 가고, 광야에서 주님의 임재를 경험합니다.', es:'Caminamos entre el cielo y la tierra; nos conocemos unos a otros y experimentamos la presencia del Señor en el desierto.'} },
+    { selector:'main section:nth-of-type(2) h2', source:'为什么是“步道”？', values:{en:'Why BUDAO?', 'zh-Hant':'為什麼是「步道」？', ja:'なぜ「道行」なのでしょうか？', ko:'왜 BUDAO(부다오)인가요?', es:'¿Por qué BUDAO?'} },
+    { selector:'main section:nth-of-type(2) p', source:'祂就是道路、真理、生命。唯有祂亲自感动你同行天路，共步主道。', values:{en:'He is the way, the truth, and the life. He alone can stir our hearts to journey heavenward together, following His way.', 'zh-Hant':'祂就是道路、真理、生命。唯有祂親自感動你同行天路，共步主道。', ja:'イエス・キリストは道であり、真理であり、いのちです。主ご自身が私たちの心を動かしてくださるとき、私たちは天の御国を目指し、主の道をともに歩むのです。', ko:'예수 그리스도는 길이요 진리요 생명이십니다. 오직 주님께서 우리의 마음을 움직이실 때, 우리는 하나님 나라를 향해 함께 걸으며 주님의 길을 따릅니다.', es:'Él es el camino, la verdad y la vida. Solo Él puede conmover nuestros corazones para que caminemos juntos hacia su Reino, siguiendo su camino.'} },
+    { selector:'main section:nth-of-type(3) h2', source:'“步道”有什么？', values:{en:'What will you find at BUDAO?', 'zh-Hant':'「步道」有什麼？', ja:'「道行」で何に出会える？', ko:'BUDAO에는 무엇이 있나요?', es:'¿Qué encontrarás en BUDAO?'} },
+    { selector:'main section:nth-of-type(3) p', mode:'leading-text', source:'· 一个拥抱 · 一条线路 · 一则故事 · 一段经文 ·', values:{en:'· ONE EMBRACE · ONE ROUTE · ONE STORY · ONE SCRIPTURE PASSAGE · ', 'zh-Hant':'· 一個擁抱 · 一條線路 · 一則故事 · 一段經文 · ', ja:'· ひとつの抱擁 · ひとつのコース · ひとつの物語 · 聖書の一箇所 · ', ko:'· 한 번의 포옹 · 하나의 걷기 코스 · 하나의 이야기 · 한 대목의 성경 말씀 · ', es:'· UN ABRAZO · UNA RUTA · UNA HISTORIA · UN PASAJE BÍBLICO · '} },
+    { selector:'#prayerBoxTrigger', source:'一起祷告', values:{en:'PRAY TOGETHER', 'zh-Hant':'一起禱告', ja:'ともに祈る', ko:'함께 기도해요', es:'OREMOS JUNTOS'} },
+    { selector:'.prayer-box-backdrop', mode:'attribute', attribute:'aria-label', source:'关闭一起祷告', values:{en:'Close prayer dialog', 'zh-Hant':'關閉一起禱告', ja:'祈りの画面を閉じる', ko:'함께 기도하기 창 닫기', es:'Cerrar la ventana de oración'} },
+    { selector:'.prayer-box-close', mode:'attribute', attribute:'aria-label', source:'关闭', values:{en:'Close', 'zh-Hant':'關閉', ja:'閉じる', ko:'닫기', es:'Cerrar'} },
+    { selector:'.prayer-box-header h2', source:'一起祷告', values:{en:'Pray Together', 'zh-Hant':'一起禱告', ja:'ともに祈る', ko:'함께 기도해요', es:'Oremos juntos'} },
+    { selector:'.prayer-box-header p', source:'有什么想让我们陪你一起记念？', values:{en:'Is there something you would like us to remember in prayer?', 'zh-Hant':'有什麼想讓我們陪你一起記念？', ja:'私たちと一緒に祈ってほしいことはありますか？', ko:'우리가 함께 기도하기를 바라는 일이 있나요?', es:'¿Hay algo por lo que quisieras que oráramos contigo?'} },
+    { selector:'.prayer-box-sr-only', source:'代祷事项', values:{en:'Prayer request', 'zh-Hant':'代禱事項', ja:'祈ってほしいこと', ko:'기도 제목', es:'Petición de oración'} },
+    { selector:'.prayer-box-options legend', source:'关于这份祷告', values:{en:'About your prayer request', 'zh-Hant':'關於這份禱告', ja:'この祈りについて', ko:'이 기도 요청에 관하여', es:'Sobre esta petición'} },
+    { selector:'.prayer-box-options label:nth-of-type(1) span', source:'仅由步道带领人阅读和代祷', values:{en:'Only BUDAO leaders may read this and pray for me', 'zh-Hant':'僅由步道帶領人閱讀和代禱', ja:'道行のリーダーだけが内容を読み、あなたのために祈ります', ko:'BUDAO 인도자만 이 내용을 읽고 저를 위해 기도합니다', es:'Solo los líderes de BUDAO leerán esta petición y orarán por mí'} },
+    { selector:'.prayer-box-options label:nth-of-type(2) span', source:'同意带领人邀请受托同工一起代祷', values:{en:'I agree that the leader may invite trusted fellow workers to pray too', 'zh-Hant':'同意帶領人邀請受託同工一起代禱', ja:'リーダーが信頼できる奉仕者にも祈りを依頼することに同意します', ko:'인도자가 신뢰할 수 있는 동역자에게도 기도를 부탁하는 데 동의합니다', es:'Autorizo al líder a invitar a colaboradores de confianza a orar también por esta petición'} },
+    { selector:'.prayer-box-reply-choice span', source:'希望带领人私下回应我', values:{en:'I would like a private reply from a BUDAO leader', 'zh-Hant':'希望帶領人私下回應我', ja:'リーダーから個別に返信を希望します', ko:'인도자의 비공개 답변을 받고 싶습니다', es:'Quiero recibir una respuesta privada de un líder'} },
+    { selector:'.prayer-box-contact > span', source:'联系方式', values:{en:'Contact information', 'zh-Hant':'聯絡方式', ja:'連絡先', ko:'연락처', es:'Datos de contacto'} },
+    { selector:'.prayer-box-contact > small', source:'仅在希望获得回应时填写', values:{en:'Only if you would like a reply', 'zh-Hant':'僅在希望獲得回應時填寫', ja:'返信をご希望の場合のみご記入ください', ko:'답변을 원하는 경우에만 입력해 주세요', es:'Solo si deseas recibir una respuesta'} },
+    { selector:'.prayer-box-privacy', mode:'leading-text', source:'你的内容不会公开。', values:{en:'Your request will not be made public.', 'zh-Hant':'你的內容不會公開。', ja:'あなたの内容が公開されることはありません。', ko:'작성하신 내용은 공개되지 않습니다.', es:'Tu petición no se hará pública.'} },
+    { selector:'.prayer-box-privacy', mode:'leading-text', source:'我们会谨慎承接，只用于代祷与必要的关怀。', values:{en:'We will treat it with care, using it only for prayer and necessary support.', 'zh-Hant':'我們會謹慎承接，只用於代禱與必要的關懷。', ja:'祈りと必要なケアのためにのみ、慎重に取り扱います。', ko:'기도와 필요한 돌봄을 위해서만 신중하게 다룹니다.', es:'La trataremos con cuidado y solo la usaremos para orar y ofrecer el acompañamiento necesario.'} },
+    { selector:'.prayer-box-submit', source:'提交祷告', values:{en:'Send prayer request', 'zh-Hant':'提交禱告', ja:'祈りを送信', ko:'기도 요청 보내기', es:'Enviar petición'} },
+    { selector:'.prayer-box-success h2', source:'已经收到了。', values:{en:'Received.', 'zh-Hant':'已經收到了。', ja:'受け付けました。', ko:'기도 요청을 받았습니다.', es:'La hemos recibido.'} },
+    { selector:'.prayer-box-success p', source:'会有一位步道带领人安静地承接这份祷告。愿你在前面的路上，得着平安与同行。', values:{en:'A BUDAO leader will receive your prayer request with care. May you find peace and companionship on the road ahead.', 'zh-Hant':'會有一位步道帶領人安靜地承接這份禱告。願你在前面的路上，得著平安與同行。', ja:'道行のリーダーが、あなたの祈りを大切に受け止めます。これからの道のりに、平安とともに歩む仲間がありますように。', ko:'BUDAO 인도자가 이 기도 제목을 소중히 받아 기도하겠습니다. 앞으로 걸어갈 길에 평안과 함께할 이들이 있기를 바랍니다.', es:'Un líder de BUDAO acogerá esta petición en oración con discreción. Que encuentres paz y compañía en el camino que tienes por delante.'} },
+    { selector:'.prayer-box-return', source:'回到步道', values:{en:'Return to BUDAO', 'zh-Hant':'回到步道', ja:'道行に戻る', ko:'BUDAO로 돌아가기', es:'Volver a BUDAO'} },
+    { selector:'.footer-sister-links', mode:'attribute', attribute:'aria-label', source:'事工展示', values:{en:'Ministry stories', 'zh-Hant':'事工展示', ja:'活動の紹介', ko:'사역 소개', es:'Nuestros ministerios'} },
+    { selector:'footer .campfire-link:not(.spark-link)', source:'✦ 营火之地', values:{en:'✦ Campfire', 'zh-Hant':'✦ 營火之地', ja:'✦ キャンプファイヤー', ko:'✦ 모닥불 자리', es:'✦ La hoguera'} },
+    { selector:'footer .campfire-link.spark-link', source:'❦ 路上星火', values:{en:'❦ Sparks', 'zh-Hant':'❦ 路上星火', ja:'❦ 道を照らす小さな灯', ko:'❦ 길 위의 불씨', es:'❦ Chispas del camino'} },
+    { selector:'footer > p', mode:'leading-text', source:'© 2026 步道 budao.org', values:{en:'© 2026 BUDAO budao.org', 'zh-Hant':'© 2026 步道 budao.org', ja:'© 2026 道行 budao.org', ko:'© 2026 BUDAO budao.org', es:'© 2026 BUDAO budao.org'} }
   ];
   // The Chinese source and all original musical/art elements remain unchanged.
   // English creed is a preview-only content substitution using the EXISTING
@@ -201,6 +201,48 @@
     return line.textContent === proposedKoreanCreed;
   }
 
+  // Spanish homepage declaration is an editorial draft. It preserves all four
+  // original music-control spans and never changes their handlers.
+  const proposedSpanishCreed =
+    'Hasta el último día, andaremos por su camino; sin desviarnos ni a la izquierda ni a la derecha.';
+  function previewSpanishCreed(documentObject, locale) {
+    if (locale !== 'es' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const line = documentObject.querySelector('header .hero-line');
+    if (!line || typeof line.textContent !== 'string' ||
+        line.textContent.replace(/\s+/g, '') !== '余生行走，不偏左右') return false;
+    const dsp = documentObject.getElementById('dspBtn');
+    const play = documentObject.getElementById('playBtn');
+    const prev = documentObject.getElementById('prevBtn');
+    const next = documentObject.getElementById('nextBtn');
+    if (![dsp, play, prev, next].every(el => el && el.parentElement === line) ||
+        dsp.textContent !== '余' || play.textContent !== '走' ||
+        prev.textContent !== '左' || next.textContent !== '右') return false;
+    const leading = line.childNodes && line.childNodes[0];
+    const beforePlay = dsp.nextSibling;
+    const beforePrev = play.nextSibling;
+    const afterNext = next.nextSibling;
+    if (!leading || leading.nodeType !== 3 || leading.nodeValue.trim() !== '' ||
+        !beforePlay || beforePlay.nodeType !== 3 || beforePlay.nodeValue !== '生行' ||
+        !beforePrev || beforePrev.nodeType !== 3 ||
+        beforePrev.nodeValue.replace(/\s+/g, '') !== '，不偏' ||
+        !afterNext || afterNext.nodeType !== 3 || prev.nextSibling !== next ||
+        !documentObject.createTextNode || !line.insertBefore || !line.style) return false;
+    leading.nodeValue = '';
+    dsp.textContent = 'Hasta';
+    beforePlay.nodeValue = ' el último día, ';
+    play.textContent = 'andaremos';
+    beforePrev.nodeValue = ' por su camino;\nsin desviarnos ni a la ';
+    prev.textContent = 'izquierda';
+    line.insertBefore(documentObject.createTextNode(' ni a la '), next);
+    next.textContent = 'derecha';
+    afterNext.nodeValue = '.';
+    line.style.fontSize = 'clamp(12px, 1.35vw, 16px)';
+    line.style.letterSpacing = '0.01em';
+    line.style.whiteSpace = 'pre-line';
+    return line.textContent.replace(/\s+/g, ' ').trim() === proposedSpanishCreed;
+  }
+
   // Private prayer UI strings are local only: never sent to an external translation service.
 
   // Source-keyed UI strings for post-click changes made by prayer-box.js.
@@ -229,6 +271,12 @@
       '正在送达…': '보내는 중…',
       '提交祷告': '기도 요청 보내기',
       '暂时没有送达，请稍后再试。': '기도 요청을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    }),
+    es: Object.freeze({
+      '要放下尚未送出的内容吗？': '¿Deseas descartar tu petición de oración sin enviar?',
+      '正在送达…': 'Enviando…',
+      '提交祷告': 'Enviar petición',
+      '暂时没有送达，请稍后再试。': 'No se pudo enviar tu petición. Inténtalo de nuevo más tarde.'
     })
   });
   function runtimeCopy(source, localeOverride) {
@@ -257,7 +305,7 @@
     if (!wrap || wrap.tagName !== 'DIV' ||
         typeof wrap.querySelectorAll !== 'function') return false;
     const links = Array.from(wrap.querySelectorAll('a'));
-    if (links.length !== 4 ||
+    if (links.length !== 5 ||
         !links.every(link => typeof link.getAttribute === 'function' &&
           /^\/home\.html(?:\?[^#]*)?(?:#[-\w.%]*)?$/.test(link.getAttribute('href') || ''))) return false;
     const names = Object.freeze({
@@ -265,9 +313,10 @@
       'zh-Hant': ['繁','切換至繁體中文首頁'],
       en: ['EN','Switch homepage to English'],
       ja: ['日','日本語のホームページに切り替える'],
+      es: ['ES','Cambiar a la página de inicio en español'],
       ko: ['한','한국어 홈페이지로 전환']
     });
-    const languages = ['zh-Hans','zh-Hant','en','ja','ko'];
+    const languages = ['zh-Hans','zh-Hant','en','ja','es','ko'];
     if (!languages.includes(locale)) return false;
     const prepared = languages.filter(lang => lang !== locale).map(lang => ({
       lang,label:names[lang][0],description:names[lang][1],
@@ -283,6 +332,7 @@
       links[i].textContent=target.label;
     });
     wrap.setAttribute('aria-label',
+      locale === 'es' ? 'Idiomas de la página de inicio' :
       locale === 'ko' ? '홈페이지 언어 변경' :
       locale === 'ja' ? 'ホームページの言語切り替え' :
       locale === 'en' ? 'Homepage languages' :
@@ -296,7 +346,7 @@
   // English row horizontally scrollable on narrow screens rather than clipping
   // the first and last links. Never affects the original Chinese experience.
   function enableEnglishNarrowNavigation(windowObject, locale) {
-    if (!['en','zh-Hant','ja','ko'].includes(locale) || !windowObject || !windowObject.document ||
+    if (!['en','zh-Hant','ja','es','ko'].includes(locale) || !windowObject || !windowObject.document ||
         typeof windowObject.matchMedia !== 'function') return false;
     const nav = windowObject.document.querySelector('body > nav');
     if (!nav || !nav.style || typeof nav.querySelectorAll !== 'function') return false;
@@ -357,6 +407,22 @@
     return true;
   }
 
+  // BUDAO is an international proper name, never a machine-translated word.
+  // Source guard keeps existing Chinese, Traditional, English, Japanese untouched.
+  function annotateSpanishBrand(documentObject, locale) {
+    if (locale !== 'es' || !documentObject ||
+        typeof documentObject.querySelector !== 'function') return false;
+    const heading = documentObject.querySelector('header > h1');
+    const navBrand = documentObject.querySelector('nav a[href="/test.html"]');
+    if (!heading || !navBrand || heading.textContent.trim() !== 'BUDAO' ||
+        navBrand.textContent.trim() !== 'BUDAO' ||
+        typeof heading.setAttribute !== 'function' ||
+        typeof navBrand.setAttribute !== 'function') return false;
+    for (const element of [heading, navBrand]) {
+      element.setAttribute('translate','no');
+    }
+    return true;
+  }
   // Homepage language hot-swap: reuse the SAME document, media element and DSP graph.
   // Capture authored source nodes before the initial translation; no audio objects change.
   let homeSourceSnapshot = null;
@@ -435,8 +501,10 @@
       previewTraditionalCreed(root.document, chosen);
       previewJapaneseCreed(root.document, chosen);
       previewKoreanCreed(root.document, chosen);
+      previewSpanishCreed(root.document, chosen);
       annotateJapaneseBrand(root.document, chosen);
       annotateKoreanBrand(root.document, chosen);
+      annotateSpanishBrand(root.document, chosen);
       root.BudaoGlobal.carryLocaleOnLinks(root.document, chosen, ['/home.html']);
     }
     enableHomeNavigationForLocale(root, chosen);
@@ -452,7 +520,7 @@
     if (!navigationSync) {
       const mq = windowObject.matchMedia('(max-width: 699px)');
       navigationSync = () => {
-        if (mq.matches && ['en','zh-Hant','ja','ko'].includes(
+        if (mq.matches && ['en','zh-Hant','ja','es','ko'].includes(
           windowObject.BudaoGlobal.requestedLocale(windowObject.location.search))) {
           nav.style.overflowX = 'auto';
           nav.style.justifyContent = 'flex-start';
@@ -489,7 +557,7 @@
     root.addEventListener('popstate', () =>
       applyHomepageLocale(root.BudaoGlobal.requestedLocale(root.location.search)));
   }
-  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, previewKoreanCreed, proposedKoreanCreed, annotateJapaneseBrand, annotateKoreanBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
+  if (typeof module === 'object' && module.exports) module.exports = Object.freeze({ entries, start, runtimeCopy, previewEnglishCreed, approvedEnglishCreed, previewTraditionalCreed, previewJapaneseCreed, previewKoreanCreed, proposedKoreanCreed, previewSpanishCreed, proposedSpanishCreed, annotateJapaneseBrand, annotateKoreanBrand, annotateSpanishBrand, enableEnglishNarrowNavigation, configureHomeLanguageSwitch });
   if (root.document) {
     if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', start, {once:true});
     else start();
