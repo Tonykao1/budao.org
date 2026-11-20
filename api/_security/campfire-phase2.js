@@ -127,6 +127,35 @@ async function connectionFor(ctx,id,visitor) {
     "AND (sender_hash=$2 OR recipient_hash=$2) LIMIT 1",[id,visitor]);
   return rows[0]||null;
 }
+async function walkState(ctx,id,visitor) {
+  const rows=await ctx.query(
+    'SELECT participant_hash=$2 AS mine,interested FROM campfire_walk_intentions '+
+    "WHERE connection_id=$1::uuid LIMIT 2",[id,visitor]);
+  return {
+    myInterest:rows.some(row=>row.mine&&row.interested),
+    mutualInterest:rows.length===2&&rows.every(row=>row.interested)
+  };
+}
+async function setWalkIntent(req,res,data,ctx) {
+  const visitor=visitorFor(req,res,ctx);
+  if(!visitor)return error(res,403,"visitor_session_required");
+  if(!isUuid(data.connectionId)||typeof data.interested!=="boolean")
+    return error(res,400,"invalid_request");
+  const c=await connectionFor(ctx,data.connectionId,visitor);
+  if(!c||c.status!=="ACCEPTED"||new Date(c.expiresAt)<=new Date()||
+      !ctx.validPhoto(c.photoId))return error(res,404,"conversation_unavailable");
+  if(!await quota(ctx,req,visitor,"connection"))return error(res,429,"rate_limited");
+  const updated=await ctx.query(
+    "INSERT INTO campfire_walk_intentions(connection_id,participant_hash,interested) "+
+    "SELECT id,$2,$3 FROM campfire_connections WHERE id=$1::uuid "+
+    "AND status='ACCEPTED' AND expires_at>NOW() "+
+    "AND (sender_hash=$2 OR recipient_hash=$2) "+
+    "ON CONFLICT(connection_id,participant_hash) DO UPDATE "+
+    "SET interested=EXCLUDED.interested,updated_at=NOW() RETURNING connection_id",
+    [data.connectionId,visitor,data.interested]);
+  if(!updated.length)return error(res,409,"conversation_unavailable");
+  return ctx.sendJson(res,200,{ok:true,...await walkState(ctx,data.connectionId,visitor)});
+}
 async function letters(req,res,id,ctx) {
   if(!active(ctx))return error(res,403,"feature_disabled");
   const visitor=visitorFor(req,res,ctx);
@@ -138,8 +167,9 @@ async function letters(req,res,id,ctx) {
     'SELECT id,sender_hash=$2 AS mine,body,created_at AS "createdAt" '+
     "FROM campfire_letters WHERE connection_id=$1::uuid ORDER BY created_at ASC LIMIT 150",
     [id,visitor]);
+  const walk=await walkState(ctx,id,visitor);
   return ctx.sendJson(res,200,{ok:true,connectionId:id,photoId:c.photoId,
-    letters:rows.map(row=>({id:row.id,mine:!!row.mine,body:row.body,createdAt:row.createdAt}))});
+    ...walk,letters:rows.map(row=>({id:row.id,mine:!!row.mine,body:row.body,createdAt:row.createdAt}))});
 }
 async function markLettersRead(req,res,data,ctx) {
   const visitor=visitorFor(req,res,ctx);
@@ -181,6 +211,7 @@ async function close(req,res,data,ctx) {
     [data.connectionId,visitor]);
   if(!rows.length)return error(res,404,"conversation_unavailable");
   await ctx.query("DELETE FROM campfire_letters WHERE connection_id=$1::uuid",[data.connectionId]);
+  await ctx.query("DELETE FROM campfire_walk_intentions WHERE connection_id=$1::uuid",[data.connectionId]);
   return ctx.sendJson(res,200,{ok:true,closed:true});
 }
 
@@ -257,6 +288,7 @@ async function handlePost(req,res,data,ctx) {
     case "invite":return invite(req,res,data,ctx);
     case "respond":return respond(req,res,data,ctx);
     case "letter":return sendLetter(req,res,data,ctx);
+    case "walkIntent":return setWalkIntent(req,res,data,ctx);
     case "markLettersRead":return markLettersRead(req,res,data,ctx);
     case "closeConnection":return close(req,res,data,ctx);
     case "readNotice":return readNotice(req,res,data,ctx);

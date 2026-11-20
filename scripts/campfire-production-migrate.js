@@ -53,6 +53,10 @@ async function main() {
     "utf8"
   );
   statements.push(...parseStatements(phase2Sql, 9));
+  const walkSql = fs.readFileSync(
+    path.join(__dirname, "..", "db", "migrations", "20261120_campfire_walk_intent.sql"), "utf8"
+  );
+  statements.push(...parseStatements(walkSql, 1));
 
   const { neon } = require("@neondatabase/serverless");
   const sql = neon(process.env.DATABASE_URL);
@@ -68,10 +72,11 @@ async function main() {
     "to_regclass('public.campfire_notifications') IS NOT NULL AS notices_ready, " +
     "to_regclass('public.campfire_connections') IS NOT NULL AS connections_ready, " +
     "to_regclass('public.campfire_letters') IS NOT NULL AS letters_ready, " +
-    "to_regclass('public.campfire_letter_reports') IS NOT NULL AS reports_ready"
+    "to_regclass('public.campfire_letter_reports') IS NOT NULL AS reports_ready, " +
+    "to_regclass('public.campfire_walk_intentions') IS NOT NULL AS walk_ready"
   );
   if (!check[0] || !check[0].comments_ready || !check[0].limits_ready ||
-      !check[0].notices_ready || !check[0].connections_ready || !check[0].letters_ready || !check[0].reports_ready) {
+      !check[0].notices_ready || !check[0].connections_ready || !check[0].letters_ready || !check[0].reports_ready || !check[0].walk_ready) {
     throw new Error("Campfire migration verification failed");
   }
   process.stdout.write("Campfire schema ready: interaction, inbox, mutual consent and letters tables verified.\n");

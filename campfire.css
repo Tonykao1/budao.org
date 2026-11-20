@@ -662,3 +662,34 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
 @media(prefers-reduced-motion:reduce){
   .camp-invite-dialog::backdrop{backdrop-filter:none;}
 }
+
+
+/* Phase 2 completion: mutual, private and reversible next-walk intent. */
+.camp-p2-mutual-walk {
+  margin:18px 0 0;
+  padding:16px 0 4px;
+  border-top:1px solid rgba(229,182,112,.26);
+}
+.camp-p2-walk-choice {
+  padding:10px 15px;
+  background:rgba(44,72,47,.46);
+  border:1px solid rgba(232,188,113,.5);
+  color:#efca95;
+  cursor:pointer;
+  font-size:12px;
+  line-height:1.5;
+}
+.camp-p2-walk-choice[aria-pressed="true"] {
+  background:rgba(188,131,63,.2);
+  color:#ffdfab;
+}
+.camp-p2-walk-choice:focus-visible {
+  outline:2px solid #f0ce9a;
+  outline-offset:3px;
+}
+.camp-p2-mutual-status {
+  margin:10px 0!important;
+  font-size:12px!important;
+  color:#bbcaaf!important;
+  line-height:1.9!important;
+}

@@ -42,3 +42,14 @@ test("Campfire phase 2 uses four additive privacy-scoped tables and five indexes
   assert.match(file,/recipient_hash/);
   assert.doesNotMatch(file.split("\n").filter(line=>!line.trimStart().startsWith("--")).join("\n"),/\b(?:email|phone|latitude|longitude|raw_ip|fingerprint)\b/i);
 });
+
+
+test("Mutual trail interest uses one additive privacy-minimal table",()=>{
+  const file=fs.readFileSync(path.join(__dirname,"../db/migrations/20261120_campfire_walk_intent.sql"),"utf8");
+  const statements=parseStatements(file,1);
+  assert.equal(statements.length,1);
+  assert.match(statements[0],/^CREATE TABLE IF NOT EXISTS campfire_walk_intentions/);
+  assert.match(file,/PRIMARY KEY \(connection_id,participant_hash\)/);
+  assert.match(file,/ON DELETE CASCADE/);
+  assert.doesNotMatch(file,/DROP|TRUNCATE|email|phone|location|GPS/i);
+});

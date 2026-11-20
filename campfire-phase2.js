@@ -195,9 +195,25 @@
         finally{submit.disabled=false;}
       });
       panel.append(form);
-      const next=make("a","camp-p2-next","一起看看下一次步道 ↗");
+      const intent=make("div","camp-p2-mutual-walk");
+      const flag=btn(data.myInterest?"✓ 我愿意再次同行（点此撤回）":"表达我愿意再次同行",async()=>{
+        flag.disabled=true;
+        try{
+          await request("POST",{}, {action:"walkIntent",connectionId:id,interested:!data.myInterest});
+          await populateConversation(id,panel);
+        }catch(e){announce(reason(e));flag.disabled=false;}
+      },"camp-p2-walk-choice");
+      flag.setAttribute("aria-pressed",String(!!data.myInterest));
+      intent.append(flag);
+      const mutual=make("p","camp-p2-mutual-status",data.mutualInterest?
+        "双方都自愿表达了再次同行的意愿。可以一起查看下一次公开步道；这不等于报名成功或实际到场。":
+        data.myInterest?"你的心意已记录。只有对方也自愿选择，才会显示双方共同意愿。":
+        "这是完全自愿的选择，不会被公开展示，也不会自动联系对方。");
+      intent.append(mutual);
+      const next=make("a","camp-p2-next","查看下一次步道 ↗");
       next.href="/test.html";
-      panel.append(next);
+      intent.append(next);
+      panel.append(intent);
       try{
         await request("POST",{}, {action:"markLettersRead",connectionId:id});
         const label=panel.closest(".camp-p2-connection")?.querySelector(".camp-p2-state");
