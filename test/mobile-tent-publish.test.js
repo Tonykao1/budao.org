@@ -53,10 +53,27 @@ function route(overrides = {}) {
   }, overrides);
 }
 function githubFixture(initial = []) {
-  const state = { routes: structuredClone(initial), sha: "data-sha-1", writes: 0, conflict: false, requests: [] };
+  const state = { routes: structuredClone(initial), sha: "data-sha-1", writes: 0, uploads: 0,
+    supervision: {}, altarFailure: false, conflict: false, requests: [] };
   state.fetch = async (url, options = {}) => {
     const method = options.method || "GET";
     state.requests.push({ url: String(url), method, body: options.body });
+    if (String(url).includes("/contents/altar-state.json")) {
+      if (state.altarFailure) return { ok: false, status: 503, json: async () => ({}) };
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          sha: "altar-mock",
+          content: Buffer.from(JSON.stringify({ routes: state.supervision, audit: [] })).toString("base64")
+        })
+      };
+    }
+    if (String(url).includes("/contents/route-assets/") && method === "PUT") {
+      const data = JSON.parse(options.body);
+      assert.equal(data.branch, "main");
+      state.uploads += 1;
+      return { ok: true, status: 201, json: async () => ({ content: { path: String(url) } }) };
+    }
     if (!String(url).includes("/contents/routes.json")) {
       return { ok: false, status: 404, json: async () => ({}) };
     }
@@ -179,6 +196,12 @@ test("new mobile route commits once, is owned by signer and appears in public ca
     assert.equal(calendar.statusCode, 200);
     assert.ok(calendar.body.some((x) => x.routeId === saved.routeId));
 
+    const same = res();
+    await publish(req(route({ id: saved.routeId, routeId: saved.routeId })), same);
+    assert.equal(same.statusCode, 200);
+    assert.equal(same.body.idempotent, true);
+    assert.equal(state.writes, 1, "repeat submission must not add a second commit");
+
     const edit = res();
     await publish(req(route({
       id: saved.routeId, routeId: saved.routeId,
@@ -227,5 +250,49 @@ test("GitHub conflict reports failure and private route loading failure never ma
       headers: { cookie: cookie() } }, privateRead);
     assert.equal(privateRead.statusCode, 503);
     assert.equal(privateRead.body.reason, "routes_unavailable");
+  });
+});
+
+test("same-origin mobile photo upload then publish binds media to the authenticated owner", async () => {
+  await withMockedGitHub([], async (state) => {
+    const bytes = Buffer.alloc(24);
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(bytes, 0);
+    bytes.write("IHDR", 12, 4, "ascii");
+    bytes.writeUInt32BE(1, 16);
+    bytes.writeUInt32BE(1, 20);
+    const image = res();
+    await upload({ ...req({ mimeType: "image/png", data: bytes.toString("base64") }),
+      url: "/api/upload-route-image" }, image);
+    assert.equal(image.statusCode, 200);
+    assert.match(image.body.url, /\/main\/route-assets\/tony\/[a-f0-9]{32}\.png$/);
+    assert.equal(state.uploads, 1);
+    const pub = res();
+    await publish(req(route({ image: image.body.url, qrCode: image.body.url,
+      imageAlt: "同行地图" })), pub);
+    assert.equal(pub.statusCode, 200);
+    assert.equal(state.writes, 1);
+    assert.equal(state.routes[0].image, image.body.url);
+    assert.equal(state.routes[0].qrCode, image.body.url);
+  });
+});
+
+test("mobile edit refuses a locked route and fails closed if altar supervision is unavailable", async () => {
+  const initial = [{
+    id: "tony-owned", routeId: "tony-owned", leaderId: "leader-tony",
+    leader: "tony", title: "Old", date: "2027-12-01", time: "08:00"
+  }];
+  await withMockedGitHub(initial, async (state) => {
+    state.supervision["tony-owned"] = { locked: true, status: "active" };
+    const locked = res();
+    await publish(req(route({ id: "tony-owned", routeId: "tony-owned" })), locked);
+    assert.equal(locked.statusCode, 423);
+    assert.equal(locked.body.reason, "route_locked");
+    state.supervision = {};
+    state.altarFailure = true;
+    const unavailable = res();
+    await publish(req(route({ id: "tony-owned", routeId: "tony-owned" })), unavailable);
+    assert.equal(unavailable.statusCode, 503);
+    assert.equal(unavailable.body.reason, "supervision_unavailable");
+    assert.equal(state.writes, 0);
   });
 });
