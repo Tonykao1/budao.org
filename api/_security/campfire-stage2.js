@@ -14,7 +14,7 @@ const bad=(res,status,reason)=>sendJson(res,status,{ok:false,reason});
 const validId=id=>typeof id==="string"&&UUID.test(id);
 const safeText=(v,max)=>{
   if(typeof v!=="string")return "";
-  const text=v.trim().replace(/\r\n?/g,"\n").replace(/[\u0000-\u001f\u007f]/g,"").replace(/\n{3,}/g,"\n\n");
+  const text=v.trim().replace(/\r\n?/g,"\n").replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g,"").replace(/\n{3,}/g,"\n\n");
   return text.length<=max?text:"";
 };
 const unsafe=text=>/(https?:\/\/|www\.|(?:\+?\d[\d\s-]{9,}\d)|[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,})/i.test(text);
