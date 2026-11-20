@@ -14,6 +14,7 @@
   const qrFile = $("#qrFile");
   const publishButton = $("#publishButton");
   const defaultTimezone = "Asia/Shanghai";
+  const locationCore = window.BudaoMobileLocation;
   // Vercel preview deployments may inherit production publish credentials.
   // Refuse all mobile writes until this page reaches the reviewed main site.
   const previewOnly = /\.vercel\.app$/i.test(window.location.hostname);
@@ -24,10 +25,9 @@
     date: "步道日期",
     time: "集合时间",
     timezone: "时区",
-    location: "地点层级",
-    country: "国家",
-    city: "城市",
-    region: "地区",
+    country: "国家／地区",
+    city: "省／州／直辖市",
+    region: "城市／区县",
     meetingPlace: "集合地点",
     duration: "预计耗时",
     distance: "总里程",
@@ -36,7 +36,7 @@
     suitableFor: "适合人群",
     equipmentMinimum: "装备下限",
     participantRequirements: "参与者要求",
-    surface: "路面信息",
+    surface: "路面／地形",
     description: "行程说明"
   };
   if (previewOnly) {
@@ -137,25 +137,48 @@
     });
     if (!payload.calendarType) payload.calendarType = "budao";
     if (!payload.timezone) payload.timezone = defaultTimezone;
+    // Never accept the prior free-text location: compute a canonical
+    // three-level string from separately validated geography fields.
+    payload.location = locationCore.compose(payload);
     return payload;
   }
 
   function putFields(payload) {
     const source = payload || {};
+    // Existing Tent routes may have a formatted location but lack
+    // structured geography. Only recover exactly three canonical parts.
+    const legacy = locationCore.parseLegacy(source.location);
+    const restored = Object.assign({}, source);
+    if (legacy) {
+      ["country", "city", "region"].forEach(function (name) {
+        if (!restored[name]) restored[name] = legacy[name];
+      });
+    }
     Object.keys(labels).forEach(function (key) {
       const input = field(key);
       if (!input) return;
       if (input.tagName === "SELECT") {
-        const value = String(source[key] || (key === "timezone" ? defaultTimezone : key === "calendarType" ? "budao" : ""));
+        const value = String(restored[key] || (key === "timezone" ? defaultTimezone : key === "calendarType" ? "budao" : ""));
         input.value = Array.from(input.options).some(function (option) { return option.value === value; }) ?
           value : (key === "timezone" ? defaultTimezone : "budao");
       } else {
-        input.value = String(source[key] || "");
+        input.value = String(restored[key] || "");
       }
     });
     routeForm.querySelectorAll("[aria-invalid]").forEach(function (input) {
       input.removeAttribute("aria-invalid");
     });
+    updateLocationPreview();
+  }
+
+  function updateLocationPreview() {
+    const composed = locationCore.compose({
+      country: field("country").value,
+      city: field("city").value,
+      region: field("region").value
+    });
+    $("#locationPreview").textContent = composed ||
+      "请填写完整的国家、省州、城市区县（名称中不可包含分隔点「·」）";
   }
 
   function routeId(route) {
@@ -297,14 +320,20 @@
   });
 
   routePicker.addEventListener("change", function () { selectRoute(routePicker.value); });
-  routeForm.addEventListener("input", writeDraft);
-  routeForm.addEventListener("change", writeDraft);
+  routeForm.addEventListener("input", function () {
+    updateLocationPreview();
+    writeDraft();
+  });
+  routeForm.addEventListener("change", function () {
+    updateLocationPreview();
+    writeDraft();
+  });
   coverFile.addEventListener("change", updateImageNotes);
   qrFile.addEventListener("change", updateImageNotes);
 
   function validateForm() {
     const values = readFields();
-    for (const name of ["title", "date", "time", "location", "meetingPlace"]) {
+    for (const name of ["title", "date", "time", "country", "city", "region", "surface", "meetingPlace"]) {
       if (!values[name]) {
         const input = field(name);
         input.setAttribute("aria-invalid", "true");
@@ -312,6 +341,16 @@
         throw new Error("请填写「" + labels[name] + "」。");
       }
       field(name).removeAttribute("aria-invalid");
+    }
+    for (const name of ["country", "city", "region"]) {
+      if (!locationCore.validPart(values[name], name === "region" ? 120 : 80)) {
+        field(name).setAttribute("aria-invalid", "true");
+        field(name).focus();
+        throw new Error("「" + labels[name] + "」不能含有分隔点「·」或换行。");
+      }
+    }
+    if (!values.location) {
+      throw new Error("无法生成正确的地点层级，请检查国家、省市信息。");
     }
     const date = values.date;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
