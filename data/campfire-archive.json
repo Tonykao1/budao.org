@@ -17,13 +17,17 @@
           "src": "/campfire-photos/261108/261108-01.webp",
           "alt": "两位同行者背向镜头沿秋日林荫小路前行，左侧松树深绿，右侧树叶金黄",
           "caption": "金黄树影下，结伴向前",
-          "approved": true
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
         },
         {
           "src": "/campfire-photos/261108/261108-02.webp",
           "alt": "高大的树木在林荫小径上方交织成拱形树冠，几名行人在落叶点缀的步道上行走",
           "caption": "秋色铺满长路，同行者走入画面",
-          "approved": true
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
         }
       ],
       "publishedOn": "2026-11-21"
