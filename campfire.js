@@ -91,6 +91,11 @@
         ids.add(key);
         photos.push({id:key,kind:"moment",albumId:string(album.id,80),image:src,alt,title,date:album.date,location,
           caption:string(item.caption, 180) || "步道现场影像",
+          // Opt-in full-frame presentation for portrait photos; other albums keep
+          // their existing editorial crops and card geometry.
+          frameMode:item.frameMode === "uncropped" ? "uncropped" : "standard",
+          frameRatio:typeof item.frameRatio === "string" && /^(?:[1-9]\d{0,2})\/(?:[1-9]\d{0,2})$/.test(item.frameRatio)
+            ? item.frameRatio : "",
           heroEligible:item.heroEligible !== false,
           heroScore:typeof item.heroScore === "number" && Number.isFinite(item.heroScore)
             ? Math.max(0, Math.min(100, item.heroScore)) : null});
@@ -341,6 +346,7 @@
     let armedIndex = -1;
     const nodes = source.map((item, index) => {
       const shot = newElement("figure", "camp-hero-shot");
+      shot.classList.toggle("camp-hero-shot--uncropped", item.frameMode === "uncropped");
       shot.tabIndex = 0;
       shot.setAttribute("role", "button");
       const img = newElement("img");
@@ -417,10 +423,16 @@
           currentAlbum = "";
         }
         const button = newElement("article", "camp-photo-card");
+        button.classList.toggle("camp-photo-card--uncropped", item.frameMode === "uncropped");
         button.tabIndex = 0;
         button.setAttribute("role", "button");
         button.setAttribute("aria-label", "放大查看：" + item.title + "，" + kindName(item));
         const wrapper = newElement("div", "camp-photo-visual");
+        // Size opt-in photo cards to the original picture, not a fixed landscape
+        // crop. The ratio comes only from validated editorial metadata.
+        if (item.frameMode === "uncropped" && item.frameRatio) {
+          wrapper.style.aspectRatio = item.frameRatio.replace("/", " / ");
+        }
         const image = newElement("img");
         setCampfirePhoto(image, item, wrapper);
         image.alt = item.alt;
