@@ -339,3 +339,21 @@ test("星火同行第二阶段保留匿名访客、双向同意信箱与清除�
   assert.match(privacy,/端到端加密/);
   assert.doesNotMatch(phase2,/navigator\.geolocation|fingerprint|document\.cookie/i);
 });
+
+
+test("温榆秘境竖幅完整构图：画廊与首屏均不做横向硬裁切", () => {
+  const album = archive.albums.find((item) => item.id === "261108");
+  assert.ok(album && album.published, "温榆秘境必须为已经发布的真实影集");
+  assert.equal(album.photos.length, 2);
+  assert.deepEqual(album.photos.map((item) => item.frameMode), ["uncropped", "uncropped"]);
+  assert.deepEqual(album.photos.map((item) => item.frameRatio), ["3/4", "9/16"]);
+  assert.ok(album.photos.every((item) => exists(item.src)), "两张完整原片必须保留");
+
+  assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
+  assert.match(script, /camp-hero-shot--uncropped/);
+  assert.match(script, /camp-photo-card--uncropped/);
+  assert.match(script, /wrapper\.style\.aspectRatio = item\.frameRatio\.replace/);
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual \{[^}]*height:\s*auto/s);
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,\s*\.camp-hero-shot--uncropped img \{\s*object-fit:\s*contain;/);
+  assert.match(css, /@media \(max-width:700px\) \{\s*\.camp-photo-grid \.camp-photo-card--uncropped \{\s*grid-column:\s*1 \/ -1;/);
+});

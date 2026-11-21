@@ -693,3 +693,25 @@ body.campfire-page { margin:0; background:var(--fire-bg); color:var(--fire-ivory
   color:#bbcaaf!important;
   line-height:1.9!important;
 }
+
+
+/* Campfire: original-aspect portrait photographs (opt-in per published photo).
+   Keep historic landscape cards unchanged, without cropping tall images. */
+.camp-photo-grid .camp-photo-card--uncropped .camp-photo-visual {
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 3 / 4; /* safe fallback until validated per-photo ratio is assigned */
+  background: #1c281f;
+}
+.camp-photo-grid .camp-photo-card--uncropped .camp-photo-visual img,
+.camp-hero-shot--uncropped img {
+  object-fit: contain;
+}
+.camp-photo-card--uncropped:hover .camp-photo-visual img {
+  transform: none; /* zooming the crop would hide the outer edges again */
+}
+@media (max-width:700px) {
+  .camp-photo-grid .camp-photo-card--uncropped {
+    grid-column: 1 / -1; /* one full-width portrait per row on phones */
+  }
+}
