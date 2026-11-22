@@ -72,7 +72,7 @@
     return archiveData.albums.filter(album => album && album.published === true &&
       typeof album.id === 'string' && typeof album.title === 'string' &&
       Array.isArray(album.photos) && album.photos.length > 0 &&
-      typeof album.publishedOn === 'string' && /^\\d{4}-\\d{2}-\\d{2}$/.test(album.publishedOn))
+      typeof album.publishedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(album.publishedOn))
       .sort((a,b) => b.publishedOn.localeCompare(a.publishedOn))
       .slice(0, 12).map(album => ({
         id: 'campfire:' + album.id + ':' + album.publishedOn,
@@ -80,7 +80,7 @@
         title: '营火之地 · ' + album.title,
         description: '新影集上线，点击查看',
         url: '/campfire.html',
-        thumbnail: album.photos.find(p => p && p.approved === true && typeof p.src === 'string' && /^\\/campfire-photos\\/[a-zA-Z0-9/_\\-.]+$/.test(p.src))?.src,
+        thumbnail: album.photos.find(p => p && p.approved === true && typeof p.src === 'string' && /^\/campfire-photos\/[a-zA-Z0-9/_\-.]+$/.test(p.src))?.src,
         icon: '✧'
       }));
   }
