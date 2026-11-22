@@ -79,7 +79,7 @@
         type: 'campfire',
         title: '营火之地 · ' + album.title,
         description: '新影集上线，点击查看',
-        url: '/yhzd.html',
+        url: '/yhzd.html?album=' + encodeURIComponent(album.id),
         thumbnail: album.photos.find(p => p && p.approved === true && typeof p.src === 'string' && /^\/campfire-photos\/[a-zA-Z0-9/_\-.]+$/.test(p.src))?.src,
         icon: '✧'
       }));
