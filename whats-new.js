@@ -74,12 +74,12 @@
       Array.isArray(album.photos) && album.photos.length > 0 &&
       typeof album.publishedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(album.publishedOn))
       .sort((a,b) => b.publishedOn.localeCompare(a.publishedOn))
-      .slice(0, 12).map(album => ({
+      .slice(0, 1).map(album => ({
         id: 'campfire:' + album.id + ':' + album.publishedOn,
         type: 'campfire',
         title: '营火之地 · ' + album.title,
         description: '新影集上线，点击查看',
-        url: '/campfire.html',
+        url: '/yhzd.html',
         thumbnail: album.photos.find(p => p && p.approved === true && typeof p.src === 'string' && /^\/campfire-photos\/[a-zA-Z0-9/_\-.]+$/.test(p.src))?.src,
         icon: '✧'
       }));
@@ -92,7 +92,9 @@
         typeof x.description === 'string' && safeUrl(x.url) &&
         (x.type !== 'music' || (typeof x.track === 'string' && x.track.startsWith('music/') &&
           x.track.endsWith('.mp3'))) && x.published === true);
-    items = [...routeNews(routes), ...albumNews(archiveData), ...staticItems].slice(0, 50);
+    const music = staticItems.filter(item => item.type === 'music').slice(0, 1);
+    const other = staticItems.filter(item => item.type !== 'music');
+    items = [...music, ...albumNews(archiveData), ...other, ...routeNews(routes)].slice(0, 50);
     if (!items.length) { root.remove(); return; }
     open = items.some(item => !seen.includes(item.id));
     render();
