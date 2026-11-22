@@ -26,3 +26,6 @@
 @keyframes budao-note-in{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:700px){.budao-news{right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}.budao-news__card{width:min(330px,calc(100vw - 32px))}}
 @media(prefers-reduced-motion:reduce){.budao-news__card{animation:none}.budao-news__tab{transition:none}}
+
+/* One tiny thumbnail per published campfire album; existing card dimensions unchanged. */
+.budao-news__thumb{display:block;width:28px;height:28px;max-width:28px;max-height:28px;flex:0 0 28px;object-fit:contain;border-radius:3px;background:#e9e3d5}
