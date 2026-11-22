@@ -679,6 +679,18 @@
     // A photo permalink is accepted only if it matches a currently approved,
     // published onsite photo. It can never open a route cover or private asset.
     const photoId = new URLSearchParams(window.location.search).get("photo");
+    const albumId = new URLSearchParams(window.location.search).get("album");
+    if (albumId && /^[a-zA-Z0-9_-]{1,80}$/.test(albumId)) {
+      const matching = gallery.find(item => item.kind === "moment" && item.albumId === albumId);
+      if (matching) {
+        activeFilter = "moment";
+        photoLimit = Math.max(photoLimit, gallery.filter(item => item.kind === "moment").length);
+        renderGallery();
+        const heading = [...document.querySelectorAll("#camp-photo-grid .camp-album-heading")]
+          .find(node => node.dataset.albumKey === "album:" + albumId);
+        if (heading) requestAnimationFrame(() => heading.scrollIntoView({block:"start",behavior:"smooth"}));
+      }
+    }
     if (!photoId) return;
     const target = visiblePhotos.findIndex((item) => item.kind === "moment" && item.image === photoId);
     if (target !== -1) openLightbox(target);
