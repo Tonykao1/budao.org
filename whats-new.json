@@ -2,6 +2,14 @@
   "schemaVersion": 1,
   "items": [
     {
+      "id": "home-languages-2026-11-es-ko",
+      "title": "步道国际版 · 新语种上线",
+      "description": "Español · 한국어，现已加入步道首页",
+      "url": "/home.html?lang=ko",
+      "icon": "◎",
+      "published": true
+    },
+    {
       "id": "music:music/05 Beethoven_ Piano Sonata No. 14 in C-Sharp Minor, Op. 27 No. 2 _Moonlight__ I. Adagio sostenuto.mp3",
       "type": "music",
       "title": "同行之声 · Beethoven_ Piano Sonata No. 14 in C-Sharp Minor, Op. 27 No. 2 _Moonlight__ I. Adagio sostenuto",
@@ -28,14 +36,6 @@
       "url": "/pasture.html",
       "icon": "♧",
       "published": false
-    },
-    {
-      "id": "home-languages-2026-11",
-      "title": "步道 · 更多语言",
-      "description": "English · 繁體中文 · 日本語",
-      "url": "/home.html",
-      "icon": "◎",
-      "published": true
     },
     {
       "id": "campfire-memories-2026-11",

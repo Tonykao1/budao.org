@@ -4,6 +4,7 @@
   const STORAGE_KEY = 'budao:whats-new:seen:v1';
   const feedUrl = '/whats-new.json';
   const routeFeedUrl = '/api/routes?scope=calendar';
+  const albumFeedUrl = '/data/campfire-archive.json';
   const root = document.createElement('aside');
   root.className = 'budao-news';
   root.setAttribute('aria-label', '步道新事');
@@ -66,14 +67,32 @@
       }));
   }
 
-  function applyNews(feed, routes) {
+  function albumNews(archiveData) {
+    if (!archiveData || !Array.isArray(archiveData.albums)) return [];
+    return archiveData.albums.filter(album => album && album.published === true &&
+      typeof album.id === 'string' && typeof album.title === 'string' &&
+      Array.isArray(album.photos) && album.photos.length > 0 &&
+      typeof album.publishedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(album.publishedOn))
+      .sort((a,b) => b.publishedOn.localeCompare(a.publishedOn))
+      .slice(0, 12).map(album => ({
+        id: 'campfire:' + album.id + ':' + album.publishedOn,
+        type: 'campfire',
+        title: '营火之地 · ' + album.title,
+        description: '新影集上线，点击查看',
+        url: '/campfire.html',
+        thumbnail: album.photos.find(p => p && p.approved === true && typeof p.src === 'string' && /^\/campfire-photos\/[a-zA-Z0-9/_\-.]+$/.test(p.src))?.src,
+        icon: '✧'
+      }));
+  }
+
+  function applyNews(feed, routes, archiveData) {
     const safeUrl = u => typeof u === 'string' && /^\/(?!\/)[a-zA-Z0-9/_#?&=.%~-]*$/.test(u);
     const staticItems = (Array.isArray(feed.items) ? feed.items : [])
       .filter(x => x && typeof x.id === 'string' && typeof x.title === 'string' &&
         typeof x.description === 'string' && safeUrl(x.url) &&
         (x.type !== 'music' || (typeof x.track === 'string' && x.track.startsWith('music/') &&
           x.track.endsWith('.mp3'))) && x.published === true);
-    items = [...routeNews(routes), ...staticItems].slice(0, 50);
+    items = [...routeNews(routes), ...albumNews(archiveData), ...staticItems].slice(0, 50);
     if (!items.length) { root.remove(); return; }
     open = items.some(item => !seen.includes(item.id));
     render();
@@ -86,7 +105,7 @@
       return;
     }
     const shown = archive ? items : (unread.length ? unread.slice(0,3) : items.slice(0,3));
-    root.innerHTML = '<section class="budao-news__card" aria-label="步道新事"><div class="budao-news__top"><div><div class="budao-news__eyebrow">BUDAO / FIELD NOTES</div><h2 class="budao-news__heading">步道新事 <small>What\'s New</small></h2></div><button class="budao-news__close" type="button" aria-label="关闭便签">×</button></div><div class="budao-news__rule"></div><div class="budao-news__entries">' + shown.map(item => '<a class="budao-news__entry" href="' + escapeHtml(item.url) + '"><span class="budao-news__entry-icon" aria-hidden="true">' + escapeHtml(item.icon || '✧') + '</span><span><strong>' + escapeHtml(item.title) + '</strong><span>' + escapeHtml(item.description) + '</span></span></a>').join('') + '</div><div class="budao-news__rule"></div><div class="budao-news__foot"><button class="budao-news__archive" type="button">' + (archive ? '← 返回新事' : '翻看往期记录 →') + '</button><span class="budao-news__mark" aria-hidden="true">♧</span></div></section>';
+    root.innerHTML = '<section class="budao-news__card" aria-label="步道新事"><div class="budao-news__top"><div><div class="budao-news__eyebrow">BUDAO / FIELD NOTES</div><h2 class="budao-news__heading">步道新事 <small>What\'s New</small></h2></div><button class="budao-news__close" type="button" aria-label="关闭便签">×</button></div><div class="budao-news__rule"></div><div class="budao-news__entries">' + shown.map(item => '<a class="budao-news__entry" href="' + escapeHtml(item.url) + '">' + (item.type === 'campfire' && item.thumbnail ? '<img class="budao-news__thumb" src="' + escapeHtml(item.thumbnail) + '" alt="" loading="lazy">' : '<span class="budao-news__entry-icon" aria-hidden="true">' + escapeHtml(item.icon || '✧') + '</span>') + '<span><strong>' + escapeHtml(item.title) + '</strong><span>' + escapeHtml(item.description) + '</span></span></a>').join('') + '</div><div class="budao-news__rule"></div><div class="budao-news__foot"><button class="budao-news__archive" type="button">' + (archive ? '← 返回新事' : '翻看往期记录 →') + '</button><span class="budao-news__mark" aria-hidden="true">♧</span></div></section>';
     root.querySelector('.budao-news__close').addEventListener('click', () => { markSeen(shown.map(x=>x.id)); seen = readSeen(); open = false; render(); });
     root.querySelector('.budao-news__archive').addEventListener('click', () => { archive = !archive; render(); });
     root.querySelectorAll('.budao-news__entry').forEach((a, index) => a.addEventListener('click', (event) => {
@@ -120,6 +139,7 @@
     fetch(routeFeedUrl, {cache:'no-store'}).then(r => {
       if (!r.ok) throw new Error('routes_unavailable');
       return r.json();
-    }).catch(() => [])
-  ]).then(([feed, routes]) => applyNews(feed, routes)).catch(() => root.remove());
+    }).catch(() => []),
+    fetch(albumFeedUrl, {cache:'no-store'}).then(r => r.ok ? r.json() : {albums: []}).catch(() => ({albums: []}))
+  ]).then(([feed, routes, albums]) => applyNews(feed, routes, albums)).catch(() => root.remove());
 })();
