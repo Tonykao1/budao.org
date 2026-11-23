@@ -89,6 +89,106 @@
       ]
     },
     {
+      "id": "261114",
+      "date": "2026-11-14",
+      "title": "静之湖暖冬半日营",
+      "location": "静之湖",
+      "description": "从山间小路出发，同行者踏过石阶，沿着山脊向前。红叶与疏林陪伴一路，到了高处，便停下来望望远山。再沿林间栈道走向溪流，把半日的行走、相望与陪伴，留在初冬的记忆里。",
+      "published": true,
+      "publishedOn": "2026-11-23",
+      "editorialNote": "用户于2026-11-23要求将2026-11-14「静之湖暖冬半日营」上传的11张真实现场照片制作成网页影集。所有11张均入库，非生成拼图；WebP无EXIF、完整画幅，采用逐张frameMode=uncropped。按叙事排序，并非声称与实际拍摄时间一致。与现有相册共享步道水印与互动逻辑。",
+      "photos": [
+        {
+          "src": "/campfire-photos/261114/261114-01.webp",
+          "alt": "几位同行者沿秋冬山间的石砾小路向前，前方是层叠山峦与疏林",
+          "caption": "从山路出发，同行在身旁",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-02.webp",
+          "alt": "两位穿红色外衣的同行者走过秋叶鲜红的树林，身旁是石墙和步道",
+          "caption": "红叶映着同行的脚步",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-03.webp",
+          "alt": "山坡上狭窄的步道穿过稀疏灌木，远处可见一位行者",
+          "caption": "山路蜿蜒，向前而行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-04.webp",
+          "alt": "一位戴浅色帽子的同行者拾级攀登碎石台阶，另一人沿山路跟随",
+          "caption": "一步一阶，攀上山脊",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-05.webp",
+          "alt": "背着行囊的同行者沿有围栏的山脊石阶行进，周围是深秋灌木",
+          "caption": "沿着山脊，继续前行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-06.webp",
+          "alt": "几位身穿红色与深色外套的同行者沿岩石山脊前行，栏网顺山势延伸",
+          "caption": "山脊上的队伍",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-07.webp",
+          "alt": "多位同行者站在山间观景栏杆旁，远处可见云雾中的山峦",
+          "caption": "登高驻足，远望群山",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-08.webp",
+          "alt": "两位同行者站在高处向远方眺望，其中一人伸手指向山下景色",
+          "caption": "分享眼前的风景",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-09.webp",
+          "alt": "几位同行者从山脊岩石台阶上缓步下行，旁侧是秋色灌木和防护栏",
+          "caption": "在秋色中走下山脊",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-10.webp",
+          "alt": "穿着户外服饰的同行者沿森林木栈道前行，周围有红黄相间的秋叶",
+          "caption": "穿过林间，秋叶相伴",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        },
+        {
+          "src": "/campfire-photos/261114/261114-11.webp",
+          "alt": "清澈水流沿灰色岩石形成小瀑布，周围可见草木与初冬枝条",
+          "caption": "以溪水的声音，收藏这段同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        }
+      ]
+    },
+    {
       "id": "261108",
       "date": "2026-11-08",
       "title": "温榆秘境",
