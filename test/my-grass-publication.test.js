@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const c=require('../api/_security/pasture-commons-domain');
 const render=require('../pasture-preview/my-grass-audio-render-v1');
-const endpoint=require('../api/pasture-commons');
+const endpoint=require('../api/_security/pasture-commons-handler');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const fixture={
  status:'completed',reference:'约 13:34–35',startVerse:34,endVerse:35,durationMs:22000,
