@@ -109,10 +109,13 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 </main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const rt=window.BudaoPosterRuntime;
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
 const $=id=>document.getElementById(id);
 const UI={canvas:$("poster"),route:$("route"),placement:$("placement"),
  horizontal:$("horizontal"),vertical:$("vertical"),exposure:$("exposure"),
@@ -391,6 +394,7 @@ async function activate(){
   const raw=routes.find(r=>text(r.routeId||r.id)===UI.route.value);
   if(!raw)throw Error("请选择一条有效的步道活动");
   const record=rt.normalized(raw);
+   PL.validateFacts(record);
   const [pic,qrb]=await Promise.all([imageFrom(record.photo),originalQR(record)]);
   if(current!==token){pic.close?.();qrb.close?.();return;}
   data=record;photo=pic;basePhoto=pic;qr=qrb;
