@@ -366,8 +366,8 @@ function recorderStatusText(){
     tell('请先完成本人录音并收入古卷。');return;
    }
    if(withAudio&&readingMode()==='silent'){tell('本次为默录，不会把安静录音冒充有声朗读；可仅发表经文位置。');return}
-   if(draft.scripture.translation!=='圣经和合本（神版）'){
-    tell('此译本的公开朗读许可尚未核验，当前仅保留私人读经。');return;
+   if(withAudio&&draft.scripture.translation!=='圣经和合本（神版）'){
+    tell('此译本的公开朗读许可尚未核验，但可仅分享经文出处。');return;
    }
    const message=withAudio?
     '你确定把这份真实的读经音频公开发表到共读经卷吗？声音可能让认识你的人辨认出身份；公开朗读需确保有合法权利。':
