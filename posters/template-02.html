@@ -153,10 +153,21 @@ function title(text,x,y,font,color,align="left"){c.save();c.font=font;c.textAlig
 function ellipse(x,y,rx,ry,color,w=1){c.save();c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.lineWidth=w;c.strokeStyle=color;c.stroke();c.restore();}
 function textWrap(value,x,y,maxWidth,font,lineHeight,color,maxLines=20){
  c.save();c.font=font;c.fillStyle=color;c.textBaseline="alphabetic";
- let row="",printed=0;
- for(const ch of [...value]){if(c.measureText(row+ch).width>maxWidth && row){c.fillText(row,x,y+printed*lineHeight);printed++;row=ch;if(printed>=maxLines)break;}else row+=ch;}
- if(row&&printed<maxLines){c.fillText(row,x,y+printed*lineHeight);printed++;}
- c.restore();return printed;
+ const all=[];let row="";
+ for(const ch of Array.from(String(value||""))){
+   if(row&&c.measureText(row+ch).width>maxWidth){
+     all.push(row);row=ch;
+   }else row+=ch;
+ }
+ if(row)all.push(row);
+ const shown=all.slice(0,maxLines);
+ if(all.length>maxLines&&shown.length){
+   let last=shown[shown.length-1];
+   while(last&&c.measureText(last+"…").width>maxWidth)last=Array.from(last).slice(0,-1).join("");
+   shown[shown.length-1]=last+"…";
+ }
+ for(let i=0;i<shown.length;i++)c.fillText(shown[i],x,y+i*lineHeight);
+ c.restore();return shown.length;
 }
 async function loadImg(url,label){
  const r=await fetch(url,{cache:"no-cache"});if(!r.ok)throw Error(label+" 读取失败: HTTP "+r.status);
