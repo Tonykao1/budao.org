@@ -561,10 +561,11 @@
   function normalizeQuotes(data) {
     const original = Array.isArray(data.quotes) ? data.quotes.filter((q) => typeof q === "string" && q.trim()).map((q) => q.trim().slice(0, 500)) : [];
     if (!original.length) return fallbackQuotes;
-    const selected = Array.isArray(data.featuredQuoteIndexes) ? data.featuredQuoteIndexes : [];
-    const indexes = selected.filter((i) => Number.isInteger(i) && i >= 0 && i < original.length);
-    const order = [...new Set([...indexes, ...original.map((_, i) => i)])];
-    return order.map((index) => original[index]);
+    for (let i = original.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [original[i], original[j]] = [original[j], original[i]];
+    }
+    return original;
   }
 
   async function loadHeroScores() {
