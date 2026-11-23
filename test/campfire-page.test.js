@@ -357,3 +357,25 @@ test("温榆秘境竖幅完整构图：画廊与首屏均不做横向硬裁切",
   assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,\s*\.camp-hero-shot--uncropped img \{\s*object-fit:\s*contain;/);
   assert.match(css, /@media \(max-width:700px\) \{\s*\.camp-photo-grid \.camp-photo-card--uncropped \{\s*grid-column:\s*1 \/ -1;/);
 });
+
+
+test("温榆晴波新影集九张照片均完整入库且不裁切", () => {
+  const album = archive.albums.find((entry) => entry.id === "261121");
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published === true);
+  assert.equal(album.date, "2026-11-21");
+  assert.equal(album.title, "温榆晴波");
+  assert.equal(album.photos.length, 9);
+  assert.deepEqual(album.photos.map((photo) => photo.frameRatio),
+    ["4/3", "4/3", "9/16", "9/16", "4/3", "3/4", "4/3", "9/16", "4/3"]);
+  for (const [i, photo] of album.photos.entries()) {
+    assert.equal(photo.src, `/campfire-photos/261121/261121-${String(i + 1).padStart(2, "0")}.webp`);
+    assert.ok(exists(photo.src), "完整的原始照片必须存在：" + photo.src);
+    assert.equal(photo.approved, true);
+    assert.equal(photo.frameMode, "uncropped");
+    assert.ok(photo.alt && photo.caption);
+    assert.ok(Number.isInteger(quality.scores[photo.src]), "首页选图评分缺失：" + photo.src);
+  }
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
+  assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
+});
