@@ -5,6 +5,90 @@
   "note": "所有实拍相册均与已核实活动日期对应，并经管理员同意公开发布；原先线路封面并不等同于活动现场照片。",
   "albums": [
     {
+      "id": "261121",
+      "date": "2026-11-21",
+      "title": "温榆晴波",
+      "location": "温榆晴波",
+      "description": "阳光穿过树梢，同行的人走在林间，影子随脚步延伸。清澈的天空映在水面，落叶后的树木与浅水相依。沿着道路看风景，也在驻足与交谈之间，记住彼此。深秋的温榆，晴朗而宽阔。",
+      "published": true,
+      "publishedOn": "2026-11-23",
+      "editorialNote": "用户提供2026年11月21日「温榆晴波」9张活动实拍，按同行、树径、水岸、晴波、装置、相聚的叙事编排；展示顺序不代表实际拍摄时间。原图无空间裁切，转换WebP并清除元数据；本期9张均设置uncropped适配4:3、9:16、3:4构图。可识别人物照片依据用户公开发布指令纳入相册，保留下架与撤回机制。",
+      "photos": [
+        {
+          "src": "/campfire-photos/261121/261121-01.webp",
+          "alt": "阳光穿过树林，数位同行者沿铺装步道向前走去，路面有清晰的树影",
+          "caption": "阳光照见同行的路",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-02.webp",
+          "alt": "蓝天下笔直的林间道路向远方延伸，两侧树木枝条疏朗",
+          "caption": "一条路，向晴空延伸",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-03.webp",
+          "alt": "两位同行者背向镜头沿水边林荫步道行走，远处可见桥与水面",
+          "caption": "循着水岸，继续同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-04.webp",
+          "alt": "蓝天白云下，树木立于浅水中，树干与枝梢倒映在水面",
+          "caption": "水中树影，映着蓝天",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-05.webp",
+          "alt": "水湾旁的落叶树与石砌岸线映在清澈水面，蓝天开阔",
+          "caption": "晴波与树影相映",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-06.webp",
+          "alt": "大幅蓝天笼罩平静开阔的水面，远岸的树林与倒影连成一线",
+          "caption": "一湖晴波，天地宽阔",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-07.webp",
+          "alt": "浅色小径通向远处的巨型稻草人物装置，旁有绿叶树和开阔草地",
+          "caption": "在原野尽头，看见一抹童趣",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-08.webp",
+          "alt": "一座大型戴帽微笑稻草人物装置，在澄蓝天空下抬手扶帽",
+          "caption": "晴空下的微笑",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/261121/261121-09.webp",
+          "alt": "阳光照在开阔铺装广场上，数位同行者驻足交谈，远处可见树木和桥梁",
+          "caption": "驻足的片刻，也是同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        }
+      ]
+    },
+    {
       "id": "261108",
       "date": "2026-11-08",
       "title": "温榆秘境",
