@@ -235,7 +235,7 @@ function selectedHeadline(){
  {
   ctx.save();ctx.font="900 175px "+option.family;
   const width=ctx.measureText(R.title).width;ctx.restore();
-  if(width>760)size=Math.max(52,175*760/width);
+  if(width>700)size=Math.max(48,175*700/width);
  }
  return {name:option.name,font:"900 "+size.toFixed(2)+"px "+option.family};
 }
@@ -389,7 +389,7 @@ function render([photo,qr,logo,brush],targetCtx,theme){
    fittedFact(R.suitable,197,1507,602,30,20,P.audience,700);
  }
  // Unmodified QR pixels, including its intrinsic quiet zone (no added border).
- text("自由参与",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
+ text(R.isPast?"活动已结束":"扫码报名",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
  window.BudaoPosterQR.draw(ctx,qr.bmp,837,1281,184,184);
  text("扫码同行",929,1500,"700 25px "+FONT_SANS,P.qrText,"center");
  return {textMeasure};
