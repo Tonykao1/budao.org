@@ -12,12 +12,13 @@ const {consume,clientIp}=require('./rate-limit');
 const MAX_REQUEST_BYTES=3*1024*1024;
 let prepared=false;
 function enabled(env=process.env){
- return env.VERCEL_ENV==='preview'&&env.PASTURE_COMMONS_ENABLED==='true'&&!!env.DATABASE_URL;
+ return env.VERCEL_ENV==='preview'&&env.PASTURE_COMMONS_ENABLED==='true'&&!!env.DATABASE_URL&&!!env.PASTURE_COMMONS_DATABASE_URL;
 }
 function fail(res,status,reason){return sendJson(res,status,{ok:false,reason})}
 async function residentFor(req){
  const token=auth.readCookie(req);
  if(!token)return null;
+ await residents.ensurePastureSchema();
  const row=await residents.sessionByTokenHash(auth.tokenHash(token));
  if(!row?.user?.cardActivatedAt||row.user.status!=='ACTIVE')return null;
  const sheep=await residents.sheepForUser(row.user.id);
@@ -25,9 +26,8 @@ async function residentFor(req){
 }
 async function prepare(sql){
  if(prepared)return;
- await residents.ensurePastureSchema();
- await sql.query("CREATE TABLE IF NOT EXISTS pasture_audio_receipts_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL REFERENCES pasture_users(id) ON DELETE CASCADE, audio_id text NOT NULL, reference text NOT NULL, sha256 text NOT NULL, bytes integer NOT NULL CHECK (bytes>0 AND bytes<=2097152), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(owner_id,audio_id,sha256))");
- await sql.query("CREATE TABLE IF NOT EXISTS pasture_commons_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL REFERENCES pasture_users(id) ON DELETE CASCADE, kind text NOT NULL CHECK (kind IN ('reading','insight')), entry_id text NOT NULL, audio_id text NOT NULL, scripture_reference text NOT NULL, translation text NOT NULL DEFAULT '', voice text NOT NULL CHECK (voice IN ('SPOKEN','SILENT','NONE')), public_text text NOT NULL DEFAULT '', audio_data bytea, audio_mime text, audio_size integer, consent_version text NOT NULL, status text NOT NULL DEFAULT 'PUBLISHED' CHECK (status IN ('PUBLISHED','WITHDRAWN')), created_at timestamptz NOT NULL DEFAULT now(), withdrawn_at timestamptz, UNIQUE(owner_id,kind,entry_id))");
+ await sql.query("CREATE TABLE IF NOT EXISTS pasture_audio_receipts_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, audio_id text NOT NULL, reference text NOT NULL, sha256 text NOT NULL, bytes integer NOT NULL CHECK (bytes>0 AND bytes<=2097152), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(owner_id,audio_id,sha256))");
+ await sql.query("CREATE TABLE IF NOT EXISTS pasture_commons_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, kind text NOT NULL CHECK (kind IN ('reading','insight')), entry_id text NOT NULL, audio_id text NOT NULL, scripture_reference text NOT NULL, translation text NOT NULL DEFAULT '', voice text NOT NULL CHECK (voice IN ('SPOKEN','SILENT','NONE')), public_text text NOT NULL DEFAULT '', audio_data bytea, audio_mime text, audio_size integer, consent_version text NOT NULL, status text NOT NULL DEFAULT 'PUBLISHED' CHECK (status IN ('PUBLISHED','WITHDRAWN')), created_at timestamptz NOT NULL DEFAULT now(), withdrawn_at timestamptz, UNIQUE(owner_id,kind,entry_id))");
  await sql.query("CREATE INDEX IF NOT EXISTS pasture_commons_public_ref_v1 ON pasture_commons_v1 (scripture_reference,kind,created_at DESC) WHERE status='PUBLISHED'");
  prepared=true;
 }
@@ -50,7 +50,7 @@ async function handle(req,res){
  if(req.method==='GET'&&new URL(req.url,'https://budao.org').searchParams.get('mode')==='status')
   return sendJson(res,200,{ok:true,enabled:enabled(),pilotAudioLimitBytes:policy.MAX_AUDIO_BYTES});
  if(!enabled())return fail(res,503,'commons_not_configured');
- const sql=neon(getDatabaseUrl());
+ const sql=neon(process.env.PASTURE_COMMONS_DATABASE_URL);
  try{
   await prepare(sql);
   if(req.method==='GET'){
