@@ -97,11 +97,17 @@ async function handle(req,res){
    const entryId=String(body.entryId||'');
    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
    const translation=String(body.translation||'').trim();
-   if(translation!=='圣经和合本（神版）')return fail(res,403,'translation_rights_pending');
    const mode=body.mode==='silent'?'SILENT':body.mode==='spoken'?'SPOKEN':null;
    if(!mode)return fail(res,400,'invalid_mode');
+   if(translation!==String(body.journey.translation||''))return fail(res,400,'translation_mismatch');
+   if(mode==='SPOKEN'&&translation!=='圣经和合本（神版）')return fail(res,403,'translation_rights_pending');
    const encoded=mode==='SPOKEN'?policy.validAudio(body.audioMime,body.publicAudioBase64):null;
    if(mode==='SILENT'&&body.publicAudioBase64)return fail(res,400,'silent_public_audio_forbidden');
+   // Public voice may identify a person; never pair its source entry with an anonymous insight.
+   if(mode==='SPOKEN'){
+    const conflict=await sql.query("SELECT id FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 AND kind='insight' AND status='PUBLISHED' LIMIT 1",[owner.id,entryId]);
+    if(conflict.length)return fail(res,409,'cross_publication_identity_risk');
+   }
    const found=await sql.query("SELECT id,status FROM pasture_commons_v1 WHERE owner_id=$1 AND kind='reading' AND entry_id=$2 LIMIT 1",[owner.id,entryId]);
    if(found.length)return sendJson(res,200,{ok:true,id:found[0].id,status:found[0].status,duplicate:true});
    const id=crypto.randomUUID();
@@ -115,6 +121,8 @@ async function handle(req,res){
    if(!receipt||receipt.reference!==insight.scripture_range)return fail(res,403,'recording_receipt_required');
    const entryId=String(body.entryId||'');
    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
+   const voiceConflict=await sql.query("SELECT id FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 AND kind='reading' AND voice='SPOKEN' AND status='PUBLISHED' LIMIT 1",[owner.id,entryId]);
+   if(voiceConflict.length)return fail(res,409,'cross_publication_identity_risk');
    const share=fellowship.buildAnonymousShare({ownerId:owner.id,insight,recordingReceipt:{ownerId:owner.id,audioId,status:'completed',size:receipt.bytes},shareText:body.shareText,explicitConsent:true,consentVersion:'v1'});
    const found=await sql.query("SELECT id,status FROM pasture_commons_v1 WHERE owner_id=$1 AND kind='insight' AND entry_id=$2 LIMIT 1",[owner.id,entryId]);
    if(found.length)return sendJson(res,200,{ok:true,id:found[0].id,status:found[0].status,duplicate:true});
