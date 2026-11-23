@@ -45,7 +45,8 @@
     if(wind>27)return[];
     const day=isDay(state,skyState,timeMs);
     if(day===null)return[];
-    const cloud=Number(state.current?.cloudCover)||0;
+    const rawCloud=Number(state.current?.cloudCover)||0;
+    const cloud=Math.max(rawCloud,Number(code)===3?85:Number(code)===2?55:Number(code)===1?25:0);
     if(day){
       const kinds=[];
       if(s==='spring'||s==='summer'||s==='tropical'){
