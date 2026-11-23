@@ -311,7 +311,7 @@ function recorderStatusText(){
     '<p>原声已收入本人古卷。默认不公开；发表的原声可能被熟人辨认。</p>'+
     (existing?'<p>已发表到共读经卷（可撤回）</p><button type="button" data-action="withdraw-reading" '+(publicationBusy?'disabled':'')+'>撤回读经发表</button>':
       '<div class="gs-publication-actions"><button type="button" data-action="keep-private" '+(publicationBusy?'disabled':'')+'>仅私人保存</button>'+
-      (readingMode()==='silent'?'':'<button type="button" data-action="publish-reading" '+(publicationBusy?'disabled':'')+'>发表有声读经</button>'+)+
+      (readingMode()==='silent'?'':'<button type="button" data-action="publish-reading" '+(publicationBusy?'disabled':'')+'>发表有声读经</button>')+
       '<button type="button" data-action="publish-reference" '+(publicationBusy?'disabled':'')+'>仅发表经文位置</button></div>')+
     '<a href="/pasture-preview/commons.html" target="_blank" rel="noopener noreferrer">查看共读经卷</a>'+
     '</section>';
