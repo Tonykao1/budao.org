@@ -48,15 +48,15 @@ test("landscape poster QR resides outside the headline and details columns",()=>
 
 test("portrait QR left-column supplementary facts have a bounded text budget",()=>{
   const source=file("posters/template-02.html");
-  assert.match(source,/const safeWidth=307,rowsMax=3/);
+  assert.match(source,/label:"装备及难度",size:21,minSize:18,maxWidth:307,maxLines:3/);
   assert.ok(508+307<838,"left-column facts must end before the QR image");
-  assert.ok(source.includes('if(rows.length>rowsMax)throw Error('));
+  assert.match(source,/const fitted=PL.fit\(c,extraFacts/);
   assert.ok(source.includes('const headlineRows=mainHeadline(R.title,499,365)'));
   assert.ok(source.includes('const extra=DESCRIPTION.startsWith(summary)'));
 });
 
 test("vivid and photo-first templates keep route identity readable",()=>{
-  assert.match(file("posters/template-03.html"),/lineText\(FACTS\.subtitle,783,23/);
+  assert.match(file("posters/template-03.html"),/lineText\(FACTS\.subtitle,twoRows\?737:783,23/);
   assert.match(file("posters/template-06.html"),/const factRows=\[/);
-  assert.match(file("posters/template-06.html"),/if\(size<18\)throw Error/);
+  assert.match(file("posters/template-06.html"),/label:"路线指标",size:22,minSize:18/);
 });
