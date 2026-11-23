@@ -25,6 +25,16 @@ button:disabled{opacity:.5;cursor:not-allowed}.stat{margin:15px 0;font:13px/1.8 
 .control select{width:100%;min-width:0;padding:11px 9px;border-radius:5px;border:1px solid #c7bba6;background:#fffef9;color:#4a4036;font:13px system-ui,sans-serif;cursor:pointer}
 .palette-swatches{display:flex;margin:8px 0 15px;gap:5px}
 .palette-swatches span{height:26px;flex:1;border:1px solid #00000019;border-radius:3px}
+.crop-panel{border:1px solid #d6cbbb;border-radius:6px;padding:15px;margin:8px 0 19px;background:#fffdf7}
+.crop-panel h3{font:700 15px/1.5 system-ui,sans-serif;color:#495d50;margin:0 0 8px}
+.crop-panel .crop-note{font:12px/1.65 system-ui,sans-serif;color:#6d675c;margin:0 0 10px}
+.crop-panel .pan-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:13px 0 6px}
+.crop-panel label{font:650 13px system-ui,sans-serif;color:#495d50}
+.crop-panel output{font:12px system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#6d675c}
+.crop-panel input[type=range]{display:block;width:100%;accent-color:#60795d;cursor:pointer}
+.crop-panel input[type=file]{display:block;width:100%;margin:7px 0 13px;font:12px system-ui,sans-serif;max-width:100%}
+.crop-panel button.secondary{border:1px solid #9a8b73;background:#f6f1e8;color:#485c50;font-size:13px;padding:10px 12px}
+.crop-panel :is(input,button):focus-visible{outline:3px solid #85a698;outline-offset:2px}
 @media(max-width:470px){.controls{grid-template-columns:1fr}}
 
 @media(max-width:940px){.page{grid-template-columns:1fr}main{padding:12px}.poster-card{max-width:680px;margin:auto}aside{max-width:680px;margin:auto}}
@@ -53,6 +63,17 @@ button:disabled{opacity:.5;cursor:not-allowed}.stat{margin:15px 0;font:13px/1.8 
  </div>
 </div>
 <div class="palette-swatches" id="paletteSwatches" aria-label="当前艺术配色色卡"></div>
+<section class="crop-panel" aria-labelledby="cropHeading">
+ <h3 id="cropHeading">03｜足迹照片取景</h3>
+ <p class="crop-note">仅调整镂空足迹里的照片位置；外框、文字及当前活动原始二维码保持不变。中央 50% 为默认居中。</p>
+ <div class="pan-head"><label for="horizontal">照片横向取景</label><output id="horizontalVal" for="horizontal">50%</output></div>
+ <input type="range" id="horizontal" min="0" max="100" step="5" value="50" aria-label="照片横向取景"/>
+ <div class="pan-head"><label for="vertical">照片纵向取景</label><output id="verticalVal" for="vertical">50%</output></div>
+ <input type="range" id="vertical" min="0" max="100" step="5" value="50" aria-label="照片纵向取景"/>
+ <div class="pan-head"><label for="localPhoto">替换照片（仅本次预览）</label></div>
+ <input type="file" id="localPhoto" accept="image/jpeg,image/png,image/webp"/>
+ <button class="secondary" id="resetPhoto" type="button">复位照片与样式</button>
+</section>
 <p>足迹造型来自步道原创线稿，内部呈现真实活动照片；报名二维码与当前活动对应。</p>
 <p>选择四种配色或三种主标题字体，即可实时查看效果。调整只影响本次海报，不会修改网站中的活动资料。</p>
 <p><strong>当前活动资料：</strong> 从公开路线实时读取日期、集合地点与路线属性；不使用演示样张的数据。</p>
@@ -189,13 +210,33 @@ function paper(){
   line(x,y,x+25*sgnX,y,P.gold,2);line(x,y,x,y+25*sgnY,P.gold,2);
  }
 }
+// Follow Template 06 pan direction: 0 shows left/top, 100 shows right/bottom.
+// A conservative photo envelope covers every opening of the original Path2D mask.
+function footprintCrop(photo,horizontal,vertical){
+ const sw=Number(photo?.width),sh=Number(photo?.height);
+ if(!(sw>0&&sh>0))throw Error("足迹照片无有效尺寸，不能安全取景");
+ // Local coordinates: existing translate(-90,205), scale(.82) stay unchanged.
+ const box={left:145,top:0,right:640,bottom:1095};
+ const vw=box.right-box.left,vh=box.bottom-box.top;
+ const scale=Math.max(vw/sw,vh/sh)*1.16;
+ const width=sw*scale,height=sh*scale;
+ const fx=Math.max(0,Math.min(100,Number(horizontal)||0))/100;
+ const fy=Math.max(0,Math.min(100,Number(vertical)||0))/100;
+ const x=box.left+(vw-width)*fx,y=box.top+(vh-height)*fy;
+ if(x>box.left+0.01||x+width<box.right-0.01||
+    y>box.top+0.01||y+height<box.bottom-0.01){
+   throw Error("照片取景未完整覆盖足迹镂空区域");
+ }
+ return {x,y,width,height};
+}
 function fitFootprint(photo){
  c.save();
  c.translate(-90,205);c.scale(.82,.82);
  c.save();
  c.clip(FOOT_FILL);
  // Only the actual route photograph is used as the scene; no added people or architecture.
- c.drawImage(photo,-520,-30,1910,1080);
+ const crop=footprintCrop(photo,horizontal.value,vertical.value);
+  c.drawImage(photo,crop.x,crop.y,crop.width,crop.height);
  let mix=c.createLinearGradient(100,15,480,1060);
  mix.addColorStop(0,P.washTop);mix.addColorStop(.47,P.washMid);
  mix.addColorStop(1,P.washBottom);
@@ -309,6 +350,14 @@ let ready=false,assets=null;
 const themePicker=document.getElementById("themePicker");
 const fontPicker=document.getElementById("fontPicker");
 const swatches=document.getElementById("paletteSwatches");
+const horizontal=document.getElementById("horizontal"),vertical=document.getElementById("vertical");
+const horizontalVal=document.getElementById("horizontalVal"),verticalVal=document.getElementById("verticalVal");
+const localPhoto=document.getElementById("localPhoto"),resetPhoto=document.getElementById("resetPhoto");
+let activePhoto=null,photoSelectionToken=0;
+function updatePanLabels(){
+ horizontalVal.textContent=horizontal.value+"%";
+ verticalVal.textContent=vertical.value+"%";
+}
 function updateSwatches(){
  swatches.replaceChildren();
  for(const col of [P.paper,P.wine,P.olive,P.gold,P.ink,P.darkGold]){
@@ -317,16 +366,18 @@ function updateSwatches(){
 }
 function rerender(){
  if(!assets)return;
+ ready=false;download.disabled=true;
  P=THEMES[themePicker.value]||THEMES.pilgrim;
  currentFont=HEADLINE_FONTS[fontPicker.value]||HEADLINE_FONTS.song;
  updateSwatches();
- draw(assets.photo,assets.qr,assets.logo);
+ draw(activePhoto||assets.photo,assets.qr,assets.logo);
  const pixels=c.getImageData(0,0,1080,1530).data;
  let colored=0;
  for(let i=0;i<pixels.length;i+=4000)if(pixels[i]!==pixels[i+1]||pixels[i+1]!==pixels[i+2])colored++;
  if(colored<200)throw Error("海报画面颜色数据异常，不能导出");
  ready=true;download.disabled=false;
- status.textContent="✓ 原始活动照片 "+assets.photo.width+"×"+assets.photo.height+
+ status.textContent="✓ "+(activePhoto&&activePhoto!==assets.photo?"本地照片 ":"原始活动照片 ")+(activePhoto||assets.photo).width+"×"+(activePhoto||assets.photo).height+
+ "\n✓ 足迹照片横向取景："+horizontal.value+"%；纵向取景："+vertical.value+"%"+
  "\n✓ 原始二维码 "+assets.qr.width+"×"+assets.qr.height+
  "\n✓ 原始足迹线稿遮罩保留"+
  "\n✓ 当前配色："+P.name+"；标题字体："+currentFont.name+
@@ -336,14 +387,50 @@ function rerender(){
  try{
   const [photo,qr,logo]=await Promise.all([loadImg(SOURCE.photo,"原始活动照片"),loadImg(SOURCE.qr,"原始二维码"),loadImg(SOURCE.logo,"步道Logo")]);
   await document.fonts.ready;
-  assets={photo,qr,logo};
+  assets={photo,qr,logo};activePhoto=photo;updatePanLabels();
   const sourcePreview=document.getElementById("sourceImage");if(sourcePreview)sourcePreview.src=R.photo;
   rerender();
  }catch(e){ready=false;download.disabled=true;status.textContent="✕ 资源或绘制失败："+String(e.message||e);}
 })();
-for(const picker of [themePicker,fontPicker])picker.addEventListener("change",()=>{
- try{ready=false;download.disabled=true;rerender();}
- catch(e){status.textContent="✕ 无法重绘："+String(e.message||e);}
+function safeRedraw(){
+ try{rerender();}
+ catch(e){ready=false;download.disabled=true;status.textContent="✕ 无法重绘："+String(e.message||e);}
+}
+for(const picker of [themePicker,fontPicker])picker.addEventListener("change",safeRedraw);
+for(const axis of [horizontal,vertical])axis.addEventListener("input",()=>{
+ updatePanLabels();
+ safeRedraw();
+});
+localPhoto.addEventListener("change",async()=>{
+ const file=localPhoto.files?.[0];if(!file)return;
+ const token=++photoSelectionToken;
+ ready=false;download.disabled=true;
+ if(!/^image\/(?:jpeg|png|webp)$/.test(file.type)||file.size>24*1024*1024){
+  status.textContent="✕ 只能选用 24MB 以内的 JPG、PNG 或 WebP 照片";
+  return;
+ }
+ try{
+  const bitmap=await createImageBitmap(file);
+  if(token!==photoSelectionToken){bitmap.close?.();return;}
+  const previous=activePhoto;
+  activePhoto=bitmap;
+  safeRedraw();
+  if(previous&&previous!==assets.photo&&previous!==bitmap)previous.close?.();
+ }catch(e){
+  if(token===photoSelectionToken){
+   ready=false;download.disabled=true;
+   status.textContent="✕ 本地照片无法解析："+String(e.message||e);
+  }
+ }
+});
+resetPhoto.addEventListener("click",()=>{
+ ++photoSelectionToken;
+ if(activePhoto&&activePhoto!==assets?.photo)activePhoto.close?.();
+ activePhoto=assets?.photo||null;
+ localPhoto.value="";
+ horizontal.value="50";vertical.value="50";
+ themePicker.value="pilgrim";fontPicker.value="song";
+ updatePanLabels();safeRedraw();
 });
 download.addEventListener("click",()=>{
  if(!ready)return;
