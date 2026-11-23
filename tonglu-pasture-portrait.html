@@ -529,8 +529,10 @@ function weatherOverlay(){
 function draw(){
  tick++;ctx.clearRect(0,0,W,H);
  if(portrait)drawPortrait();else drawLandscape();
+ weatherOverlay();
+ // Fireflies must remain luminous after the night tint, without changing that tint.
  if(state&&natureEvents)natureEvents.draw(ctx,{now:Date.now(),width:W,height:H,scene:portrait?'portrait':'landscape',state,skyState:state.skyState});
- weatherOverlay();drawTwig();
+ drawTwig();
 }
 function resize(){
  const vw=Math.max(1,innerWidth),vh=Math.max(1,innerHeight);
