@@ -121,10 +121,14 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 </main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const R=await window.BudaoPosterRuntime.load();
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
+PL.validateFacts(R);
 
 "use strict";
 const URLS={photo:R.photo,qr:R.qr,brand:R.logo};
