@@ -2,6 +2,8 @@ const { requireJsonPost, requireSameOrigin, sendJson } = require("./http");
 const { clientIp, consume } = require("./rate-limit");
 const domain = require("./pasture-auth-domain");
 const store = require("./pasture-auth-store");
+const cardSecrets = require("./pasture-card-domain");
+const cardStore = require("./pasture-card-store");
 
 module.exports = async function handler(request, response) {
   try {
@@ -9,7 +11,10 @@ module.exports = async function handler(request, response) {
 
     if (request.method === "GET") {
       const resident = await authenticatedResident(request);
-      return sendJson(response, 200, { ok: true, user: resident });
+      // The resident's current server-side entitlement and ministry card receipt
+      // travel together; clients must never guess activation from UI state.
+      const card = resident?.id ? await cardStore.residentCardReceipt(resident.id) : null;
+      return sendJson(response, 200, { ok: true, user: resident, card });
     }
 
     const parsed = requireJsonPost(request);
@@ -23,6 +28,7 @@ module.exports = async function handler(request, response) {
     if (action === "requestCode") return await requestCode(request, response, parsed.body);
     if (action === "verifyCode") return await verifyCode(request, response, parsed.body);
     if (action === "saveSheep") return await saveSheep(request, response, parsed.body);
+    if (action === "activateCard") return await activateCard(request, response, parsed.body);
     if (action === "logout") return await logout(request, response);
     return sendJson(response, 400, { ok: false, reason: "unknown_action" });
   } catch (error) {
@@ -34,6 +40,9 @@ module.exports = async function handler(request, response) {
     }
     if (error && error.code === "PASTURE_EMAIL_UNAVAILABLE") {
       return sendJson(response, 503, { ok: false, reason: "email_unavailable" });
+    }
+    if (error && error.code === "PASTURE_CARD_NOT_CONFIGURED") {
+      return sendJson(response, 503, { ok: false, reason: "card_activation_pending" });
     }
     if (error && error.code === "INVALID_SHEEP") {
       return sendJson(response, 400, { ok: false, reason: "invalid_sheep" });
@@ -108,15 +117,30 @@ async function saveSheep(request, response, body) {
     created: result.created,
     user: {
       ...resident,
-      sheep: {
-        id: sheep.id,
-        bodyColor: sheep.bodyColor,
-        headColor: sheep.headColor,
-        marking: sheep.marking,
-        createdAt: sheep.createdAt
-      }
+      sheep: domain.publicSheep(sheep)
     }
   });
+}
+
+
+async function activateCard(request,response,body){
+ const resident=await authenticatedResident(request);
+ if(!resident)return sendJson(response,401,{ok:false,reason:'unauthorized'});
+ if(!resident.sheep)return sendJson(response,403,{ok:false,reason:'sheep_required'});
+ if(resident.cardActivated===true)return sendJson(response,409,{ok:false,reason:'card_already_activated'});
+ // Supplemental IP limit; the durable counter below is enforced in PostgreSQL.
+ if(!consume('card-ip:'+clientIp(request),8,15*60_000))
+  return sendJson(response,429,{ok:false,reason:'card_rate_limited'});
+ const allowed=await cardStore.consumeActivationAttempt(resident.id);
+ if(!allowed)return sendJson(response,429,{ok:false,reason:'card_rate_limited'});
+ const digest=cardSecrets.hashCode(body.password);
+ if(!digest)return sendJson(response,400,{ok:false,reason:'activation_failed'});
+ const serial=await cardStore.redeemSecretDigest(resident.id,digest);
+ if(!serial)return sendJson(response,400,{ok:false,reason:'activation_failed'});
+ // Re-read from the server: never grant a right based on client input.
+ const updated=await authenticatedResident(request);
+ if(!updated?.cardActivated)return sendJson(response,503,{ok:false,reason:'activation_pending_sync'});
+ return sendJson(response,200,{ok:true,user:updated});
 }
 
 async function logout(request, response) {
@@ -171,4 +195,4 @@ async function sendVerificationEmail(email, code) {
   }
 }
 
-module.exports._test = { requestCode, verifyCode, saveSheep, logout, authenticatedResident, sendVerificationEmail };
+module.exports._test = { requestCode, verifyCode, saveSheep, activateCard, logout, authenticatedResident, sendVerificationEmail };

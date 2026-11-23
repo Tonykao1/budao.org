@@ -180,6 +180,7 @@ const pastureUsers = pgTable("pasture_users", {
   emailCiphertext: text("email_ciphertext"),
   emailNonce: text("email_nonce"),
   emailTag: text("email_tag"),
+  cardActivatedAt: timestamp("card_activated_at", { withTimezone: true }),
   status: text("status").notNull().default("ACTIVE"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
@@ -199,6 +200,35 @@ const pastureEmailVerifications = pgTable("pasture_email_verifications", {
 }, (table) => ({
   lookupIndex: index("pasture_email_verifications_lookup_idx").on(table.emailHash, table.createdAt)
 }));
+
+// Card serial is public and non-deriving. Only a keyed HMAC digest is stored.
+// A card may be claimed once in its lifetime; a resident holds at most one ACTIVE card.
+const pastureCards = pgTable("pasture_cards", {
+ id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+ serial: text("serial").notNull(),
+ secretDigest: text("secret_digest").notNull(),
+ secretVersion: text("secret_version").notNull().default("v1"),
+ batchId: text("batch_id").notNull(),
+ // Identity of ministry-authorized operator, never set by public applications.
+ issuerId: text("issuer_id"),
+ authorizationRef: text("authorization_ref"),
+ deliveryChannel: text("delivery_channel"),
+ reservedForUserId: uuid("reserved_for_user_id").references(() => pastureUsers.id, { onDelete: "set null" }),
+ status: text("status").notNull().default("ISSUED"),
+ activatedByUserId: uuid("activated_by_user_id").references(() => pastureUsers.id, { onDelete: "set null" }),
+ issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+ activatedAt: timestamp("activated_at", { withTimezone: true }),
+ revokedAt: timestamp("revoked_at", { withTimezone: true })
+}, (table) => ({
+ serialUnique: uniqueIndex("pasture_cards_serial_uq").on(table.serial),
+ digestUnique: uniqueIndex("pasture_cards_secret_digest_uq").on(table.secretDigest),
+ activeResidentUnique: uniqueIndex("pasture_cards_active_resident_uq").on(table.activatedByUserId).where(sql`${table.status} = 'ACTIVATED'`)
+}));
+const pastureCardAttempts = pgTable("pasture_card_attempts", {
+ userId: uuid("user_id").primaryKey().references(() => pastureUsers.id, { onDelete: "cascade" }),
+ attempts: integer("attempts").notNull().default(0),
+ windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull().defaultNow()
+});
 
 const pastureSessions = pgTable("pasture_sessions", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -220,6 +250,8 @@ const pastureSheep = pgTable("pasture_sheep", {
   bodyColor: text("body_color").notNull(),
   headColor: text("head_color").notNull(),
   marking: text("marking").notNull().default("NONE"),
+  appearanceVersion: integer("appearance_version").notNull().default(1),
+  appearanceV2: jsonb("appearance_v2"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
 }, (table) => ({
@@ -239,6 +271,8 @@ module.exports = {
   prayerAuditEvents,
   prayerRateLimits,
   pastureUsers,
+  pastureCards,
+  pastureCardAttempts,
   pastureEmailVerifications,
   pastureSessions,
   pastureSheep

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>共读经卷 · 步道数字牧场 Preview</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#e7decb;color:#42321f;font-family:system-ui,"PingFang SC",sans-serif}
+main{max-width:760px;margin:38px auto 80px;padding:20px 26px;background:#fff9ed;border:1px solid #b3a284;box-shadow:0 12px 42px #422b171c}
+header{text-align:center;border-bottom:1px solid #bba885;padding-bottom:22px}
+h1{font-family:"Songti SC","STSong",serif;font-weight:700;letter-spacing:.18em}header p{font-size:13px;color:#6e5f4a}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin:25px 0;align-items:center}button,input{border:1px solid #a58e64;background:#fffaf0;color:#45331b;padding:9px 12px;min-height:40px;font-size:14px}
+button{cursor:pointer}button[aria-pressed=true]{background:#786344;color:#fff}input{flex:1;min-width:155px}
+#result{display:grid;gap:12px}article{padding:16px 14px;border:1px solid #caba9b;background:#faf3e5}
+article h2{font-size:17px;font-family:"Songti SC",serif;margin:2px 0 10px}article p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}
+small,.note{font-size:12px;color:#75664e}audio{width:100%;max-width:510px;margin:10px 0}
+footer{margin-top:26px;padding-top:13px;border-top:1px solid #c6b494;font-size:12px;line-height:1.8;color:#6f614d}
+a{color:#684c2a}@media(max-width:640px){main{margin:0;min-height:100vh;padding:24px 18px}h1{font-size:27px}}
+</style></head><body><main>
+<header><h1>共读经卷</h1><p>让经文成为坐标，而非让人争夺关注。</p><p class="note">独立试验 · 内容以经文本身为中心 · 未建立身份互认机制</p></header>
+<nav aria-label="内容类型和经文查找">
+<button type="button" data-kind="reading" aria-pressed="true">真实读经</button>
+<button type="button" data-kind="insight" aria-pressed="false">匿名领受</button>
+<input id="ref" aria-label="查找经文出处" placeholder="按经文出处筛选，例如 约 13:34–35">
+<button type="button" id="find">查找</button></nav>
+<p id="status" role="status">正在读取公开经卷…</p><section id="result" aria-label="公开经文记录"></section>
+<footer>读经声音可能使熟人辨认作者；匿名领受不附带个人声音、姓名、位置或教会身份。匿名内容不表示已由教会认可。跨地域同行和真实身份互认尚未开放。<p><a href="/pasture-preview/">返回数字牧场</a></p></footer>
+</main><script>
+(()=>{'use strict';
+ const result=document.querySelector('#result'),status=document.querySelector('#status'),ref=document.querySelector('#ref');
+ const buttons=[...document.querySelectorAll('[data-kind]')];let kind='reading';
+ function add(tag,parent,text,cls){const node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=text;parent.append(node);return node}
+ async function load(){
+  status.textContent='正在读取…';result.replaceChildren();
+  try{
+   const url='/api/pasture-commons?kind='+encodeURIComponent(kind)+(ref.value.trim()?'&ref='+encodeURIComponent(ref.value.trim()):'');
+   const response=await fetch(url,{cache:'no-store'});
+   const data=await response.json();
+   if(!response.ok)throw Error(data.reason==='commons_not_configured'?'公共经卷的独立试验数据库尚未启用，暂时没有对外开放。':String(data.reason||'网络错误'));
+   const items=Array.isArray(data.items)?data.items:[];
+   status.textContent=items.length?'共找到 '+items.length+' 条公开记录':'当前没有符合条件的公开记录。';
+   for(const item of items){
+    const article=add('article',result);
+    add('h2',article,item.scriptureReference||'经文');
+    if(item.kind==='reading'){
+     add('small',article,item.translation||'');
+     if(item.audioUrl&&item.voice==='SPOKEN'){
+      const audio=add('audio',article);audio.controls=true;audio.preload='none';audio.src=item.audioUrl;
+      add('small',article,'朗读声音可能具有身份识别性');
+     }else add('p',article,'读经者选择只公开经文出处，原声仍属私人档案。');
+    }else add('p',article,item.text||'');
+    add('small',article,item.kind==='reading'?
+     (item.voice==='SPOKEN'?'身份未列出 · 原声可能被认出 · 不提供身份解锁':'身份未列出 · 不公开原声 · 不提供身份解锁'):
+     '匿名领受 · 不公开原声 · 不提供身份解锁');
+   }
+  }catch(error){status.textContent=String(error.message||error)}
+ }
+ buttons.forEach(b=>b.addEventListener('click',()=>{
+  kind=b.dataset.kind;buttons.forEach(item=>item.setAttribute('aria-pressed',String(item===b)));load();
+ }));
+ document.getElementById('find').addEventListener('click',load);
+ ref.addEventListener('keydown',e=>{if(e.key==='Enter')load()});
+ load();
+})();
+</script></body></html>
