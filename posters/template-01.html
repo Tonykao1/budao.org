@@ -383,16 +383,27 @@ function render([photo,qr,logo,brush],targetCtx,theme){
  item("距离",R.distance,67,1406,122,116);
  item("爬升",R.elevation,246,1406,309,140);
  item("时长",R.duration,474,1406,538,258,true);
- // Second line: surface has 654px of its own, not a 100px leftover slot.
- if(R.surface){
-   text("路面",67,1453,"500 23px "+FONT_SANS,P.factLabel);
-   fittedFact(R.surface,139,1453,654,27,19,P.bottomText,800,true);
+ // Secondary information stays in two complete, QR-protected rows.
+ // Never drop difficulty or minimum equipment solely because a visual template is sparse.
+ function supplementaryRow(value,y,label,optional=false){
+   if(!value)return;
+   const fitted=PL.fit(ctx,value,{
+     label,size:26,minSize:18,maxWidth:730,maxLines:1,
+     weight:650,family:FONT_SANS,allowEllipsis:optional
+   });
+   layoutGuard.claimText(label,fitted.lines[0],67,y,fitted.font,{avoid:["报名二维码"]});
+   text(fitted.lines[0],67,y,fitted.font,P.bottomText);
  }
- // Empty optional fields never leave label-only placeholders.
- if(R.suitable){
-   text("适合人群",67,1507,"600 25px "+FONT_SERIF,P.audienceLabel);
-   fittedFact(R.suitable,197,1507,602,30,20,P.audience,700,true);
- }
+ const terrainAndDifficulty=[
+   R.difficulty&&"难度 "+R.difficulty,
+   R.surface&&"路面 "+R.surface
+ ].filter(Boolean).join("   ·   ");
+ const audienceAndEquipment=[
+   R.suitable&&"适合 "+R.suitable,
+   R.equipment&&"装备 "+R.equipment
+ ].filter(Boolean).join("   ·   ");
+ supplementaryRow(terrainAndDifficulty,1453,"难度及路面");
+ supplementaryRow(audienceAndEquipment,1507,"适合人群及装备");
  // Unmodified QR pixels, including its intrinsic quiet zone (no added border).
  text(R.isPast?"活动已结束":"扫码报名",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
  window.BudaoPosterQR.draw(ctx,qr.bmp,837,1281,184,184);
