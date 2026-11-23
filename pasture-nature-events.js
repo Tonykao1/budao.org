@@ -73,17 +73,19 @@
     t=clamp(t,0,1);
     if(scene==='portrait')return{x:portraitRiverCenter(t,width),y:mix(height*.405,height+8,t)};
     // The landscape river is a meandering foreground river, not the sea.
-    const a=[[0,355],[.18,356],[.34,353],[.50,386],[.68,393],[.80,385],[1,375]];
+    // Water centre from v19 actual river polygon; avoid the wooden bridge at y=219–225.
+    const y=mix(154,308,t);
+    const a=[[154,359],[180,358],[200,358],[212,367],[225,377],[239,380],[262,376],[280,372],[300,371],[308,371]];
     let x=a[a.length-1][1];
     for(let i=0;i<a.length-1;i++){
-      if(t<=a[i+1][0]){x=mix(a[i][1],a[i+1][1],(t-a[i][0])/(a[i+1][0]-a[i][0]));break;}
+      if(y<=a[i+1][0]){x=mix(a[i][1],a[i+1][1],(y-a[i][0])/(a[i+1][0]-a[i][0]));break;}
     }
-    return{x:x*width/480,y:mix(height*154/300,height+8,t)};
+    return{x:x*width/480,y:y*height/300};
   }
   function zone(kind,scene,w,h,r){
     const portrait=scene==='portrait';
     if(kind==='fish'||kind==='dragonfly'){
-      const p=riverAt(.43+r()*.29,scene,w,h);
+      const p=riverAt(kind==='fish'?.55+r()*.25:.36+r()*.37,scene,w,h);
       return{x:p.x,y:p.y};
     }
     if(kind==='migration')return{x:0,y:(portrait?h*.255:96)*(.24+r()*.35)};
