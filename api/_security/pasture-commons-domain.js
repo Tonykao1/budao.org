@@ -77,7 +77,7 @@ function publicView(row){
    id:row.id,kind:'reading',scriptureReference:row.scriptureReference,
    translation:row.translation,voice:row.voice==='SILENT'?'SILENT':'SPOKEN',
    audioUrl:row.voice==='SPOKEN'?'/api/pasture-commons?audio='+encodeURIComponent(row.id):null,
-   identityState:'ANONYMOUS'
+   identityState:row.voice==='SPOKEN'?'AUTHOR_HIDDEN_VOICE_RECOGNIZABLE':'AUTHOR_HIDDEN'
  });
  if(row.kind==='insight')return Object.freeze({
    id:row.id,kind:'insight',scriptureReference:row.scriptureReference,
