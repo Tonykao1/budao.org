@@ -283,6 +283,15 @@ function recorderStatusText(){
   // Independent consent-based publication layer. Public content never inherits the
   // local draft's other fields, resident identity, voice master or private light graph.
   let publicationBusy=false;
+  function readingModeKey(){return PREFIX+'.'+scope+'.reading-modes.v1'}
+  function readingMode(){
+   const modes=getJson(readingModeKey(),{});return modes?.[draft?.id]==='silent'?'silent':'spoken';
+  }
+  function toggleReadingMode(){
+   if(draft.reading?.audioId||['arming','recording','paused','finalizing'].includes(journeyPhase)||rerecordOriginal){tell('录音开始后不可切换读经方式。新的一份读经可以重新选择。');return}
+   const all=getJson(readingModeKey(),{});all[draft.id]=readingMode()==='silent'?'spoken':'silent';writeJson(readingModeKey(),all);
+   render();tell(readingMode()==='silent'?'已选择默录：仍会请求麦克风并保存实际录音，默读时不要求发声。':'已选择出声朗读。');
+  }
   function publicationKey(){return PREFIX+'.'+scope+'.publications.v1'}
   function localPublication(kind){
    const state=getJson(publicationKey(),{});return state?.[draft?.id]?.[kind]||null;
@@ -302,7 +311,7 @@ function recorderStatusText(){
     '<p>原声已收入本人古卷。默认不公开；发表的原声可能被熟人辨认。</p>'+
     (existing?'<p>已发表到共读经卷（可撤回）</p><button type="button" data-action="withdraw-reading" '+(publicationBusy?'disabled':'')+'>撤回读经发表</button>':
       '<div class="gs-publication-actions"><button type="button" data-action="keep-private" '+(publicationBusy?'disabled':'')+'>仅私人保存</button>'+
-      '<button type="button" data-action="publish-reading" '+(publicationBusy?'disabled':'')+'>发表有声读经</button>'+
+      (readingMode()==='silent'?'':'<button type="button" data-action="publish-reading" '+(publicationBusy?'disabled':'')+'>发表有声读经</button>'+)+
       '<button type="button" data-action="publish-reference" '+(publicationBusy?'disabled':'')+'>仅发表经文位置</button></div>')+
     '<a href="/pasture-preview/commons.html" target="_blank" rel="noopener noreferrer">查看共读经卷</a>'+
     '</section>';
@@ -356,6 +365,7 @@ function recorderStatusText(){
    if(!draft?.reading?.audioId||draft.readingJourney?.status!=='completed'||rerecordOriginal){
     tell('请先完成本人录音并收入古卷。');return;
    }
+   if(withAudio&&readingMode()==='silent'){tell('本次为默录，不会把安静录音冒充有声朗读；可仅发表经文位置。');return}
    if(draft.scripture.translation!=='圣经和合本（神版）'){
     tell('此译本的公开朗读许可尚未核验，当前仅保留私人读经。');return;
    }
@@ -446,6 +456,8 @@ function stageReading(){
   '<section class="gs-panel gs-recording-panel gs-voice-station" aria-label="今日读经原声"><h3>今日读经</h3><span class="gs-voice-hidden-brand" aria-hidden="true">ORIGINAL VOICE</span>'+
 
   '<div class="gs-voice-scripture">'+escape(draft.scripture.reference||'请选择经文')+'</div>'+
+  '<div class="gs-reading-mode"><button type="button" data-action="toggle-reading-mode" '+(hasAudio||rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase)?'disabled':'')+'>方式：'+(readingMode()==='silent'?'默录（安静阅读）':'出声朗读')+'</button>'+
+  '<small>两种方式都必须完成麦克风录音；默录不要求有声朗读。</small></div>'+
   '<div class="gs-recorder-console gs-voice-tape-deck" data-state="'+state+'">'+
 
     '<div class="gs-recorder-deck">'+
@@ -1439,6 +1451,7 @@ async function startOrStopRecording(){
     case 'restart-current-take':restartCurrentTake();break;
     case 'link-audio':linkRecording();break;
     case 'download-audio':await exportAudio();break;
+    case 'toggle-reading-mode':toggleReadingMode();break;
     case 'keep-private':tell('本次读经已保存在私人古卷，没有对外发布。');break;
     case 'publish-reading':await publishPublicReading(true);break;
     case 'publish-reference':await publishPublicReading(false);break;
