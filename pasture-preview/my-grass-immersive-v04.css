@@ -556,3 +556,17 @@ body.grassbook-open #grassBookCanvas,body.grassbook-open .book-text{display:none
 
 /* One authentic private archive; remove the empty "reunion" showcase pane. */
 #grassWorkspace .gs-grid.gs-archive-only{grid-template-columns:minmax(0,1fr);gap:0}
+
+/* Opt-in reading publication: quiet, distinct from the 1U recorder/2U DSP. */
+#grassWorkspace .gs-reading-mode{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 0 10px;color:#775c38}
+#grassWorkspace .gs-reading-mode button{padding:5px 10px;border:1px solid #a28b60;border-radius:5px;background:rgba(255,248,221,.74);color:#5b4125;cursor:pointer;font:700 12px/1.45 "PingFang SC",sans-serif}
+#grassWorkspace .gs-reading-mode button:disabled{opacity:.65;cursor:default}
+#grassWorkspace .gs-reading-mode small{font:11px/1.45 "PingFang SC",sans-serif;color:#866c46}
+#grassWorkspace .gs-publication-choice{margin:16px 2px 10px;padding:12px 10px;border-top:1px solid rgba(150,112,64,.4);border-bottom:1px solid rgba(150,112,64,.25);color:#584224;font:12px/1.6 "PingFang SC",sans-serif}
+#grassWorkspace .gs-publication-choice h4{margin:0 0 6px;font:700 16px/1.4 STKaiti,KaiTi,serif;letter-spacing:.05em}
+#grassWorkspace .gs-publication-choice p{margin:5px 0 9px;line-height:1.6}
+#grassWorkspace .gs-publication-actions{display:flex;flex-wrap:wrap;gap:7px}
+#grassWorkspace .gs-publication-choice button{padding:7px 9px;min-height:33px;background:linear-gradient(#f1dcb4,#dec295);color:#57402a;border:1px solid #9b7b4d;border-radius:3px;font-weight:600;cursor:pointer}
+#grassWorkspace .gs-publication-choice button:disabled{opacity:.55;cursor:default}
+#grassWorkspace .gs-publication-choice a{display:inline-block;margin:8px 0 0;color:#705029;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:650px){#grassWorkspace .gs-publication-choice{padding:12px 4px}#grassWorkspace .gs-publication-choice button{flex:1}}
