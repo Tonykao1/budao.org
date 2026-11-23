@@ -43,7 +43,8 @@
     if(String(r.status||"").toLowerCase()==="cancelled"||r.cancelledAt)throw Error("此活动已取消，不提供报名海报");
     const clean= value=>text(value).replace(/\s+/g," ");
     const description=clean(r.description);
-    const subtitle=description.split(/[。！？\n]/)[0].slice(0,24)||"";
+    const firstSentence=description.split(/[。！？\n]/)[0];
+    const subtitle=Array.from(firstSentence).length>24?Array.from(firstSentence).slice(0,23).join("")+"…":firstSentence;
     const object={
       id:text(r.routeId||r.id),title,
       date:day,time,year,month:pad(month),day:pad(date),weekday,
