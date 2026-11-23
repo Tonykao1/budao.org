@@ -414,12 +414,13 @@ function recorderStatusText(){
     if(!samePublicationSnapshot(snap))throw Error('账号或读经已改变。');
     let publicAudio=null;
     if(withAudio){
-     const dsp=denoiseEnabled||eqEnabled||compEnabled||reverbEnabled;
-     publicAudio=dsp?await window.MyGrassAudioRender.render(voice,{
+     // Always render a distinct normalized publication asset, even when DSP is bypassed.
+     // Never upload the exact private original as a public audio file.
+     publicAudio=await window.MyGrassAudioRender.render(voice,{
       denoise:denoiseEnabled,denoiseStrength,eqEnabled,eq:{...eqBands},
       compEnabled,comp:{threshold:compThreshold,ratio:compRatio},
       reverbEnabled,reverb:{room:reverbRoom,mix:reverbMix}
-     }):voice;
+     });
      if(publicAudio.size>status.pilotAudioLimitBytes)throw Error('公开音频超过2MB试验容量，未发布；请保留私人原声。');
     }
     if(!samePublicationSnapshot(snap))throw Error('账号或读经已改变。');
@@ -449,7 +450,7 @@ function recorderStatusText(){
     const {receiptId}=await verifyPrivateRecording(snap);
     if(!samePublicationSnapshot(snap))throw Error('读经或账号已改变。');
     const result=await commonsPost({
-     action:'publish-insight',entryId:snap.entryId,receiptId,
+     action:'publish-insight',entryId:snap.entryId,receiptId,journey:draft.readingJourney,
      insight:draft.insightRecord,shareText:text,
      publishConsent:true,consentVersion:'v1'
     });
