@@ -139,5 +139,5 @@ test('no server path auto-unlocks identities from content or public audio',()=>{
  assert.match(src,/journey_digest/);
  assert.match(src,/policy\.validPublicAudio/);
  assert.match(src,/policy\.journeyDigest/);
- assert.match(src,/AND entry_id=\$4 LIMIT 1/);
+ assert.match(src,/AND entry_id=\$4 AND journey_digest=\$5 LIMIT 1/);
 });
