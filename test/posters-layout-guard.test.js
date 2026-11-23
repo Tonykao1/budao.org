@@ -58,5 +58,5 @@ test("portrait QR left-column supplementary facts have a bounded text budget",()
 test("vivid and photo-first templates keep route identity readable",()=>{
   assert.match(file("posters/template-03.html"),/lineText\(FACTS\.subtitle,twoRows\?737:783,23/);
   assert.match(file("posters/template-06.html"),/const factRows=\[/);
-  assert.match(file("posters/template-06.html"),/label:"路线指标",size:22,minSize:18/);
+  assert.match(file("posters/template-06.html"),/label:"路线指标与装备",size:21,minSize:18/);
 });
