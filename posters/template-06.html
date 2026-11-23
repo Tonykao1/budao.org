@@ -236,7 +236,7 @@ function drawTopInfo(){
  // Small original BUDAO logo in upper left: 27px -> 32px (+18.5%).
  if(brand){
   ctx.save();ctx.filter="brightness(0) invert(1)";ctx.globalAlpha=.96;
-  const w=32,h=w*brand.height/brand.width;
+  const w=49,h=w*brand.height/brand.width;
   ctx.drawImage(brand,75,67,w,h);ctx.restore();
  }
  // Right-align verified route text, up to two visible lines.
@@ -292,17 +292,22 @@ function drawBottom(){
  write("集合地点",86,1340,18,{weight:620,color:"#d6e5df"});
  let yy=1376;
  for(const line of meetingLines){write(line,86,yy,26,{weight:580,color:white});yy+=34;}
- const facts=[
-  data.distance?"距离 "+data.distance:"",
-  data.difficulty?"难度 "+data.difficulty:"",
-  data.duration?"时长 "+data.duration:"",
-  data.elevation?"爬升 "+data.elevation:""
- ].filter(Boolean).join("  ·  ");
- if(facts){
-  ctx.save();let size=20;
-  while(size>15){ctx.font=font(size,500);if(ctx.measureText(facts).width<=615)break;size-=1;}
-  ctx.restore();write(facts,86,1465,size,{weight:500,color:muted});
- }
+ // Split the essential route facts into bounded rows, never an unreadable 15px run.
+  const factRows=[
+    [data.distance&&"距离 "+data.distance,data.elevation&&"爬升 "+data.elevation].filter(Boolean).join("  ·  "),
+    [data.difficulty&&"难度 "+data.difficulty,data.duration&&"时长 "+data.duration].filter(Boolean).join("  ·  ")
+  ].filter(Boolean);
+  for(let i=0;i<factRows.length;i++){
+    const row=factRows[i];let size=22;
+    ctx.save();
+    for(;size>=18;size--){
+      ctx.font=font(size,500);
+      if(ctx.measureText(row).width<=645)break;
+    }
+    ctx.restore();
+    if(size<18)throw Error("路线指标过长，无法在底部信息区安全显示");
+    write(row,86,1443+i*33,size,{weight:500,color:muted});
+  }
  // Preserve exact source QR pixels, including its own built-in quiet zone.
  const size=198,x=797,y=1222,margin=6;
  ctx.fillStyle="#fff";ctx.fillRect(x-margin,y-margin,size+2*margin,size+2*margin);
@@ -319,7 +324,7 @@ function draw(){
   ctx.restore();
   const alpha=ctx.getImageData(540,400,1,1).data[3];if(alpha!==255)throw Error("图片没有完整绘制");
   valid=true;UI.download.disabled=false;
-  info("✓ 照片全幅铺满；固定字形为已选第03号书法衍生资产\n✓ 右上显示真实路线说明，左上 Logo 放大18.5%\n✓ 主字位置："+(look.which==="high"?"偏上":"居中")+"；颜色："+(look.tone==="light"?"白色":"深墨色")+"\n✓ 活动原始二维码未重绘；1080 × 1530 PNG 可导出"+(data.isPast?"\n提示：这是已结束活动的历史海报。":""));
+  info("✓ 照片全幅铺满；固定字形为已选第03号书法衍生资产\n✓ 右上显示真实路线说明，左上 Logo 增强可辨识度\n✓ 主字位置："+(look.which==="high"?"偏上":"居中")+"；颜色："+(look.tone==="light"?"白色":"深墨色")+"\n✓ 活动原始二维码未重绘；1080 × 1530 PNG 可导出"+(data.isPast?"\n提示：这是已结束活动的历史海报。":""));
  }catch(err){ctx.restore();fail(err);}
 }
 async function imageFrom(src){
