@@ -139,3 +139,61 @@ test("critical metadata never falls back to misleading unrestricted participatio
   assert.match(two,/label:"路线"\+label/);
   assert.match(read("posters/template-06.html"),/layoutGuard\.claimText/);
 });
+
+
+test("05 ceremonial poster keeps the complete route title on one line for all three fonts",()=>{
+  const html=read("posters/template-05.html");
+  assert.doesNotMatch(html,/function titleRows\(/);
+  const start=html.indexOf("function bigTitle(");
+  const end=html.indexOf("function details(",start);
+  assert.ok(start>=0&&end>start);
+  const titleFunction=html.slice(start,end);
+  assert.match(titleFunction,/maxLines:1/);
+  assert.doesNotMatch(titleFunction,/\b(?:split|slice|ellipsis)\b/);
+  for(const font of ["song","sans","kai"]){
+    const c=ctxMock();
+    const painted=[],regions=[];
+    const sandbox={
+      c,PL,
+      E:{titleFont:{value:font}},
+      titleFaces:{
+        song:{family:"serif",weight:700,tracking:0},
+        sans:{family:"sans-serif",weight:700,tracking:5},
+        kai:{family:"serif",weight:500,tracking:1.5}
+      },
+      write:(value,x,y,size,options)=>painted.push({value,x,y,size,options})
+    };
+    vm.runInNewContext(titleFunction,sandbox);
+    const title="箭杆岭一线天小环线";
+    vm.runInNewContext("bigTitle({paper:'#fff'},{title:'"+title+"'},layoutGuard)",{
+      ...sandbox,layoutGuard:{claim:(name,box)=>regions.push({name,box})}
+    });
+    assert.equal(painted.length,1,font+" should render only one title");
+    assert.equal(painted[0].value,title,font+" should not clip the route name");
+    assert.equal(painted[0].options.align,"center");
+    assert.equal(regions.length,1);
+    assert.ok(regions[0].box.x>=118,"title should remain within the photograph");
+    assert.ok(regions[0].box.x+regions[0].box.width<=962,"title should fit its safe column");
+    assert.equal(regions[0].box.y>=610,true);
+  }
+});
+
+test("05 ceremonial poster fails safely for an impossible single-line route name",()=>{
+  const html=read("posters/template-05.html");
+  const titleFunction=html.slice(html.indexOf("function bigTitle("),html.indexOf("function details("));
+  const sandbox={
+    c:ctxMock(),PL,E:{titleFont:{value:"song"}},
+    titleFaces:{song:{family:"serif",weight:700,tracking:0}},
+    write:()=>{throw Error("should not draw an impossible title")}
+  };
+  vm.runInNewContext(titleFunction,sandbox);
+  assert.throws(()=>sandbox.bigTitle({paper:"#fff"},{title:"特别长的步道活动标题".repeat(20)}),/活动名称.*过长/);
+});
+
+test("05 ceremonial QR remains original and unchanged by one-line typography",()=>{
+  const html=read("posters/template-05.html");
+  assert.match(html,/const size=184,x=802,qy=1174;/);
+  assert.match(html,/BudaoPosterQR\.draw\(c,qr,x,qy,size,size\)/);
+  assert.match(html,/await createImageBitmap\(blob\)/);
+  assert.match(html,/bigTitle\(P,record,layoutGuard\)/);
+});
