@@ -124,29 +124,19 @@ const HEADLINE_FONTS=Object.freeze({
 let P=THEMES.pilgrim;
 let currentFont=HEADLINE_FONTS.song;
 function mainHeadline(str,x,y){
- // Use two lines at a legible size before shrinking a long route name.
- const value=Array.from(String(str||"")),maxWidth=478;
  c.save();c.textBaseline="alphabetic";c.fillStyle=P.wine;
- c.font="700 93px "+currentFont.family;
- if(c.measureText(str).width<=maxWidth){
+ const normal=PL.measured(c,str,"700 93px "+currentFont.family).width;
+ if(normal<=478){
+   c.font="700 93px "+currentFont.family;
    c.fillText(str,x,y);c.restore();return 1;
  }
- for(let size=79;size>=46;size--){
-   c.font="700 "+size+"px "+currentFont.family;
-   const rows=[];let line="";
-   for(const ch of value){
-     if(line&&c.measureText(line+ch).width>maxWidth){
-       rows.push(line);line=ch;
-     }else line+=ch;
-   }
-   if(line)rows.push(line);
-   if(rows.length<=2&&rows.every(row=>c.measureText(row).width<=maxWidth)){
-     rows.forEach((row,i)=>c.fillText(row,x,y-29+i*78));
-     c.restore();return rows.length;
-   }
- }
- c.restore();
- throw Error("活动名称过长：希望之径无法在最低可读字号下排入两行");
+ const fitted=PL.fit(c,str,{
+   label:"路线名称",size:79,minSize:46,maxWidth:478,maxLines:2,
+   family:currentFont.family,weight:700
+ });
+ c.font=fitted.font;
+ fitted.lines.forEach((row,i)=>c.fillText(row,x,y-29+i*78));
+ c.restore();return fitted.lines.length;
 }
 function colorAlpha(color,alpha){
  return color+Math.round(Math.max(0,Math.min(1,alpha))*255).toString(16).padStart(2,"0");
@@ -274,7 +264,11 @@ function draw(photo,qr,logo){
  line(508,249,978,249,P.gold,2.2);
  const headlineRows=mainHeadline(R.title,499,365);
  const subtitleY=headlineRows>1?499:430;
- title(R.subtitle,505,subtitleY,'600 28px '+CN,P.ink);
+ const subtitleFit=PL.fit(c,R.subtitle,{
+   label:"活动限制和说明",size:28,minSize:19,maxWidth:470,maxLines:1,
+   family:CN,weight:600
+  });
+  if(subtitleFit.lines.length)title(subtitleFit.lines[0],505,subtitleY,subtitleFit.font,P.ink);
  const ruleY=headlineRows>1?536:471;
  line(508,ruleY,945,ruleY,P.softLine,1.6);
  for(let i=0;i<4;i++){c.fillStyle=P.accents[i];c.beginPath();c.arc(516+38*i,ruleY,5.4,0,Math.PI*2);c.fill();}
@@ -284,7 +278,7 @@ function draw(photo,qr,logo){
    DESCRIPTION.slice(summary.length).replace(/^[\s，,。！？；;：:]*/,"").trim():
    DESCRIPTION.trim();
  if(extra){
-   textWrap(extra,507,headlineRows>1?592:534,470,'500 21px '+CN,35,P.ink,headlineRows>1?3:5);
+   textWrap(extra,507,headlineRows>1?592:534,470,'500 21px '+CN,35,P.ink,headlineRows>1?2:4);
  }
  title(R.month,504,788,'700 126px Georgia,serif',P.wine);
  title("/",666,781,'400 66px Georgia,serif',P.gold);
@@ -296,7 +290,14 @@ function draw(photo,qr,logo){
  title(R.time,789,837,'600 42px Georgia,serif',P.ink);
  line(507,866,987,866,P.gold,1.8);
  title("集合地点",508,919,'600 24px '+SANS,P.olive);
- title(R.meeting,508,968,'700 30px '+SANS,P.ink);
+ const meetingFit=PL.fit(c,R.meeting,{
+    label:"集合地点",size:30,minSize:21,maxWidth:475,maxLines:1,
+    family:SANS,weight:700
+  });
+  const layoutGuard=PL.createGuard(c,{width:1080,height:1530});
+  layoutGuard.reserve("报名二维码",{x:838,y:1255,width:162,height:162},12);
+  layoutGuard.claimText("集合地点",R.meeting,508,968,meetingFit.font,{avoid:["报名二维码"]});
+  title(R.meeting,508,968,meetingFit.font,P.ink);
  line(508,997,990,997,P.softLine,1);
  metadata("距离",R.distance,509,1032);
  metadata("爬升",R.elevation,766,1032);
@@ -304,27 +305,28 @@ function draw(photo,qr,logo){
  metadata("时长",R.duration,766,1130);
  if(R.suitable){
    title("适合人群",508,1251,'600 23px '+CN,P.olive);
-   title(R.suitable,508,1294,'700 29px '+CN,P.wine);
+   const suitableFit=PL.fit(c,R.suitable,{
+      label:"适合人群",size:29,minSize:19,maxWidth:280,maxLines:1,
+      family:CN,weight:700
+    });
+    if(suitableFit.lines.length){
+      layoutGuard.claimText("适合人群",R.suitable,508,1294,suitableFit.font,{avoid:["报名二维码"]});
+      title(R.suitable,508,1294,suitableFit.font,P.wine);
+    }
    line(508,1322,750,1322,P.softLine,1);
  }
  // Reserve QR x=838..1000: optional details remain in the left column.
  const extraFacts=[R.difficulty&&"难度 "+R.difficulty,R.equipment&&"装备 "+R.equipment].filter(Boolean).join(" · ");
  if(extraFacts){
-   const safeWidth=307,rowsMax=3;
-   let rows=[],size=21;
-   for(;size>=18;size--){
-     c.save();c.font='500 '+size+'px '+SANS;
-     rows=[];let row="";
-     for(const ch of Array.from(extraFacts)){
-       if(row&&c.measureText(row+ch).width>safeWidth){rows.push(row);row=ch;}
-       else row+=ch;
-     }
-     if(row)rows.push(row);
-     c.restore();
-     if(rows.length<=rowsMax)break;
-   }
-   if(rows.length>rowsMax)throw Error("装备及难度信息过长，无法安全排入二维码左侧区域");
-   rows.forEach((row,i)=>title(row,508,1357+i*31,'500 '+size+'px '+SANS,P.ink));
+   const fitted=PL.fit(c,extraFacts,{
+     label:"装备及难度",size:21,minSize:18,maxWidth:307,maxLines:3,
+     family:SANS,weight:500
+   });
+   fitted.lines.forEach((row,i)=>{
+     const y=1357+i*31;
+     layoutGuard.claimText("装备及难度第"+(i+1)+"行",row,508,y,fitted.font,{avoid:["报名二维码"]});
+     title(row,508,y,fitted.font,P.ink);
+   });
  }
  // QR is always the unmodified original bitmap, quiet zone included.
  title(R.isPast?"活动已结束":"扫码报名",919,1227,'600 22px '+SANS,P.wine,"center");
