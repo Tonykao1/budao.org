@@ -222,5 +222,15 @@
     "title": "温榆画廊晴波线",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-11-24",
+    "type": "pioneer",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony-2026-11-24-b8ed2d28b074",
+    "title": "箭杆岭一线天小环线",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
