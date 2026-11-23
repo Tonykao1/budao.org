@@ -335,14 +335,18 @@ function render([photo,qr,logo,brush],targetCtx,theme){
  }
  ctx.save();ctx.translate(130,159);ctx.translate(160,827);ctx.rotate(11*Math.PI/180);ctx.translate(-160,-827);
  if(P.locked){
-  ctx.save();ctx.font="900 175px "+FONT_SANS;
-  const w=ctx.measureText(R.title).width;ctx.restore();
-  text(R.title,124,836,"900 "+Math.min(175,175*760/Math.max(w,1)).toFixed(1)+"px "+FONT_SANS,P.title);
+  const fixed=PL.fit(ctx,R.title,{
+    label:"路线名称",size:175,minSize:52,maxWidth:700,maxLines:1,
+    family:FONT_SANS,weight:900
+  });
+  text(R.title,124,836,fixed.font,P.title);
  }
  else protectedHeadline(R.title,124,836,selectedHeadline().font,guard);
- ctx.save();ctx.font="750 52px "+FONT_SANS;
- const subtitleW=ctx.measureText(R.subtitle).width;ctx.restore();
- text(R.subtitle,148,941,"750 "+Math.min(52,52*755/Math.max(subtitleW,1)).toFixed(1)+"px "+FONT_SANS,P.subtitle);
+ const subtitleFit=PL.fit(ctx,R.subtitle,{
+   label:"活动说明",size:52,minSize:22,maxWidth:755,maxLines:1,
+   family:FONT_SANS,weight:750
+  });
+  if(subtitleFit.lines.length)text(R.subtitle,148,941,subtitleFit.font,P.subtitle);
  ctx.restore();
  if(P.locked)ctx.drawImage(brush.bmp,60,944,267.3,227.7);else drawTinted(brush.bmp,P.brush,60,944,267.3,227.7);
  // Information hierarchy; no new solid panel
