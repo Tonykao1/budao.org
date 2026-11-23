@@ -100,10 +100,14 @@ button:disabled{opacity:.47;cursor:not-allowed}
 </main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const R=await window.BudaoPosterRuntime.load();
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
+PL.validateFacts(R);
 
 "use strict";
 const SOURCE={photo:R.photo,qr:R.qr,footprint:R.footprint,brand:R.logo};
