@@ -285,6 +285,8 @@ function recorderStatusText(){
   let publicationBusy=false;
   function readingModeKey(){return PREFIX+'.'+scope+'.reading-modes.v1'}
   function readingMode(){
+   const archived=draft?.readingJourney?.status==='completed'?draft.readingJourney.audio?.mode:null;
+   if(archived==='silent'||archived==='spoken')return archived;
    const modes=getJson(readingModeKey(),{});return modes?.[draft?.id]==='silent'?'silent':'spoken';
   }
   function toggleReadingMode(){
@@ -398,6 +400,9 @@ function recorderStatusText(){
     tell('请先完成本人录音并收入古卷。');return;
    }
    if(withAudio&&readingMode()==='silent'){tell('本次为默录，不会把安静录音冒充有声朗读；可仅发表经文位置。');return}
+   if(withAudio&&draft.readingJourney?.audio?.mode!=='spoken'){
+    tell('旧版录音没有留下可靠的出声方式声明；为保护原声，请新开一页重新录制后再公开。');return;
+   }
    if(withAudio&&draft.scripture.translation!=='圣经和合本（神版）'){
     tell('此译本的公开朗读许可尚未核验，但可仅分享经文出处。');return;
    }
@@ -1314,7 +1319,7 @@ async function startOrStopRecording(){
       // must never attach this audio to another resident's private diary.
       if(attemptId!==journeyAttemptToken||!residentAccess()||scope!==residentScope()||
          (rerecordOriginal&&(rerecordOriginal.scope!==scope||rerecordOriginal.draftId!==draft?.id)))return;
-      const metadata={audioId,mimeType:blob.type,size:blob.size,durationSeconds:journeyFinalMs/1000};
+      const metadata={audioId,mimeType:blob.type,size:blob.size,durationSeconds:journeyFinalMs/1000,mode:readingMode()};
       journey=C.completeReadingJourney(journey,journeyFinalMs,iso(),metadata);
       C.setRuntimeReadingJourney(journey);
       const previousDraft=rerecordOriginal?{
