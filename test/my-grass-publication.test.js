@@ -67,7 +67,8 @@ test('public API never exposes resident identity, receipt hash, recordings or st
 });
 test('production and unprovisioned Preview fail closed, status reports disabled without a database',async()=>{
  assert.equal(endpoint._test.enabled({VERCEL_ENV:'production',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'dummy'}),false);
- assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'dummy'}),true);
+ assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'dummy'}),false);
+ assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'identity-db',PASTURE_COMMONS_DATABASE_URL:'isolated-commons-db'}),true);
  assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',DATABASE_URL:'dummy'}),false);
  let status,headers={},json;
  const res={setHeader(k,v){headers[k]=v},status(n){status=n;return this},json(o){json=o}};
