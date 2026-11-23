@@ -164,28 +164,20 @@ function write(value,x,y,size,options){
  c.restore();
 }
 function fitLine(value,width,initial,min,font,weight){
- c.save();let size=initial;const str=String(value||"");
- while(size>min){
-  c.font=weight+" "+size+"px "+font;
-  if(c.measureText(str).width<=width)break;
-  size-=1;
- }
- c.restore();return size;
+ return PL.fit(c,value,{
+   label:"路线参数",size:initial,minSize:Math.max(min,19),
+   maxWidth:width,maxLines:1,family:font,weight
+ }).size;
 }
 function wrap(value,width,size,font,weight,maxLines){
- c.save();c.font=weight+" "+size+"px "+font;
- const lines=[];let current="";
- for(const char of Array.from(String(value||""))){
-  if(char==="\n"){if(current)lines.push(current);current="";continue;}
-  if(c.measureText(current+char).width>width&&current){lines.push(current);current=char;}
-  else current+=char;
- }
- if(current)lines.push(current);c.restore();
- return lines.length<=maxLines?lines:null;
+ const rows=PL.wrap(c,value,weight+" "+size+"px "+font,width);
+ return rows.length<=maxLines?rows:null;
 }
 function fitBlock(value,width,ideal,min,maxLines,font,weight){
- for(let px=ideal;px>=min;px--){const lines=wrap(value,width,px,font,weight,maxLines);if(lines)return {size:px,lines};}
- throw Error("路线文字太长，无法在清晰可读的字号内显示");
+ return PL.fit(c,value,{
+   label:"集合地点及活动详情",size:ideal,minSize:min,maxWidth:width,
+   maxLines,family:font,weight
+ });
 }
 function cover(img,x,y,w,h,zoom){
  const sw=img.width,sh=img.height;const ratio=Math.max(w/sw,h/sh)*(zoom||1);
@@ -266,7 +258,7 @@ function headerDraw(P,R){
  // Route description belongs exclusively in the top horizontal strip,
  // immediately to the RIGHT of the existing logo (not below the title).
  // Use actual route text and a visible ellipsis when it cannot fit.
- const topDescription=routeDescriptionExcerpt(R.description,805,17,2);
+ const topDescription=routeDescriptionExcerpt(R.requirements||R.description,805,17,2);
  const topBaselines=topDescription.length===1?[112]:[101,127];
  for(let i=0;i<topDescription.length;i++){
   write(topDescription[i],173,topBaselines[i],17,{font:serif,weight:400,
@@ -391,7 +383,7 @@ function details(P,R){
  let yy=Math.max(1310,y+13);
  for(const row of groups){
   if(!row)continue;
-  const size=fitLine(row,640,22,15,sans,400);
+  const size=fitLine(row,640,22,19,sans,400);
   write(row,110,yy,size,{font:sans,weight:400,color:P.muted});yy+=34;
  }
  if(yy>1450)throw Error("活动详情过长，无法完整排入海报");
@@ -410,8 +402,14 @@ function render(){
  E.download.disabled=true;ready=false;
  if(!record||!photo||!qr||!footGold||!brand)return;
  try{
-  const P=themes[chosen];
-  c.save();c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.filter="none";
+  PL.validateFacts(record);
+   const layoutGuard=PL.createGuard(c,{width:1080,height:1530});
+   layoutGuard.reserve("报名二维码",{x:802,y:1174,width:184,height:184},12);
+   layoutGuard.claim("路线主标题区域",{x:118,y:610,width:844,height:354},{avoid:["报名二维码"]});
+   layoutGuard.claim("集合地点区域",{x:109,y:1198,width:621,height:86},{avoid:["报名二维码"]});
+   layoutGuard.claim("运动参数区域",{x:109,y:1300,width:640,height:148},{avoid:["报名二维码"]});
+   const P=themes[chosen];
+   c.save();c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.filter="none";
   backdrop(P);ornaments(P);headerDraw(P,record);photoArch(P);bigTitle(P,record);details(P,record);
   c.restore();
   const check=c.getImageData(533,475,1,1).data;
@@ -480,6 +478,7 @@ async function activate(){
   const selected=list.find(r=>String(r.routeId||r.id)===E.route.value);
   if(!selected)throw Error("没有选择活动");
   const R=runtime.normalized(selected);
+  PL.validateFacts(R);
   const [p,q]=await Promise.all([imageFromURL(R.photo),qrFromRoute(R)]);
   if(token!==selectionToken){p.bmp.close?.();q.close?.();return;}
   pimg=p.bmp;qimg=q;
