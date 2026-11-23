@@ -120,7 +120,7 @@ const FONT='"Noto Serif CJK SC","Songti SC","STSong","SimSun",serif';
 const $=id=>document.getElementById(id),cv=$("poster"),c=cv.getContext("2d",{alpha:false});
 const ui={photo:$("photoInput"),filename:$("fileName"),hue:$("hue"),swatches:$("swatches"),
   reroll:$("reroll"),reset:$("reset"),download:$("download"),status:$("status")};
-let photoInfo=null,foot=null,qr=null,brand=null,variant=0,ready=false,lastPick=0;
+let photoInfo=null,foot=null,qr=null,brand=null,variant=0,ready=false,lastPick=0,textGuard=null;
 const mod=(x,m)=>((x%m)+m)%m;
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 function rnd(seed){
@@ -320,26 +320,43 @@ function whiteFoot(){
  c.save();c.globalAlpha=1;c.drawImage(off,x-ox/factor,y-oy/factor,off.width/factor,off.height/factor);c.restore();
 }
 function lineText(text,y,size=25,color="#222",maxWidth=780,weight=300){
- c.save();c.font=weight+" "+size+"px "+FONT;
- const measured=c.measureText(text).width;
- const s=measured>maxWidth?size*maxWidth/measured:size;
- c.font=weight+" "+Math.max(17,s).toFixed(2)+"px "+FONT;
+ if(!String(text||"").trim())return;
+ const fitted=PL.fit(c,text,{
+   label:"海报信息",size,minSize:Math.min(20,size),maxWidth,maxLines:1,
+   weight,family:FONT
+ });
+ if(textGuard)textGuard.claimText("信息行 "+y,text,540,y,fitted.font,{
+   align:"center",avoid:["报名二维码"]
+ });
+ c.save();c.font=fitted.font;
  c.textAlign="center";c.textBaseline="alphabetic";c.fillStyle=color;
  c.fillText(text,540,y);c.restore();
 }
 function renderType(){
  // One font family, one very light weight, narrow central axis, paragraph spacing.
  // Ratios and restraint informed by the 2001 original iPod paper invitation.
- if(FACTS.subtitle)lineText(FACTS.subtitle,783,23,"#37373d",780,400);
-  lineText(FACTS.title,845,42,"#17171a",630,400);
+ const titleFit=PL.fit(c,FACTS.title,{
+   label:"路线名称",size:42,minSize:27,maxWidth:630,maxLines:2,
+   weight:400,family:FONT
+ });
+ const twoRows=titleFit.lines.length>1;
+ if(FACTS.subtitle)lineText(FACTS.subtitle,twoRows?737:783,23,"#37373d",780,400);
+ if(twoRows){
+   titleFit.lines.forEach((row,i)=>lineText(row,814+i*47,titleFit.size,"#17171a",630,400));
+ }else lineText(FACTS.title,845,42,"#17171a",630,400);
  lineText(FACTS.date+"  ·  "+FACTS.weekday,927,27,"#28282c",660);
  lineText(FACTS.time,969,26,"#2e2e32",660);
  lineText(FACTS.region,1031,23,"#3e3e42",660);
  lineText("集合地点",1077,20,"#73737a",600);
  lineText(FACTS.meeting,1125,25,"#313136",760);
- lineText("距离 "+FACTS.distance+"   ·   爬升 "+FACTS.elevation+"   ·   难度 "+FACTS.difficulty,1190,23,"#404045",840);
- lineText("时长 "+FACTS.duration+"   ·   路面 "+FACTS.surface,1231,23,"#404045",840);
- lineText("适合人群 "+FACTS.suitable+"   ·   装备 "+FACTS.equipment,1272,22,"#47474d",840);
+ const activityFacts=[
+   [FACTS.distance&&"距离 "+FACTS.distance,FACTS.elevation&&"爬升 "+FACTS.elevation,FACTS.difficulty&&"难度 "+FACTS.difficulty].filter(Boolean).join("   ·   "),
+   [FACTS.duration&&"时长 "+FACTS.duration,FACTS.surface&&"路面 "+FACTS.surface].filter(Boolean).join("   ·   "),
+   [FACTS.suitable&&"适合人群 "+FACTS.suitable,FACTS.equipment&&"装备 "+FACTS.equipment].filter(Boolean).join("   ·   ")
+ ];
+ [1190,1231,1272].forEach((y,i)=>{
+   if(activityFacts[i])lineText(activityFacts[i],y,i===2?22:23,i===2?"#47474d":"#404045",840,300);
+ });
 }
 function drawQR(){
  if(!qr)throw Error("本次活动原始二维码未读取成功");
@@ -370,7 +387,10 @@ function draw(){
   const p=colors(photoInfo);
   const seed=(photoInfo.hash ^ Math.imul(variant+1,0x9E3779B9))>>>0;
   renderPaint(p,seed);
-  whiteFoot();renderType();drawQR();drawBrandFooter();renderSwatches(p);
+  whiteFoot();
+   textGuard=PL.createGuard(c,{width:1080,height:1530});
+   textGuard.reserve("报名二维码",{x:435,y:1296,width:210,height:210},10);
+   renderType();drawQR();drawBrandFooter();renderSwatches(p);
   ui.hue.textContent=photoInfo.fallback?"灰度照片 · 高能回退":Math.round(photoInfo.h)+"° · 图片主色相";
   ui.status.textContent=(photoInfo.fallback?"原图彩度不足：已标明启用高能默认色相。":"已由照片提取中心色相："+photoInfo.h.toFixed(1)+"°。")+
   "\n✓ 白纸上半幅高饱和圆润滴溅，变体 "+(variant+1)+
