@@ -68,12 +68,16 @@ test('six-dimensional card identity namespaces preview data for different assign
  assert.notEqual(a,core.scopeFromIdentity({...v,final:{...v.final,numberColor:'black'}}));
  assert.equal(core.scopeFromIdentity({phase:'guest'}),'unassigned-preview');
 });
-test('no AI voice training, remote upload or autopublish endpoint is present in first-stage client',()=>{
+test('no AI voice training, silent remote upload or automatic public publication',()=>{
  const ui=read('my-grass-v1.js');
  const zone=read('function-zone.html');
  assert.match(ui,/getUserMedia/);assert.match(ui,/indexedDB/);
  assert.match(zone,/my-grass-v1\.css/);assert.match(zone,/my-grass-core\.js/);assert.match(zone,/my-grass-v1\.js/);
- assert.ok(!/\bfetch\s*\(\s*['"]\/api\//.test(ui));
+ assert.match(ui,/window\.confirm\('为验证原声确实存在/);
+ assert.match(ui,/window\.confirm\('需要将私人原声临时传给服务器验证/);
+ assert.match(ui,/publishConsent:true/);
+ assert.match(ui,/privateAudioVerificationConsent:true/);
+ assert.match(ui,/await commonsAvailable\(\)/);
  assert.ok(!ui.includes('speechSynthesis.speak('));
  assert.ok(!ui.includes('trainVoiceModel:true'));
 });
