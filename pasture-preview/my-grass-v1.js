@@ -292,6 +292,31 @@ function recorderStatusText(){
    const all=getJson(readingModeKey(),{});all[draft.id]=readingMode()==='silent'?'spoken':'silent';writeJson(readingModeKey(),all);
    render();tell(readingMode()==='silent'?'已选择默录：仍会请求麦克风并保存实际录音，默读时不要求发声。':'已选择出声朗读。');
   }
+  // Only the server can confirm publication and withdrawal. Local records are hints.
+  let publicationVerifiedFor='';
+  async function reconcilePublication(){
+   if(!draft?.reading?.audioId||!residentAccess()||publicationBusy)return;
+   const snapshot=publicationSnapshot(),key=snapshot.owner+':'+snapshot.entryId;
+   try{
+    const status=await commonsAvailable();
+    if(!status.enabled||!samePublicationSnapshot(snapshot))return;
+    const response=await fetch('/api/pasture-commons?mode=mine&entry='+encodeURIComponent(snapshot.entryId),{
+     credentials:'include',cache:'no-store'
+    });
+    const data=await response.json();
+    if(!response.ok||!data.ok||!samePublicationSnapshot(snapshot))return;
+    const items=Array.isArray(data.items)?data.items:[];
+    if(items.length>1)throw Error('publication_invariant_failed');
+    const all=getJson(publicationKey(),{});
+    const row=items[0];
+    all[snapshot.entryId]={};
+    if(row?.kind==='reading'||row?.kind==='insight')
+     all[snapshot.entryId][row.kind]={id:row.id,status:row.status,mode:row.voice,at:iso()};
+    writeJson(publicationKey(),all);
+    publicationVerifiedFor=key;
+    render();
+   }catch(_){/* Offline/unconfigured: do not fabricate an authoritative state. */}
+  }
   function publicationKey(){return PREFIX+'.'+scope+'.publications.v1'}
   function localPublication(kind){
    const state=getJson(publicationKey(),{});return state?.[draft?.id]?.[kind]||null;
@@ -305,11 +330,15 @@ function recorderStatusText(){
   }
   function publicationView(){
    if(draft?.readingJourney?.status!=='completed'||!draft.reading?.audioId||rerecordOriginal)return '';
-   const existing=localPublication('reading');
+   const existing=localPublication('reading'),other=localPublication('insight');
+   const verified=publicationVerifiedFor===scope+':'+draft.id;
    return '<section class="gs-publication-choice" aria-label="读经完成后私人保存或公开发表">'+
     '<h4>读经已完成 · 发表由你决定</h4>'+
-    '<p>原声已收入本人古卷。默认不公开；发表的原声可能被熟人辨认。</p>'+
-    (existing?'<p>已发表到共读经卷（可撤回）</p><button type="button" data-action="withdraw-reading" '+(publicationBusy?'disabled':'')+'>撤回读经发表</button>':
+    '<p>原声已收入本人古卷。默认不公开；发表的原声可能被熟人辨认。同一份读经只能选择一种公开形式。</p>'+
+    (!verified?'<p>公开状态尚未从服务器确认；发表前会再次校验。</p>':'')+
+    (existing?(existing.status==='WITHDRAWN'?'<p>本次公开已撤回；为防止匿名关联，同一档案不可重复发表。</p>':
+      '<p>已发表到共读经卷'+(verified?'':'（本机记录待核实）')+'</p><button type="button" data-action="withdraw-reading" '+(publicationBusy?'disabled':'')+'>撤回读经发表</button>'):
+      other?'<p>本份读经已用于匿名领受分享，不能再公开同一份声音。请新开一页重新录音。</p>':
       '<div class="gs-publication-actions"><button type="button" data-action="keep-private" '+(publicationBusy?'disabled':'')+'>仅私人保存</button>'+
       (readingMode()==='silent'?'':'<button type="button" data-action="publish-reading" '+(publicationBusy?'disabled':'')+'>发表有声读经</button>')+
       '<button type="button" data-action="publish-reference" '+(publicationBusy?'disabled':'')+'>仅发表经文位置</button></div>')+
@@ -318,11 +347,14 @@ function recorderStatusText(){
   }
   function insightPublicationView(){
    if(!draft?.insightRecord)return '';
-   const existing=localPublication('insight');
+   const existing=localPublication('insight'),other=localPublication('reading');
+   const verified=publicationVerifiedFor===scope+':'+draft.id;
    return '<section class="gs-publication-choice" aria-label="跨地域匿名领受分享">'+
     '<h4>匿名领受 · 彼此关怀</h4>'+
     '<p>只允许发表经本人审阅的一句文字；不发表个人原声、完整默想、身份或教会资料。匿名不保证无法从叙事识别本人。</p>'+
-    (existing?'<p>这份领受已匿名发表。</p><button type="button" data-action="withdraw-insight" '+(publicationBusy?'disabled':'')+'>撤回匿名领受</button>':
+    (existing?(existing.status==='WITHDRAWN'?'<p>这份匿名领受已撤回；同一读经档案不可再次发表。</p>':
+      '<p>这份领受已匿名发表'+(verified?'':'（本机记录待核实）')+'。</p><button type="button" data-action="withdraw-insight" '+(publicationBusy?'disabled':'')+'>撤回匿名领受</button>'):
+      other?'<p>这份读经已选择公开其他形式；为保护匿名，不能同时发表领受。</p>':
       '<button type="button" data-action="publish-insight" '+(publicationBusy?'disabled':'')+'>匿名发表上方文字</button>')+
     '</section>';
   }
@@ -355,13 +387,13 @@ function recorderStatusText(){
    const audioBase64=await window.MyGrassAudioRender.base64(voice);
    if(!samePublicationSnapshot(s))throw Error('读经已改变，停止发布。');
    const receipt=await commonsPost({
-    action:'attest-recording',journey:draft.readingJourney,
+    action:'attest-recording',entryId:s.entryId,journey:draft.readingJourney,
     mime:voice.type,audioBase64,privateAudioVerificationConsent:true
    });
    return {voice,receiptId:receipt.receiptId};
   }
   async function publishPublicReading(withAudio){
-   if(publicationBusy||localPublication('reading'))return;
+   if(publicationBusy||localPublication('reading')||localPublication('insight'))return;
    if(!draft?.reading?.audioId||draft.readingJourney?.status!=='completed'||rerecordOriginal){
     tell('请先完成本人录音并收入古卷。');return;
    }
@@ -398,13 +430,14 @@ function recorderStatusText(){
      ...(withAudio?{audioMime:publicAudio.type,publicAudioBase64:await window.MyGrassAudioRender.base64(publicAudio)}:{})
     });
     if(!samePublicationSnapshot(snap))return;
-    recordPublication('reading',{id:result.id,mode:withAudio?'spoken':'reference',at:iso()});
+    recordPublication('reading',{id:result.id,status:result.status,mode:withAudio?'spoken':'reference',at:iso()});
+    publicationVerifiedFor=snap.owner+':'+snap.entryId;
     tell('读经已发表到试验共读经卷；私人原声未覆盖，可随时撤回。');
    }catch(e){tell(String(e.message||e))}
    finally{publicationBusy=false;if(samePublicationSnapshot(snap))render()}
   }
   async function publishAnonymousInsight(){
-   if(publicationBusy||localPublication('insight')||!draft?.insightRecord)return;
+   if(publicationBusy||localPublication('insight')||localPublication('reading')||!draft?.insightRecord)return;
    const text=C.trim(microDraft);
    if(!text||C.count(text)>80){tell('请先审阅上方文字，匿名发表最多80字。');return}
    if(!window.confirm('匿名发表以下领受吗？\n\n'+text+'\n\n公开文字可能包含能够反推身份的故事细节，请自行确认。'))return;
@@ -421,7 +454,8 @@ function recorderStatusText(){
      publishConsent:true,consentVersion:'v1'
     });
     if(!samePublicationSnapshot(snap))return;
-    recordPublication('insight',{id:result.id,at:iso()});
+    recordPublication('insight',{id:result.id,status:result.status,at:iso()});
+    publicationVerifiedFor=snap.owner+':'+snap.entryId;
     tell('已匿名发表经本人确认的领受；身份仍不可查看或解锁。');
    }catch(e){tell(String(e.message||e))}
    finally{publicationBusy=false;if(samePublicationSnapshot(snap))render()}
@@ -434,7 +468,7 @@ function recorderStatusText(){
    try{
     await commonsAvailable();
     await commonsPost({action:'withdraw',id:current.id});
-    if(samePublicationSnapshot(snap)){recordPublication(kind,null);tell('已撤回公开内容，原始私人档案没有改变。')}
+    if(samePublicationSnapshot(snap)){recordPublication(kind,{...current,status:'WITHDRAWN'});publicationVerifiedFor=snap.owner+':'+snap.entryId;tell('已撤回公开内容，同一份档案不会再重新发表；原始私人档案没有改变。')}
    }catch(e){tell(String(e.message||e))}
    finally{publicationBusy=false;if(samePublicationSnapshot(snap))render()}
   }
@@ -1112,12 +1146,12 @@ async function startOrStopRecording(){
    focusLight=null;
    journey=draft.readingJourney;journeyPhase=journey?.status==='completed'?'completed':'idle';C.setRuntimeReadingJourney(journey);emitJourneyState();
    editingSavedId=found.id;microDraft='';persistDraft();archiveOpen=false;tab='reading';
-   tell('已翻开 '+found.scripture.reference+' 的灵修档案。');render();
+   publicationVerifiedFor='';tell('已翻开 '+found.scripture.reference+' 的灵修档案。');render();void reconcilePublication();
   }
   function openNewEntry(){
    if(recorder?.state==='recording'||['arming','recording','paused','finalizing'].includes(journeyPhase)){tell('请先结束今日读经。');return}
    clearPlayer();rerecordOriginal=null;draft=emptyDraft(refFromOriginal());journey=null;journeyPhase='idle';journeyFinalMs=0;C.setRuntimeReadingJourney(null);emitJourneyState();editingSavedId=null;microDraft='';
-   focusLight=null;archiveOpen=false;tab='reading';persistDraft();tell('已开启新的一份牧草；既有档案不会被覆盖。');render();
+   focusLight=null;archiveOpen=false;tab='reading';publicationVerifiedFor='';persistDraft();tell('已开启新的一份牧草；既有档案不会被覆盖。');render();
   }
   async function saveMicro(){
    const origin=getEntry();
@@ -1506,6 +1540,7 @@ async function startOrStopRecording(){
     C.setRuntimeReadingJourney(journey);
     emitJourneyState();
     render(); // AFTER openBook has made the original V0.4 folio visible.
+    void reconcilePublication();
    }
   }
   entryButton.addEventListener('click',openResidentWorkspace);
@@ -1521,7 +1556,7 @@ async function startOrStopRecording(){
    releaseJourneyStream();
    try{if(recorder?.state==='recording')recorder.stop()}catch(e){}
    clearPlayer();
-   scope='';key='';draft=null;entries=[];micros=[];lightGraph={relations:[],events:[]};
+   scope='';key='';draft=null;entries=[];micros=[];lightGraph={relations:[],events:[]};publicationVerifiedFor='';
    rerecordOriginal=null;journey=null;C.setRuntimeReadingJourney(null);focusLight=null;tab='reading';archiveOpen=false;
    document.body.classList.remove('grassbook-open');
    document.getElementById('skyZone')?.classList.remove('book-open');
