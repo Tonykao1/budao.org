@@ -537,7 +537,9 @@ function resize(){
  portrait=vh>vw*1.08;
  if(portrait){W=300;H=Math.max(430,Math.round(W*vh/vw))}
  else{H=300;W=Math.max(390,Math.round(H*vw/vh))}
- canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;draw();
+ canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;
+ if(natureEvents)natureEvents.reset(); // discard coordinates from the previous viewport aspect ratio
+ draw();
 }
 function twigHit(cx,cy){
  const r=canvas.getBoundingClientRect(),x=(cx-r.left)/r.width*W,y=(cy-r.top)/r.height*H;
