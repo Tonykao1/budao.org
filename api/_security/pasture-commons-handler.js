@@ -40,8 +40,9 @@ async function residentFor(req){
 }
 async function prepare(sql){
  if(prepared)return;
- await sql.query("CREATE TABLE IF NOT EXISTS pasture_audio_receipts_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, audio_id text NOT NULL, entry_id text NOT NULL, reference text NOT NULL, sha256 text NOT NULL, bytes integer NOT NULL CHECK (bytes>0 AND bytes<=2097152), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(owner_id,audio_id,sha256))");
+ await sql.query("CREATE TABLE IF NOT EXISTS pasture_audio_receipts_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, audio_id text NOT NULL, entry_id text NOT NULL, reference text NOT NULL, sha256 text NOT NULL, journey_digest text, bytes integer NOT NULL CHECK (bytes>0 AND bytes<=2097152), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(owner_id,audio_id,sha256))");
  await sql.query("ALTER TABLE pasture_audio_receipts_v1 ADD COLUMN IF NOT EXISTS entry_id text");
+ await sql.query("ALTER TABLE pasture_audio_receipts_v1 ADD COLUMN IF NOT EXISTS journey_digest text");
  await sql.query("CREATE TABLE IF NOT EXISTS pasture_commons_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, kind text NOT NULL CHECK (kind IN ('reading','insight')), entry_id text NOT NULL, audio_id text NOT NULL, scripture_reference text NOT NULL, translation text NOT NULL DEFAULT '', voice text NOT NULL CHECK (voice IN ('SPOKEN','SILENT','NONE')), public_text text NOT NULL DEFAULT '', audio_data bytea, audio_mime text, audio_size integer, consent_version text NOT NULL, status text NOT NULL DEFAULT 'PUBLISHED' CHECK (status IN ('PUBLISHED','WITHDRAWN')), created_at timestamptz NOT NULL DEFAULT now(), withdrawn_at timestamptz, UNIQUE(owner_id,entry_id))");
  // Guarantees that even concurrent requests cannot connect a public voice with an anonymous insight.
  // Never release the source entry key after withdrawal: the public may have cached the prior content.
@@ -60,7 +61,7 @@ function bodyOf(req){
 function kindRow(r){return {id:r.id,kind:r.kind,status:r.status,scriptureReference:r.scripture_reference,translation:r.translation,voice:r.voice,publicText:r.public_text}}
 async function receiptFor(sql,owner,id,audioId){
  if(!policy.validId(id)||typeof audioId!=='string')return null;
- const rows=await sql.query("SELECT id,owner_id,audio_id,entry_id,reference,sha256,bytes FROM pasture_audio_receipts_v1 WHERE id=$1 AND owner_id=$2 AND audio_id=$3 LIMIT 1",[id,owner,audioId]);
+ const rows=await sql.query("SELECT id,owner_id,audio_id,entry_id,reference,sha256,journey_digest,bytes FROM pasture_audio_receipts_v1 WHERE id=$1 AND owner_id=$2 AND audio_id=$3 LIMIT 1",[id,owner,audioId]);
  return rows[0]||null;
 }
 async function handle(req,res){
@@ -108,12 +109,13 @@ async function handle(req,res){
   if(action==='attest-recording'){
    if(body.privateAudioVerificationConsent!==true)return fail(res,400,'audio_verification_consent_required');
    const journey=policy.verifyJourney(body.journey),audio=policy.validAudio(body.mime,body.audioBase64);
+   const journeyHash=policy.journeyDigest(body.journey);
    const entryId=String(body.entryId||'');
    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
-   const existing=await sql.query("SELECT id FROM pasture_audio_receipts_v1 WHERE owner_id=$1 AND audio_id=$2 AND sha256=$3 AND entry_id=$4 LIMIT 1",[owner.id,journey.audioId,audio.sha256,entryId]);
+   const existing=await sql.query("SELECT id FROM pasture_audio_receipts_v1 WHERE owner_id=$1 AND audio_id=$2 AND sha256=$3 AND entry_id=$4 AND journey_digest=$5 LIMIT 1",[owner.id,journey.audioId,audio.sha256,entryId,journeyHash]);
    if(existing.length)return sendJson(res,200,{ok:true,receiptId:existing[0].id,privateAudioStored:false});
    const id=crypto.randomUUID();
-   await sql.query("INSERT INTO pasture_audio_receipts_v1 (id,owner_id,audio_id,entry_id,reference,sha256,bytes) VALUES ($1,$2,$3,$4,$5,$6,$7)",[id,owner.id,journey.audioId,entryId,journey.reference,audio.sha256,audio.size]);
+   await sql.query("INSERT INTO pasture_audio_receipts_v1 (id,owner_id,audio_id,entry_id,reference,sha256,journey_digest,bytes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",[id,owner.id,journey.audioId,entryId,journey.reference,audio.sha256,journeyHash,audio.size]);
    // The original private recording is not written to the database.
    return sendJson(res,200,{ok:true,receiptId:id,privateAudioStored:false});
   }
@@ -124,14 +126,15 @@ async function handle(req,res){
    const receipt=await receiptFor(sql,owner.id,body.receiptId,journey.audioId);
    const entryId=String(body.entryId||'');
    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
-   if(!receipt||receipt.reference!==journey.reference||receipt.entry_id!==entryId)
+   if(!receipt||receipt.reference!==journey.reference||receipt.entry_id!==entryId||
+      receipt.journey_digest!==policy.journeyDigest(body.journey))
     return fail(res,403,'recording_receipt_required');
    const translation=String(body.translation||'').trim();
    const mode=body.mode==='silent'?'SILENT':body.mode==='spoken'?'SPOKEN':null;
    if(!mode)return fail(res,400,'invalid_mode');
    if(translation!==String(body.journey.translation||''))return fail(res,400,'translation_mismatch');
    if(mode==='SPOKEN'&&translation!=='圣经和合本（神版）')return fail(res,403,'translation_rights_pending');
-   const encoded=mode==='SPOKEN'?policy.validAudio(body.audioMime,body.publicAudioBase64):null;
+   const encoded=mode==='SPOKEN'?policy.validPublicAudio(body.audioMime,body.publicAudioBase64,journey.durationMs):null;
    if(mode==='SILENT'&&body.publicAudioBase64)return fail(res,400,'silent_public_audio_forbidden');
    // Public voice may identify a person; never pair its source entry with an anonymous insight.
    if(mode==='SPOKEN'){
@@ -150,10 +153,13 @@ async function handle(req,res){
   if(action==='publish-insight'){
    if(body.publishConsent!==true||body.consentVersion!=='v1')return fail(res,400,'publish_consent_required');
    const insight=body.insight||{},audioId=String(insight.reading_record_id||'');
+   const journey=policy.verifyJourney(body.journey);
    const receipt=await receiptFor(sql,owner.id,body.receiptId,audioId);
    const entryId=String(body.entryId||'');
    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
-   if(!receipt||receipt.reference!==insight.scripture_range||receipt.entry_id!==entryId)
+   if(!receipt||receipt.reference!==insight.scripture_range||receipt.entry_id!==entryId||
+      journey.audioId!==audioId||journey.reference!==insight.scripture_range||
+      receipt.journey_digest!==policy.journeyDigest(body.journey))
     return fail(res,403,'recording_receipt_required');
    const voiceConflict=await sql.query("SELECT id FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 AND kind='reading' AND voice='SPOKEN' AND status='PUBLISHED' LIMIT 1",[owner.id,entryId]);
    if(voiceConflict.length)return fail(res,409,'cross_publication_identity_risk');
