@@ -187,7 +187,9 @@ function fitBlock(value,width,ideal,min,maxLines,font,weight){
 function ceremonialPhotoCover(img,x,y,w,h,zoom,horizontal,vertical){
  const sw=Number(img?.width),sh=Number(img?.height);
  if(!(sw>0&&sh>0))throw Error("照片尺寸无效，无法安全取景");
- const ratio=Math.max(w/sw,h/sh)*(zoom||1);
+ // Ten percent photo overscan ensures BOTH axes can move even if cover
+ // otherwise fits the window exactly on one dimension.
+ const ratio=Math.max(w/sw,h/sh)*(zoom||1)*1.10;
  const dw=sw*ratio,dh=sh*ratio;
  const fx=clamp(Number(horizontal)/100,0,1),fy=clamp(Number(vertical)/100,0,1);
  const dx=x+(w-dw)*fx,dy=y+(h-dh)*fy;
