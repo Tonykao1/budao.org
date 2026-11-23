@@ -16,9 +16,11 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 <canvas id="pasture" aria-label="牧场"></canvas>
 <script src="/pasture-sky-engine.js"></script>
 <script src="/pasture-sun-moon-track.js"></script>
+<script src="/pasture-nature-events.js"></script>
 <script>
 (()=>{
 const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');
+const natureEvents=window.BudaoPastureNature?.createController();
 ctx.imageSmoothingEnabled=false;
 
 const C={
@@ -527,14 +529,19 @@ function weatherOverlay(){
 function draw(){
  tick++;ctx.clearRect(0,0,W,H);
  if(portrait)drawPortrait();else drawLandscape();
- weatherOverlay();drawTwig();
+ weatherOverlay();
+ // Fireflies must remain luminous after the night tint, without changing that tint.
+ if(state&&natureEvents)natureEvents.draw(ctx,{now:Date.now(),width:W,height:H,scene:portrait?'portrait':'landscape',state,skyState:state.skyState});
+ drawTwig();
 }
 function resize(){
  const vw=Math.max(1,innerWidth),vh=Math.max(1,innerHeight);
  portrait=vh>vw*1.08;
  if(portrait){W=300;H=Math.max(430,Math.round(W*vh/vw))}
  else{H=300;W=Math.max(390,Math.round(H*vw/vh))}
- canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;draw();
+ canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;
+ if(natureEvents)natureEvents.reset(); // discard coordinates from the previous viewport aspect ratio
+ draw();
 }
 function twigHit(cx,cy){
  const r=canvas.getBoundingClientRect(),x=(cx-r.left)/r.width*W,y=(cy-r.top)/r.height*H;
