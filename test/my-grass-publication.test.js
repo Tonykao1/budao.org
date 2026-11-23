@@ -2,6 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const c=require('../api/_security/pasture-commons-domain');
 const render=require('../pasture-preview/my-grass-audio-render-v1');
+const core=require('../pasture-preview/my-grass-core.js');
 const endpoint=require('../api/_security/pasture-commons-handler');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const fixture={
@@ -106,6 +107,7 @@ test('original remains separate from DSP publish copy; UI requires two conscious
  assert.match(main,/publishConsent:true/);
  assert.match(main,/await commonsAvailable\(\)/);
  assert.match(main,/MyGrassAudioRender.render/);
+ assert.match(main,/mode:readingMode\(\)/);
  assert.match(main,/publicAudio=await window.MyGrassAudioRender.render/);
  assert.doesNotMatch(main,/publicAudio=dsp\?await/);
  assert.doesNotMatch(main,/publicAudio=voice/);
@@ -144,5 +146,20 @@ test('no server path auto-unlocks identities from content or public audio',()=>{
  assert.match(src,/journey_digest/);
  assert.match(src,/policy\.validPublicAudio/);
  assert.match(src,/policy\.journeyDigest/);
+ assert.match(src,/spoken_recording_mode_required/);
  assert.match(src,/AND entry_id=\$4 AND journey_digest=\$5 LIMIT 1/);
+});
+test('silent and spoken recording mode survives official journey archiving without fabricating mode for legacy audio',()=>{
+ const point={book:'约',chapter:3,verse:16,verseId:'JHN.3.16',translation:'圣经和合本（神版）'};
+ const base=core.startReadingJourney(point,'2026-11-23T08:00:00.000Z');
+ const spoken=core.completeReadingJourney(base,5000,'2026-11-23T08:00:05.000Z',
+  {audioId:'spoken-audio',mimeType:'audio/webm',size:5000,durationSeconds:5,mode:'spoken'});
+ const silent=core.completeReadingJourney(base,5000,'2026-11-23T08:00:05.000Z',
+  {audioId:'silent-audio',mimeType:'audio/webm',size:5000,durationSeconds:5,mode:'silent'});
+ const legacy=core.completeReadingJourney(base,5000,'2026-11-23T08:00:05.000Z',
+  {audioId:'old-audio',mimeType:'audio/webm',size:5000,durationSeconds:5});
+ assert.equal(spoken.audio.mode,'spoken');
+ assert.equal(silent.audio.mode,'silent');
+ assert.equal(legacy.audio.mode,undefined);
+ assert.notEqual(c.journeyDigest(spoken),c.journeyDigest({...spoken,audio:{...spoken.audio,mode:'silent'}}));
 });
