@@ -25,6 +25,34 @@ function validAudio(mime,base64){
  if(!isWav&&!isWebm&&!isOgg&&!isMp4)throw Error('audio_signature_mismatch');
  return {buffer,mime:type,size:buffer.length,sha256:crypto.createHash('sha256').update(buffer).digest('hex')};
 }
+// Public audio must be a clean, deterministic, mono PCM copy made by
+// the publication renderer; never ship the user's raw private MediaRecorder blob.
+function validPublicAudio(mime,base64,journeyMs){
+ const item=validAudio(mime,base64),b=item.buffer;
+ if(item.mime!=='audio/wav'||b.length<44||
+    b.readUInt32LE(4)!==b.length-8||b.toString('ascii',12,16)!=='fmt '||
+    b.readUInt32LE(16)!==16||b.readUInt16LE(20)!==1||
+    b.readUInt16LE(22)!==1||b.readUInt32LE(24)!==16000||
+    b.readUInt32LE(28)!==32000||b.readUInt16LE(32)!==2||
+    b.readUInt16LE(34)!==16||b.toString('ascii',36,40)!=='data'||
+    b.readUInt32LE(40)!==b.length-44||(b.length-44)%2!==0)
+   throw Error('invalid_public_audio_format');
+ const durationMs=(b.length-44)/32000*1000;
+ const expected=Number(journeyMs);
+ if(!Number.isFinite(expected)||expected<=0||Math.abs(durationMs-expected)>Math.max(1500,expected*.25))
+   throw Error('public_audio_duration_mismatch');
+ return item;
+}
+// The canonical time/verse sequence is bound into the private receipt.
+// This does not imply speech recognition or verification of spiritual intent.
+function journeyDigest(j){
+ const v=verifyJourney(j);
+ const segments=j.segments.map(s=>[s.verse,s.startMs,s.endMs]);
+ return crypto.createHash('sha256').update(JSON.stringify([
+  v.audioId,v.reference,v.durationMs,
+  String(j.translation||''),Number(j.chapter),segments
+ ])).digest('hex');
+}
 function verifyJourney(j){
  if(!j||j.status!=='completed'||!j.audio?.audioId||!Array.isArray(j.segments)||!j.segments.length||j.segments.length>200)
   throw Error('completed_recording_required');
@@ -57,4 +85,4 @@ function publicView(row){
  });
  return null;
 }
-module.exports={MAX_AUDIO_BYTES,MAX_TEXT_CHARS,validId,reference,validAudio,verifyJourney,validateKind,publicView};
+module.exports={MAX_AUDIO_BYTES,MAX_TEXT_CHARS,validId,reference,validAudio,validPublicAudio,verifyJourney,journeyDigest,validateKind,publicView};
