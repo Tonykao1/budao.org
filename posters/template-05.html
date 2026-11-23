@@ -107,10 +107,13 @@ a{color:#7b4b30}
 </main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const runtime=window.BudaoPosterRuntime;
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
 const cv=document.getElementById("poster"),c=cv.getContext("2d",{alpha:false});
 const $=id=>document.getElementById(id);
 const E={route:$("route"),titleFont:$("titleFont"),pattern:$("pattern"),light:$("light"),crop:$("crop"),
