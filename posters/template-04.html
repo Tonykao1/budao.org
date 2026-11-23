@@ -683,7 +683,8 @@ function originalQR(){
  if(qr.width<80||qr.height<80)throw Error("当前活动二维码图片尺寸过小");
  const c=displayCtx;c.save();
  c.globalAlpha=1;c.filter="none";c.imageSmoothingEnabled=false;
- window.BudaoPosterQR.draw(c,qr,1439,455,152,152);
+ // Dedicated QR zone: right of title and metadata, never over the headline.
+  window.BudaoPosterQR.draw(c,qr,1635,778,152,152);
  c.restore();
 }
 function brandMark(){
@@ -697,7 +698,8 @@ function posterType(){
  if(!posterVisible)return;
  if(!verifiedQR||!qr||!brand)throw Error("二维码未核验，无法生成完整邀请函");
  displayCtx.save();displayCtx.setTransform(1,0,0,1,0,0);
- teaserTitle(FACTS.title);
+ if(R.subtitle)typeLine(R.subtitle,109,226,25,{weight:400,opacity:.88,maxWidth:1250});
+  teaserTitle(FACTS.title);
  const date=[FACTS.date,FACTS.time].filter(Boolean).join("     ");
  if(date){
   const fit=fitTypography(displayCtx,date,1460,62,40,1,300);
@@ -713,7 +715,7 @@ function posterType(){
  layoutDetails(FACTS);
  typeLine("budao.org",112,1042,18,{opacity:.75});
  brandMark();originalQR();
- typeLine("扫码报名相约步道",1515,647,19,{align:"center",opacity:.94,maxWidth:270});
+ typeLine(R.isPast?"活动已结束":"扫码报名相约步道",1711,970,19,{align:"center",opacity:.94,maxWidth:270});
  displayCtx.restore();
 }
 function compose(){
