@@ -24,8 +24,11 @@ function fakeData(){
  const sql={async query(query,args=[]){
   if(/^(CREATE|ALTER)\b/i.test(query)){state.schemaStatements.push(query);return []}
   if(query.includes('FROM pasture_audio_receipts_v1')){
-   if(query.startsWith('SELECT'))return state.receipts.filter(r=>r.owner_id===args[0]&&r.audio_id===args[1]&&
-     (query.includes('sha256=$3')?r.sha256===args[2]&&r.entry_id===args[3]:r.id===args[0])); 
+   if(query.startsWith('SELECT'))return state.receipts.filter(r=>
+    query.includes('sha256=$3')?
+      r.owner_id===args[0]&&r.audio_id===args[1]&&r.sha256===args[2]&&r.entry_id===args[3]:
+      r.id===args[0]&&r.owner_id===args[1]&&r.audio_id===args[2]
+   ); 
   }
   if(query.includes('FROM pasture_commons_v1')||query.startsWith('UPDATE pasture_commons_v1')){
    let items=state.records;
