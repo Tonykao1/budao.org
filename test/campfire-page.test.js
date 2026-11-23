@@ -30,10 +30,10 @@ test("营火之地主体只展示步道照片、评论与回顾", () => {
   assert.match(html, /aria-live="polite"/);
 });
 
-test("34 条原版留言全部保留并且不虚构评论归属", () => {
+test("同行者的活动留言完整并且不虚构评论归属", () => {
   assert.equal(archive.version, 2);
-  assert.equal(archive.quotes.length, 34);
-  assert.equal(new Set(archive.quotes).size, 34);
+  assert.equal(archive.quotes.length, 38);
+  assert.equal(new Set(archive.quotes).size, archive.quotes.length);
   assert.ok(archive.quotes.every((q) => typeof q === "string" && q.trim().length > 0));
   assert.match(archive.quotes.join("\n"), /Grateful for this\./);
   assert.match(archive.quotes.join("\n"), /我相信人与人的每一次相遇都是奇迹/);
