@@ -68,7 +68,12 @@ test('public API never exposes resident identity, receipt hash, recordings or st
 test('production and unprovisioned Preview fail closed, status reports disabled without a database',async()=>{
  assert.equal(endpoint._test.enabled({VERCEL_ENV:'production',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'dummy'}),false);
  assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'dummy'}),false);
- assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'identity-db',PASTURE_COMMONS_DATABASE_URL:'isolated-commons-db'}),true);
+ const identity='postgres://owner@ep-demo-pooler.region.neon.tech/neondb?sslmode=require';
+ const isolated='postgres://owner@ep-other.region.neon.tech/public?sslmode=require';
+ assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:identity,PASTURE_COMMONS_DATABASE_URL:isolated}),true);
+ assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:identity,PASTURE_COMMONS_DATABASE_URL:identity}),false);
+ assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:identity,PASTURE_COMMONS_DATABASE_URL:'postgres://other@ep-demo.region.neon.tech/neondb'}),false);
+ assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',PASTURE_COMMONS_ENABLED:'true',DATABASE_URL:'invalid',PASTURE_COMMONS_DATABASE_URL:isolated}),false);
  assert.equal(endpoint._test.enabled({VERCEL_ENV:'preview',DATABASE_URL:'dummy'}),false);
  let status,headers={},json;
  const res={setHeader(k,v){headers[k]=v},status(n){status=n;return this},json(o){json=o}};
@@ -94,6 +99,11 @@ test('original remains separate from DSP publish copy; UI requires two conscious
  assert.match(main,/publishConsent:true/);
  assert.match(main,/await commonsAvailable\(\)/);
  assert.match(main,/MyGrassAudioRender.render/);
+ assert.match(main,/void reconcilePublication\(\)/);
+ assert.match(main,/mode=mine&entry=/);
+ assert.match(main,/publicationVerifiedFor/);
+ assert.match(main,/status:'WITHDRAWN'/);
+ assert.match(main,/action:'attest-recording',entryId:s.entryId/);
  assert.match(renderer,/return new Blob\(\[bytes\]/);
  assert.doesNotMatch(renderer,/putAudio|indexedDB|localStorage/);
  assert.doesNotMatch(commons,/innerHTML|document\.write\(/);
@@ -112,4 +122,11 @@ test('no server path auto-unlocks identities from content or public audio',()=>{
  assert.match(src,/voice='SPOKEN' AND status='PUBLISHED'/);
  assert.match(src,/PASTURE_COMMONS_DATABASE_URL/);
  assert.doesNotMatch(src,/REFERENCES pasture_users/);
+ assert.match(src,/UNIQUE\(owner_id,entry_id\)/);
+ assert.match(src,/CREATE UNIQUE INDEX IF NOT EXISTS pasture_commons_entry_once_v1/);
+ assert.match(src,/e\?\.code==='23505'/);
+ assert.match(src,/mode'\)==='mine'/);
+ assert.match(src,/owner_id=\$1 AND entry_id=\$2/);
+ assert.match(src,/receipt\.entry_id!==entryId/);
+ assert.match(src,/AND entry_id=\$4 LIMIT 1/);
 });
