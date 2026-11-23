@@ -99,7 +99,7 @@ test('original remains separate from DSP publish copy; UI requires two conscious
  assert.match(commons,/textContent=text/);
 });
 test('no server path auto-unlocks identities from content or public audio',()=>{
- const src=read('api/pasture-commons.js');
+ const src=read('api/_security/pasture-commons-handler.js');
  assert.doesNotMatch(src,/identityUnlockDecision\(/);
  assert.doesNotMatch(src,/REVEAL_IDENTITY|VERIFIED_COWALK/);
  assert.match(src,/requireSameOrigin\(req\)/);
