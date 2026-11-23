@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'../pasture-preview/my-grass-v1.js'),'utf8');
-function harness({accept=true,insight=false,shares=false}={}){
+function harness({accept=true,insight=false,shares=false,published=false}={}){
  const originalJourney={
   status:'completed',book:'诗',chapter:23,startVerse:1,endVerse:4,
   reference:'诗 23:1–4',translation:'圣经和合本（神版）',durationMs:18000,
@@ -17,8 +17,9 @@ function harness({accept=true,insight=false,shares=false}={}){
   "let scope='pasture-resident-11111111-2222-3333-4444-555555555555',"+
   "draft=JSON.parse(JSON.stringify(initial)),entries=[initial],"+
   "micros=[],rerecordOriginal=null,journey=draft.readingJourney,"+
-  "journeyPhase='completed',journeyFinalMs=18000,journeyError='';"+
+  "journeyPhase='completed',journeyFinalMs=18000,journeyError='',publicationBusy=false;"+
   "let clearCount=0,notice='',renderCount=0,runtime=null;"+
+  "const localPublication=()=>hasPublicPublication?{status:'PUBLISHED'}:null;"+
   "const getEntry=()=>entries[0],clearPlayer=()=>{clearCount++},"+
   "emitJourneyState=()=>{},render=()=>{renderCount++},tell=text=>{notice=text},"+
   "C={setRuntimeReadingJourney:v=>{runtime=v}};"+
@@ -27,6 +28,7 @@ function harness({accept=true,insight=false,shares=false}={}){
   "snapshot:()=>({draft,journey,journeyPhase,journeyFinalMs,rerecordOriginal,clearCount,renderCount,notice,runtime})};"+
   "})()";
  sandbox.initial={...original,shareIds:shares?['micro-one']:[]};
+ sandbox.hasPublicPublication=published;
  return vm.runInNewContext(wrapper,sandbox);
 }
 test('completed reading provides replay AND rerecord/cancel within approved recorder',()=>{
@@ -60,6 +62,13 @@ test('declining, linked insights, and shared records cannot replace original',()
  assert.match(h.snapshot().notice,/正式领受/);
  h=harness({shares:true});h.start();assert.equal(h.snapshot().rerecordOriginal,null);
  assert.match(h.snapshot().notice,/关联牧草/);
+});
+test('a publicly released reading can no longer overwrite its original audio, even if locally archived',()=>{
+ const h=harness({published:true});h.start();
+ const snap=h.snapshot();
+ assert.equal(snap.rerecordOriginal,null);
+ assert.equal(snap.draft.reading.audioId,'voice-old');
+ assert.match(snap.notice,/已有公开记录/);
 });
 test('changed reading range is accepted within same chapter and must be explicitly confirmed',()=>{
  const start=source.slice(source.indexOf('async function startJourney(point)'),source.indexOf('function advanceJourney(point)'));
