@@ -169,9 +169,9 @@ test("01 and 02 hide missing optional route fields; 02 avoids duplicated short d
   const first=fs.readFileSync(path.join(root,"posters/template-01.html"),"utf8");
   const second=fs.readFileSync(path.join(root,"posters/template-02.html"),"utf8");
   assert.match(first,/if\(!String\(val==null\?"":val\)\.trim\(\)\)return/);
-  assert.match(first,/if\(R\.surface\)/);
-  assert.match(first,/if\(R\.suitable\)/);
+  assert.match(first,/R\.surface&&"路面 "/);
+  assert.match(first,/R\.suitable&&"适合 "/);
   assert.match(second,/if\(!String\(value==null\?"":value\)\.trim\(\)\)return/);
-  assert.match(second,/if\(DESCRIPTION\.trim\(\)!==R\.subtitle\.trim\(\)\)/);
+  assert.match(second,/const extra=DESCRIPTION\.startsWith\(summary\)/);
   assert.match(second,/if\(R\.suitable\)/);
 });

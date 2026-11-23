@@ -66,10 +66,14 @@ button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
 </section></div></main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const R=await window.BudaoPosterRuntime.load();
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
+PL.validateFacts(R);
 
 "use strict";
 const fileDefs=[
@@ -231,13 +235,11 @@ let headlineDecision=null;
 function selectedHeadline(){
  const choice=document.getElementById("headlineFont").value;
  const option=HEADLINE_FONTS[choice]||HEADLINE_FONTS.modern;
- let size=175;
- {
-  ctx.save();ctx.font="900 175px "+option.family;
-  const width=ctx.measureText(R.title).width;ctx.restore();
-  if(width>760)size=Math.max(52,175*760/width);
- }
- return {name:option.name,font:"900 "+size.toFixed(2)+"px "+option.family};
+ const fitted=PL.fit(ctx,R.title,{
+   label:"路线名称",size:175,minSize:52,maxWidth:700,maxLines:1,
+   family:option.family,weight:900
+ });
+ return {name:option.name,font:fitted.font};
 }
 function contrastRGB(hex,rgb){
  const light=luminance(hex);
@@ -333,14 +335,18 @@ function render([photo,qr,logo,brush],targetCtx,theme){
  }
  ctx.save();ctx.translate(130,159);ctx.translate(160,827);ctx.rotate(11*Math.PI/180);ctx.translate(-160,-827);
  if(P.locked){
-  ctx.save();ctx.font="900 175px "+FONT_SANS;
-  const w=ctx.measureText(R.title).width;ctx.restore();
-  text(R.title,124,836,"900 "+Math.min(175,175*760/Math.max(w,1)).toFixed(1)+"px "+FONT_SANS,P.title);
+  const fixed=PL.fit(ctx,R.title,{
+    label:"路线名称",size:175,minSize:52,maxWidth:700,maxLines:1,
+    family:FONT_SANS,weight:900
+  });
+  text(R.title,124,836,fixed.font,P.title);
  }
  else protectedHeadline(R.title,124,836,selectedHeadline().font,guard);
- ctx.save();ctx.font="750 52px "+FONT_SANS;
- const subtitleW=ctx.measureText(R.subtitle).width;ctx.restore();
- text(R.subtitle,148,941,"750 "+Math.min(52,52*755/Math.max(subtitleW,1)).toFixed(1)+"px "+FONT_SANS,P.subtitle);
+ const subtitleFit=PL.fit(ctx,R.subtitle,{
+   label:"活动说明",size:52,minSize:22,maxWidth:755,maxLines:1,
+   family:FONT_SANS,weight:750
+  });
+  if(subtitleFit.lines.length)text(R.subtitle,148,941,subtitleFit.font,P.subtitle);
  ctx.restore();
  if(P.locked)ctx.drawImage(brush.bmp,60,944,267.3,227.7);else drawTinted(brush.bmp,P.brush,60,944,267.3,227.7);
  // Information hierarchy; no new solid panel
@@ -348,26 +354,25 @@ function render([photo,qr,logo,brush],targetCtx,theme){
  text(R.weekday,512,1277,"800 46px "+FONT_SANS,P.weekday);
  text(R.time,610,1277,"780 45px Arial,sans-serif",P.bottomText);
  text("集合地点",65,1352,"640 30px "+FONT_SANS,P.meetingLabel);
- ctx.save();ctx.font="800 34px "+FONT_SANS;const meetingW=ctx.measureText(R.meeting).width;ctx.restore();
- text(R.meeting,217,1352,"800 "+Math.max(17,Math.min(34,34*570/Math.max(meetingW,1))).toFixed(1)+"px "+FONT_SANS,P.bottomText);
+ const meetingFit=PL.fit(ctx,R.meeting,{
+  label:"集合地点",size:34,minSize:20,maxWidth:570,maxLines:1,
+  family:FONT_SANS,weight:800
+ });
+ const layoutGuard=PL.createGuard(ctx,{width:1080,height:1530});
+ layoutGuard.reserve("报名二维码",{x:837,y:1281,width:184,height:184},8);
+ layoutGuard.claimText("集合地点",R.meeting,217,1352,meetingFit.font,{avoid:["报名二维码"]});
+ text(R.meeting,217,1352,meetingFit.font,P.bottomText);
  // Measured text layout: no fact may render into its neighbor's column.
  // Long "路面" runs on a dedicated full-width row instead of colliding with "时长".
  // Extreme data is explicitly marked with an ellipsis, never silently clipped.
- function fittedFact(value,x,y,maxWidth,baseSize,minSize,color,weight=800){
-   const original=String(value==null?"":value);
-   const measure=(str,sz)=>{
-     ctx.save();ctx.font=weight+" "+sz+"px "+FONT_SANS;
-     const w=ctx.measureText(str).width;ctx.restore();return w;
-   };
-   let size=baseSize;
-   while(size>minSize&&measure(original,size)>maxWidth)size--;
-   let visible=original;
-   if(measure(visible,size)>maxWidth){
-     const chars=Array.from(original);
-     while(chars.length&&measure(chars.join("")+"…",size)>maxWidth)chars.pop();
-     visible=chars.join("")+"…";
-   }
-   text(visible,x,y,weight+" "+size+"px "+FONT_SANS,color);
+ function fittedFact(value,x,y,maxWidth,baseSize,minSize,color,weight=800,optional=false){
+   const original=String(value==null?"":value).trim();
+   if(!original)return;
+   const fitted=PL.fit(ctx,original,{
+     label:"路线参数",size:baseSize,minSize,maxWidth,maxLines:1,
+     weight,family:FONT_SANS,allowEllipsis:optional
+   });
+   text(fitted.lines[0],x,y,fitted.font,color);
  }
  function item(lbl,val,x,y,valueX,maxWidth,accent=false){
    if(!String(val==null?"":val).trim())return;
@@ -378,18 +383,29 @@ function render([photo,qr,logo,brush],targetCtx,theme){
  item("距离",R.distance,67,1406,122,116);
  item("爬升",R.elevation,246,1406,309,140);
  item("时长",R.duration,474,1406,538,258,true);
- // Second line: surface has 654px of its own, not a 100px leftover slot.
- if(R.surface){
-   text("路面",67,1453,"500 23px "+FONT_SANS,P.factLabel);
-   fittedFact(R.surface,139,1453,654,27,19,P.bottomText);
+ // Secondary information stays in two complete, QR-protected rows.
+ // Never drop difficulty or minimum equipment solely because a visual template is sparse.
+ function supplementaryRow(value,y,label,optional=false){
+   if(!value)return;
+   const fitted=PL.fit(ctx,value,{
+     label,size:26,minSize:18,maxWidth:730,maxLines:1,
+     weight:650,family:FONT_SANS,allowEllipsis:optional
+   });
+   layoutGuard.claimText(label,fitted.lines[0],67,y,fitted.font,{avoid:["报名二维码"]});
+   text(fitted.lines[0],67,y,fitted.font,P.bottomText);
  }
- // Empty optional fields never leave label-only placeholders.
- if(R.suitable){
-   text("适合人群",67,1507,"600 25px "+FONT_SERIF,P.audienceLabel);
-   fittedFact(R.suitable,197,1507,602,30,20,P.audience,700);
- }
+ const terrainAndDifficulty=[
+   R.difficulty&&"难度 "+R.difficulty,
+   R.surface&&"路面 "+R.surface
+ ].filter(Boolean).join("   ·   ");
+ const audienceAndEquipment=[
+   R.suitable&&"适合 "+R.suitable,
+   R.equipment&&"装备 "+R.equipment
+ ].filter(Boolean).join("   ·   ");
+ supplementaryRow(terrainAndDifficulty,1453,"难度及路面");
+ supplementaryRow(audienceAndEquipment,1507,"适合人群及装备");
  // Unmodified QR pixels, including its intrinsic quiet zone (no added border).
- text("自由参与",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
+ text(R.isPast?"活动已结束":"扫码报名",929,1269,"700 25px "+FONT_SANS,P.qrText,"center");
  window.BudaoPosterQR.draw(ctx,qr.bmp,837,1281,184,184);
  text("扫码同行",929,1500,"700 25px "+FONT_SANS,P.qrText,"center");
  return {textMeasure};

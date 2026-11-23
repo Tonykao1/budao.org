@@ -109,10 +109,13 @@ output{font-size:11px;color:#617773;font-variant-numeric:tabular-nums}
 </main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const rt=window.BudaoPosterRuntime;
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
 const $=id=>document.getElementById(id);
 const UI={canvas:$("poster"),route:$("route"),placement:$("placement"),
  horizontal:$("horizontal"),vertical:$("vertical"),exposure:$("exposure"),
@@ -197,50 +200,29 @@ function gradientFor(look){
 }
 function graphemes(str){return Array.from(text(str));}
 function blockLines(input,width,px,maxLines,weight){
- const chars=graphemes(input);if(!chars.length)return [];
- const lines=[];let segment="";
- ctx.save();ctx.font=font(px,weight||600);
- for(const ch of chars){
-  if(ctx.measureText(segment+ch).width>width&&segment){lines.push(segment);segment=ch;}
-  else segment+=ch;
- }
- if(segment)lines.push(segment);ctx.restore();
- if(lines.length>maxLines)throw Error("本次路线信息过长，无法清晰排版，请使用简短的活动标题和集合地点");
- return lines;
+ if(!String(input||"").trim())return [];
+ return PL.fit(ctx,input,{
+   label:"路线名称或集合地点",size:px,minSize:px,
+   maxWidth:width,maxLines,family:FONT,weight:weight||600
+ }).lines;
 }
 function descriptionLines(src,width,px,maxLines){
- const full=text(src).replace(/\s+/g," ");if(!full)return [];
- function fit(str){
-  const rows=[],chars=graphemes(str);
-  ctx.save();ctx.font=font(px,400);let row="";
-  for(const ch of chars){
-   if(ctx.measureText(row+ch).width>width&&row){rows.push(row);row=ch;}
-   else row+=ch;
-  }
-  if(row)rows.push(row);ctx.restore();
-  return rows.length<=maxLines?rows:null;
- }
- const normal=fit(full);if(normal)return normal;
- const chars=graphemes(full);
- let left=0,right=chars.length,best=null;
- while(left<=right){
-  const mid=(left+right)>>1;
-  const candidate=chars.slice(0,mid).join("").trimEnd()+"…";
-  const rows=fit(candidate);
-  if(rows){best=rows;left=mid+1;}else right=mid-1;
- }
- if(!best)throw Error("路线说明无法清晰排入右上角");
- return best;
+ if(!String(src||"").trim())return [];
+ return PL.fit(ctx,src,{
+   label:"活动说明",size:px,minSize:px,
+   maxWidth:width,maxLines,family:FONT,weight:400,
+   allowEllipsis:true
+ }).lines;
 }
 function drawTopInfo(){
  // Small original BUDAO logo in upper left: 27px -> 32px (+18.5%).
  if(brand){
   ctx.save();ctx.filter="brightness(0) invert(1)";ctx.globalAlpha=.96;
-  const w=32,h=w*brand.height/brand.width;
+  const w=49,h=w*brand.height/brand.width;
   ctx.drawImage(brand,75,67,w,h);ctx.restore();
  }
  // Right-align verified route text, up to two visible lines.
- const lines=descriptionLines(data.description,578,20,2);
+ const lines=descriptionLines(data.requirements||data.description,578,20,2);
  if(lines.length){
   const baseline=lines.length===1?[106]:[91,120];
   for(let i=0;i<lines.length;i++){
@@ -280,28 +262,45 @@ function drawWordmark(look){
    shadow:look.tone==="dark"?"rgba(255,255,255,.38)":"rgba(0,0,0,.55)",shadowBlur:16});
   ty+=56;
  }
- if(ty>=1133)throw Error("当前活动名称过长，与底部信息区重叠，无法安全导出");
+ if(ty-56>1112)throw Error("当前活动名称过长，与底部信息区重叠，无法安全导出");
 }
 function drawBottom(){
  // Low visual weight info hierarchy; no blocks or badges.
  const white="#fffdf7",muted="#e0e9e8";
+ const layoutGuard=PL.createGuard(ctx,{width:1080,height:1530});
+ layoutGuard.reserve("报名二维码",{x:791,y:1216,width:210,height:210},8);
+ PL.fit(ctx,data.region,{
+    label:"活动地区",size:19,minSize:19,maxWidth:640,maxLines:1,
+    family:FONT,weight:600
+ });
  write(data.region.toUpperCase(),84,1138,19,{weight:600,color:muted});
  write(data.mmdd.replace(" / ","."),80,1242,93,{weight:800,color:white,family:BOLD});
  write(data.year+"  "+data.weekday+"  "+data.time,86,1287,28,{weight:570,color:white});
  const meetingLines=blockLines(data.meeting,612,26,2,570);
  write("集合地点",86,1340,18,{weight:620,color:"#d6e5df"});
  let yy=1376;
- for(const line of meetingLines){write(line,86,yy,26,{weight:580,color:white});yy+=34;}
- const facts=[
-  data.distance?"距离 "+data.distance:"",
-  data.difficulty?"难度 "+data.difficulty:"",
-  data.duration?"时长 "+data.duration:"",
-  data.elevation?"爬升 "+data.elevation:""
- ].filter(Boolean).join("  ·  ");
- if(facts){
-  ctx.save();let size=20;
-  while(size>15){ctx.font=font(size,500);if(ctx.measureText(facts).width<=615)break;size-=1;}
-  ctx.restore();write(facts,86,1465,size,{weight:500,color:muted});
+ for(const line of meetingLines){
+   layoutGuard.claimText("集合地点",line,86,yy,"580 26px "+FONT,{avoid:["报名二维码"]});
+   write(line,86,yy,26,{weight:580,color:white});yy+=34;
+ }
+ // All route conditions share three bounded, readable rows to the left of the QR.
+ // Missing source values omit their own label; present values may never disappear silently.
+ const factRows=[
+   [data.distance&&"距离 "+data.distance,data.elevation&&"爬升 "+data.elevation,
+     data.difficulty&&"难度 "+data.difficulty,data.duration&&"时长 "+data.duration]
+       .filter(Boolean).join("  ·  "),
+   [data.surface&&"路面 "+data.surface,data.suitable&&"适合 "+data.suitable]
+       .filter(Boolean).join("  ·  "),
+   data.equipment?"装备 "+data.equipment:""
+ ].filter(Boolean);
+ for(let i=0;i<factRows.length;i++){
+   const row=factRows[i],y=1438+i*27;
+   const fitted=PL.fit(ctx,row,{
+     label:"路线指标与装备",size:21,minSize:18,
+     maxWidth:645,maxLines:1,family:FONT,weight:500
+   });
+   layoutGuard.claimText("路线信息第"+(i+1)+"行",row,86,y,fitted.font,{avoid:["报名二维码"]});
+   write(row,86,y,fitted.size,{weight:500,color:muted});
  }
  // Preserve exact source QR pixels, including its own built-in quiet zone.
  const size=198,x=797,y=1222,margin=6;
@@ -319,7 +318,7 @@ function draw(){
   ctx.restore();
   const alpha=ctx.getImageData(540,400,1,1).data[3];if(alpha!==255)throw Error("图片没有完整绘制");
   valid=true;UI.download.disabled=false;
-  info("✓ 照片全幅铺满；固定字形为已选第03号书法衍生资产\n✓ 右上显示真实路线说明，左上 Logo 放大18.5%\n✓ 主字位置："+(look.which==="high"?"偏上":"居中")+"；颜色："+(look.tone==="light"?"白色":"深墨色")+"\n✓ 活动原始二维码未重绘；1080 × 1530 PNG 可导出"+(data.isPast?"\n提示：这是已结束活动的历史海报。":""));
+  info("✓ 照片全幅铺满；固定字形为已选第03号书法衍生资产\n✓ 右上显示真实路线说明，左上 Logo 增强可辨识度\n✓ 主字位置："+(look.which==="high"?"偏上":"居中")+"；颜色："+(look.tone==="light"?"白色":"深墨色")+"\n✓ 活动原始二维码未重绘；1080 × 1530 PNG 可导出"+(data.isPast?"\n提示：这是已结束活动的历史海报。":""));
  }catch(err){ctx.restore();fail(err);}
 }
 async function imageFrom(src){
@@ -386,6 +385,7 @@ async function activate(){
   const raw=routes.find(r=>text(r.routeId||r.id)===UI.route.value);
   if(!raw)throw Error("请选择一条有效的步道活动");
   const record=rt.normalized(raw);
+   PL.validateFacts(record);
   const [pic,qrb]=await Promise.all([imageFrom(record.photo),originalQR(record)]);
   if(current!==token){pic.close?.();qrb.close?.();return;}
   data=record;photo=pic;basePhoto=pic;qr=qrb;

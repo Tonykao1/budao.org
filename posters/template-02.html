@@ -63,10 +63,14 @@ button:disabled{opacity:.5;cursor:not-allowed}.stat{margin:15px 0;font:13px/1.8 
 </aside></div></main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const R=await window.BudaoPosterRuntime.load();
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
+PL.validateFacts(R);
 
 "use strict";
 const FOOT_OUTER="M239,15 214,24 196,41 180,68 174,86 170,110 171,144 177,168 188,191 213,216 229,223 251,224 271,217 295,196 313,161 328,197 360,237 391,260 430,274 453,301 395,267 343,246 305,238 263,238 225,251 192,278 171,313 161,348 159,391 168,448 186,501 227,594 237,628 242,669 239,722 229,768 214,809 187,866 171,917 168,941 171,982 188,1024 217,1055 243,1070 264,1077 312,1081 363,1069 390,1054 414,1032 428,1013 444,982 460,923 502,921 544,909 544,905 540,903 500,914 461,915 469,812 477,773 495,718 545,621 570,545 577,497 577,462 565,398 587,406 597,406 608,401 621,384 626,350 622,331 607,310 586,303 567,309 572,290 569,252 559,233 543,221 524,219 511,224 494,246 489,264 489,290 496,320 468,305 446,284 443,276 466,275 484,261 491,249 498,223 498,196 491,171 480,154 465,144 448,143 436,148 424,160 416,175 411,193 410,220 423,265 391,252 370,237 356,222 375,222 392,214 406,196 414,173 415,134 404,103 393,90 381,83 365,81 349,87 338,97 327,116 321,155 316,99 302,55 287,34 272,22 257,16Z";
@@ -120,14 +124,19 @@ const HEADLINE_FONTS=Object.freeze({
 let P=THEMES.pilgrim;
 let currentFont=HEADLINE_FONTS.song;
 function mainHeadline(str,x,y){
- c.save();
- const maxWidth=484,defaultSize=93;
- c.font="700 "+defaultSize+"px "+currentFont.family;
- const width=c.measureText(str).width;
- const size=width>maxWidth?defaultSize*maxWidth/width:defaultSize;
- c.font="700 "+size.toFixed(2)+"px "+currentFont.family;
- c.fillStyle=P.wine;c.textBaseline="alphabetic";
- c.fillText(str,x,y);c.restore();
+ c.save();c.textBaseline="alphabetic";c.fillStyle=P.wine;
+ const normal=PL.measured(c,str,"700 93px "+currentFont.family).width;
+ if(normal<=478){
+   c.font="700 93px "+currentFont.family;
+   c.fillText(str,x,y);c.restore();return 1;
+ }
+ const fitted=PL.fit(c,str,{
+   label:"路线名称",size:79,minSize:46,maxWidth:478,maxLines:2,
+   family:currentFont.family,weight:700
+ });
+ c.font=fitted.font;
+ fitted.lines.forEach((row,i)=>c.fillText(row,x,y-29+i*78));
+ c.restore();return fitted.lines.length;
 }
 function colorAlpha(color,alpha){
  return color+Math.round(Math.max(0,Math.min(1,alpha))*255).toString(16).padStart(2,"0");
@@ -138,10 +147,21 @@ function title(text,x,y,font,color,align="left"){c.save();c.font=font;c.textAlig
 function ellipse(x,y,rx,ry,color,w=1){c.save();c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.lineWidth=w;c.strokeStyle=color;c.stroke();c.restore();}
 function textWrap(value,x,y,maxWidth,font,lineHeight,color,maxLines=20){
  c.save();c.font=font;c.fillStyle=color;c.textBaseline="alphabetic";
- let row="",printed=0;
- for(const ch of [...value]){if(c.measureText(row+ch).width>maxWidth && row){c.fillText(row,x,y+printed*lineHeight);printed++;row=ch;if(printed>=maxLines)break;}else row+=ch;}
- if(row&&printed<maxLines){c.fillText(row,x,y+printed*lineHeight);printed++;}
- c.restore();return printed;
+ const all=[];let row="";
+ for(const ch of Array.from(String(value||""))){
+   if(row&&c.measureText(row+ch).width>maxWidth){
+     all.push(row);row=ch;
+   }else row+=ch;
+ }
+ if(row)all.push(row);
+ const shown=all.slice(0,maxLines);
+ if(all.length>maxLines&&shown.length){
+   let last=shown[shown.length-1];
+   while(last&&c.measureText(last+"…").width>maxWidth)last=Array.from(last).slice(0,-1).join("");
+   shown[shown.length-1]=last+"…";
+ }
+ for(let i=0;i<shown.length;i++)c.fillText(shown[i],x,y+i*lineHeight);
+ c.restore();return shown.length;
 }
 async function loadImg(url,label){
  const r=await fetch(url,{cache:"no-cache"});if(!r.ok)throw Error(label+" 读取失败: HTTP "+r.status);
@@ -192,47 +212,17 @@ function fitFootprint(photo){
 // without pushing into the "时长" column or the following "适合人群" row.
 // Too-long values are visibly abbreviated with "…"; the source data is not changed.
 function metadata(label,value,x,y,allowTwoLines=false){
- if(!String(value==null?"":value).trim())return;
- const maxWidth=x<700?232:222;
- const raw=String(value==null?"":value);
- const minSize=allowTwoLines?22:21;
- function splitAt(str,size){
-  c.save();c.font='700 '+size+'px '+SANS;
-  const out=[];let line="";
-  for(const ch of Array.from(str)){
-   if(c.measureText(line+ch).width>maxWidth&&line){
-    // Prefer a word boundary after a Chinese list separator, and never start a
-    // new line with punctuation such as "、" or "，".
-    const cut=Math.max(line.lastIndexOf("、"),line.lastIndexOf("，"),line.lastIndexOf("；"));
-    const suffix=cut>=0?line.slice(cut+1)+ch:"";
-    if(cut>0&&c.measureText(suffix).width<=maxWidth){
-     out.push(line.slice(0,cut+1));line=suffix;
-    }else if(/[、，。；：]/.test(ch)&&Array.from(line).length>1){
-     const chars=Array.from(line),last=chars.pop();
-     out.push(chars.join(""));line=last+ch;
-    }else{out.push(line);line=ch;}
-   }else line+=ch;
-  }
-  if(line)out.push(line);
-  c.restore();return out;
- }
- const maxLines=allowTwoLines?2:1;
- let size=33,lines=splitAt(raw,size);
- while(size>minSize&&lines.length>maxLines){size--;lines=splitAt(raw,size);}
- if(lines.length>maxLines){
-  const chars=Array.from(raw);let candidate="";
-  c.save();c.font='700 '+size+'px '+SANS;
-  for(const ch of chars){
-   const next=candidate+ch;
-   const parts=splitAt(next+"…",size);
-   if(parts.length>maxLines)break;
-   candidate=next;
-  }
-  c.restore();
-  lines=splitAt(candidate+"…",size);
- }
- title(label,x,y,'600 22px '+SANS,P.olive);
- for(let i=0;i<lines.length;i++)title(lines[i],x,y+44+i*35,'700 '+size+'px '+SANS,P.ink);
+  if(!String(value==null?"":value).trim())return;
+  const safeWidth=x<700?232:222;
+  const fitted=PL.fit(c,value,{
+    label:"路线"+label,size:33,minSize:allowTwoLines?22:21,
+    maxWidth:safeWidth,maxLines:allowTwoLines?2:1,
+    family:SANS,weight:700,allowEllipsis:allowTwoLines
+  });
+  title(label,x,y,'600 22px '+SANS,P.olive);
+  fitted.lines.forEach((row,i)=>{
+    title(row,x,y+44+i*35,fitted.font,P.ink);
+  });
 }
 function draw(photo,qr,logo){
  c.clearRect(0,0,1080,1530);paper();
@@ -242,13 +232,23 @@ function draw(photo,qr,logo){
  fitFootprint(photo);
  // Right editorial grid; every title and date is from the real route record.
  line(508,249,978,249,P.gold,2.2);
- mainHeadline(R.title,499,365);
- title(R.subtitle,505,430,'600 28px '+CN,P.ink);
- // Jubilee-inspired rhythm rendered as non-figurative strokes and colored marks.
- line(508,471,945,471,P.softLine,1.6);
- for(let i=0;i<4;i++){c.fillStyle=P.accents[i];c.beginPath();c.arc(516+38*i,472,5.4,0,Math.PI*2);c.fill();}
- if(DESCRIPTION.trim()!==R.subtitle.trim()){
-   textWrap(DESCRIPTION,507,534,470,'500 21px '+CN,35,P.ink,5);
+ const headlineRows=mainHeadline(R.title,499,365);
+ const subtitleY=headlineRows>1?499:430;
+ const subtitleFit=PL.fit(c,R.subtitle,{
+   label:"活动限制和说明",size:28,minSize:19,maxWidth:470,maxLines:1,
+   family:CN,weight:600
+  });
+  if(subtitleFit.lines.length)title(subtitleFit.lines[0],505,subtitleY,subtitleFit.font,P.ink);
+ const ruleY=headlineRows>1?536:471;
+ line(508,ruleY,945,ruleY,P.softLine,1.6);
+ for(let i=0;i<4;i++){c.fillStyle=P.accents[i];c.beginPath();c.arc(516+38*i,ruleY,5.4,0,Math.PI*2);c.fill();}
+ // Do not print a duplicated first sentence in the description.
+ const summary=R.subtitle.replace(/…$/,"");
+ const extra=DESCRIPTION.startsWith(summary)?
+   DESCRIPTION.slice(summary.length).replace(/^[\s，,。！？；;：:]*/,"").trim():
+   DESCRIPTION.trim();
+ if(extra){
+   textWrap(extra,507,headlineRows>1?592:534,470,'500 21px '+CN,35,P.ink,headlineRows>1?2:4);
  }
  title(R.month,504,788,'700 126px Georgia,serif',P.wine);
  title("/",666,781,'400 66px Georgia,serif',P.gold);
@@ -260,7 +260,14 @@ function draw(photo,qr,logo){
  title(R.time,789,837,'600 42px Georgia,serif',P.ink);
  line(507,866,987,866,P.gold,1.8);
  title("集合地点",508,919,'600 24px '+SANS,P.olive);
- title(R.meeting,508,968,'700 30px '+SANS,P.ink);
+ const meetingFit=PL.fit(c,R.meeting,{
+    label:"集合地点",size:30,minSize:21,maxWidth:475,maxLines:1,
+    family:SANS,weight:700
+  });
+  const layoutGuard=PL.createGuard(c,{width:1080,height:1530});
+  layoutGuard.reserve("报名二维码",{x:838,y:1255,width:162,height:162},12);
+  layoutGuard.claimText("集合地点",R.meeting,508,968,meetingFit.font,{avoid:["报名二维码"]});
+  title(R.meeting,508,968,meetingFit.font,P.ink);
  line(508,997,990,997,P.softLine,1);
  metadata("距离",R.distance,509,1032);
  metadata("爬升",R.elevation,766,1032);
@@ -268,12 +275,31 @@ function draw(photo,qr,logo){
  metadata("时长",R.duration,766,1130);
  if(R.suitable){
    title("适合人群",508,1251,'600 23px '+CN,P.olive);
-   title(R.suitable,508,1294,'700 29px '+CN,P.wine);
+   const suitableFit=PL.fit(c,R.suitable,{
+      label:"适合人群",size:29,minSize:19,maxWidth:280,maxLines:1,
+      family:CN,weight:700
+    });
+    if(suitableFit.lines.length){
+      layoutGuard.claimText("适合人群",R.suitable,508,1294,suitableFit.font,{avoid:["报名二维码"]});
+      title(R.suitable,508,1294,suitableFit.font,P.wine);
+    }
    line(508,1322,750,1322,P.softLine,1);
  }
- if(R.difficulty||R.equipment)title([R.difficulty&&"难度 "+R.difficulty,R.equipment&&"装备 "+R.equipment].filter(Boolean).join(" · "),508,1376,'400 18px '+SANS,P.ink);
+ // Reserve QR x=838..1000: optional details remain in the left column.
+ const extraFacts=[R.difficulty&&"难度 "+R.difficulty,R.equipment&&"装备 "+R.equipment].filter(Boolean).join(" · ");
+ if(extraFacts){
+   const fitted=PL.fit(c,extraFacts,{
+     label:"装备及难度",size:21,minSize:18,maxWidth:307,maxLines:3,
+     family:SANS,weight:500
+   });
+   fitted.lines.forEach((row,i)=>{
+     const y=1357+i*31;
+     layoutGuard.claimText("装备及难度第"+(i+1)+"行",row,508,y,fitted.font,{avoid:["报名二维码"]});
+     title(row,508,y,fitted.font,P.ink);
+   });
+ }
  // QR is always the unmodified original bitmap, quiet zone included.
- title("自由参与",919,1227,'600 22px '+SANS,P.wine,"center");
+ title(R.isPast?"活动已结束":"扫码报名",919,1227,'600 22px '+SANS,P.wine,"center");
  window.BudaoPosterQR.draw(c,qr,838,1255,162,162);
  title("扫码同行",919,1453,'600 22px '+SANS,P.wine,"center");
  title("步道  ·  BUDAO",65,1421,'700 28px '+CN,P.wine);

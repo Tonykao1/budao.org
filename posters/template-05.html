@@ -107,10 +107,13 @@ a{color:#7b4b30}
 </main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const runtime=window.BudaoPosterRuntime;
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
 const cv=document.getElementById("poster"),c=cv.getContext("2d",{alpha:false});
 const $=id=>document.getElementById(id);
 const E={route:$("route"),titleFont:$("titleFont"),pattern:$("pattern"),light:$("light"),crop:$("crop"),
@@ -161,28 +164,20 @@ function write(value,x,y,size,options){
  c.restore();
 }
 function fitLine(value,width,initial,min,font,weight){
- c.save();let size=initial;const str=String(value||"");
- while(size>min){
-  c.font=weight+" "+size+"px "+font;
-  if(c.measureText(str).width<=width)break;
-  size-=1;
- }
- c.restore();return size;
+ return PL.fit(c,value,{
+   label:"路线参数",size:initial,minSize:Math.max(min,19),
+   maxWidth:width,maxLines:1,family:font,weight
+ }).size;
 }
 function wrap(value,width,size,font,weight,maxLines){
- c.save();c.font=weight+" "+size+"px "+font;
- const lines=[];let current="";
- for(const char of Array.from(String(value||""))){
-  if(char==="\n"){if(current)lines.push(current);current="";continue;}
-  if(c.measureText(current+char).width>width&&current){lines.push(current);current=char;}
-  else current+=char;
- }
- if(current)lines.push(current);c.restore();
- return lines.length<=maxLines?lines:null;
+ const rows=PL.wrap(c,value,weight+" "+size+"px "+font,width);
+ return rows.length<=maxLines?rows:null;
 }
 function fitBlock(value,width,ideal,min,maxLines,font,weight){
- for(let px=ideal;px>=min;px--){const lines=wrap(value,width,px,font,weight,maxLines);if(lines)return {size:px,lines};}
- throw Error("路线文字太长，无法在清晰可读的字号内显示");
+ return PL.fit(c,value,{
+   label:"集合地点及活动详情",size:ideal,minSize:min,maxWidth:width,
+   maxLines,family:font,weight
+ });
 }
 function cover(img,x,y,w,h,zoom){
  const sw=img.width,sh=img.height;const ratio=Math.max(w/sw,h/sh)*(zoom||1);
@@ -263,7 +258,7 @@ function headerDraw(P,R){
  // Route description belongs exclusively in the top horizontal strip,
  // immediately to the RIGHT of the existing logo (not below the title).
  // Use actual route text and a visible ellipsis when it cannot fit.
- const topDescription=routeDescriptionExcerpt(R.description,805,17,2);
+ const topDescription=routeDescriptionExcerpt(R.requirements||R.description,805,17,2);
  const topBaselines=topDescription.length===1?[112]:[101,127];
  for(let i=0;i<topDescription.length;i++){
   write(topDescription[i],173,topBaselines[i],17,{font:serif,weight:400,
@@ -306,22 +301,6 @@ function photoArch(P){
  framePath(x-11,y-15,w+22,h+19);c.stroke();
  c.restore();
 }
-function titleRows(value){
- const chars=Array.from(value||"");
- if(chars.length<=7)return [chars.join("")];
- if(chars.length<=18){
-  const boundaries=["暖冬","盛夏","初夏","金秋","新春","春日","冬日","秋日","夏日","亲子","少年","领袖","徒步","探线","半日","一日","夜行","秘境","湿地"];
-  const candidates=boundaries.map(w=>value.indexOf(w))
-    .filter(i=>i>=3&&i<=chars.length-3);
-  const split=candidates.length?candidates.sort((x,y)=>Math.abs(x-chars.length/2)-Math.abs(y-chars.length/2))[0]:Math.ceil(chars.length/2);
-  return [chars.slice(0,split).join(""),chars.slice(split).join("")];
- }
- const lineCount=chars.length<=40?3:4;
- if(lineCount===4)throw Error("活动标题过长，无法清晰排版");
- const n=Math.ceil(chars.length/lineCount),rows=[];
- for(let i=0;i<chars.length;i+=n)rows.push(chars.slice(i,i+n).join(""));
- return rows;
-}
 // The poster uses source description only: no invented slogans or AI copy.
 // If the source text exceeds the two-line space, append an honest ellipsis.
 function routeDescriptionExcerpt(source,width,fontSize,maxLines){
@@ -341,33 +320,35 @@ function routeDescriptionExcerpt(source,width,fontSize,maxLines){
  if(!valid.length)throw Error("路线说明无法排入海报");
  return valid;
 }
-function bigTitle(P,R){
+function bigTitle(P,R,layoutGuard){
+ // 东方·盛典：路线名称始终一行，保持完整内容而不是拆行或裁切。
  const selected=titleFaces[E.titleFont.value]||titleFaces.song;
  const family=selected.family,weight=selected.weight,tracking=selected.tracking||0;
- const widthOf=(text)=>c.measureText(text).width+Math.max(0,Array.from(text).length-1)*tracking;
- const lines=titleRows(R.title);
- const ideal=lines.length===1?125:lines.length===2?102:68;
- const minimum=lines.length===1?55:lines.length===2?55:42;
- let size=ideal;
- while(size>minimum){
-  c.save();c.font=weight+" "+size+"px "+family;
-  const max=Math.max(...lines.map(widthOf));c.restore();
-  if(max<=820)break;size-=1;
- }
- c.save();c.font=weight+" "+size+"px "+family;
- if(lines.some(x=>widthOf(x)>824)){c.restore();throw Error("当前活动名称无法在可读字号内排入第五套海报");}
+ const title=String(R.title||"").trim();
+ const count=PL.letters(title).length;
+ if(!count)throw Error("活动名称不能为空");
+ const maxWidth=820,trackingWidth=Math.max(0,count-1)*tracking;
+ const availableWidth=maxWidth-trackingWidth;
+ if(availableWidth<=0)throw Error("活动名称过长，无法在东方·盛典单行显示");
+ const fitted=PL.fit(c,title,{
+   label:"活动名称（东方·盛典必须单行）",
+   size:125,minSize:44,maxWidth:availableWidth,maxLines:1,
+   family,weight
+ });
+ const size=fitted.size,baseline=839;
+ // Follow the identical glyph-advance rule used by write() for tracked fonts.
+ const width=PL.measured(c,title,fitted.font).width+trackingWidth;
+ const x=540-width/2;
+ if(layoutGuard)layoutGuard.claim("东方·盛典单行活动标题",{
+   x,y:baseline-size*.95,width,height:size*1.2
+ },{avoid:["报名二维码"]});
+ c.save();
+ c.shadowColor="rgba(16,9,10,.88)";
+ c.shadowBlur=20;
+ write(title,540,baseline,size,{
+   font:family,weight,tracking,color:P.paper,align:"center"
+ });
  c.restore();
-
- // V1.1 baseline steps: 95px (2-line), 69px (3-line).
- // V1.2 expands those EXACT steps by 30%; top shifts preserve the details below.
- const first=lines.length===1?839:lines.length===2?750:675;
- const gap=lines.length===1?0:lines.length===2?95*1.30:69*1.30;
- c.save();c.shadowColor="rgba(16,9,10,.88)";c.shadowBlur=20;
- for(let i=0;i<lines.length;i++){
-  write(lines[i],540,first+i*gap,size,{font:family,weight,tracking,color:P.paper,align:"center"});
- }
- c.restore();
-
 }
 function details(P,R){
  const start=1000;
@@ -388,7 +369,7 @@ function details(P,R){
  let yy=Math.max(1310,y+13);
  for(const row of groups){
   if(!row)continue;
-  const size=fitLine(row,640,22,15,sans,400);
+  const size=fitLine(row,640,22,19,sans,400);
   write(row,110,yy,size,{font:sans,weight:400,color:P.muted});yy+=34;
  }
  if(yy>1450)throw Error("活动详情过长，无法完整排入海报");
@@ -407,9 +388,15 @@ function render(){
  E.download.disabled=true;ready=false;
  if(!record||!photo||!qr||!footGold||!brand)return;
  try{
-  const P=themes[chosen];
-  c.save();c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.filter="none";
-  backdrop(P);ornaments(P);headerDraw(P,record);photoArch(P);bigTitle(P,record);details(P,record);
+  PL.validateFacts(record);
+   const layoutGuard=PL.createGuard(c,{width:1080,height:1530});
+   layoutGuard.reserve("报名二维码",{x:802,y:1174,width:184,height:184},12);
+   layoutGuard.claim("路线主标题区域",{x:118,y:610,width:844,height:354},{avoid:["报名二维码"]});
+   layoutGuard.claim("集合地点区域",{x:109,y:1198,width:621,height:86},{avoid:["报名二维码"]});
+   layoutGuard.claim("运动参数区域",{x:109,y:1300,width:640,height:148},{avoid:["报名二维码"]});
+   const P=themes[chosen];
+   c.save();c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.filter="none";
+  backdrop(P);ornaments(P);headerDraw(P,record);photoArch(P);bigTitle(P,record,layoutGuard);details(P,record);
   c.restore();
   const check=c.getImageData(533,475,1,1).data;
   if(check[3]!==255)throw Error("海报画面未完整渲染");
@@ -477,6 +464,7 @@ async function activate(){
   const selected=list.find(r=>String(r.routeId||r.id)===E.route.value);
   if(!selected)throw Error("没有选择活动");
   const R=runtime.normalized(selected);
+  PL.validateFacts(R);
   const [p,q]=await Promise.all([imageFromURL(R.photo),qrFromRoute(R)]);
   if(token!==selectionToken){p.bmp.close?.();q.close?.();return;}
   pimg=p.bmp;qimg=q;
