@@ -108,4 +108,8 @@ test('no server path auto-unlocks identities from content or public audio',()=>{
  assert.match(src,/owner_id=\$2 AND status='PUBLISHED'/);
  assert.match(src,/privateAudioStored:false/);
  assert.match(src,/status='WITHDRAWN'/);
+ assert.match(src,/cross_publication_identity_risk/);
+ assert.match(src,/voice='SPOKEN' AND status='PUBLISHED'/);
+ assert.match(src,/PASTURE_COMMONS_DATABASE_URL/);
+ assert.doesNotMatch(src,/REFERENCES pasture_users/);
 });
