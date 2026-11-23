@@ -43,7 +43,8 @@
     if(String(r.status||"").toLowerCase()==="cancelled"||r.cancelledAt)throw Error("此活动已取消，不提供报名海报");
     const clean= value=>text(value).replace(/\s+/g," ");
     const description=clean(r.description);
-    const firstSentence=description.split(/[。！？\n]/)[0];
+    const requirements=clean(r.participantRequirements);
+    const firstSentence=(requirements||description).split(/[。！？\n]/)[0];
     const subtitle=Array.from(firstSentence).length>24?Array.from(firstSentence).slice(0,23).join("")+"…":firstSentence;
     const object={
       id:text(r.routeId||r.id),title,
@@ -51,7 +52,7 @@
       weekdayLong:weekday.replace("周","星期"),mmdd:pad(month)+" / "+pad(date),
       dateCN:year+"年"+month+"月"+date+"日",
       dateDots:year+"."+pad(month)+"."+pad(date),
-      region,meeting,description,subtitle,
+      region,meeting,description,requirements,subtitle,
       distance:clean(r.distance),elevation:clean(r.elevation),
       difficulty:clean(r.difficulty),duration:clean(r.duration),
       surface:clean(r.surface),suitable:clean(r.suitableFor),
