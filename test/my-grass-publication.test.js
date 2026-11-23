@@ -68,6 +68,8 @@ test('public API never exposes resident identity, receipt hash, recordings or st
  const pubVoice=c.publicView({...row,kind:'reading',voice:'SPOKEN',translation:'圣经和合本（神版）'});
  assert.equal(pubVoice.audioUrl,'/api/pasture-commons?audio='+row.id);
  assert.equal(JSON.stringify(pubVoice).includes('ownerId'),false);
+ assert.equal(pubVoice.identityState,'AUTHOR_HIDDEN_VOICE_RECOGNIZABLE');
+ assert.equal(c.publicView({...row,kind:'reading',voice:'SILENT'}).identityState,'AUTHOR_HIDDEN');
  assert.equal(c.publicView({...row,status:'WITHDRAWN'}),null);
 });
 test('production and unprovisioned Preview fail closed, status reports disabled without a database',async()=>{
@@ -111,11 +113,14 @@ test('original remains separate from DSP publish copy; UI requires two conscious
  assert.match(main,/mode=mine&entry=/);
  assert.match(main,/publicationVerifiedFor/);
  assert.match(main,/status:'WITHDRAWN'/);
+ assert.match(main,/!localPublication\('reading'\)&&!localPublication\('insight'\)/);
+ assert.match(main,/这份读经已有公开记录，不能改写已发表的原声/);
  assert.match(main,/action:'attest-recording',entryId:s.entryId/);
  assert.match(renderer,/return new Blob\(\[bytes\]/);
  assert.doesNotMatch(renderer,/putAudio|indexedDB|localStorage/);
  assert.doesNotMatch(commons,/innerHTML|document\.write\(/);
  assert.match(commons,/textContent=text/);
+ assert.match(commons,/原声可能被认出/);
 });
 test('no server path auto-unlocks identities from content or public audio',()=>{
  const src=read('api/_security/pasture-commons-handler.js');
