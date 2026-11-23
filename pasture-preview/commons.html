@@ -46,7 +46,9 @@ a{color:#684c2a}@media(max-width:640px){main{margin:0;min-height:100vh;padding:2
       add('small',article,'朗读声音可能具有身份识别性');
      }else add('p',article,'读经者选择只公开经文出处，原声仍属私人档案。');
     }else add('p',article,item.text||'');
-    add('small',article,'匿名记录 · 不提供身份解锁');
+    add('small',article,item.kind==='reading'?
+     (item.voice==='SPOKEN'?'身份未列出 · 原声可能被认出 · 不提供身份解锁':'身份未列出 · 不公开原声 · 不提供身份解锁'):
+     '匿名领受 · 不公开原声 · 不提供身份解锁');
    }
   }catch(error){status.textContent=String(error.message||error)}
  }
