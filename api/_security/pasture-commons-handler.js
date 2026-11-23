@@ -133,6 +133,7 @@ async function handle(req,res){
    const mode=body.mode==='silent'?'SILENT':body.mode==='spoken'?'SPOKEN':null;
    if(!mode)return fail(res,400,'invalid_mode');
    if(translation!==String(body.journey.translation||''))return fail(res,400,'translation_mismatch');
+   if(mode==='SPOKEN'&&body.journey?.audio?.mode!=='spoken')return fail(res,403,'spoken_recording_mode_required');
    if(mode==='SPOKEN'&&translation!=='圣经和合本（神版）')return fail(res,403,'translation_rights_pending');
    const encoded=mode==='SPOKEN'?policy.validPublicAudio(body.audioMime,body.publicAudioBase64,journey.durationMs):null;
    if(mode==='SILENT'&&body.publicAudioBase64)return fail(res,400,'silent_public_audio_forbidden');
