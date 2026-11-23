@@ -16,9 +16,11 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 <canvas id="pasture" aria-label="牧场"></canvas>
 <script src="/pasture-sky-engine.js"></script>
 <script src="/pasture-sun-moon-track.js"></script>
+<script src="/pasture-nature-events.js"></script>
 <script>
 (()=>{
 const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');
+const natureEvents=window.BudaoPastureNature?.createController();
 ctx.imageSmoothingEnabled=false;
 
 const C={
@@ -527,6 +529,7 @@ function weatherOverlay(){
 function draw(){
  tick++;ctx.clearRect(0,0,W,H);
  if(portrait)drawPortrait();else drawLandscape();
+ if(state&&natureEvents)natureEvents.draw(ctx,{now:Date.now(),width:W,height:H,scene:portrait?'portrait':'landscape',state,skyState:state.skyState});
  weatherOverlay();drawTwig();
 }
 function resize(){
