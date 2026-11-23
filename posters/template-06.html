@@ -200,40 +200,19 @@ function gradientFor(look){
 }
 function graphemes(str){return Array.from(text(str));}
 function blockLines(input,width,px,maxLines,weight){
- const chars=graphemes(input);if(!chars.length)return [];
- const lines=[];let segment="";
- ctx.save();ctx.font=font(px,weight||600);
- for(const ch of chars){
-  if(ctx.measureText(segment+ch).width>width&&segment){lines.push(segment);segment=ch;}
-  else segment+=ch;
- }
- if(segment)lines.push(segment);ctx.restore();
- if(lines.length>maxLines)throw Error("本次路线信息过长，无法清晰排版，请使用简短的活动标题和集合地点");
- return lines;
+ if(!String(input||"").trim())return [];
+ return PL.fit(ctx,input,{
+   label:"路线名称或集合地点",size:px,minSize:px,
+   maxWidth:width,maxLines,family:FONT,weight:weight||600
+ }).lines;
 }
 function descriptionLines(src,width,px,maxLines){
- const full=text(src).replace(/\s+/g," ");if(!full)return [];
- function fit(str){
-  const rows=[],chars=graphemes(str);
-  ctx.save();ctx.font=font(px,400);let row="";
-  for(const ch of chars){
-   if(ctx.measureText(row+ch).width>width&&row){rows.push(row);row=ch;}
-   else row+=ch;
-  }
-  if(row)rows.push(row);ctx.restore();
-  return rows.length<=maxLines?rows:null;
- }
- const normal=fit(full);if(normal)return normal;
- const chars=graphemes(full);
- let left=0,right=chars.length,best=null;
- while(left<=right){
-  const mid=(left+right)>>1;
-  const candidate=chars.slice(0,mid).join("").trimEnd()+"…";
-  const rows=fit(candidate);
-  if(rows){best=rows;left=mid+1;}else right=mid-1;
- }
- if(!best)throw Error("路线说明无法清晰排入右上角");
- return best;
+ if(!String(src||"").trim())return [];
+ return PL.fit(ctx,src,{
+   label:"活动说明",size:px,minSize:px,
+   maxWidth:width,maxLines,family:FONT,weight:400,
+   allowEllipsis:true
+ }).lines;
 }
 function drawTopInfo(){
  // Small original BUDAO logo in upper left: 27px -> 32px (+18.5%).
@@ -243,7 +222,7 @@ function drawTopInfo(){
   ctx.drawImage(brand,75,67,w,h);ctx.restore();
  }
  // Right-align verified route text, up to two visible lines.
- const lines=descriptionLines(data.description,578,20,2);
+ const lines=descriptionLines(data.requirements||data.description,578,20,2);
  if(lines.length){
   const baseline=lines.length===1?[106]:[91,120];
   for(let i=0;i<lines.length;i++){
@@ -283,33 +262,41 @@ function drawWordmark(look){
    shadow:look.tone==="dark"?"rgba(255,255,255,.38)":"rgba(0,0,0,.55)",shadowBlur:16});
   ty+=56;
  }
- if(ty>=1133)throw Error("当前活动名称过长，与底部信息区重叠，无法安全导出");
+ if(ty-56>1112)throw Error("当前活动名称过长，与底部信息区重叠，无法安全导出");
 }
 function drawBottom(){
  // Low visual weight info hierarchy; no blocks or badges.
  const white="#fffdf7",muted="#e0e9e8";
+ const layoutGuard=PL.createGuard(ctx,{width:1080,height:1530});
+ layoutGuard.reserve("报名二维码",{x:791,y:1216,width:210,height:210},8);
+ PL.fit(ctx,data.region,{
+    label:"活动地区",size:19,minSize:19,maxWidth:640,maxLines:1,
+    family:FONT,weight:600
+ });
  write(data.region.toUpperCase(),84,1138,19,{weight:600,color:muted});
  write(data.mmdd.replace(" / ","."),80,1242,93,{weight:800,color:white,family:BOLD});
  write(data.year+"  "+data.weekday+"  "+data.time,86,1287,28,{weight:570,color:white});
  const meetingLines=blockLines(data.meeting,612,26,2,570);
  write("集合地点",86,1340,18,{weight:620,color:"#d6e5df"});
  let yy=1376;
- for(const line of meetingLines){write(line,86,yy,26,{weight:580,color:white});yy+=34;}
+ for(const line of meetingLines){
+   layoutGuard.claimText("集合地点",line,86,yy,"580 26px "+FONT,{avoid:["报名二维码"]});
+   write(line,86,yy,26,{weight:580,color:white});yy+=34;
+ }
  // Split the essential route facts into bounded rows, never an unreadable 15px run.
   const factRows=[
     [data.distance&&"距离 "+data.distance,data.elevation&&"爬升 "+data.elevation].filter(Boolean).join("  ·  "),
     [data.difficulty&&"难度 "+data.difficulty,data.duration&&"时长 "+data.duration].filter(Boolean).join("  ·  ")
   ].filter(Boolean);
   for(let i=0;i<factRows.length;i++){
-    const row=factRows[i];let size=22;
-    ctx.save();
-    for(;size>=18;size--){
-      ctx.font=font(size,500);
-      if(ctx.measureText(row).width<=645)break;
-    }
-    ctx.restore();
-    if(size<18)throw Error("路线指标过长，无法在底部信息区安全显示");
-    write(row,86,1443+i*33,size,{weight:500,color:muted});
+    const row=factRows[i];
+    const fitted=PL.fit(ctx,row,{
+      label:"路线指标",size:22,minSize:18,
+      maxWidth:645,maxLines:1,family:FONT,weight:500
+    });
+    const y=1443+i*33;
+    layoutGuard.claimText("路线指标第"+(i+1)+"行",row,86,y,fitted.font,{avoid:["报名二维码"]});
+    write(row,86,y,fitted.size,{weight:500,color:muted});
   }
  // Preserve exact source QR pixels, including its own built-in quiet zone.
  const size=198,x=797,y=1222,margin=6;
