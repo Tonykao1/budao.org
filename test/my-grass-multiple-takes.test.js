@@ -49,7 +49,7 @@ function demo({hasPrevious=true,confirm=()=>true,mic=async()=>({getTracks:()=>[{
    journey=null,journeyPhase='idle',journeyAttemptToken=0,
    journeyStartedClock=0,journeyPauseTotal=0,journeyPausedClock=null,journeyFinalMs=0,
    journeyTickTimer=null,journeyStopTimer=null,journeyStream=null,journeyRecorder=null,journeyChunks=[],journeyError='',notice='';
-  const residentAccess=()=>true,residentScope=()=>scope,tell=s=>{notice=s},
+  const residentAccess=()=>true,residentScope=()=>scope,readingMode=()=> 'spoken',tell=s=>{notice=s},
    render=()=>{},persistDraft=()=>{},emitJourneyState=()=>{},emitJourneyTick=()=>{},
    getEntry=()=>entries.find(e=>e.id===draft.id),
    putAudio=async(id,blob)=>{backend.written.push({id,size:blob.size})},
