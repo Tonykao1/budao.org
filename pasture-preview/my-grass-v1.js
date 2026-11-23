@@ -479,7 +479,7 @@ function stageReading(){
  const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed';
  const recordDisabled=audioPending||hasAudio;
  const playDisabled=!hasAudio||!linked||!!rerecordOriginal||['arming','recording','paused','finalizing'].includes(journeyPhase);
- const canRerecord=!!draft.readingJourney&&draft.readingJourney.status==='completed'&&hasAudio&&!draft.insightRecord&&!getEntry()?.insightRecord;
+ const canRerecord=!!draft.readingJourney&&draft.readingJourney.status==='completed'&&hasAudio&&!draft.insightRecord&&!getEntry()?.insightRecord&&!publicationBusy&&!localPublication('reading')&&!localPublication('insight');
  const rerecordDisabled=audioPending||!canRerecord||['arming','recording','paused','finalizing'].includes(journeyPhase);
  const linkDisabled=!hasAudio||linked;
  return '<div class="gs-grid"><section class="gs-panel" aria-label="圣经文字">'+
@@ -1081,6 +1081,9 @@ function cancelRerecord(){
  tell('已取消重录，原声及经节记录保持不变。');
 }
 function rerecordAudio(){
+ if(publicationBusy||localPublication('reading')||localPublication('insight')){
+  tell('这份读经已有公开记录，不能改写已发表的原声；请新开一页重新录音。');return;
+ }
  if(rerecordOriginal){tell('请从左页第一节开始重录，或点击「保留原声」取消。');return}
  if(['arming','recording','paused','finalizing'].includes(journeyPhase))return;
  const archived=getEntry();
