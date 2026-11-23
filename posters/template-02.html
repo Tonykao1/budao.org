@@ -120,14 +120,29 @@ const HEADLINE_FONTS=Object.freeze({
 let P=THEMES.pilgrim;
 let currentFont=HEADLINE_FONTS.song;
 function mainHeadline(str,x,y){
- c.save();
- const maxWidth=484,defaultSize=93;
- c.font="700 "+defaultSize+"px "+currentFont.family;
- const width=c.measureText(str).width;
- const size=width>maxWidth?defaultSize*maxWidth/width:defaultSize;
- c.font="700 "+size.toFixed(2)+"px "+currentFont.family;
- c.fillStyle=P.wine;c.textBaseline="alphabetic";
- c.fillText(str,x,y);c.restore();
+ // Use two lines at a legible size before shrinking a long route name.
+ const value=Array.from(String(str||"")),maxWidth=478;
+ c.save();c.textBaseline="alphabetic";c.fillStyle=P.wine;
+ c.font="700 93px "+currentFont.family;
+ if(c.measureText(str).width<=maxWidth){
+   c.fillText(str,x,y);c.restore();return 1;
+ }
+ for(let size=79;size>=46;size--){
+   c.font="700 "+size+"px "+currentFont.family;
+   const rows=[];let line="";
+   for(const ch of value){
+     if(line&&c.measureText(line+ch).width>maxWidth){
+       rows.push(line);line=ch;
+     }else line+=ch;
+   }
+   if(line)rows.push(line);
+   if(rows.length<=2&&rows.every(row=>c.measureText(row).width<=maxWidth)){
+     rows.forEach((row,i)=>c.fillText(row,x,y-29+i*78));
+     c.restore();return rows.length;
+   }
+ }
+ c.restore();
+ throw Error("活动名称过长：希望之径无法在最低可读字号下排入两行");
 }
 function colorAlpha(color,alpha){
  return color+Math.round(Math.max(0,Math.min(1,alpha))*255).toString(16).padStart(2,"0");
@@ -242,13 +257,19 @@ function draw(photo,qr,logo){
  fitFootprint(photo);
  // Right editorial grid; every title and date is from the real route record.
  line(508,249,978,249,P.gold,2.2);
- mainHeadline(R.title,499,365);
- title(R.subtitle,505,430,'600 28px '+CN,P.ink);
- // Jubilee-inspired rhythm rendered as non-figurative strokes and colored marks.
- line(508,471,945,471,P.softLine,1.6);
- for(let i=0;i<4;i++){c.fillStyle=P.accents[i];c.beginPath();c.arc(516+38*i,472,5.4,0,Math.PI*2);c.fill();}
- if(DESCRIPTION.trim()!==R.subtitle.trim()){
-   textWrap(DESCRIPTION,507,534,470,'500 21px '+CN,35,P.ink,5);
+ const headlineRows=mainHeadline(R.title,499,365);
+ const subtitleY=headlineRows>1?499:430;
+ title(R.subtitle,505,subtitleY,'600 28px '+CN,P.ink);
+ const ruleY=headlineRows>1?536:471;
+ line(508,ruleY,945,ruleY,P.softLine,1.6);
+ for(let i=0;i<4;i++){c.fillStyle=P.accents[i];c.beginPath();c.arc(516+38*i,ruleY,5.4,0,Math.PI*2);c.fill();}
+ // Do not print a duplicated first sentence in the description.
+ const summary=R.subtitle.replace(/…$/,"");
+ const extra=DESCRIPTION.startsWith(summary)?
+   DESCRIPTION.slice(summary.length).replace(/^[\s，,。！？；;：:]*/,"").trim():
+   DESCRIPTION.trim();
+ if(extra){
+   textWrap(extra,507,headlineRows>1?592:534,470,'500 21px '+CN,35,P.ink,headlineRows>1?3:5);
  }
  title(R.month,504,788,'700 126px Georgia,serif',P.wine);
  title("/",666,781,'400 66px Georgia,serif',P.gold);
@@ -271,9 +292,27 @@ function draw(photo,qr,logo){
    title(R.suitable,508,1294,'700 29px '+CN,P.wine);
    line(508,1322,750,1322,P.softLine,1);
  }
- if(R.difficulty||R.equipment)title([R.difficulty&&"难度 "+R.difficulty,R.equipment&&"装备 "+R.equipment].filter(Boolean).join(" · "),508,1376,'400 18px '+SANS,P.ink);
+ // Reserve QR x=838..1000: optional details remain in the left column.
+ const extraFacts=[R.difficulty&&"难度 "+R.difficulty,R.equipment&&"装备 "+R.equipment].filter(Boolean).join(" · ");
+ if(extraFacts){
+   const safeWidth=307,rowsMax=3;
+   let rows=[],size=21;
+   for(;size>=18;size--){
+     c.save();c.font='500 '+size+'px '+SANS;
+     rows=[];let row="";
+     for(const ch of Array.from(extraFacts)){
+       if(row&&c.measureText(row+ch).width>safeWidth){rows.push(row);row=ch;}
+       else row+=ch;
+     }
+     if(row)rows.push(row);
+     c.restore();
+     if(rows.length<=rowsMax)break;
+   }
+   if(rows.length>rowsMax)throw Error("装备及难度信息过长，无法安全排入二维码左侧区域");
+   rows.forEach((row,i)=>title(row,508,1357+i*31,'500 '+size+'px '+SANS,P.ink));
+ }
  // QR is always the unmodified original bitmap, quiet zone included.
- title("自由参与",919,1227,'600 22px '+SANS,P.wine,"center");
+ title(R.isPast?"活动已结束":"扫码报名",919,1227,'600 22px '+SANS,P.wine,"center");
  window.BudaoPosterQR.draw(c,qr,838,1255,162,162);
  title("扫码同行",919,1453,'600 22px '+SANS,P.wine,"center");
  title("步道  ·  BUDAO",65,1421,'700 28px '+CN,P.wine);
