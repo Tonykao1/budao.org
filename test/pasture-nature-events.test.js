@@ -30,6 +30,7 @@ test('daytime events match season, weather and wind',()=>{
   assert.deepEqual(nature.eligibleKinds(state({code:61}),sky(),MS),[]);
   assert.deepEqual(nature.eligibleKinds(state({code:71}),sky(),MS),[]);
   assert.deepEqual(nature.eligibleKinds(state({code:45}),sky(),MS),[]);
+  assert.deepEqual(nature.eligibleKinds(state({code:3,cloud:10}),sky(),MS),['fish']); // overcast code outranks inconsistent cloud percentage
   assert.deepEqual(nature.eligibleKinds(state({wind:35}),sky(),MS),[]);
   assert.deepEqual(nature.eligibleKinds(state(),null,MS),['butterfly','dragonfly','fish']);
   assert.deepEqual(nature.eligibleKinds({location:state().location,current:{}},null,MS),[]);
