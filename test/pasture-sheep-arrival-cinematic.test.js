@@ -8,7 +8,11 @@ const live=fs.readFileSync('pasture-live.js','utf8');
 test('first-created resident is the only production path that requests the cinematic arrival',()=>{
   assert.match(live,/applyResident\(!!data\.created\)/);
   assert.match(core,/if\(e\.data\.arrival\)startArrivalCinematic\(\)/);
-  assert.equal((core.match(/startArrivalCinematic\(\)/g)||[]).length,2);
+  assert.equal((core.match(/function startArrivalCinematic\(\)/g)||[]).length,1);
+  assert.match(core, /if\(e\.data\.arrival\)startArrivalCinematic\(\);else queueResidentPaint\(\)/);
+  assert.match(core, /if\(e\.data\?\.type==='tonglu-resident-replay-arrival-v1'\)/);
+  assert.match(core, /if\(!resident\?\.appearance\|\|arrivalStart\|\|String\(e\.data\.residentId\)!==String\(resident\.id\)\)return/);
+  assert.equal((core.match(/startArrivalCinematic\(\)/g)||[]).length,3);
 });
 
 test('arrival uses a temporary full-screen cinematic layer and the shared sheep renderer',()=>{
@@ -47,9 +51,10 @@ test('impact uses only the approved sheep mp3 and does not introduce synthesized
 
 test('existing resident can rehearse arrival only on a vercel preview hostname without saving identity',()=>{
   assert.match(live,/function wantsArrivalReview\(/);
-  assert.match(live,/hostname\.endsWith\('\.vercel\.app'\)/);
+  assert.match(live,/function wantsAutoArrivalPreview\(\)\{return location\.hostname\.endsWith\('\.vercel\.app'\)&&wantsArrivalReview\(\)\}/);
   assert.match(live,/sheepArrivalReview/);
   const boot=live.slice(live.indexOf('async function boot'));
-  assert.match(boot,/if\(wantsArrivalReview\(\)\)return applyResident\(true\)/);
+  assert.match(boot,/if\(wantsAutoArrivalPreview\(\)\)return applyResident\(true\)/);
+  assert.doesNotMatch(boot,/if\(wantsArrivalReview\(\)\)return applyResident\(true\)/);
   assert.doesNotMatch(boot,/saveSheep/);
 });
