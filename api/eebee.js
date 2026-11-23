@@ -3,6 +3,7 @@ const { getAuthenticatedPublisher } = require("./_security/auth");
 const { requireJsonPost, requireSameOrigin, sendJson } = require("./_security/http");
 const { clientIp, consume } = require("./_security/rate-limit");
 const pastureAuthHandler = require("./_security/pasture-auth-handler");
+const pastureCommonsHandler = require("./_security/pasture-commons-handler");
 
 const owner = process.env.GITHUB_OWNER || "Tonykao1";
 const repo = process.env.GITHUB_REPO || "budao.org";
@@ -22,6 +23,9 @@ module.exports = async function handler(request, response) {
     const requestUrl = new URL(request.url || "/api/eebee", "https://budao.org");
     if (requestUrl.searchParams.get("service") === "pasture") {
       return await pastureAuthHandler(request, response);
+    }
+    if (requestUrl.searchParams.get("service") === "commons") {
+      return await pastureCommonsHandler(request, response);
     }
     if (request.method === "GET") return await handleGet(request, response);
     if (request.method === "POST") return await handlePost(request, response);
