@@ -66,10 +66,14 @@ button.lite{min-height:45px}.swatches{display:flex;gap:5px;margin:16px 0 9px}
 </section></div></main>
 <script src="/posters-runtime.js"></script>
 <script src="/posters-qr.js"></script>
+<script src="/posters-layout.js"></script>
 <script>
 (async function(){
 "use strict";
 const R=await window.BudaoPosterRuntime.load();
+const PL=window.BudaoPosterLayout;
+if(!PL)throw Error('步道 Canvas 排版引擎未加载');
+PL.validateFacts(R);
 
 "use strict";
 const fileDefs=[
