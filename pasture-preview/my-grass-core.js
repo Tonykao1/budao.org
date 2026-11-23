@@ -142,7 +142,8 @@
       verseIds:segments.map(s=>s.verseId),segments,startedAt:trim(value.startedAt)||null,
       completedAt:status==='completed'?trim(value.completedAt)||null:null,
       durationMs:status==='completed'?end.endMs:null,
-      audio:status==='completed'?{audioId:trim(audio.audioId),mimeType:trim(audio.mimeType),size:Number(audio.size),durationSeconds:Number(audio.durationSeconds)||0}:null
+      audio:status==='completed'?{audioId:trim(audio.audioId),mimeType:trim(audio.mimeType),size:Number(audio.size),durationSeconds:Number(audio.durationSeconds)||0,
+       ...(audio.mode==='silent'||audio.mode==='spoken'?{mode:audio.mode}:{})}:null
     };
   }
   function startReadingJourney(point,startedAt){
