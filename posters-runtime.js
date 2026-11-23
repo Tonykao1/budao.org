@@ -83,7 +83,7 @@
     const p=new URLSearchParams(root.location.search);
     const routeId=text(p.get("route"));
     if(!routeId||routeId.length>maxRouteId||!/^[\w.-]+$/.test(routeId)){
-      throw Error("没有指定有效的活动。请先在四套海报选择页选择一条步道。");
+      throw Error("没有指定有效的活动。请先在六套海报选择页选择一条步道。");
     }
     const all=await routes();
     const selected=all.find(r=>text(r.routeId||r.id)===routeId);
