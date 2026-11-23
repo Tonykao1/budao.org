@@ -3,6 +3,13 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const Module=require('node:module');
 const handlerPath=require.resolve('../api/_security/pasture-commons-handler');
+const policy=require('../api/_security/pasture-commons-domain');
+const journey={
+ status:'completed',reference:'约 13:34–35',translation:'圣经和合本（神版）',chapter:13,
+ startVerse:34,endVerse:35,durationMs:22000,
+ segments:[{verse:34,startMs:0,endMs:9000},{verse:35,startMs:9000,endMs:22000}],
+ audio:{audioId:'my-local-audio'}
+};
 
 const AUTHOR='c2a7d6e4-7515-4dd9-ac09-818de1b37412';
 const PEER='fd4b54fe-7aa9-4c10-9853-54f410a873c2';
@@ -26,7 +33,7 @@ function fakeData(){
   if(query.includes('FROM pasture_audio_receipts_v1')){
    if(query.startsWith('SELECT'))return state.receipts.filter(r=>
     query.includes('sha256=$3')?
-      r.owner_id===args[0]&&r.audio_id===args[1]&&r.sha256===args[2]&&r.entry_id===args[3]:
+      r.owner_id===args[0]&&r.audio_id===args[1]&&r.sha256===args[2]&&r.entry_id===args[3]&&r.journey_digest===args[4]:
       r.id===args[0]&&r.owner_id===args[1]&&r.audio_id===args[2]
    ); 
   }
@@ -65,7 +72,7 @@ function fakeData(){
   }
   if(query.startsWith('INSERT INTO pasture_audio_receipts_v1')){
    state.receipts.push({id:args[0],owner_id:args[1],audio_id:args[2],entry_id:args[3],
-     reference:args[4],sha256:args[5],bytes:args[6]});return [];
+     reference:args[4],sha256:args[5],journey_digest:args[6],bytes:args[7]});return [];
   }
   throw Error('UNMOCKED QUERY: '+query.slice(0,110));
  }};
@@ -109,12 +116,12 @@ async function call(handler,{method='GET',url='/api/pasture-commons',body=null,o
 }
 function seedInsight(state,owner=AUTHOR){
  state.receipts.push({id:ID2,owner_id:owner,audio_id:'my-local-audio',entry_id:'entry01',
-  reference:'约 13:34–35',sha256:'a'.repeat(64),bytes:12345});
+  reference:'约 13:34–35',sha256:'a'.repeat(64),journey_digest:policy.journeyDigest(journey),bytes:12345});
  return {insight_id:'insight01',reading_record_id:'my-local-audio',scripture_range:'约 13:34–35',translation:'圣经和合本（神版）'};
 }
 function insightBody(insight){
  return {action:'publish-insight',publishConsent:true,consentVersion:'v1',receiptId:ID2,
-  entryId:'entry01',insight,shareText:'我愿意在真实关系中彼此相爱'};
+  entryId:'entry01',insight,journey,shareText:'我愿意在真实关系中彼此相爱'};
 }
 test('authenticated mine shows only own records, and server revocation works across accounts',()=>previewEnv(async()=>{
  const {sql,state}=fakeData();
@@ -173,4 +180,13 @@ test('foreign-origin POST is forbidden even with an otherwise valid authenticate
  const res=await call(api,{method:'POST',origin:'https://evil.example',body:{action:'withdraw',id:ID}});
  assert.equal(res.status,403);
  assert.equal(res.object.reason,'cross_origin_forbidden');
+}));
+
+test('timeline tampering after a recording receipt is issued cannot authorize a new anonymous statement',()=>previewEnv(async()=>{
+ const {sql,state}=fakeData(),insight=seedInsight(state,AUTHOR),api=mockApi(sql,state);
+ const changed={...journey,durationMs:24000,segments:[journey.segments[0],{verse:35,startMs:9000,endMs:24000}]};
+ const response=await call(api,{method:'POST',body:{...insightBody(insight),journey:changed}});
+ assert.equal(response.status,403);
+ assert.equal(response.object.reason,'recording_receipt_required');
+ assert.equal(state.records.length,0);
 }));
