@@ -84,6 +84,10 @@ a{color:#7b4b30}
 <input id="light" type="range" min="20" max="100" step="5" value="58">
 <div class="control-line"><label for="crop">照片取景缩放</label><output id="cropVal">100%</output></div>
 <input id="crop" type="range" min="100" max="155" step="5" value="100">
+<div class="control-line"><label for="horizontal">照片横向取景</label><output id="horizontalVal">50%</output></div>
+<input id="horizontal" type="range" min="0" max="100" step="5" value="50" aria-label="照片横向取景">
+<div class="control-line"><label for="vertical">照片纵向取景</label><output id="verticalVal">50%</output></div>
+<input id="vertical" type="range" min="0" max="100" step="5" value="50" aria-label="照片纵向取景">
 <label for="localPhoto">替换照片（仅当前预览）</label>
 <input id="localPhoto" type="file" accept="image/jpeg,image/png,image/webp">
 <div class="actions">
@@ -116,8 +120,8 @@ const PL=window.BudaoPosterLayout;
 if(!PL)throw Error('步道 Canvas 排版引擎未加载');
 const cv=document.getElementById("poster"),c=cv.getContext("2d",{alpha:false});
 const $=id=>document.getElementById(id);
-const E={route:$("route"),titleFont:$("titleFont"),pattern:$("pattern"),light:$("light"),crop:$("crop"),
- patternVal:$("patternVal"),lightVal:$("lightVal"),cropVal:$("cropVal"),
+const E={route:$("route"),titleFont:$("titleFont"),pattern:$("pattern"),light:$("light"),crop:$("crop"),horizontal:$("horizontal"),vertical:$("vertical"),
+ patternVal:$("patternVal"),lightVal:$("lightVal"),cropVal:$("cropVal"),horizontalVal:$("horizontalVal"),verticalVal:$("verticalVal"),
  upload:$("localPhoto"),download:$("download"),reset:$("reset"),status:$("status")};
 const themes=Object.freeze({
  vermilion:{name:"典礼绛红",bg:"#18141b",wine:"#7e2530",dark:"#461723",gold:"#d0ac66",light:"#fff0c9",muted:"#e0c6a3",paper:"#fff7e8",veil:"rgba(62,8,21,.18)",gleam:"#c9433c"},
@@ -179,10 +183,24 @@ function fitBlock(value,width,ideal,min,maxLines,font,weight){
    maxLines,family:font,weight
  });
 }
-function cover(img,x,y,w,h,zoom){
- const sw=img.width,sh=img.height;const ratio=Math.max(w/sw,h/sh)*(zoom||1);
+// Mirror template 06 pan semantics: 0 left/top, 50 centered, 100 right/bottom.
+function ceremonialPhotoCover(img,x,y,w,h,zoom,horizontal,vertical){
+ const sw=Number(img?.width),sh=Number(img?.height);
+ if(!(sw>0&&sh>0))throw Error("照片尺寸无效，无法安全取景");
+ // Ten percent photo overscan ensures BOTH axes can move even if cover
+ // otherwise fits the window exactly on one dimension.
+ const ratio=Math.max(w/sw,h/sh)*(zoom||1)*1.10;
  const dw=sw*ratio,dh=sh*ratio;
- c.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+ const fx=clamp(Number(horizontal)/100,0,1),fy=clamp(Number(vertical)/100,0,1);
+ const dx=x+(w-dw)*fx,dy=y+(h-dh)*fy;
+ if(dx>x+.01||dy>y+.01||dx+dw<x+w-.01||dy+dh<y+h-.01){
+  throw Error("照片裁切未能完全覆盖东方盛典窗口");
+ }
+ return {x:dx,y:dy,width:dw,height:dh};
+}
+function cover(img,x,y,w,h,zoom){
+ const position=ceremonialPhotoCover(img,x,y,w,h,zoom,E.horizontal.value,E.vertical.value);
+ c.drawImage(img,position.x,position.y,position.width,position.height);
 }
 function framePath(x,y,w,h){
  c.beginPath();c.moveTo(x,y+h);c.lineTo(x,y+140);
@@ -470,6 +488,8 @@ async function activate(){
   pimg=p.bmp;qimg=q;
   record=R;originalPhoto=pimg;photo=pimg;qr=qimg;
   E.upload.value="";E.crop.value="100";E.cropVal.textContent="100%";
+  E.horizontal.value="50";E.vertical.value="50";
+  E.horizontalVal.textContent="50%";E.verticalVal.textContent="50%";
   const u=new URL(location.href);u.searchParams.set("route",R.id);history.replaceState(null,"",u.pathname+u.search);
   buildFootGold();render();
  }catch(err){
@@ -490,7 +510,7 @@ for(const button of document.querySelectorAll("[data-theme]")){
   if(footprint)buildFootGold();render();
  });
 }
-for(const [el,out] of [[E.pattern,E.patternVal],[E.light,E.lightVal],[E.crop,E.cropVal]]){
+for(const [el,out] of [[E.pattern,E.patternVal],[E.light,E.lightVal],[E.crop,E.cropVal],[E.horizontal,E.horizontalVal],[E.vertical,E.verticalVal]]){
  el.addEventListener("input",()=>{out.textContent=el.value+"%";render()});
 }
 E.upload.addEventListener("change",async()=>{
@@ -506,8 +526,8 @@ E.upload.addEventListener("change",async()=>{
 E.reset.addEventListener("click",()=>{
  chosen="vermilion";E.titleFont.value="song";
  document.querySelectorAll("[data-theme]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.theme===chosen)));
- E.pattern.value=65;E.light.value=58;E.crop.value=100;
- E.patternVal.textContent="65%";E.lightVal.textContent="58%";E.cropVal.textContent="100%";
+ E.pattern.value=65;E.light.value=58;E.crop.value=100;E.horizontal.value=50;E.vertical.value=50;
+ E.patternVal.textContent="65%";E.lightVal.textContent="58%";E.cropVal.textContent="100%";E.horizontalVal.textContent="50%";E.verticalVal.textContent="50%";
  E.upload.value="";photo=originalPhoto;if(footprint)buildFootGold();render();
 });
 E.download.addEventListener("click",()=>{

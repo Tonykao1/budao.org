@@ -33,6 +33,8 @@ canvas{width:100%;height:auto;aspect-ratio:16/9;background:#020307;display:block
 .fieldhead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:600}
 .fieldhead output{font:600 11px Arial,sans-serif;color:#4d6596}
 input[type=range]{display:block;width:100%;accent-color:#456ab5;margin:12px 0 0}
+#headlineFont{display:block;width:100%;padding:10px 11px;border-radius:6px;border:1px solid #c7cfde;background:#f7f8fb;color:#283c61;font:500 13px system-ui,sans-serif;margin:9px 0 16px}
+#headlineFont:focus-visible{outline:3px solid #839ed1;outline-offset:2px}
 .modes{display:flex;gap:7px;margin:8px 0 18px}
 .modes button{border-radius:6px;border:1px solid #c7cfde;background:#f7f8fb;padding:10px 13px;color:#57647b;font-size:12px;cursor:pointer;flex:1}
 .modes button[aria-pressed="true"]{background:#18243e;color:#fff;border-color:#18243e}
@@ -92,6 +94,12 @@ small.legal{display:block;color:#8c95a8;line-height:1.8;margin-top:15px;font-siz
 <section class="panel">
 <h2>文字与信息</h2>
 <p>活动标题与时间优先清晰显示；较长的集合地点自动适配。报名二维码保持原始图案与必要白边。</p>
+<label for="headlineFont" class="fieldhead">活动标题字体</label>
+<select id="headlineFont" aria-label="光学预告活动标题字体">
+ <option value="optical" selected>光学现代黑体（默认）</option>
+ <option value="serif">典雅宋体</option>
+ <option value="kai">书卷楷体</option>
+</select>
 <div class="fieldhead">黑场中的光强</div>
 <div class="modes" role="group" aria-label="光场强度">
 <button type="button" data-mode="subtle" aria-pressed="false">静谧</button>
@@ -140,6 +148,11 @@ suitable:R.suitable,equipment:R.equipment
 });
 const ORIGINAL_QR_SHA=R.qrSha||null;
 const TYPEFACE='"Helvetica Neue","Arial","PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+const HEADLINE_FONTS=Object.freeze({
+ optical:{name:"光学现代黑体",family:TYPEFACE,weight:400,trackingPrimary:.155,trackingFallback:.10},
+ serif:{name:"典雅宋体",family:'"Noto Serif CJK SC","Songti SC","STSong","SimSun",serif',weight:600,trackingPrimary:.05,trackingFallback:.035},
+ kai:{name:"书卷楷体",family:'"Kaiti SC","STKaiti","KaiTi","Noto Serif CJK SC",serif',weight:500,trackingPrimary:.035,trackingFallback:.025}
+});
 const $=id=>document.getElementById(id),cv=$("light");
 const displayCtx=cv.getContext("2d",{alpha:false});
 const baseCanvas=document.createElement("canvas");
@@ -147,7 +160,7 @@ const BASE_SCALE=1/3;
 baseCanvas.width=640;baseCanvas.height=360;
 let ctx=baseCanvas.getContext("2d",{alpha:false});
 ctx.setTransform(BASE_SCALE,0,0,BASE_SCALE,0,0);
-const ui={upload:$("upload"),filename:$("filename"),source:$("source"),palette:$("palette"),paletteInfo:$("paletteInfo"),spread:$("spread"),spreadText:$("spreadText"),shape:$("shape"),shapeText:$("shapeText"),posterOn:$("posterOn"),posterOff:$("posterOff"),posterState:$("posterState"),abstract:$("abstract"),
+const ui={upload:$("upload"),filename:$("filename"),source:$("source"),palette:$("palette"),paletteInfo:$("paletteInfo"),spread:$("spread"),spreadText:$("spreadText"),shape:$("shape"),shapeText:$("shapeText"),posterOn:$("posterOn"),posterOff:$("posterOff"),posterState:$("posterState"),abstract:$("abstract"),headlineFont:$("headlineFont"),
  abstractText:$("abstractText"),reroll:$("reroll"),download:$("download"),status:$("status"),
  modes:Array.from(document.querySelectorAll("[data-mode]"))};
 const W=1920,H=1080,SW=640,SH=360;
@@ -604,28 +617,28 @@ function typeLine(value,x,y,size,{weight=300,opacity=1,maxWidth=1570,align="left
  c.fillText(value,x,y);c.restore();
 }
 
-function measureTracking(c,t,size,tracking,weight=400){
- c.font=weight+" "+size+"px "+TYPEFACE;
+function measureTracking(c,t,size,tracking,weight=400,family=TYPEFACE){
+ c.font=weight+" "+size+"px "+family;
  const chars=Array.from(t);
  return chars.reduce((w,ch)=>w+c.measureText(ch).width,0)+Math.max(0,chars.length-1)*tracking;
 }
-function wrapTypography(c,value,width,size,weight=400,tracking=0){
+function wrapTypography(c,value,width,size,weight=400,tracking=0,family=TYPEFACE){
  const chars=Array.from(String(value||"").trim());
  if(!chars.length)return [];
  const lines=[];let line="";
  for(const ch of chars){
   const candidate=line+ch;
-  if(line&&measureTracking(c,candidate,size,tracking,weight)>width){
+  if(line&&measureTracking(c,candidate,size,tracking,weight,family)>width){
    lines.push(line.trimEnd());line=ch===" "?"":ch;
   }else{line=candidate;}
  }
  if(line)lines.push(line.trimEnd());
  return lines;
 }
-function fitTypography(c,value,width,ideal,min,maxLines,weight=300,trackingRatio=0){
+function fitTypography(c,value,width,ideal,min,maxLines,weight=300,trackingRatio=0,family=TYPEFACE){
  for(let size=ideal;size>=min;size-=1){
   const tracking=size*trackingRatio;
-  const lines=wrapTypography(c,value,width,size,weight,tracking);
+  const lines=wrapTypography(c,value,width,size,weight,tracking,family);
   if(lines.length<=maxLines)return {size,lines,tracking};
  }
  return null;
@@ -633,19 +646,20 @@ function fitTypography(c,value,width,ideal,min,maxLines,weight=300,trackingRatio
 function teaserTitle(title,layoutGuard){
  const c=displayCtx,value=String(title||"").trim();
  if(!value)return;
- let layout=fitTypography(c,value,1408,137,64,2,400,.155);
- if(!layout)layout=fitTypography(c,value,1408,62,46,3,400,.10);
- if(!layout)throw Error("标题过长，不能在保持可读字号时完整排入海报");
+ const face=HEADLINE_FONTS[ui.headlineFont.value]||HEADLINE_FONTS.optical;
+ let layout=fitTypography(c,value,1408,137,64,2,face.weight,face.trackingPrimary,face.family);
+ if(!layout)layout=fitTypography(c,value,1408,62,46,3,face.weight,face.trackingFallback,face.family);
+ if(!layout)throw Error("所选字体无法在可读字号内完整排入活动标题");
  const {lines,size,tracking}=layout;
  const gap=size*1.18;
  const lastBase=lines.length===1?517:552;
  const first=lastBase-(lines.length-1)*gap;
  if(first<290)throw Error("标题无法在限定高度内完整显示");
  c.save();c.textBaseline="alphabetic";c.fillStyle="#fff";
- c.shadowColor="rgba(0,0,0,.88)";c.shadowBlur=28;c.font="400 "+size+"px "+TYPEFACE;
+ c.shadowColor="rgba(0,0,0,.88)";c.shadowBlur=28;c.font=face.weight+" "+size+"px "+face.family;
  lines.forEach((line,row)=>{
    if(layoutGuard){
-     const width=measureTracking(c,line,size,tracking,400);
+     const width=measureTracking(c,line,size,tracking,face.weight,face.family);
      layoutGuard.claim("主标题第"+(row+1)+"行",{
        x:104,y:first+row*gap-size*.92,width,height:size*1.16
      },{avoid:["报名二维码"]});
@@ -818,6 +832,7 @@ ui.upload.addEventListener("change",async()=>{
 ui.abstract.addEventListener("input",()=>{ui.abstractText.value=ui.abstract.value+"%";redrawBaseDeferred()});
 ui.spread.addEventListener("input",()=>{ui.spreadText.value=ui.spread.value+"%";redrawBaseDeferred()});
 ui.shape.addEventListener("input",()=>{ui.shapeText.value=ui.shape.value+"%";redraw()});
+ui.headlineFont.addEventListener("change",redraw);
 function chooseView(flag){
  posterVisible=flag;
  ui.posterOn.setAttribute("aria-pressed",String(flag));
