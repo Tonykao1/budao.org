@@ -11,8 +11,22 @@ const {requireSameOrigin,sendJson}=require('./http');
 const {consume,clientIp}=require('./rate-limit');
 const MAX_REQUEST_BYTES=3*1024*1024;
 let prepared=false;
+// A separate variable is insufficient if it points to the same underlying database.
+// Normalize Neon's pooled/nonpooled host spellings so accidental aliasing fails closed.
+function databaseIdentity(value){
+ try {
+  const u=new URL(String(value||''));
+  if(!['postgres:','postgresql:'].includes(u.protocol))return null;
+  const host=u.hostname.toLowerCase().replace(/-pooler(?=\.)/g,'');
+  const name=decodeURIComponent(u.pathname.replace(/^\//,''));
+  if(!host||!name)return null;
+  return host+':'+(u.port||'5432')+'/'+name;
+ }catch(_){return null}
+}
 function enabled(env=process.env){
- return env.VERCEL_ENV==='preview'&&env.PASTURE_COMMONS_ENABLED==='true'&&!!env.DATABASE_URL&&!!env.PASTURE_COMMONS_DATABASE_URL;
+ if(env.VERCEL_ENV!=='preview'||env.PASTURE_COMMONS_ENABLED!=='true')return false;
+ const privateDb=databaseIdentity(env.DATABASE_URL),publicDb=databaseIdentity(env.PASTURE_COMMONS_DATABASE_URL);
+ return !!privateDb&&!!publicDb&&privateDb!==publicDb;
 }
 function fail(res,status,reason){return sendJson(res,status,{ok:false,reason})}
 async function residentFor(req){
@@ -26,8 +40,12 @@ async function residentFor(req){
 }
 async function prepare(sql){
  if(prepared)return;
- await sql.query("CREATE TABLE IF NOT EXISTS pasture_audio_receipts_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, audio_id text NOT NULL, reference text NOT NULL, sha256 text NOT NULL, bytes integer NOT NULL CHECK (bytes>0 AND bytes<=2097152), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(owner_id,audio_id,sha256))");
- await sql.query("CREATE TABLE IF NOT EXISTS pasture_commons_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, kind text NOT NULL CHECK (kind IN ('reading','insight')), entry_id text NOT NULL, audio_id text NOT NULL, scripture_reference text NOT NULL, translation text NOT NULL DEFAULT '', voice text NOT NULL CHECK (voice IN ('SPOKEN','SILENT','NONE')), public_text text NOT NULL DEFAULT '', audio_data bytea, audio_mime text, audio_size integer, consent_version text NOT NULL, status text NOT NULL DEFAULT 'PUBLISHED' CHECK (status IN ('PUBLISHED','WITHDRAWN')), created_at timestamptz NOT NULL DEFAULT now(), withdrawn_at timestamptz, UNIQUE(owner_id,kind,entry_id))");
+ await sql.query("CREATE TABLE IF NOT EXISTS pasture_audio_receipts_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, audio_id text NOT NULL, entry_id text NOT NULL, reference text NOT NULL, sha256 text NOT NULL, bytes integer NOT NULL CHECK (bytes>0 AND bytes<=2097152), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(owner_id,audio_id,sha256))");
+ await sql.query("ALTER TABLE pasture_audio_receipts_v1 ADD COLUMN IF NOT EXISTS entry_id text");
+ await sql.query("CREATE TABLE IF NOT EXISTS pasture_commons_v1 (id uuid PRIMARY KEY, owner_id uuid NOT NULL, kind text NOT NULL CHECK (kind IN ('reading','insight')), entry_id text NOT NULL, audio_id text NOT NULL, scripture_reference text NOT NULL, translation text NOT NULL DEFAULT '', voice text NOT NULL CHECK (voice IN ('SPOKEN','SILENT','NONE')), public_text text NOT NULL DEFAULT '', audio_data bytea, audio_mime text, audio_size integer, consent_version text NOT NULL, status text NOT NULL DEFAULT 'PUBLISHED' CHECK (status IN ('PUBLISHED','WITHDRAWN')), created_at timestamptz NOT NULL DEFAULT now(), withdrawn_at timestamptz, UNIQUE(owner_id,entry_id))");
+ // Guarantees that even concurrent requests cannot connect a public voice with an anonymous insight.
+ // Never release the source entry key after withdrawal: the public may have cached the prior content.
+ await sql.query("CREATE UNIQUE INDEX IF NOT EXISTS pasture_commons_entry_once_v1 ON pasture_commons_v1 (owner_id,entry_id)");
  await sql.query("CREATE INDEX IF NOT EXISTS pasture_commons_public_ref_v1 ON pasture_commons_v1 (scripture_reference,kind,created_at DESC) WHERE status='PUBLISHED'");
  prepared=true;
 }
@@ -42,7 +60,7 @@ function bodyOf(req){
 function kindRow(r){return {id:r.id,kind:r.kind,status:r.status,scriptureReference:r.scripture_reference,translation:r.translation,voice:r.voice,publicText:r.public_text}}
 async function receiptFor(sql,owner,id,audioId){
  if(!policy.validId(id)||typeof audioId!=='string')return null;
- const rows=await sql.query("SELECT id,owner_id,audio_id,reference,sha256,bytes FROM pasture_audio_receipts_v1 WHERE id=$1 AND owner_id=$2 AND audio_id=$3 LIMIT 1",[id,owner,audioId]);
+ const rows=await sql.query("SELECT id,owner_id,audio_id,entry_id,reference,sha256,bytes FROM pasture_audio_receipts_v1 WHERE id=$1 AND owner_id=$2 AND audio_id=$3 LIMIT 1",[id,owner,audioId]);
  return rows[0]||null;
 }
 async function handle(req,res){
@@ -55,6 +73,15 @@ async function handle(req,res){
   await prepare(sql);
   if(req.method==='GET'){
    const u=new URL(req.url,'https://budao.org'),audio=u.searchParams.get('audio');
+   if(u.searchParams.get('mode')==='mine'){
+    // The authoritative publication state is owner-scoped, never inferred from localStorage.
+    const me=await residentFor(req);
+    if(!me)return fail(res,401,'resident_login_required');
+    const entryId=String(u.searchParams.get('entry')||'');
+    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
+    const rows=await sql.query("SELECT id,kind,status,entry_id,voice FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 LIMIT 1",[me.id,entryId]);
+    return sendJson(res,200,{ok:true,items:rows.map(row=>({id:row.id,kind:row.kind,status:row.status,entryId:row.entry_id,voice:row.voice}))});
+   }
    if(audio){
     if(!policy.validId(audio))return fail(res,400,'invalid_publication');
     const rows=await sql.query("SELECT encode(audio_data,'base64') AS audio_b64,audio_mime FROM pasture_commons_v1 WHERE id=$1 AND kind='reading' AND voice='SPOKEN' AND status='PUBLISHED' LIMIT 1",[audio]);
@@ -81,10 +108,12 @@ async function handle(req,res){
   if(action==='attest-recording'){
    if(body.privateAudioVerificationConsent!==true)return fail(res,400,'audio_verification_consent_required');
    const journey=policy.verifyJourney(body.journey),audio=policy.validAudio(body.mime,body.audioBase64);
-   const existing=await sql.query("SELECT id FROM pasture_audio_receipts_v1 WHERE owner_id=$1 AND audio_id=$2 AND sha256=$3 LIMIT 1",[owner.id,journey.audioId,audio.sha256]);
+   const entryId=String(body.entryId||'');
+   if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
+   const existing=await sql.query("SELECT id FROM pasture_audio_receipts_v1 WHERE owner_id=$1 AND audio_id=$2 AND sha256=$3 AND entry_id=$4 LIMIT 1",[owner.id,journey.audioId,audio.sha256,entryId]);
    if(existing.length)return sendJson(res,200,{ok:true,receiptId:existing[0].id,privateAudioStored:false});
    const id=crypto.randomUUID();
-   await sql.query("INSERT INTO pasture_audio_receipts_v1 (id,owner_id,audio_id,reference,sha256,bytes) VALUES ($1,$2,$3,$4,$5,$6)",[id,owner.id,journey.audioId,journey.reference,audio.sha256,audio.size]);
+   await sql.query("INSERT INTO pasture_audio_receipts_v1 (id,owner_id,audio_id,entry_id,reference,sha256,bytes) VALUES ($1,$2,$3,$4,$5,$6,$7)",[id,owner.id,journey.audioId,entryId,journey.reference,audio.sha256,audio.size]);
    // The original private recording is not written to the database.
    return sendJson(res,200,{ok:true,receiptId:id,privateAudioStored:false});
   }
@@ -93,9 +122,10 @@ async function handle(req,res){
    if(body.rightsConfirmed!==true)return fail(res,400,'audio_scripture_rights_confirmation_required');
    const journey=policy.verifyJourney(body.journey);
    const receipt=await receiptFor(sql,owner.id,body.receiptId,journey.audioId);
-   if(!receipt||receipt.reference!==journey.reference)return fail(res,403,'recording_receipt_required');
    const entryId=String(body.entryId||'');
    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
+   if(!receipt||receipt.reference!==journey.reference||receipt.entry_id!==entryId)
+    return fail(res,403,'recording_receipt_required');
    const translation=String(body.translation||'').trim();
    const mode=body.mode==='silent'?'SILENT':body.mode==='spoken'?'SPOKEN':null;
    if(!mode)return fail(res,400,'invalid_mode');
@@ -108,8 +138,11 @@ async function handle(req,res){
     const conflict=await sql.query("SELECT id FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 AND kind='insight' AND status='PUBLISHED' LIMIT 1",[owner.id,entryId]);
     if(conflict.length)return fail(res,409,'cross_publication_identity_risk');
    }
-   const found=await sql.query("SELECT id,status FROM pasture_commons_v1 WHERE owner_id=$1 AND kind='reading' AND entry_id=$2 LIMIT 1",[owner.id,entryId]);
-   if(found.length)return sendJson(res,200,{ok:true,id:found[0].id,status:found[0].status,duplicate:true});
+   const found=await sql.query("SELECT id,status,kind FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 LIMIT 1",[owner.id,entryId]);
+   if(found.length){
+    if(found[0].kind!=='reading'||found[0].status!=='PUBLISHED')return fail(res,409,'entry_publication_locked');
+    return sendJson(res,200,{ok:true,id:found[0].id,status:found[0].status,duplicate:true});
+   }
    const id=crypto.randomUUID();
    await sql.query("INSERT INTO pasture_commons_v1 (id,owner_id,kind,entry_id,audio_id,scripture_reference,translation,voice,public_text,audio_data,audio_mime,audio_size,consent_version) VALUES ($1,$2,'reading',$3,$4,$5,$6,$7,'',decode($8,'base64'),$9,$10,'v1')",[id,owner.id,entryId,journey.audioId,journey.reference,translation,mode,encoded?encoded.buffer.toString('base64'):'',encoded?encoded.mime:null,encoded?encoded.size:null]);
    return sendJson(res,200,{ok:true,id,status:'PUBLISHED',kind:'reading'});
@@ -118,14 +151,18 @@ async function handle(req,res){
    if(body.publishConsent!==true||body.consentVersion!=='v1')return fail(res,400,'publish_consent_required');
    const insight=body.insight||{},audioId=String(insight.reading_record_id||'');
    const receipt=await receiptFor(sql,owner.id,body.receiptId,audioId);
-   if(!receipt||receipt.reference!==insight.scripture_range)return fail(res,403,'recording_receipt_required');
    const entryId=String(body.entryId||'');
    if(!entryId||entryId.length>120)return fail(res,400,'invalid_entry');
+   if(!receipt||receipt.reference!==insight.scripture_range||receipt.entry_id!==entryId)
+    return fail(res,403,'recording_receipt_required');
    const voiceConflict=await sql.query("SELECT id FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 AND kind='reading' AND voice='SPOKEN' AND status='PUBLISHED' LIMIT 1",[owner.id,entryId]);
    if(voiceConflict.length)return fail(res,409,'cross_publication_identity_risk');
    const share=fellowship.buildAnonymousShare({ownerId:owner.id,insight,recordingReceipt:{ownerId:owner.id,audioId,status:'completed',size:receipt.bytes},shareText:body.shareText,explicitConsent:true,consentVersion:'v1'});
-   const found=await sql.query("SELECT id,status FROM pasture_commons_v1 WHERE owner_id=$1 AND kind='insight' AND entry_id=$2 LIMIT 1",[owner.id,entryId]);
-   if(found.length)return sendJson(res,200,{ok:true,id:found[0].id,status:found[0].status,duplicate:true});
+   const found=await sql.query("SELECT id,status,kind FROM pasture_commons_v1 WHERE owner_id=$1 AND entry_id=$2 LIMIT 1",[owner.id,entryId]);
+   if(found.length){
+    if(found[0].kind!=='insight'||found[0].status!=='PUBLISHED')return fail(res,409,'entry_publication_locked');
+    return sendJson(res,200,{ok:true,id:found[0].id,status:found[0].status,duplicate:true});
+   }
    const id=crypto.randomUUID();
    await sql.query("INSERT INTO pasture_commons_v1 (id,owner_id,kind,entry_id,audio_id,scripture_reference,translation,voice,public_text,consent_version) VALUES ($1,$2,'insight',$3,$4,$5,$6,'NONE',$7,'v1')",[id,owner.id,entryId,audioId,share.scriptureReference,String(insight.translation||'').slice(0,64),share.publicText]);
    return sendJson(res,200,{ok:true,id,status:'PUBLISHED',kind:'insight'});
@@ -137,10 +174,11 @@ async function handle(req,res){
   }
   return fail(res,400,'unknown_action');
  }catch(e){
+  if(e?.code==='23505')return fail(res,409,'entry_publication_locked');
   if(/^(?:invalid_|unsupported_|completed_|audio_|public_|approved_|explicit_|saved_|possible_|scripture_|recording_)/.test(String(e.message||'')))return fail(res,400,String(e.message));
   console.error('pasture-commons',String(e.code||'service_error'));
   return fail(res,503,'commons_unavailable');
  }
 }
 module.exports=handle;
-module.exports._test={enabled,bodyOf,kindRow};
+module.exports._test={enabled,bodyOf,kindRow,databaseIdentity};
