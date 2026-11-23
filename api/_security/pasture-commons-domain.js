@@ -50,7 +50,7 @@ function journeyDigest(j){
  const segments=j.segments.map(s=>[s.verse,s.startMs,s.endMs]);
  return crypto.createHash('sha256').update(JSON.stringify([
   v.audioId,v.reference,v.durationMs,
-  String(j.translation||''),Number(j.chapter),segments
+  String(j.translation||''),Number(j.chapter),String(j.audio?.mode||'legacy-unknown'),segments
  ])).digest('hex');
 }
 function verifyJourney(j){
