@@ -61,7 +61,7 @@ test("05 cover calculation has no uncovered edge over 6 aspect ratios, 3 zooms a
  assert.equal(count,162);
 });
 
-test("05 pan axes are independent and at 50 reproduce the previous centered crop",()=>{
+test("05 pan axes remain effective with overscan and 50 percent preserves centered alignment",()=>{
  const photo={width:1920,height:1080},center=cover(photo,103,274,874,691,1,50,50);
  const left=cover(photo,103,274,874,691,1,0,50),right=cover(photo,103,274,874,691,1,100,50);
  const top=cover(photo,103,274,874,691,1,50,0),bottom=cover(photo,103,274,874,691,1,50,100);
