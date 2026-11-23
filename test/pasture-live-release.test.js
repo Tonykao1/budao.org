@@ -43,7 +43,9 @@ test('authenticated pasture restores the agreed pixel function-zone design inste
 test('pasture shell promotes accidental core-frame navigation to the top level', () => {
   const entry = read('tonglu.html');
   assert.match(entry, /pastureCore\.addEventListener\('load'/);
-  assert.match(entry, /contentWindow\.location\.pathname/);
+  assert.match(entry, /const coreLocation=pastureCore\.contentWindow\.location/);
+  assert.match(entry, /const path=coreLocation\.pathname/);
+  assert.match(entry, /if\(path==='\/tonglu-core\.html'\)return/);
   assert.match(entry, /window\.location\.replace\(target\)/);
 });
 
