@@ -21,6 +21,9 @@ test('16 kHz DSP WAV publication copy is canonical, and the original sound is no
  const valid=c.validAudio(data.type,bytes.toString('base64'));
  assert.equal(valid.size,bytes.length);
  assert.match(valid.sha256,/^[a-f0-9]{64}$/);
+ assert.deepEqual(c.validPublicAudio(data.type,bytes.toString('base64'),.3125).buffer,bytes);
+ assert.throws(()=>c.validPublicAudio(data.type,bytes.toString('base64'),60000),/duration_mismatch/);
+ assert.throws(()=>c.validPublicAudio('audio/webm',Buffer.from([0x1a,0x45,0xdf,0xa3]).toString('base64'),1),/invalid_public_audio_format/);
  assert.throws(()=>render.wavPcm16(new Float32Array(c.MAX_AUDIO_BYTES/2)),/2MB/);
 });
 test('reject invalid payloads, spoofed audio MIME and unsafe scripture',()=>{
@@ -41,6 +44,8 @@ function awaitableBytes(_blob){
 }
 test('completed journey must have contiguous accurate verse boundaries',()=>{
  assert.equal(c.verifyJourney(fixture).durationMs,22000);
+ assert.match(c.journeyDigest(fixture),/^[a-f0-9]{64}$/);
+ assert.notEqual(c.journeyDigest({...fixture,segments:[{...fixture.segments[0],endMs:11000},{...fixture.segments[1],startMs:11000}]}),c.journeyDigest(fixture));
  for(const bad of [
   {...fixture,status:'recording'},
   {...fixture,segments:[{...fixture.segments[0],startMs:2},fixture.segments[1]]},
@@ -99,6 +104,9 @@ test('original remains separate from DSP publish copy; UI requires two conscious
  assert.match(main,/publishConsent:true/);
  assert.match(main,/await commonsAvailable\(\)/);
  assert.match(main,/MyGrassAudioRender.render/);
+ assert.match(main,/publicAudio=await window.MyGrassAudioRender.render/);
+ assert.doesNotMatch(main,/publicAudio=dsp\?await/);
+ assert.doesNotMatch(main,/publicAudio=voice/);
  assert.match(main,/void reconcilePublication\(\)/);
  assert.match(main,/mode=mine&entry=/);
  assert.match(main,/publicationVerifiedFor/);
@@ -128,5 +136,8 @@ test('no server path auto-unlocks identities from content or public audio',()=>{
  assert.match(src,/mode'\)==='mine'/);
  assert.match(src,/owner_id=\$1 AND entry_id=\$2/);
  assert.match(src,/receipt\.entry_id!==entryId/);
+ assert.match(src,/journey_digest/);
+ assert.match(src,/policy\.validPublicAudio/);
+ assert.match(src,/policy\.journeyDigest/);
  assert.match(src,/AND entry_id=\$4 LIMIT 1/);
 });
