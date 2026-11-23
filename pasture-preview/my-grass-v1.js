@@ -279,6 +279,156 @@ function recorderStatusText(){
        s.start<0||s.end<=s.start||s.end>total||(i>0&&(s.start!==segments[i-1].end||s.verse!==segments[i-1].verse+1))))return null;
    return {total,segments:segments.map(s=>({...s,left:s.start/total*100,width:(s.end-s.start)/total*100}))};
   }
+
+  // Independent consent-based publication layer. Public content never inherits the
+  // local draft's other fields, resident identity, voice master or private light graph.
+  let publicationBusy=false;
+  function publicationKey(){return PREFIX+'.'+scope+'.publications.v1'}
+  function localPublication(kind){
+   const state=getJson(publicationKey(),{});return state?.[draft?.id]?.[kind]||null;
+  }
+  function recordPublication(kind,value){
+   const all=getJson(publicationKey(),{}),entryId=draft?.id;
+   if(!entryId)return;
+   all[entryId]=all[entryId]||{};
+   if(value)all[entryId][kind]=value;else delete all[entryId][kind];
+   writeJson(publicationKey(),all);
+  }
+  function publicationView(){
+   if(draft?.readingJourney?.status!=='completed'||!draft.reading?.audioId||rerecordOriginal)return '';
+   const existing=localPublication('reading');
+   return '<section class="gs-publication-choice" aria-label="读经完成后私人保存或公开发表">'+
+    '<h4>读经已完成 · 发表由你决定</h4>'+
+    '<p>原声已收入本人古卷。默认不公开；发表的原声可能被熟人辨认。</p>'+
+    (existing?'<p>已发表到共读经卷（可撤回）</p><button type="button" data-action="withdraw-reading" '+(publicationBusy?'disabled':'')+'>撤回读经发表</button>':
+      '<div class="gs-publication-actions"><button type="button" data-action="keep-private" '+(publicationBusy?'disabled':'')+'>仅私人保存</button>'+
+      '<button type="button" data-action="publish-reading" '+(publicationBusy?'disabled':'')+'>发表有声读经</button>'+
+      '<button type="button" data-action="publish-reference" '+(publicationBusy?'disabled':'')+'>仅发表经文位置</button></div>')+
+    '<a href="/pasture-preview/commons.html" target="_blank" rel="noopener noreferrer">查看共读经卷</a>'+
+    '</section>';
+  }
+  function insightPublicationView(){
+   if(!draft?.insightRecord)return '';
+   const existing=localPublication('insight');
+   return '<section class="gs-publication-choice" aria-label="跨地域匿名领受分享">'+
+    '<h4>匿名领受 · 彼此关怀</h4>'+
+    '<p>只允许发表经本人审阅的一句文字；不发表个人原声、完整默想、身份或教会资料。匿名不保证无法从叙事识别本人。</p>'+
+    (existing?'<p>这份领受已匿名发表。</p><button type="button" data-action="withdraw-insight" '+(publicationBusy?'disabled':'')+'>撤回匿名领受</button>':
+      '<button type="button" data-action="publish-insight" '+(publicationBusy?'disabled':'')+'>匿名发表上方文字</button>')+
+    '</section>';
+  }
+  async function commonsAvailable(){
+   const response=await fetch('/api/pasture-commons?mode=status',{credentials:'include',cache:'no-store'});
+   const data=await response.json();
+   if(!response.ok||data.enabled!==true)throw Error('共读经卷尚未配置独立试验数据库；没有任何内容被公开。');
+   return data;
+  }
+  async function commonsPost(body){
+   const response=await fetch('/api/pasture-commons',{
+    method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+   });
+   const data=await response.json();
+   if(!response.ok||!data.ok)throw Error('发表服务拒绝请求：'+String(data.reason||response.status));
+   return data;
+  }
+  function publicationSnapshot(){
+   return {owner:scope,entryId:draft?.id,audioId:draft?.reading?.audioId};
+  }
+  function samePublicationSnapshot(s){
+   return residentAccess()&&scope===s.owner&&draft?.id===s.entryId&&draft?.reading?.audioId===s.audioId&&!rerecordOriginal;
+  }
+  async function verifyPrivateRecording(s){
+   const voice=await getAudio(s.audioId);
+   if(!samePublicationSnapshot(s))throw Error('账号或读经已经改变；本次操作已取消。');
+   if(!voice||!voice.size)throw Error('无法取得本人原声。');
+   if(voice.size>window.MyGrassAudioRender.MAX_BYTES)throw Error('本次原声超过2MB试验容量；不会截断或上传。');
+   const audioBase64=await window.MyGrassAudioRender.base64(voice);
+   if(!samePublicationSnapshot(s))throw Error('读经已改变，停止发布。');
+   const receipt=await commonsPost({
+    action:'attest-recording',journey:draft.readingJourney,
+    mime:voice.type,audioBase64,privateAudioVerificationConsent:true
+   });
+   return {voice,receiptId:receipt.receiptId};
+  }
+  async function publishPublicReading(withAudio){
+   if(publicationBusy||localPublication('reading'))return;
+   if(!draft?.reading?.audioId||draft.readingJourney?.status!=='completed'||rerecordOriginal){
+    tell('请先完成本人录音并收入古卷。');return;
+   }
+   if(draft.scripture.translation!=='圣经和合本（神版）'){
+    tell('此译本的公开朗读许可尚未核验，当前仅保留私人读经。');return;
+   }
+   const message=withAudio?
+    '你确定把这份真实的读经音频公开发表到共读经卷吗？声音可能让认识你的人辨认出身份；公开朗读需确保有合法权利。':
+    '确定只公开本次经文出处，不公开原声或领受吗？';
+   if(!window.confirm(message))return;
+   if(!window.confirm('为验证原声确实存在，需要将当前原始音频临时传至服务器作完整性核验；服务器只保留摘要和大小，不保存这份私人母本。是否同意？'))return;
+   const snap=publicationSnapshot();
+   publicationBusy=true;render();tell('正在准备授权发表副本…');
+   try{
+    const status=await commonsAvailable();
+    const {voice,receiptId}=await verifyPrivateRecording(snap);
+    if(!samePublicationSnapshot(snap))throw Error('账号或读经已改变。');
+    let publicAudio=null;
+    if(withAudio){
+     const dsp=denoiseEnabled||eqEnabled||compEnabled||reverbEnabled;
+     publicAudio=dsp?await window.MyGrassAudioRender.render(voice,{
+      denoise:denoiseEnabled,denoiseStrength,eqEnabled,eq:{...eqBands},
+      compEnabled,comp:{threshold:compThreshold,ratio:compRatio},
+      reverbEnabled,reverb:{room:reverbRoom,mix:reverbMix}
+     }):voice;
+     if(publicAudio.size>status.pilotAudioLimitBytes)throw Error('公开音频超过2MB试验容量，未发布；请保留私人原声。');
+    }
+    if(!samePublicationSnapshot(snap))throw Error('账号或读经已改变。');
+    const result=await commonsPost({
+     action:'publish-reading',entryId:snap.entryId,journey:draft.readingJourney,
+     receiptId,translation:draft.scripture.translation,
+     mode:withAudio?'spoken':'silent',publishConsent:true,rightsConfirmed:true,consentVersion:'v1',
+     ...(withAudio?{audioMime:publicAudio.type,publicAudioBase64:await window.MyGrassAudioRender.base64(publicAudio)}:{})
+    });
+    if(!samePublicationSnapshot(snap))return;
+    recordPublication('reading',{id:result.id,mode:withAudio?'spoken':'reference',at:iso()});
+    tell('读经已发表到试验共读经卷；私人原声未覆盖，可随时撤回。');
+   }catch(e){tell(String(e.message||e))}
+   finally{publicationBusy=false;if(samePublicationSnapshot(snap))render()}
+  }
+  async function publishAnonymousInsight(){
+   if(publicationBusy||localPublication('insight')||!draft?.insightRecord)return;
+   const text=C.trim(microDraft);
+   if(!text||C.count(text)>80){tell('请先审阅上方文字，匿名发表最多80字。');return}
+   if(!window.confirm('匿名发表以下领受吗？\n\n'+text+'\n\n公开文字可能包含能够反推身份的故事细节，请自行确认。'))return;
+   if(!window.confirm('需要将私人原声临时传给服务器验证已完成读经；只保留声音摘要，不公开、不储存私人原声。是否同意？'))return;
+   const snap=publicationSnapshot();
+   publicationBusy=true;render();tell('正在验证并匿名发表…');
+   try{
+    await commonsAvailable();
+    const {receiptId}=await verifyPrivateRecording(snap);
+    if(!samePublicationSnapshot(snap))throw Error('读经或账号已改变。');
+    const result=await commonsPost({
+     action:'publish-insight',entryId:snap.entryId,receiptId,
+     insight:draft.insightRecord,shareText:text,
+     publishConsent:true,consentVersion:'v1'
+    });
+    if(!samePublicationSnapshot(snap))return;
+    recordPublication('insight',{id:result.id,at:iso()});
+    tell('已匿名发表经本人确认的领受；身份仍不可查看或解锁。');
+   }catch(e){tell(String(e.message||e))}
+   finally{publicationBusy=false;if(samePublicationSnapshot(snap))render()}
+  }
+  async function withdrawPublication(kind){
+   if(publicationBusy)return;
+   const current=localPublication(kind);
+   if(!current||!window.confirm('确认撤回这份已发表内容吗？撤回后将无法继续公开访问。'))return;
+   const snap=publicationSnapshot();publicationBusy=true;render();
+   try{
+    await commonsAvailable();
+    await commonsPost({action:'withdraw',id:current.id});
+    if(samePublicationSnapshot(snap)){recordPublication(kind,null);tell('已撤回公开内容，原始私人档案没有改变。')}
+   }catch(e){tell(String(e.message||e))}
+   finally{publicationBusy=false;if(samePublicationSnapshot(snap))render()}
+  }
+
 function stageReading(){
  const barHeights=Array.from({length:22},(_,i)=>10+Math.round(Math.abs(Math.sin(i*1.41)*Math.cos(i*.53))*46));
  const state=recorderUiState(),hasAudio=!!draft.reading.audioId,linked=!!draft.scripture.verifiedAgainstRecording||draft.readingJourney?.status==='completed';
@@ -350,6 +500,7 @@ function stageReading(){
         '<button type="button" data-action="dsp-reverb" aria-pressed="'+reverbEnabled+'" '+(!hasAudio?'disabled':'')+'>'+(reverbEnabled?'ON':'OFF')+'</button>'+
         '<small class="gs-reverb-values">ROOM '+reverbRoom+' · MIX '+reverbMix+'%</small></div>'+
     '</div><p id="gsDspStatus" role="status">'+((denoiseEnabled||eqEnabled||compEnabled||reverbEnabled)?[denoiseEnabled?'降噪':null,eqEnabled?'三段均衡':null,compEnabled?'压缩':null,reverbEnabled?'空间混响':null].filter(Boolean).join(' + ')+' · 仅试听，原声母本不变':'四模块可独立试听 · 全旁路即原声')+'</p></div>'+
+  publicationView()+
   '<div id="gsAudioHost" class="gs-audio-host" aria-live="polite"></div>'+
   '<p class="gs-recorder-note">'+(state==='recording'?'正在连续录音。读完一节，请直接点击下一节经文。':state==='arming'?'正在取得麦克风权限…':state==='paused'?'已暂停记录；选择「继续读」恢复，或「结束」封存。':state==='finalizing'?'正在封存本人原声与经节时间线…':rerecordOriginal?(journeyPhase==='error'?'重录未成功。旧原声及经节时间线仍然保留；可重试或选择「保留原声」。':'从左页原段落第一节重新开始。旧原声保留到新录音成功归档。'):linked?'已保存真实读经轨迹，可以回听。':'请点击左侧一节经文，开始今日读经。')+'</p>'+
   '<div class="gs-rule"></div><div class="gs-actions">'+
@@ -466,7 +617,7 @@ function stageReading(){
     (associated.length?'<div class="gs-archive">'+associated.map(m=>
       '<button type="button" data-action="copy-micro" data-id="'+escape(m.id)+'">'+escape(m.text)+
       '<span class="gs-archive-date">'+escape(datetime(m.createdAt))+' · 私密 · 点击复制</span></button>').join('')+'</div>':
-      '<div class="gs-empty">还没有留下微分享。</div>')+'</section></div>';
+      '<div class="gs-empty">还没有留下微分享。</div>')+insightPublicationView()+'</section></div>';
   }
   let microDraft='';
   function render(){
@@ -1288,6 +1439,12 @@ async function startOrStopRecording(){
     case 'restart-current-take':restartCurrentTake();break;
     case 'link-audio':linkRecording();break;
     case 'download-audio':await exportAudio();break;
+    case 'keep-private':tell('本次读经已保存在私人古卷，没有对外发布。');break;
+    case 'publish-reading':await publishPublicReading(true);break;
+    case 'publish-reference':await publishPublicReading(false);break;
+    case 'publish-insight':await publishAnonymousInsight();break;
+    case 'withdraw-reading':await withdrawPublication('reading');break;
+    case 'withdraw-insight':await withdrawPublication('insight');break;
     case 'export':exportTextArchive();break;
     case 'save':saveEntry();break;
     case 'finalize-insight':finalizeInsight();break;
