@@ -212,47 +212,17 @@ function fitFootprint(photo){
 // without pushing into the "时长" column or the following "适合人群" row.
 // Too-long values are visibly abbreviated with "…"; the source data is not changed.
 function metadata(label,value,x,y,allowTwoLines=false){
- if(!String(value==null?"":value).trim())return;
- const maxWidth=x<700?232:222;
- const raw=String(value==null?"":value);
- const minSize=allowTwoLines?22:21;
- function splitAt(str,size){
-  c.save();c.font='700 '+size+'px '+SANS;
-  const out=[];let line="";
-  for(const ch of Array.from(str)){
-   if(c.measureText(line+ch).width>maxWidth&&line){
-    // Prefer a word boundary after a Chinese list separator, and never start a
-    // new line with punctuation such as "、" or "，".
-    const cut=Math.max(line.lastIndexOf("、"),line.lastIndexOf("，"),line.lastIndexOf("；"));
-    const suffix=cut>=0?line.slice(cut+1)+ch:"";
-    if(cut>0&&c.measureText(suffix).width<=maxWidth){
-     out.push(line.slice(0,cut+1));line=suffix;
-    }else if(/[、，。；：]/.test(ch)&&Array.from(line).length>1){
-     const chars=Array.from(line),last=chars.pop();
-     out.push(chars.join(""));line=last+ch;
-    }else{out.push(line);line=ch;}
-   }else line+=ch;
-  }
-  if(line)out.push(line);
-  c.restore();return out;
- }
- const maxLines=allowTwoLines?2:1;
- let size=33,lines=splitAt(raw,size);
- while(size>minSize&&lines.length>maxLines){size--;lines=splitAt(raw,size);}
- if(lines.length>maxLines){
-  const chars=Array.from(raw);let candidate="";
-  c.save();c.font='700 '+size+'px '+SANS;
-  for(const ch of chars){
-   const next=candidate+ch;
-   const parts=splitAt(next+"…",size);
-   if(parts.length>maxLines)break;
-   candidate=next;
-  }
-  c.restore();
-  lines=splitAt(candidate+"…",size);
- }
- title(label,x,y,'600 22px '+SANS,P.olive);
- for(let i=0;i<lines.length;i++)title(lines[i],x,y+44+i*35,'700 '+size+'px '+SANS,P.ink);
+  if(!String(value==null?"":value).trim())return;
+  const safeWidth=x<700?232:222;
+  const fitted=PL.fit(c,value,{
+    label:"路线"+label,size:33,minSize:allowTwoLines?22:21,
+    maxWidth:safeWidth,maxLines:allowTwoLines?2:1,
+    family:SANS,weight:700,allowEllipsis:allowTwoLines
+  });
+  title(label,x,y,'600 22px '+SANS,P.olive);
+  fitted.lines.forEach((row,i)=>{
+    title(row,x,y+44+i*35,fitted.font,P.ink);
+  });
 }
 function draw(photo,qr,logo){
  c.clearRect(0,0,1080,1530);paper();
