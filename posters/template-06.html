@@ -283,21 +283,25 @@ function drawBottom(){
    layoutGuard.claimText("集合地点",line,86,yy,"580 26px "+FONT,{avoid:["报名二维码"]});
    write(line,86,yy,26,{weight:580,color:white});yy+=34;
  }
- // Split the essential route facts into bounded rows, never an unreadable 15px run.
-  const factRows=[
-    [data.distance&&"距离 "+data.distance,data.elevation&&"爬升 "+data.elevation].filter(Boolean).join("  ·  "),
-    [data.difficulty&&"难度 "+data.difficulty,data.duration&&"时长 "+data.duration].filter(Boolean).join("  ·  ")
-  ].filter(Boolean);
-  for(let i=0;i<factRows.length;i++){
-    const row=factRows[i];
-    const fitted=PL.fit(ctx,row,{
-      label:"路线指标",size:22,minSize:18,
-      maxWidth:645,maxLines:1,family:FONT,weight:500
-    });
-    const y=1443+i*33;
-    layoutGuard.claimText("路线指标第"+(i+1)+"行",row,86,y,fitted.font,{avoid:["报名二维码"]});
-    write(row,86,y,fitted.size,{weight:500,color:muted});
-  }
+ // All route conditions share three bounded, readable rows to the left of the QR.
+ // Missing source values omit their own label; present values may never disappear silently.
+ const factRows=[
+   [data.distance&&"距离 "+data.distance,data.elevation&&"爬升 "+data.elevation,
+     data.difficulty&&"难度 "+data.difficulty,data.duration&&"时长 "+data.duration]
+       .filter(Boolean).join("  ·  "),
+   [data.surface&&"路面 "+data.surface,data.suitable&&"适合 "+data.suitable]
+       .filter(Boolean).join("  ·  "),
+   data.equipment?"装备 "+data.equipment:""
+ ].filter(Boolean);
+ for(let i=0;i<factRows.length;i++){
+   const row=factRows[i],y=1438+i*27;
+   const fitted=PL.fit(ctx,row,{
+     label:"路线指标与装备",size:21,minSize:18,
+     maxWidth:645,maxLines:1,family:FONT,weight:500
+   });
+   layoutGuard.claimText("路线信息第"+(i+1)+"行",row,86,y,fitted.font,{avoid:["报名二维码"]});
+   write(row,86,y,fitted.size,{weight:500,color:muted});
+ }
  // Preserve exact source QR pixels, including its own built-in quiet zone.
  const size=198,x=797,y=1222,margin=6;
  ctx.fillStyle="#fff";ctx.fillRect(x-margin,y-margin,size+2*margin,size+2*margin);
