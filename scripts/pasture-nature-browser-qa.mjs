@@ -40,12 +40,28 @@ try{
     await page.waitForFunction(()=>Boolean(window.BudaoPastureNature),null,{timeout:15000});
     let target=page;
     if(scene==='landscape'){
-      await page.waitForFunction(()=>Boolean(document.getElementById('pastureFrame')?.contentDocument?.getElementById('pasture')),null,{timeout:30000});
+      // The v20 landscape loads through nested document.write wrappers. Merely
+      // seeing #pasture is insufficient: the outer iframe can still be opacity 0.
+      await page.waitForFunction(()=>{
+        const frame=document.getElementById('pastureFrame');
+        const cv=frame?.contentDocument?.getElementById('pasture');
+        if(!cv||getComputedStyle(frame).opacity!=='1'||cv.width<400||cv.height<250)return false;
+        const c=cv.getContext('2d');
+        const sky=c.getImageData(100,30,1,1).data;
+        const field=c.getImageData(100,235,1,1).data;
+        return sky[3]>200&&field[3]>200&&
+          Math.abs(sky[0]-field[0])+Math.abs(sky[1]-field[1])+Math.abs(sky[2]-field[2])>50;
+      },null,{timeout:30000});
     }else{
-      await page.waitForFunction(()=>Boolean(document.getElementById('portraitFrame')?.contentDocument?.getElementById('pasture')),null,{timeout:25000});
+      await page.waitForFunction(()=>{
+        const cv=document.getElementById('portraitFrame')?.contentDocument?.getElementById('pasture');
+        if(!cv||!cv.width||cv.height<400)return false;
+        return cv.getContext('2d').getImageData(Math.round(cv.width*.2),Math.round(cv.height*.72),1,1).data[3]>200;
+      },null,{timeout:25000});
       target=page.frames().find(f=>f.url().includes('tonglu-pasture-portrait.html'));
       assert.ok(target,'portrait renderer frame missing');
     }
+    await page.screenshot({path:out+'/'+scene+'-baseline.png',animations:'disabled',timeout:15000});
     for(const scenario of events){
       const info=await target.evaluate(({scenario,scene})=>{
         const api=window.BudaoPastureNature;
