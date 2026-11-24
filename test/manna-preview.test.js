@@ -58,3 +58,11 @@ test('MANNA: original transparent 1254px PNG is intact and used throughout previ
  for(const page of pages)assert.ok(read(page).includes('class="nav-brand-logo" src="/manna/assets/manna-logo-transparent.png"'),page);
  assert.ok(read('manna/index.html').includes('class="hero-brand-logo" src="/manna/assets/manna-logo-transparent.png"'));
 });
+test('MANNA: transparent logo appears without any visual backing or crop',()=>{
+ const logoRules=css.slice(css.indexOf('/* MANNA original-logo display:'));
+ assert.ok(logoRules.includes('.portal .hero-logo-stage{'));
+ assert.match(logoRules,/\.portal \.hero-logo-stage\{[^}]*background:transparent;[^}]*border:0;[^}]*box-shadow:none;[^}]*backdrop-filter:none/);
+ assert.match(logoRules,/\.portal \.hero-brand-logo\{[^}]*object-fit:contain;[^}]*background:transparent;[^}]*mix-blend-mode:normal;[^}]*filter:none/);
+ assert.match(logoRules,/\.nav-brand-logo\{[^}]*object-fit:contain;[^}]*background:transparent;[^}]*mix-blend-mode:normal/);
+ assert.doesNotMatch(logoRules,/object-fit:cover|mix-blend-mode:multiply|background:linear-gradient|background:#fff|background:#faf7ee/i);
+});

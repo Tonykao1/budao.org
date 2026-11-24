@@ -22,13 +22,13 @@
 @media(max-width:380px){.portal{padding-inline:19px}.hero-name{font-size:89px}.top-nav{display:none}.sample-object[data-sample="1"]{left:55%}.sample-object[data-sample="2"]{left:30%}.table-stage{min-height:685px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
-/* MANNA approved logo integration — source PNG unchanged; display-only framing */
+/* MANNA original-logo display: transparent alpha, no plate, no cropping, no blending */
 .brand-wordmark-sr{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-.site-header .wordmark{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-width:112px;height:72px;line-height:0;gap:0}
-.nav-brand-logo{display:block;width:112px;height:68px;object-fit:cover;object-position:50% 50%;mix-blend-mode:multiply}
+.site-header .wordmark{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-width:72px;height:72px;line-height:0;gap:0;background:transparent;border:0;box-shadow:none}
+.nav-brand-logo{display:block;width:68px;height:68px;object-fit:contain;object-position:center;background:transparent;mix-blend-mode:normal;filter:none}
 .portal .hero-logo-heading{font-weight:400;letter-spacing:normal;line-height:1.2;margin:20px 0 0;max-width:660px}
-.portal .hero-logo-stage{display:block;width:min(630px,100%);aspect-ratio:1.37;overflow:hidden;position:relative;background:linear-gradient(145deg,#faf7ee 0%,#efe6d5 55%,#ded7c4 100%);border:1px solid rgba(255,246,223,.74);box-shadow:0 35px 78px rgba(1,16,8,.48),inset 0 0 22px rgba(255,255,255,.45)}
-.portal .hero-brand-logo{display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
+.portal .hero-logo-stage{display:block;width:min(540px,100%);aspect-ratio:auto;overflow:visible;position:relative;background:transparent;border:0;border-radius:0;box-shadow:none;backdrop-filter:none}
+.portal .hero-brand-logo{display:block;width:100%;height:auto;object-fit:contain;object-position:center;background:transparent;mix-blend-mode:normal;filter:none}
 .portal .hero-logo-heading .hero-en{display:block;margin:16px 0 30px;font:11px Georgia,serif;letter-spacing:.18em;line-height:1.7;color:#bbcab6}
-@media(max-width:760px){.site-header .wordmark{min-width:100px;height:64px}.nav-brand-logo{width:100px;height:60px}.portal .hero-logo-heading{margin-top:17px}.portal .hero-logo-stage{width:min(100%,480px);aspect-ratio:1.37}.portal .hero-logo-heading .hero-en{font-size:9px;letter-spacing:.1em;margin:13px 0 22px}.portal:has(.hero-brand-logo) .hero-kicker{margin-top:55px}}
-@media(max-width:380px){.site-header .wordmark{min-width:94px}.nav-brand-logo{width:94px;height:58px}.portal:has(.hero-brand-logo) .hero-kicker{margin-top:45px}}
+@media(max-width:760px){.site-header .wordmark{min-width:63px;height:64px}.nav-brand-logo{width:60px;height:60px}.portal .hero-logo-heading{margin-top:17px}.portal .hero-logo-stage{width:min(100%,480px)}.portal .hero-logo-heading .hero-en{font-size:9px;letter-spacing:.1em;margin:13px 0 22px}.portal:has(.hero-brand-logo) .hero-kicker{margin-top:40px}}
+@media(max-width:380px){.site-header .wordmark{min-width:57px}.nav-brand-logo{width:55px;height:55px}.portal:has(.hero-brand-logo) .hero-kicker{margin-top:35px}}
