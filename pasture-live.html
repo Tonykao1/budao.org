@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#8edff1">
 <title>数字牧场｜步道</title>
 <link rel="stylesheet" href="/pasture-live.css">
+<link rel="stylesheet" href="/pasture-hourly-hymns.css">
 </head>
 <body>
 <iframe id="pastureCore" class="pasture-core" src="/tonglu-core.html" title="数字牧场"></iframe>
@@ -58,5 +59,28 @@
 </div>
 <div id="residentToast" class="resident-toast" hidden></div>
 <script src="/pasture-live.js"></script>
+<!-- BUDAO 时辰赞美：独立于自然牧场画布和居民注册逻辑 -->
+<section id="pastureHymnControl" class="hourly-hymn" aria-label="时辰赞美">
+  <button type="button" class="hourly-hymn-trigger" data-hourly-toggle aria-expanded="false" aria-controls="pastureHymnPanel" aria-label="时辰赞美，未开启" title="时辰赞美">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17V6l11-2v11"/><circle cx="6.3" cy="17.2" r="2.8"/><circle cx="17.3" cy="15.2" r="2.8"/></svg>
+  </button>
+  <div id="pastureHymnPanel" class="hourly-hymn-panel" data-hourly-panel hidden>
+    <div class="hourly-hymn-title">时辰赞美</div>
+    <div class="hourly-hymn-sub">每逢整点 · 十二首SID圣诗轮值</div>
+    <p class="hourly-hymn-next">下一次：<strong data-hourly-next></strong></p>
+    <div class="hourly-hymn-controlrow">
+      <button type="button" data-hourly-arm>开启整点赞美</button>
+      <button type="button" data-hourly-preview>试听当前赞美</button>
+      <button type="button" data-hourly-stop hidden>停止</button>
+    </div>
+    <div class="hourly-hymn-controlrow"><label for="pastureHymnVolume">音量</label><input id="pastureHymnVolume" data-hourly-volume type="range" min="0" max="100" value="32" aria-label="赞美诗音量"></div>
+    <label class="hourly-hymn-check"><input type="checkbox" data-hourly-quiet checked>夜间静默（22:00—07:00）</label>
+    <p class="hourly-hymn-status" data-hourly-status role="status" aria-live="polite"></p>
+    <p class="hourly-hymn-notice">需要先点击开启；页面关闭或休眠时不会报时。</p>
+  </div>
+</section>
+<script src="/pasture-hourly-scores.js"></script>
+<script src="/pasture-hourly-last-score.js"></script>
+<script src="/pasture-hourly-hymns.js"></script>
 </body>
 </html>

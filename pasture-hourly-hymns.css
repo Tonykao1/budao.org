@@ -1,0 +1,20 @@
+/* A small accessible edge control; no object added to the natural pasture scene. */
+.hourly-hymn{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:50;font:13px/1.45 system-ui,-apple-system,"PingFang SC",sans-serif;color:#24443c}
+.hourly-hymn button,.hourly-hymn input{font:inherit}
+.hourly-hymn-trigger{display:grid;place-items:center;width:38px;height:38px;padding:0;border:1px solid rgba(55,94,75,.55);border-radius:50%;background:rgba(244,249,231,.88);color:#24443c;box-shadow:0 2px 10px #173c2c26;cursor:pointer}
+.hourly-hymn-trigger:hover,.hourly-hymn-trigger:focus-visible{background:#edf4db;outline:2px solid #48785c;outline-offset:2px}
+.hourly-hymn-trigger svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7}
+.hourly-hymn-panel{position:absolute;left:0;bottom:47px;width:min(290px,calc(100vw - 24px));padding:15px 16px 14px;border:1px solid #9fbaa5;border-radius:12px;background:rgba(252,252,242,.98);box-shadow:0 8px 24px #133e2830}
+.hourly-hymn-panel[hidden]{display:none!important}
+.hourly-hymn-title{font-size:16px;font-weight:700;letter-spacing:.08em}
+.hourly-hymn-sub{margin-top:2px;color:#61756b;font-size:11px}
+.hourly-hymn-next{margin:12px 0 9px;font-size:13px}
+.hourly-hymn-controlrow{display:flex;gap:8px;align-items:center;margin:8px 0}
+.hourly-hymn-controlrow button{padding:7px 9px;background:#e6eedc;border:1px solid #b5caaf;border-radius:7px;color:#24443c;cursor:pointer}
+.hourly-hymn-controlrow button:hover,.hourly-hymn-controlrow button:focus-visible{background:#d4e4c7;outline:2px solid #62866c}
+.hourly-hymn-controlrow input[type=range]{min-width:0;flex:1;accent-color:#426b58}
+.hourly-hymn-check{display:flex;align-items:center;gap:8px;cursor:pointer}
+.hourly-hymn-check input{accent-color:#426b58}
+.hourly-hymn-status{min-height:18px;font-size:12px;color:#516c5c;margin:10px 0 0}
+.hourly-hymn-notice{margin:7px 0 0;font-size:11px;color:#697a71}
+@media(max-width:550px){.hourly-hymn{left:max(8px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom))}.hourly-hymn-trigger{width:34px;height:34px}.hourly-hymn-panel{bottom:43px}}
