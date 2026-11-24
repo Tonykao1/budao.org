@@ -116,7 +116,7 @@ test('enabled hourly playback is queued on the audio clock while the tab is hidd
     addEventListener(){},dispatchEvent(){},
     setTimeout(fn,delay){jobs.push({fn,delay});return jobs.length;},
     clearTimeout(){}};
-  const engine=hourly.init({window:win,document:doc,scores});
+  const engine=hourly.init({window:win,document:doc,scores:songs});
   await listeners['arm:click']();
   for(const j of jobs.filter(j=>j.delay===0))j.fn();
   assert.equal(engine.state.enabled,true);
