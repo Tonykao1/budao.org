@@ -149,3 +149,24 @@
 .manna-back-link{max-width:1320px;margin:70px auto 10px;font-size:13px}
 .manna-back-link a{color:#2c583b}
 @media(max-width:850px){.manna-first-product,.manna-product-layout{grid-template-columns:1fr}.manna-first-photo{min-height:0;padding:40px 28px}.manna-first-photo img{width:min(100%,340px)}.manna-first-copy{padding:33px 28px 45px}.manna-product-specs{grid-template-columns:1fr}.manna-product-info{padding:0}.manna-product-layout{gap:24px}.manna-product-shell{padding-inline:18px}}
+
+/* MANNA — product size advisory & human service connection */
+.manna-size-important{margin:27px 0 20px;padding:24px 28px 20px;border:1px solid #c0cfc1;border-left:4px solid #315940;background:#e8eee5;color:#274431}
+.manna-size-important-label{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.06em;color:#28563a}
+.manna-size-important p{font-size:14px;line-height:2;margin:11px 0 0;color:#42594a}
+.manna-size-important strong{font-weight:600;color:#234230}
+.manna-service-inline-link{color:#28543b;text-underline-offset:4px}
+.manna-support{max-width:1320px;margin:65px auto 0;border-top:1px solid #c8d3c7;padding-top:34px}
+.manna-support-head{display:flex;align-items:center;justify-content:space-between;gap:28px}
+.manna-support-kicker{font-size:11px;letter-spacing:.11em;color:#627965}
+.manna-support-head h2{font:400 clamp(24px,2.5vw,35px) var(--serif);color:#203b2c;line-height:1.55;margin:12px 0}
+.manna-support-button{font:500 13px sans-serif;background:#244e38;color:#fff;border:1px solid #244e38;padding:15px 27px;cursor:pointer;border-radius:3px;min-width:154px}
+.manna-support-button:hover{background:#326345}
+.manna-support-button:focus-visible,.manna-support-connect:focus-visible{outline:3px solid #bfaf74;outline-offset:4px}
+.manna-support-panel{margin-top:20px;padding:24px 30px;border:1px solid #cbd7cc;background:#fffefa}
+.manna-support-panel[hidden],.manna-support-connect[hidden]{display:none!important}
+.manna-support-panel h3{font:400 23px var(--serif);margin:0 0 12px}
+.manna-support-status{color:#3c5644;font-size:14px;line-height:1.9;margin:0 0 10px}
+.manna-support-privacy{font-size:11px;color:#728071;line-height:1.95}
+.manna-support-connect{margin-top:10px;border:0;background:#244e38;color:#fff;padding:13px 20px;font-size:13px;cursor:pointer}
+@media(max-width:650px){.manna-support-head{flex-direction:column;align-items:flex-start}.manna-size-important{padding:18px}.manna-support-panel{padding:20px}.manna-support-button{width:100%}}
