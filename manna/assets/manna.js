@@ -71,7 +71,7 @@
   });
 
   const chapters=Array.from(document.querySelectorAll(".numbered-section[id],.portal[id]"));
-  const rail=Array.from(document.querySelectorAll(".rail-item"));
+  const rail=Array.from(document.querySelectorAll(".rail-item, .space-jump"));
   if(chapters.length && "IntersectionObserver" in window){
     const observer=new IntersectionObserver((entries)=>{
       const showing=entries.filter(x=>x.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);

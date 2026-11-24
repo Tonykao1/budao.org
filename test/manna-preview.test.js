@@ -66,3 +66,19 @@ test('MANNA: transparent logo appears without any visual backing or crop',()=>{
  assert.match(logoRules,/\.nav-brand-logo\{[^}]*object-fit:contain;[^}]*background:transparent;[^}]*mix-blend-mode:normal/);
  assert.doesNotMatch(logoRules,/object-fit:cover|mix-blend-mode:multiply|background:linear-gradient|background:#fff|background:#faf7ee/i);
 });
+
+test('MANNA: the five sections have visible, consistent 01–05 navigation',()=>{
+  const ids=['gate','table','measure','field','rest'];
+  for(const [index,id] of ids.entries()){
+    const num=String(index+1).padStart(2,'0');
+    assert.ok(home.includes('class="space-jump'+(index===0?' active':'')+'" href="#'+id+'"'),id);
+    assert.ok(home.includes('<span class="space-step">'+num+'</span>'),num);
+    assert.ok(home.includes('id="'+id+'"'),id);
+  }
+  assert.equal((home.match(/<span class="chapter-no">\\d\\d \\/ 05<\\/span>/g)||[]).length,5);
+  assert.ok(home.includes('<span class="chapter-no">尾声</span> 归途'));
+  assert.doesNotMatch(home,/00 \\/ 05/);
+  assert.match(css,/\.space-directory\\{position:sticky/);
+  assert.match(css,/@media\\(max-width:1050px\\)\\{\\.space-directory/);
+  assert.match(js,/querySelectorAll\\("\\.rail-item, \\.space-jump"\\)/);
+});
