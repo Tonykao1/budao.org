@@ -855,6 +855,98 @@
         }
       ],
       "publishedOn": "2026-11-10"
+    },
+    {
+      "id": "260321",
+      "date": "2026-03-21",
+      "title": "舞彩浅山",
+      "location": "中国·北京·顺义·舞彩浅山郊野公园",
+      "description": "三月的浅山，粉白的花沿着山谷渐次盛开。我们沿着山路前行，走过桥下，看见远方的山峦，也看见身边的人。一路有春光，有笑容，也有围坐分享的片刻。一次同行，让寻常的山路成为值得记念的风景。",
+      "published": true,
+      "publishedOn": "2026-11-24",
+      "editorialNote": "用户2026-11-24提供10张2026年3月21日舞彩浅山实拍照片，全部作为独立网页影集收录。按同行、步道标识、春花、桥梁、山谷与相聚编排，非实际拍摄时间顺序。图片WebP转换不空间裁切、无EXIF，全部frameMode=uncropped保留真实3:4、9:16、4:3与16:9比例。保留人像撤回与下架处理。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260321/260321-01.webp",
+          "alt": "几位同行者沿山坡上行，前方山谷与层叠远山在春日晴光中延伸",
+          "caption": "迎着山路，结伴向前",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-02.webp",
+          "alt": "蓝天下的山坡石阶旁立有舞彩浅山步道方向指示牌",
+          "caption": "从这里辨认前行方向",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-03.webp",
+          "alt": "舞彩浅山郊野公园安全文明旅游须知与步道路网地图",
+          "caption": "在山路前，读懂地图",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-04.webp",
+          "alt": "粉白色春花开满山间小路两侧，远处是山峰和蓝天",
+          "caption": "花开山间，春色渐浓",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-05.webp",
+          "alt": "一座红褐色弧形步行桥跨过山间沟谷，周围是浅粉色花树",
+          "caption": "一座跨过山谷的桥",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-06.webp",
+          "alt": "从桥下仰望拱桥，石板路沿山沟蜿蜒伸向林间",
+          "caption": "桥下有路，仍向前方",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-07.webp",
+          "alt": "粉白花朵缀满近处的枝条，背景可见山坡及栏杆",
+          "caption": "停步看一枝春花",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-08.webp",
+          "alt": "层叠青灰色山峦之间，粉白色的开花树木沿山谷绽放，左侧有徒步者",
+          "caption": "山谷春花，与行者相映",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-09.webp",
+          "alt": "两位同行者在山间石铺广场上面对面举手互动，背后为山石和落叶乔木",
+          "caption": "相遇时的欢笑与鼓励",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260321/260321-10.webp",
+          "alt": "一群同行者在山间石铺广场上围坐与站立，身穿蓝衣的人正与大家交流",
+          "caption": "同行的人，在山下相聚",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        }
+      ]
     }
   ],
   "quoteSource": "营火之地旧版公开留言库（未逐条绑定活动场次）",

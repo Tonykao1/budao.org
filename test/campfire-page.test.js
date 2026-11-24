@@ -404,3 +404,28 @@ test("静之湖暖冬半日营十一张实拍全部入库且保持完整构图",
   assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
   assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
 });
+
+
+test("舞彩浅山十张实拍全部入库、原始画幅保留且有技术评分", () => {
+  const album = archive.albums.find((entry) => entry.id === "260321");
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published === true);
+  assert.equal(album.date, "2026-03-21");
+  assert.equal(album.title, "舞彩浅山");
+  assert.equal(album.photos.length, 10);
+  assert.deepEqual(album.photos.map((photo) => photo.frameRatio),
+    ["3/4", "16/9", "16/9", "16/9", "16/9", "16/9", "9/16", "4/3", "4/3", "4/3"]);
+  for (const [i, photo] of album.photos.entries()) {
+    assert.equal(photo.src, `/campfire-photos/260321/260321-${String(i + 1).padStart(2, "0")}.webp`);
+    assert.ok(exists(photo.src), "图片原件必须存在：" + photo.src);
+    const bytes = fs.readFileSync(path.join(root, photo.src.slice(1)));
+    assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+    assert.equal(photo.approved, true);
+    assert.equal(photo.frameMode, "uncropped");
+    assert.ok(photo.alt && photo.caption);
+    assert.ok(Number.isInteger(quality.scores[photo.src]), "没有技术评分：" + photo.src);
+  }
+  assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
+});
