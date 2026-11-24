@@ -75,10 +75,11 @@ test('MANNA: the five sections have visible, consistent 01–05 navigation',()=>
     assert.ok(home.includes('<span class="space-step">'+num+'</span>'),num);
     assert.ok(home.includes('id="'+id+'"'),id);
   }
-  assert.equal((home.match(/<span class="chapter-no">\\d\\d \\/ 05<\\/span>/g)||[]).length,5);
+  const numbers=Array.from(home.matchAll(/<span class="chapter-no">([0-9]{2} [/] 05)<[/]span>/g)).map(m=>m[1]);
+  assert.deepEqual(numbers,['01 / 05','02 / 05','03 / 05','04 / 05','05 / 05']);
   assert.ok(home.includes('<span class="chapter-no">尾声</span> 归途'));
-  assert.doesNotMatch(home,/00 \\/ 05/);
-  assert.match(css,/\.space-directory\\{position:sticky/);
-  assert.match(css,/@media\\(max-width:1050px\\)\\{\\.space-directory/);
-  assert.match(js,/querySelectorAll\\("\\.rail-item, \\.space-jump"\\)/);
+  assert.ok(!home.includes('00 / 05'));
+  assert.ok(css.includes('.space-directory{position:sticky'));
+  assert.ok(css.includes('@media(max-width:1050px){.space-directory'));
+  assert.ok(js.includes('querySelectorAll(".rail-item, .space-jump")'));
 });
