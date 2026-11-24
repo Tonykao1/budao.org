@@ -85,3 +85,10 @@
 .manna-unified-header .space-step{font-size:9px}
 .manna-unified-header .back-to-budao{font-size:9px}
 }
+
+/* MANNA Gate: one-line statement of provision. Author's wording, not a Scripture quotation. */
+.portal .hero-declaration{font-family:var(--serif);font-size:clamp(25px,4.35vw,64px);font-weight:400;line-height:1.45;letter-spacing:0;white-space:nowrap;color:#f0ebdc;margin:52px 0 29px;max-width:none;text-wrap:nowrap}
+.portal .hero-declaration + .hero-lead{margin-top:0}
+.portal .portal-actions .light-button{justify-content:center}
+@media(max-width:760px){.portal .hero-declaration{font-size:clamp(25px,4.5vw,38px);margin-top:54px;margin-bottom:26px;letter-spacing:0}}
+@media(max-width:380px){.portal .hero-declaration{font-size:25px;letter-spacing:-.012em;margin-top:45px}}
