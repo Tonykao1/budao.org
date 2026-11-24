@@ -14,9 +14,9 @@ function demoImage(label,bg,accent){
 }
 function fixtures(){
  return [
-  {id:"DEMO-001",code:"DEMO-001",name:"收纳织物（示例）",summary:"收纳与随行。",category:"织物与收纳",price:"128",stock:"12",description:"织物商品资料示范，不代表实际材质、来源或库存。",source:"演示来源资料（未核验）",shipping:"演示交付规则",returns:"演示售后规则",notes:"",material:"54",labor:"24",fulfillment:"18",aftersales:"8",status:"draft",images:[{id:"fixture-01",url:demoImage("织物","#e3e9df","#9baa85"),name:"系统示意图",kind:"demo"}],events:[{title:"建立演示商品",kind:"系统",note:"非真实商品"}]},
-  {id:"DEMO-002",code:"DEMO-002",name:"日用器皿（示例）",summary:"日常使用。",category:"生活器物",price:"",stock:"",description:"",source:"",shipping:"",returns:"",notes:"",material:"",labor:"",fulfillment:"",aftersales:"",status:"draft",images:[],events:[{title:"建立演示商品",kind:"系统",note:"待补充商品资料"}]},
-  {id:"DEMO-003",code:"DEMO-003",name:"书写纸品（示例）",summary:"记录与书写。",category:"纸品与书写",price:"",stock:"",description:"",source:"",shipping:"",returns:"",notes:"",material:"",labor:"",fulfillment:"",aftersales:"",status:"draft",images:[],events:[{title:"建立演示商品",kind:"系统",note:"待补充商品资料"}]}
+  {id:"DEMO-001",code:"DEMO-001",name:"收纳织物（示例）",summary:"收纳与随行。",category:"织物与收纳",price:"128",stock:"12",specs:"织物示例规格（未核验）",availability:"in_stock",description:"织物商品资料示范，不代表实际材质、来源或库存。",origin:"示意发货地",regions:"示意配送范围",shippingFee:"0",merchant:"演示经营主体（未核验）",contact:"演示售后渠道",source:"演示来源资料（未核验）",shipping:"演示交付规则",returns:"演示售后规则",notes:"",material:"54",labor:"24",fulfillment:"18",aftersales:"8",status:"draft",images:[{id:"fixture-01",url:demoImage("织物","#e3e9df","#9baa85"),name:"系统示意图",kind:"demo"}],events:[{title:"建立演示商品",kind:"系统",note:"非真实商品"}]},
+  {id:"DEMO-002",code:"DEMO-002",name:"日用器皿（示例）",summary:"日常使用。",category:"生活器物",price:"",stock:"",specs:"",availability:"",description:"",origin:"",regions:"",shippingFee:"",merchant:"",contact:"",source:"",shipping:"",returns:"",notes:"",material:"",labor:"",fulfillment:"",aftersales:"",status:"draft",images:[],events:[{title:"建立演示商品",kind:"系统",note:"待补充商品资料"}]},
+  {id:"DEMO-003",code:"DEMO-003",name:"书写纸品（示例）",summary:"记录与书写。",category:"纸品与书写",price:"",stock:"",specs:"",availability:"",description:"",origin:"",regions:"",shippingFee:"",merchant:"",contact:"",source:"",shipping:"",returns:"",notes:"",material:"",labor:"",fulfillment:"",aftersales:"",status:"draft",images:[],events:[{title:"建立演示商品",kind:"系统",note:"待补充商品资料"}]}
  ];
 }
 function current(){return products.find(x=>x.id===activeId)||products[0]}
@@ -40,13 +40,14 @@ function elem(tag,attrs={},text){
 function check(p){
  const price=numeric(p.price),stock=numeric(p.stock);
  const validPrice=Number.isFinite(price)&&price>0&&price<=99999999;
- const basics=Boolean(p.name.trim()&&p.summary.trim()&&p.category&&validPrice&&Number.isInteger(stock)&&stock>=0&&stock<=999999);
+ const basics=Boolean(p.name.trim()&&p.summary.trim()&&p.summary.trim().length<=40&&p.category&&p.specs.trim()&&["in_stock","preorder","sold_out"].includes(p.availability)&&validPrice&&Number.isInteger(stock)&&stock>=0&&stock<=999999&&(p.availability!=="in_stock"||stock>0));
  const images=p.images.length>0;
  const costs=["material","labor","fulfillment","aftersales"].map(k=>numeric(p[k]));
  const costValid=costs.every(n=>Number.isFinite(n)&&n>=0&&n<=99999999);
  const total=costs.reduce((a,n)=>a+(Number.isFinite(n)?n:0),0);
  const fairness=costValid&&validPrice&&Math.round(total*100)<=Math.round(price*100);
- const delivery=Boolean(p.source.trim()&&p.shipping.trim()&&p.returns.trim());
+ const shippingFee=numeric(p.shippingFee);
+ const delivery=Boolean(p.source.trim()&&p.origin.trim()&&p.regions.trim()&&p.merchant.trim()&&p.contact.trim()&&p.shipping.trim()&&p.returns.trim()&&Number.isFinite(shippingFee)&&shippingFee>=0);
  const sections={basics,images,fairness,delivery};
  return {sections,score:Object.values(sections).filter(Boolean).length,ready:Object.values(sections).every(Boolean),total,price:validPrice?price:0,remainder:validPrice?price-total:0};
 }
@@ -125,6 +126,7 @@ function renderFairness(){
 function renderProductPreview(){
  const p=current();$("#preview-category").textContent=p.category||"商品类别";$("#preview-name").textContent=p.name.trim()||"尚未命名";
  $("#preview-summary").textContent=p.summary.trim()||"商品的一句话介绍将显示在这里。";
+ $("#preview-specs").textContent=p.specs.trim()||"规格信息待补充。";
  const price=numeric(p.price);$("#preview-price").textContent=Number.isFinite(price)&&price>0?currency(price):"价格待定";
  $("#preview-public-state").textContent=p.status==="published"?"模拟发布":"未公开";
  const frame=$("#preview-image");frame.replaceChildren();
@@ -162,7 +164,7 @@ function editableAction(fn){if(!canEdit()){toast("请使用录入角色，并选
 function addProduct(){
  role="editor";filter="all";search="";$("#search-products").value="";
  const id="DEMO-"+String(nextCode++).padStart(3,"0");
- const p={id,code:id,name:"",summary:"",category:"",price:"",stock:"",description:"",source:"",shipping:"",returns:"",notes:"",material:"",labor:"",fulfillment:"",aftersales:"",status:"draft",images:[],events:[]};
+ const p={id,code:id,name:"",summary:"",category:"",price:"",stock:"",specs:"",availability:"",description:"",origin:"",regions:"",shippingFee:"",merchant:"",contact:"",source:"",shipping:"",returns:"",notes:"",material:"",labor:"",fulfillment:"",aftersales:"",status:"draft",images:[],events:[]};
  record(p,"建立新商品草稿","录入");products.unshift(p);activeId=id;activeTab="basics";dirty=true;render();
  toast("已创建空白草稿。请填写资料（仅本页有效）。");
  if(window.matchMedia("(max-width: 800px)").matches)$("#record-title").scrollIntoView({block:"start",behavior:"smooth"});

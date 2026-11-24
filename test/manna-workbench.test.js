@@ -48,3 +48,18 @@ test('workbench: visual and accessibility foundations',()=>{
  assert.match(css,/\.studio-logo\{[^}]*object-fit:contain;[^}]*background:transparent/);
  new Function(js);
 });
+
+test('MANNA workbench reflects the approved 8-part product information standard',()=>{
+ const html=read('manna/workbench/index.html');
+ const js=read('manna/workbench/workbench.js');
+ for(const f of ['name','summary','specs','availability','price','stock',
+   'origin','regions','shippingFee','shipping','merchant','returns','contact','source']){
+  assert.ok(html.includes('data-field="'+f+'"'),f);
+ }
+ assert.match(html,/data-field="summary" maxlength="40"/);
+ assert.match(html,/id="preview-specs"/);
+ assert.match(js,/p\.summary\.trim\(\)\.length<=40/);
+ assert.match(js,/p\.merchant\.trim\(\)/);
+ assert.match(js,/p\.specs\.trim\(\)/);
+ assert.ok(!js.includes('localStorage')&&!js.includes('fetch('));
+});
