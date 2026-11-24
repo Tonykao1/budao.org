@@ -114,3 +114,24 @@ test('MANNA: one clear five-space navigation; no duplicated top-level link row',
  assert.match(home,/href="\/manna\/goods\/"/);
  assert.match(home,/href="\/manna\/about\/"/);
 });
+
+test('MANNA: a unified top row contains the logo, five anchors and BUDAO return',()=>{
+ const pages=['manna/index.html','manna/goods/index.html','manna/about/index.html','manna/goods/sample-01/index.html','manna/goods/sample-02/index.html','manna/goods/sample-03/index.html'];
+ for(const page of pages){
+   const source=read(page);
+   const start=source.indexOf('<header class="site-header manna-unified-header"');
+   const finish=source.indexOf('</header>',start);
+   assert.ok(start>=0 && finish>start,page);
+   const bar=source.slice(start,finish);
+   assert.ok(bar.includes('class="wordmark"'),page);
+   assert.ok(bar.includes('class="space-directory"'),page);
+   assert.ok(bar.includes('class="back-to-budao"'),page);
+   assert.equal(bar.split('class="space-jump').length-1,5,page);
+   assert.equal(source.split('<header').length-1,1,page);
+   assert.equal(source.split('class="space-directory"').length-1,1,page);
+ }
+ assert.ok(css.includes('.site-header.manna-unified-header{position:sticky'));
+ assert.ok(css.includes('.manna-unified-header .space-label-short{display:inline'));
+ assert.ok(!home.includes('class="chapter-rail"'));
+ assert.ok(home.includes('class="hero-brand-logo" src="/manna/assets/manna-logo-transparent.png"'));
+});

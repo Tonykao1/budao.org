@@ -45,3 +45,43 @@
 .space-jump.active .space-step{color:#275338}
 @media(max-width:1050px){.space-directory{grid-template-columns:repeat(5,minmax(0,1fr));min-height:61px;padding:0 11px}.space-directory-title{display:none}.space-jump{flex-direction:column;gap:4px;padding:9px 1px}.space-label{font-size:12px;letter-spacing:0}.space-step{font-size:10px}}
 @media(max-width:400px){.space-directory{min-height:58px;padding:0 3px}.space-label{font-size:11px}.space-jump{gap:3px;padding:8px 0}}
+
+/* Single header row: original transparent logo, five spaces, return link. */
+.site-header.manna-unified-header{position:sticky;top:0;z-index:100;display:grid;grid-template-columns:84px minmax(0,1fr) 84px;align-items:center;column-gap:12px;height:72px;min-height:72px;padding:0 clamp(12px,3vw,56px);background:#f0eee6;border-bottom:1px solid #d5dacf;box-shadow:0 3px 12px rgba(22,44,29,.05)}
+.manna-unified-header .wordmark{min-width:0;width:76px;height:68px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;box-shadow:none}
+.manna-unified-header .nav-brand-logo{width:64px;height:64px;object-fit:contain;background:transparent;mix-blend-mode:normal;filter:none}
+.manna-unified-header .space-directory{position:static;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch;min-height:0;height:100%;width:100%;padding:0;margin:0;background:transparent;border:0;box-shadow:none;gap:0}
+.manna-unified-header .space-jump{display:flex;flex-direction:row;gap:8px;min-width:0;min-height:100%;padding:6px 3px;text-align:center;border-left:1px solid #dedfd5}
+.manna-unified-header .space-jump:last-child{border-right:1px solid #dedfd5}
+.manna-unified-header .space-label{font-size:13px;letter-spacing:.03em;white-space:nowrap}
+.manna-unified-header .space-label-short{display:none}
+.manna-unified-header .space-step{font:11px Georgia,serif}
+.manna-unified-header .back-to-budao{justify-self:end;white-space:nowrap;font-size:12px;letter-spacing:0;text-decoration:none;color:#4d6252}
+.manna-unified-header .back-to-budao:hover{text-decoration:underline;text-underline-offset:4px}
+@media(max-width:1050px){
+.site-header.manna-unified-header{grid-template-columns:68px minmax(0,1fr) 65px;column-gap:6px;height:66px;min-height:66px;padding:0 11px}
+.manna-unified-header .wordmark{min-width:0;width:64px;height:62px}
+.manna-unified-header .nav-brand-logo{width:59px;height:59px}
+.manna-unified-header .space-directory{grid-template-columns:repeat(5,minmax(0,1fr));padding:0;min-height:0}
+.manna-unified-header .space-jump{flex-direction:column;gap:3px;padding:7px 1px;min-height:100%}
+.manna-unified-header .space-label{font-size:12px}
+.manna-unified-header .space-step{font-size:10px}
+.manna-unified-header .back-to-budao{font-size:11px}
+}
+@media(max-width:650px){
+.site-header.manna-unified-header{grid-template-columns:50px minmax(0,1fr) 51px;column-gap:4px;height:62px;min-height:62px;padding:0 7px}
+.manna-unified-header .wordmark{width:48px;height:58px}
+.manna-unified-header .nav-brand-logo{width:48px;height:48px}
+.manna-unified-header .space-jump{padding:7px 0;gap:3px}
+.manna-unified-header .space-label-long{display:none}
+.manna-unified-header .space-label-short{display:inline;font-size:11px;letter-spacing:0}
+.manna-unified-header .back-to-budao{font-size:10px}
+}
+@media(max-width:360px){
+.site-header.manna-unified-header{grid-template-columns:42px minmax(0,1fr) 45px;column-gap:3px;padding:0 4px}
+.manna-unified-header .wordmark{width:41px}
+.manna-unified-header .nav-brand-logo{width:41px;height:41px}
+.manna-unified-header .space-label-short{font-size:10px}
+.manna-unified-header .space-step{font-size:9px}
+.manna-unified-header .back-to-budao{font-size:9px}
+}
