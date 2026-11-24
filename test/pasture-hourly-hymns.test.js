@@ -35,9 +35,10 @@ test('clock gate tolerates brief foreground throttling but never delayed backgro
   assert.equal(hourly.isAcceptableClockTick(due+12001,due),false);
   assert.equal(hourly.isAcceptableClockTick(due-1000,due),false);
 });
-test('pasture clearly requires re-authorization after reload',()=>{
+test('pasture remembers desired state while requiring a gesture after reload',()=>{
   const s=fs.readFileSync(path.join(root,'pasture-hourly-hymns.js'),'utf8');
-  assert.match(s,/每次打开牧场都须点击/);
+  assert.match(s,/已记住开启偏好/);
+  assert.match(s,/restoreOnGesture/);
   assert.match(s,/dataset\.hourlyEnabled=String\(enabled\)/);
 });
 test('local-hour rollover and 22:00-07:00 quiet hours',()=>{
