@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#1c3829">
+  <title>商品工作台 · MANNA 买拿</title>
+  <meta name="description" content="MANNA 买拿商品工作台交互原型。仅用于体验商品录入和审核流程，不是真实后台。">
+  <link rel="stylesheet" href="/manna/workbench/workbench.css">
+  <script src="/manna/workbench/workbench.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#work">跳到工作区域</a>
+<div class="environment-banner" role="status"><span class="env-bubble" aria-hidden="true"></span><strong>工作台演示</strong><span>本页不连接商品数据库；内容仅在当前页面生效，刷新即重置。</span></div>
+<header class="studio-header">
+  <a class="studio-brand" href="/manna/" aria-label="返回 MANNA 买拿预览站">
+    <img src="/manna/assets/manna-logo-transparent.png" alt="" width="1254" height="1254" class="studio-logo">
+    <span class="studio-brand-caption"><strong>商品工作台</strong><small>MANNA · WORKROOM</small></span>
+  </a>
+  <div class="studio-header-right">
+    <div class="role-switch" role="group" aria-label="选择演示角色">
+      <span class="role-switch-label">角色模拟</span>
+      <button type="button" id="switch-editor" class="role-option active" aria-pressed="true">录入</button>
+      <button type="button" id="switch-reviewer" class="role-option" aria-pressed="false">审核</button>
+    </div>
+    <a href="/manna/" class="return-shop">预览站 <span aria-hidden="true">↗</span></a>
+  </div>
+</header>
+<main class="studio-shell" id="work">
+  <aside class="inventory-rail" aria-label="商品库">
+    <div class="rail-top">
+      <span class="eyebrow">GOODS RECORDS / 商品档案</span>
+      <h1>每一件，<br><em>都有据可循。</em></h1>
+      <p>录入、整理、审核与发布，一处完成。</p>
+      <button type="button" class="create-product" id="create-product"><span aria-hidden="true">＋</span> 新建商品</button>
+    </div>
+    <div class="rail-counts" id="status-counts" aria-label="商品状态统计"></div>
+    <div class="rail-filter-group" role="group" aria-label="筛选商品状态">
+      <button type="button" data-filter="all" class="filter-btn active" aria-pressed="true">全部</button>
+      <button type="button" data-filter="draft" class="filter-btn" aria-pressed="false">草稿</button>
+      <button type="button" data-filter="review" class="filter-btn" aria-pressed="false">待审核</button>
+      <button type="button" data-filter="approved" class="filter-btn" aria-pressed="false">待发布</button>
+      <button type="button" data-filter="published" class="filter-btn" aria-pressed="false">已发布</button>
+    </div>
+    <div class="search-wrapper">
+      <label for="search-products" class="visually-hidden">搜索商品名称或编号</label>
+      <span aria-hidden="true">⌕</span>
+      <input id="search-products" type="search" placeholder="查找商品名称或编号" autocomplete="off">
+    </div>
+    <div class="inventory-list" id="inventory-list" aria-live="polite"></div>
+    <div class="rail-footer"><span>MANNA</span><small>工作台 V1 · 交互原型</small></div>
+  </aside>
+  <section class="work-surface" aria-labelledby="record-title">
+    <div class="work-toolbar">
+      <div class="work-breadcrumb"><span>商品工作台</span><span aria-hidden="true">/</span><strong id="breadcrumb-product">商品档案</strong></div>
+      <div class="work-toolbar-actions">
+        <span class="change-indicator" id="change-indicator" aria-live="polite">仅模拟数据</span>
+        <button type="button" class="reset-link" id="reset-demo">重置演示</button>
+      </div>
+    </div>
+    <div class="record-heading">
+      <div class="record-title-col"><div class="record-small"><span id="record-code">DEMO–001</span><span class="bullet">·</span><span id="record-status" class="state-tag state-draft">草稿</span></div><h2 id="record-title">商品档案</h2><p>一处记录商品、劳动与交付的真实依据。</p></div>
+      <div class="record-progress"><span id="progress-text">完成度 0 / 4</span><div class="progress-track" aria-hidden="true"><span id="progress-bar" style="width:0%"></span></div></div>
+    </div>
+    <div class="editor-tabs" role="tablist" aria-label="商品编辑步骤">
+      <button type="button" class="editor-tab active" role="tab" aria-selected="true" tabindex="0" id="tab-basics" aria-controls="editor-basics" data-tab="basics"><span>01</span> 商品</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" tabindex="-1" id="tab-images" aria-controls="editor-images" data-tab="images"><span>02</span> 图片</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" tabindex="-1" id="tab-fairness" aria-controls="editor-fairness" data-tab="fairness"><span>03</span> 公平</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" tabindex="-1" id="tab-delivery" aria-controls="editor-delivery" data-tab="delivery"><span>04</span> 交付</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" tabindex="-1" id="tab-history" aria-controls="editor-history" data-tab="history"><span>05</span> 流程</button>
+    </div>
+    <div class="work-main-grid">
+      <div class="editor-paper">
+        <div class="context-bar" id="editor-context"><span class="context-icon">✳</span><span id="context-message">草稿可随时修改。</span></div>
+        <section class="editor-panel active" role="tabpanel" id="editor-basics" aria-labelledby="tab-basics">
+          <div class="panel-head"><span class="panel-number">01 / GOODS</span><h3>商品资料</h3><p>先把重要信息写清楚。</p></div>
+          <div class="form-grid">
+            <label class="field field-full">商品名称 <span class="required">必填</span><input data-field="name" maxlength="70" placeholder="填写商品名称" autocomplete="off"></label>
+            <label class="field field-full">一句话介绍 <span class="required">必填</span><input data-field="summary" maxlength="110" placeholder="它是什么，有什么用途？" autocomplete="off"></label>
+            <label class="field">商品类别 <span class="required">必填</span><select data-field="category"><option value="">请选择</option><option value="织物与收纳">织物与收纳</option><option value="生活器物">生活器物</option><option value="纸品与书写">纸品与书写</option><option value="其他">其他</option></select></label>
+            <label class="field">商品编号 <span class="field-hint">自动生成</span><input data-field="code" readonly></label>
+            <label class="field">参考售价（元） <span class="required">必填</span><input data-field="price" type="number" step="0.01" min="0" max="99999999" placeholder="0.00" inputmode="decimal"></label>
+            <label class="field">模拟库存（件） <span class="required">必填</span><input data-field="stock" type="number" step="1" min="0" max="999999" placeholder="0" inputmode="numeric"></label>
+            <label class="field field-full">详细说明<textarea data-field="description" maxlength="1200" rows="5" placeholder="材质、用途、规格、清洁与保养等"></textarea></label>
+          </div>
+        </section>
+        <section class="editor-panel" role="tabpanel" id="editor-images" aria-labelledby="tab-images" hidden>
+          <div class="panel-head"><span class="panel-number">02 / IMAGE</span><h3>商品影像</h3><p>真实、清楚、不夸大。</p></div>
+          <div class="upload-well">
+            <label class="upload-label" for="image-upload"><span class="upload-symbol" aria-hidden="true">↥</span><strong>添加商品照片</strong><small>JPG / PNG / WEBP，每张不超过 8 MB，最多 5 张</small><span class="upload-link">选择本机图片</span></label>
+            <input id="image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+          </div>
+          <p class="inline-note">图片仅在本页本机预览，不会上传、保存或用于真实商品。</p>
+          <div class="photo-collection" id="photo-collection" aria-live="polite"></div>
+        </section>
+        <section class="editor-panel" role="tabpanel" id="editor-fairness" aria-labelledby="tab-fairness" hidden>
+          <div class="panel-head"><span class="panel-number">03 / FAIRNESS</span><h3>价格构成</h3><p>用可核对的数字认识商品。</p></div>
+          <div class="fairness-summary">
+            <div><small>模拟售价</small><strong id="fair-price">¥0.00</strong></div>
+            <div><small>已列成本及报酬</small><strong id="fair-cost">¥0.00</strong></div>
+            <div><small>可用经营余量</small><strong id="fair-remainder">¥0.00</strong></div>
+          </div>
+          <div class="fairness-track" id="fairness-track" aria-label="示例价格分配"></div>
+          <div class="form-grid">
+            <label class="field">采购与制作成本（元）<input data-field="material" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+            <label class="field">参与劳动报酬（元）<input data-field="labor" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+            <label class="field">物流与支付成本（元）<input data-field="fulfillment" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+            <label class="field">售后责任预留（元）<input data-field="aftersales" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+          </div>
+          <div class="fair-warning" id="fair-warning" role="status" aria-live="polite"></div>
+          <p class="inline-note">所有数字仅为页面模拟。实际销售还需依法核算税费、损耗、退款及固定成本，经营余量并非净利润。</p>
+        </section>
+        <section class="editor-panel" role="tabpanel" id="editor-delivery" aria-labelledby="tab-delivery" hidden>
+          <div class="panel-head"><span class="panel-number">04 / SERVICE</span><h3>交付与责任</h3><p>由谁交付，怎样保障。</p></div>
+          <div class="form-grid">
+            <label class="field field-full">供应来源说明 <span class="required">必填</span><textarea data-field="source" rows="3" maxlength="500" placeholder="产品来源、可核验的供应信息"></textarea></label>
+            <label class="field">预计发货说明 <span class="required">必填</span><input data-field="shipping" maxlength="160" placeholder="例如：确认后 3 个工作日内发货"></label>
+            <label class="field">售后处理方式 <span class="required">必填</span><input data-field="returns" maxlength="160" placeholder="例如：按公示退换货规则处理"></label>
+            <label class="field field-full">补充说明<textarea data-field="notes" rows="4" maxlength="700" placeholder="包装、维修、规格差异等补充信息"></textarea></label>
+          </div>
+          <div class="policy-hint"><strong>上线前核验</strong><p>商品资质、经营主体、真实库存、退换货政策和收款权限，须在服务端单独完成审核。本工作台尚不具备这些能力。</p></div>
+        </section>
+        <section class="editor-panel" role="tabpanel" id="editor-history" aria-labelledby="tab-history" hidden>
+          <div class="panel-head"><span class="panel-number">05 / REVIEW</span><h3>审核与记录</h3><p>让每次修改都有明确的下一步。</p></div>
+          <div class="review-flow" aria-label="商品审核过程">
+            <div class="flow-step" data-stage="draft"><span>01</span><strong>草稿</strong></div>
+            <div class="flow-step" data-stage="review"><span>02</span><strong>待审核</strong></div>
+            <div class="flow-step" data-stage="approved"><span>03</span><strong>已批准</strong></div>
+            <div class="flow-step" data-stage="published"><span>04</span><strong>已发布</strong></div>
+          </div>
+          <div class="review-box">
+            <h4>审核意见</h4>
+            <label class="field" for="review-note">处理说明<textarea id="review-note" rows="3" maxlength="400" placeholder="可选：写明修改要求或审核说明"></textarea></label>
+            <div id="review-actions" class="review-actions"></div>
+          </div>
+          <h4 class="history-heading">操作记录 <small>仅本页演示</small></h4>
+          <ol id="activity-list" class="activity-list"></ol>
+        </section>
+        <div class="editor-bottom">
+          <span id="editor-bottom-hint" class="editor-bottom-hint">编辑时的变更仅在本页保留。</span>
+          <div class="editor-bottom-actions"><button type="button" class="button-secondary" id="save-draft">保存草稿</button><button type="button" class="button-primary" id="submit-review">提交审核 <span aria-hidden="true">↗</span></button></div>
+        </div>
+      </div>
+      <aside class="preview-sidebar" aria-label="商品预览和资料完整度">
+        <div class="preview-sidebar-inner">
+          <div class="side-label"><span>所见即所得</span><small>商品展示预览</small></div>
+          <div class="product-paper">
+            <div class="preview-image" id="preview-image"><span class="preview-image-mark" aria-hidden="true">M</span><small>尚无实物照片</small></div>
+            <div class="preview-product-info">
+              <span id="preview-category" class="preview-category">商品类别</span>
+              <h3 id="preview-name">尚未命名</h3>
+              <p id="preview-summary">商品的一句话介绍将显示在这里。</p>
+              <div class="preview-price-row"><strong id="preview-price">价格待定</strong><span id="preview-public-state">未发布</span></div>
+            </div>
+          </div>
+          <div class="completeness">
+            <h4>发布前检查</h4>
+            <ul id="checklist"></ul>
+          </div>
+          <div class="preview-reminder"><span aria-hidden="true">✳</span><p>此处的“保存”“批准”“发布”都是模拟操作，商品不会出现在买拿商店。</p></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<dialog id="reset-dialog" class="confirm-dialog" aria-labelledby="reset-title">
+  <div class="confirm-inner"><h3 id="reset-title">重置本次演示？</h3><p>这将清除本页新增商品、图片预览和模拟审核记录。无需担心真实数据，本页从未保存至服务器。</p><div class="dialog-controls"><button type="button" id="reset-cancel" class="button-secondary">取消</button><button type="button" id="reset-confirm" class="button-primary">确认重置</button></div></div>
+</dialog>
+</body>
+</html>
