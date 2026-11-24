@@ -81,3 +81,48 @@ test('both pasture entrypoints link independent sound panel without changing cor
     assert.match(h,/id="pastureCore"/);
   }
 });
+
+test('enabled hourly playback is queued on the audio clock while the tab is hidden',async()=>{
+  const jobs=[],createdSources=[],listeners={};
+  const node=(name)=>({
+    dataset:{},hidden:name==='stop'||name==='panel',value:'32',checked:true,
+    addEventListener(type,fn){listeners[name+':'+type]=fn;},
+    setAttribute(){},focus(){},textContent:'',title:''
+  });
+  const names=['toggle','panel','arm','preview','stop','volume','quiet','next','status'];
+  const nodes=Object.fromEntries(names.map(k=>[k,node(k)]));
+  const attrs={'[data-hourly-toggle]':'toggle','[data-hourly-panel]':'panel',
+    '[data-hourly-arm]':'arm','[data-hourly-preview]':'preview','[data-hourly-stop]':'stop',
+    '[data-hourly-volume]':'volume','[data-hourly-quiet]':'quiet',
+    '[data-hourly-next]':'next','[data-hourly-status]':'status'};
+  const area={querySelector:k=>nodes[attrs[k]],contains:()=>false};
+  const doc={hidden:true,getElementById:id=>id==='pastureHymnControl'?area:null,
+    addEventListener(){}};
+  class FakeAudio{
+    constructor(){this.state='running';this.currentTime=5;this.destination={};}
+    resume(){return Promise.resolve();}
+    close(){return Promise.resolve();}
+    createBuffer(){return{copyToChannel(){}};}
+    createBufferSource(){
+      const s={connect(){},disconnect(){},start(time){this.startAt=time;},
+        stop(time){this.stopAt=time;}};
+      createdSources.push(s);return s;
+    }
+    createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},
+      setTargetAtTime(){}},connect(){},disconnect(){}};}
+  }
+  const win={AudioContext:FakeAudio,localStorage:{getItem:()=>null,setItem(){}},
+    addEventListener(){},dispatchEvent(){},
+    setTimeout(fn,delay){jobs.push({fn,delay});return jobs.length;},
+    clearTimeout(){}};
+  const engine=hourly.init({window:win,document:doc,scores});
+  await listeners['arm:click']();
+  for(const j of jobs.filter(j=>j.delay===0))j.fn();
+  assert.equal(engine.state.enabled,true);
+  assert.equal(engine.state.desired,true);
+  assert.ok(engine.state.queuedHour>Date.now());
+  assert.equal(createdSources.length,1);
+  assert.ok(createdSources[0].startAt>5);
+  assert.ok(createdSources[0].stopAt>createdSources[0].startAt);
+  engine.dispose();
+});
