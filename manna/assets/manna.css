@@ -170,3 +170,15 @@
 .manna-support-privacy{font-size:11px;color:#728071;line-height:1.95}
 .manna-support-connect{margin-top:10px;border:0;background:#244e38;color:#fff;padding:13px 20px;font-size:13px;cursor:pointer}
 @media(max-width:650px){.manna-support-head{flex-direction:column;align-items:flex-start}.manna-size-important{padding:18px}.manna-support-panel{padding:20px}.manna-support-button{width:100%}}
+
+/* The Table: make MANNA 001 explicitly visible under “好物，值得细看。” */
+.manna-closer-look{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr) minmax(0,.9fr);gap:16px;margin:22px auto 0;max-width:1330px;align-items:stretch}
+.manna-closer-look-intro{padding:clamp(24px,3.3vw,55px);display:flex;flex-direction:column;justify-content:center;min-height:280px;background:#e7e9df}
+.manna-closer-look-intro span{font:11px sans-serif;letter-spacing:.12em;color:#5d7661}
+.manna-closer-look-intro h2{font:400 clamp(22px,2.5vw,36px)/1.5 var(--serif);color:#264534;margin:18px 0}
+.manna-closer-look-intro p{font-size:13px;line-height:1.9;color:#617361;margin:0}
+.manna-closer-look-photo{display:flex;flex-direction:column;align-items:stretch;background:#e5e6df;text-decoration:none;min-width:0}
+.manna-closer-look-photo img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;flex:1}
+.manna-closer-look-photo span{padding:15px;color:#526753;font-size:12px;line-height:1.65}
+.manna-closer-look-photo:focus-visible{outline:3px solid #44624f;outline-offset:4px}
+@media(max-width:780px){.manna-closer-look{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.manna-closer-look-intro{grid-column:1/-1;min-height:0}.manna-closer-look-photo span{padding:12px;font-size:11px}}
