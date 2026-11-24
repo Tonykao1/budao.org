@@ -276,6 +276,18 @@ function drawPortraitBridge(sourceY){
  rect(x+48,y-2,5,1,'#a67a55');
 }
 function portraitSkyBottom(){return H*.255}
+// One ridge geometry for the distant mountains and the sky-only celestial mask.
+function portraitFarRidge(farY){
+ return [[0,farY+8],[25,farY+1],[48,farY+12],[72,farY-8],[98,farY+5],[122,farY-2],[148,farY+14],[177,farY-3],[205,farY+9],[232,farY-6],[258,farY+11],[300,farY-2]];
+}
+function clipPortraitCelestialSky(skyBottom){
+ ctx.beginPath();ctx.rect(0,0,W,Math.round(skyBottom));ctx.clip();
+ if(!portrait)return;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);
+ const ridge=portraitFarRidge(skyBottom);
+ for(let i=ridge.length-1;i>=0;i--)ctx.lineTo(ridge[i][0],ridge[i][1]);
+ ctx.closePath();ctx.clip();
+}
 function drawPortraitMountains(sourceY){
  const farY=portraitSkyBottom(),midY=H*.315,nearY=H*.365;
  const ws=portraitSky();
@@ -284,7 +296,7 @@ function drawPortraitMountains(sourceY){
  drawPortraitWeatherClouds(farY+12);
 
  // broad, asymmetrical ranges inspired by the approved portrait composition
- poly([[0,farY+28],[0,farY+8],[25,farY+1],[48,farY+12],[72,farY-8],[98,farY+5],[122,farY-2],[148,farY+14],[177,farY-3],[205,farY+9],[232,farY-6],[258,farY+11],[300,farY-2],[300,midY+34],[0,midY+34]],C.mountainFar);
+ poly([[0,farY+28],...portraitFarRidge(farY),[300,midY+34],[0,midY+34]],C.mountainFar);
  poly([[0,midY+25],[0,midY+6],[24,midY+1],[48,midY+13],[76,midY-11],[102,midY+2],[127,midY-15],[154,midY+7],[181,midY-5],[208,midY+10],[234,midY-9],[261,midY+7],[300,midY-12],[300,nearY+30],[0,nearY+30]],C.mountain);
  poly([[0,nearY+20],[0,nearY+6],[31,nearY-2],[58,nearY+11],[88,nearY-12],[118,nearY+8],[149,nearY-6],[178,nearY+11],[210,nearY-8],[240,nearY+6],[270,nearY-10],[300,nearY+3],[300,nearY+54],[0,nearY+54]],'#6f98b6');
 
@@ -483,9 +495,9 @@ function moon(cx,cy,phase,p,visual){
 function drawSharedCelestial(now,cloud,c){
  const sky=window.BudaoPastureSky,shared=state?.skyState;
  if(!sky||!shared)return;
- const skyBottom=portraitSkyBottom();
+ const skyBottom=portrait?portraitSkyBottom():96;
  const project=o=>sky.projectHorizontal({altitudeDeg:o.altitudeDeg,azimuthDeg:o.azimuthDeg,centerAzimuthDeg:shared.centerAzimuthDeg,width:W,skyTop:0,skyBottom});
- ctx.save();ctx.beginPath();ctx.rect(0,0,W,skyBottom);ctx.clip();
+ ctx.save();clipPortraitCelestialSky(skyBottom);
  const segment=window.BudaoPastureTrack?.segmentAt(now,state.astronomy);
  const sunXY=segment?.body==='sun'?window.BudaoPastureTrack.positionAt({
   progress:segment.progress,width:W,skyBottom,radiusPx:13
