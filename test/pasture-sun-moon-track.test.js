@@ -18,14 +18,14 @@ test('Sun enters on extreme left at sunrise, reaches center at noon, exits on ri
   assert.equal(noon.body,'sun');
   assert.equal(noon.progress,.5);
   assert.equal(track.segmentAt(hour(28,18)-1,astronomy).body,'sun');
-  const a=track.positionAt({progress:0,width:480,skyBottom:96,radiusPx:13});
-  const b=track.positionAt({progress:.5,width:480,skyBottom:96,radiusPx:13});
-  const c=track.positionAt({progress:1,width:480,skyBottom:96,radiusPx:13});
+  const a=track.positionAt({progress:0,width:480,skyBottom:92,radiusPx:13});
+  const b=track.positionAt({progress:.5,width:480,skyBottom:92,radiusPx:13});
+  const c=track.positionAt({progress:1,width:480,skyBottom:92,radiusPx:13});
   assert.equal(a.x,-13);
   assert.equal(b.x,240);
   assert.equal(c.x,493);
   assert.ok(b.y<a.y&&b.y<c.y);
-  assert.ok(a.y<96&&b.y>=0);
+  assert.ok(a.y<92&&b.y>=0);
 });
 
 test('Moon enters from left at sunset, crosses midnight, and exits right before sunrise',()=>{
@@ -65,7 +65,7 @@ test('landscape and portrait use same track while preserving star projection and
 
 test('screen trajectories scale with canvas while crossing sky only',()=>{
   for(const width of [300,480,720]){
-    const skyBottom=width===300?124:96;
+    const skyBottom=width===300?124:92;
     for(const radiusPx of [8,13]){
       let last=-Infinity;
       for(let i=0;i<=100;i++){

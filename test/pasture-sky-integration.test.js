@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
-const main = fs.readFileSync(path.join(root, 'tonglu.html'), 'utf8');
+const main = fs.readFileSync(path.join(root, 'tonglu-core.html'), 'utf8');
 const portrait = fs.readFileSync(path.join(root, 'tonglu-pasture-portrait.html'), 'utf8');
 const sky = require('../pasture-sky-engine.js');
 const stars = require('../pasture-stars.js');
@@ -17,11 +17,15 @@ test('landscape loads shared sky modules and removes legacy fixed stars and moon
   assert.doesNotMatch(main, /moonXY=moonScreenPosition/);
 });
 
-test('landscape celestial geometry uses the confirmed sea-sky boundary at y 96', () => {
-  assert.match(main, /const LANDSCAPE_SKY_BOTTOM=96/);
+test('landscape celestial mask matches the actual sea-sky boundary at y 92', () => {
+  const landscape = fs.readFileSync(path.join(root, 'tonglu-pasture-v10.html'), 'utf8');
+  const boundary = Number(landscape.match(/rect\(0,0,W,(\d+),ws\.top\);rect\(0,\d+,W,46,ws\.bottom\)/)[1]);
+  assert.equal(boundary, 92);
+  assert.match(main, new RegExp('const LANDSCAPE_SKY_BOTTOM=' + boundary + ';'));
   assert.match(main, /skyBottom:LANDSCAPE_SKY_BOTTOM/);
-  const p = sky.projectHorizontal({altitudeDeg:.1,azimuthDeg:10,centerAzimuthDeg:10,width:480,skyTop:0,skyBottom:96});
-  assert.ok(p && p.y < 96);
+  assert.match(main, /ctx\.rect\(0,0,480,LANDSCAPE_SKY_BOTTOM\);ctx\.clip\(\)/);
+  const p = sky.projectHorizontal({altitudeDeg:.1,azimuthDeg:10,centerAzimuthDeg:10,width:480,skyTop:0,skyBottom:boundary});
+  assert.ok(p && p.y < boundary);
 });
 
 test('shared sky state is cached on a 30-60 second cadence while weather stays 10 minutes', () => {
@@ -57,7 +61,11 @@ test('portrait consumes shared sky engine and no longer owns separate astronomy'
 
 test('portrait derives celestial bottom from the same top sky band geometry', () => {
   assert.match(portrait, /function portraitSkyBottom\(\)/);
-  assert.match(portrait, /const skyBottom=portraitSkyBottom\(\)/);
+  assert.match(portrait, /const skyBottom=portrait\?portraitSkyBottom\(\):96/);
+  assert.match(portrait, /ctx\.save\(\);clipPortraitCelestialSky\(skyBottom\)/);
+  assert.match(portrait, /ctx\.rect\(0,0,W,Math\.round\(skyBottom\)\);ctx\.clip\(\)/);
+  assert.match(portrait, /const ridge=portraitFarRidge\(skyBottom\)/);
+  assert.match(portrait, /\.\.\.portraitFarRidge\(farY\)/);
   assert.doesNotMatch(portrait, /skyBand=portrait\?H\*\.28:100/);
 });
 
