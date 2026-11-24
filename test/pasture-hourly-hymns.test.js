@@ -20,7 +20,9 @@ test('complete validated SATB / user two-track MIDI note events',()=>{
     assert.equal(voices.length,i===11?2:4,song.en);
     const n=voices.reduce((sum,part)=>sum+part.length,0);
     assert.equal(n,counts[i],song.en);
-    assert.equal(Math.max(...voices.flat().map(e=>e.tick+e.duration)),song.cycleTicks,song.en);
+    const lastNoteEnd=Math.max(...voices.flat().map(e=>e.tick+e.duration));
+    // Original hymn scores can end with a whole-beat rest; never invent sustained notes.
+    assert.ok(lastNoteEnd<=song.cycleTicks&&lastNoteEnd>=song.cycleTicks-2*song.ticks,song.en);
     assert.ok(hourly.cycleSeconds(song)>20&&hourly.cycleSeconds(song)<60);
     assert.ok(song.stanzas>0);
   });
