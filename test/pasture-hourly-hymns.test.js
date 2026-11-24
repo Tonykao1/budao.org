@@ -47,9 +47,10 @@ test('local-hour rollover and 22:00-07:00 quiet hours',()=>{
     assert.equal(hourly.isQuietHour(new Date(2026,10,24,h)),h>=22||h<7);
 });
 test('opt-in safe volume and night settings',()=>{
-  assert.deepEqual(hourly.normalizeSettings(null),{volume:.32,quiet:true});
-  assert.deepEqual(hourly.normalizeSettings({volume:4,quiet:false}),{volume:1,quiet:false});
-  assert.deepEqual(hourly.normalizeSettings({volume:-1}),{volume:0,quiet:true});
+  assert.deepEqual(hourly.normalizeSettings(null),{volume:.32,quiet:true,desired:false});
+  assert.deepEqual(hourly.normalizeSettings({volume:4,quiet:false}),{volume:1,quiet:false,desired:false});
+  assert.deepEqual(hourly.normalizeSettings({volume:-1}),{volume:0,quiet:true,desired:false});
+  assert.deepEqual(hourly.normalizeSettings({desired:true,volume:.4}),{volume:.4,quiet:true,desired:true});
 });
 test('realtime SID renderer preserves audible notes without invalid samples',()=>{
   let captured;
@@ -58,6 +59,16 @@ test('realtime SID renderer preserves audible notes without invalid samples',()=
   assert.ok(Math.abs(b.length/32000-hourly.cycleSeconds(songs[0]))<.01);
   assert.ok(captured.some(v=>v!==0));
   assert.ok(captured.every(v=>Number.isFinite(v)&&Math.abs(v)<=1));
+});
+test('audio clock schedules a full hour ahead even if the tab is in background',()=>{
+  assert.equal(hourly.audioStartAt(15,100000,3700000),3615);
+  assert.equal(hourly.audioStartAt(15,100000,100001),15.06);
+  const src=fs.readFileSync(path.join(root,'pasture-hourly-hymns.js'),'utf8');
+  assert.match(src,/source\.start\(when\)/);
+  assert.match(src,/win\.setTimeout\(queueUpcoming,0\)/);
+  assert.doesNotMatch(src,/\|\|doc\.hidden\|\|!context/);
+  assert.doesNotMatch(src,/stopNow\('hidden'\)/);
+  assert.match(src,/settings\.desired=true;save\(\)/);
 });
 test('both pasture entrypoints link independent sound panel without changing core',()=>{
   for(const p of ['tonglu.html','pasture-live.html']){
