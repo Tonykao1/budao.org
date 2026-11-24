@@ -38,7 +38,7 @@ test('clock gate tolerates brief foreground throttling but never delayed backgro
 test('pasture clearly requires re-authorization after reload',()=>{
   const s=fs.readFileSync(path.join(root,'pasture-hourly-hymns.js'),'utf8');
   assert.match(s,/每次打开牧场都须点击/);
-  assert.match(s,/data\.hourlyEnabled=String\(enabled\)/);
+  assert.match(s,/dataset\.hourlyEnabled=String\(enabled\)/);
 });
 test('local-hour rollover and 22:00-07:00 quiet hours',()=>{
   const n=hourly.nextLocalHour(new Date(2026,10,24,11,59,59,950));
