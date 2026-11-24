@@ -46,15 +46,15 @@ test('MANNA: style has motion guard and responsive breakpoints',()=>{
 });
 const crypto=require('node:crypto');
 test('MANNA: original transparent 1254px PNG is intact and used throughout preview',()=>{
- const image=fs.readFileSync(path.join(base,'manna/assets/manna-logo-transparent.png'));
- assert.equal(image.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
- assert.equal(image.readUInt32BE(16),1254);
- assert.equal(image.readUInt32BE(20),1254);
- assert.equal(image[25],6); // PNG color type RGBA, full alpha channel.
- const prefix=Buffer.from('blob '+image.length+'\\0');
- const sha=crypto.createHash('sha1').update(prefix).update(image).digest('hex');
+ const file=fs.readFileSync(path.join(base,'manna/assets/manna-logo-transparent.png'));
+ assert.equal(file.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ assert.equal(file.readUInt32BE(16),1254);
+ assert.equal(file.readUInt32BE(20),1254);
+ assert.equal(file[25],6); // PNG color type 6 = RGBA alpha channel
+ const prefix=Buffer.concat([Buffer.from('blob '+file.length),Buffer.from([0])]);
+ const sha=crypto.createHash('sha1').update(prefix).update(file).digest('hex');
  assert.equal(sha,'40994d570501eb8b381aa1848db62c17f212e67c');
  const pages=['manna/index.html','manna/goods/index.html','manna/about/index.html',...['01','02','03'].map(id=>'manna/goods/sample-'+id+'/index.html')];
- for(const page of pages){assert.match(read(page),/class="nav-brand-logo" src="\\/manna\\/assets\\/manna-logo-transparent\\.png"/)}
- assert.match(read('manna/index.html'),/class="hero-brand-logo" src="\\/manna\\/assets\\/manna-logo-transparent\\.png"/);
+ for(const page of pages)assert.ok(read(page).includes('class="nav-brand-logo" src="/manna/assets/manna-logo-transparent.png"'),page);
+ assert.ok(read('manna/index.html').includes('class="hero-brand-logo" src="/manna/assets/manna-logo-transparent.png"'));
 });
