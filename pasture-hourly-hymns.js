@@ -13,6 +13,7 @@
   // A visible tab may suffer small timer delays during browser scheduling or GC.
   // Never backfill an hour after a long sleep or while the tab is hidden.
   const VISIBLE_TICK_GRACE_MS = 12000;
+  const audioStartAt=(clock,now,due)=>clock+Math.max(.06,(due-now)/1000);
   const SR = 32000;
   const AMPS = [.095, .073, .082, .086];
   const ALPHAS = [.22, .35, .20, .18];
@@ -33,7 +34,7 @@
   function normalizeSettings(obj) {
     const a = obj && typeof obj === 'object' ? obj : {};
     return {volume:Number.isFinite(Number(a.volume)) ? Math.max(0,Math.min(1,Number(a.volume))) : .32,
-      quiet:a.quiet !== false};
+      quiet:a.quiet !== false,desired:a.desired===true};
   }
   function decodeVoice(str) {
     const s=atob(str);
@@ -112,7 +113,7 @@
     const status=area.querySelector('[data-hourly-status]');
     let settings;
     try{settings=normalizeSettings(JSON.parse(win.localStorage.getItem(STORAGE)));}catch(_){settings=normalizeSettings(null);}
-    let context=null,enabled=false,active=null,prepared=null,scheduling=null;
+    let context=null,enabled=false,active=null,queued=null,prepared=null,scheduling=null;
     let lastHour=null,timer=null,busy=false,disposed=false;
     const say=t=>{status.textContent=t;};
     function save(){try{win.localStorage.setItem(STORAGE,JSON.stringify(settings));}catch(_){}}
@@ -126,7 +127,8 @@
       arm.textContent=enabled?'关闭整点赞美':'开启整点赞美';
       toggle.setAttribute('aria-label',enabled?'时辰赞美，已开启':'时辰赞美，未开启');
       toggle.dataset.hourlyEnabled=String(enabled);
-      toggle.title=enabled?'时辰赞美 · 已开启':'时辰赞美 · 未开启（点击后再开启）';
+      toggle.dataset.hourlyWanted=String(settings.desired);
+      toggle.title=enabled?'时辰赞美 · 已开启':settings.desired?'时辰赞美 · 点击唤醒音频':'时辰赞美 · 未开启';
       volume.value=String(Math.round(settings.volume*100));
       quiet.checked=settings.quiet;
     }
@@ -138,6 +140,46 @@
       emit('stop',{reason,index:old.index});
       if(enabled)say('等待下一个整点');
     }
+    function cancelQueued(reason){
+      if(!queued)return;
+      const old=queued;queued=null;
+      try{old.source.stop();old.source.disconnect();old.gain.disconnect();}catch(_){}
+      if(lastHour===old.hourMs&&Date.now()<old.hourMs)lastHour=null;
+      emit('cancel',{reason,hour:old.hourMs});
+    }
+    function queueUpcoming(){
+      if(!enabled||disposed||!context||context.state!=='running')return;
+      const hour=nextLocalHour(new Date()),hourMs=hour.getTime();
+      if(queued?.hourMs===hourMs)return;
+      if(queued&&queued.hourMs<=Date.now()){active=queued;queued=null;}
+      if(queued)cancelQueued('reschedule');
+      if(settings.quiet&&isQuietHour(hour))return;
+      const index=songIndex(hour),song=scores[index];
+      let buffer;
+      try{buffer=prepared?.index===index?prepared.buffer:renderOnePass(context,song);}
+      catch(_){say('下一首音乐准备失败，请点击试听检查');return;}
+      prepared=null;
+      const duration=cycleSeconds(song)*song.stanzas;
+      const when=audioStartAt(context.currentTime,Date.now(),hourMs);
+      try{
+        const source=context.createBufferSource(),gain=context.createGain();
+        source.buffer=buffer;source.loop=true;source.connect(gain);gain.connect(context.destination);
+        gain.gain.setValueAtTime(0,when);
+        gain.gain.linearRampToValueAtTime(settings.volume,when+Math.min(2,duration/4));
+        gain.gain.setValueAtTime(settings.volume,when+Math.max(2,duration-2));
+        gain.gain.linearRampToValueAtTime(0,when+duration);
+        source.start(when);source.stop(when+duration);
+        const item={hourMs,source,gain,index,duration};
+        queued=item;lastHour=hourMs;
+        source.onended=()=>{
+          if(queued?.source===source)queued=null;
+          if(active?.source===source){active=null;stop.hidden=true;say('本小时赞美结束，等待下一次整点');}
+          try{source.disconnect();gain.disconnect();}catch(_){}
+        };
+        say('已提前排程 '+String(hour.getHours()).padStart(2,'0')+':00 · '+song.zh);
+        emit('queued',{index,hour:hourMs,duration});
+      }catch(_){say('无法安排整点音频，请点击重新开启');}
+    }
     function schedule(){
       if(timer!==null){win.clearTimeout(timer);timer=null;}
       if(disposed)return;
@@ -146,10 +188,15 @@
       timer=win.setTimeout(()=>{
         timer=null;
         const current=scheduling;
-        if(isAcceptableClockTick(Date.now(),current))playHour(new Date(current),false);
-        else if(enabled&&!doc.hidden) say('浏览器计时延迟，本次整点已错过；等待下一次整点');
+        if(queued?.hourMs===current){
+          const item=queued;queued=null;active=item;
+          stop.hidden=false;say('整点：'+scores[item.index].zh+' · '+scores[item.index].stanzas+'节');
+          emit('start',{index:item.index,title:scores[item.index].zh,duration:item.duration});
+        }else if(lastHour!==current&&isAcceptableClockTick(Date.now(),current)){
+          playHour(new Date(current),false);
+        }else if(lastHour!==current&&enabled)say('浏览器暂停后台计时，本次整点可能错过');
         schedule();
-        win.setTimeout(prepareUpcoming,10);
+        win.setTimeout(queueUpcoming,10);
       },Math.max(50,hour.getTime()-now.getTime()));
       refresh();
     }
@@ -163,12 +210,12 @@
       finally{busy=false;}
     }
     function playHour(hour,manual){
-      if(!enabled||disposed||doc.hidden||!context)return;
+      if(!enabled||disposed||!context)return;
       if(!manual&&settings.quiet&&isQuietHour(hour))return;
       if(!manual&&lastHour===hour.getTime())return;
       if(!manual)lastHour=hour.getTime();
       if(context.state!=='running'){
-        enabled=false;stopNow('suspended');say('浏览器暂停了声音，请点击重新开启');refresh();return;
+        enabled=false;cancelQueued('suspended');stopNow('suspended');say('浏览器已暂停声音，请点击牧场恢复');refresh();return;
       }
       const index=songIndex(hour),song=scores[index];
       let buffer;
@@ -194,14 +241,22 @@
       emit('start',{index,title:song.zh,duration});
     }
     async function enable(){
-      if(enabled){enabled=false;stopNow('disabled');say('已关闭，点击可重新开启');refresh();return;}
+      if(enabled){enabled=false;settings.desired=false;save();cancelQueued('disabled');stopNow('disabled');say('已关闭，点击可重新开启');refresh();return;}
       const Ctor=win.AudioContext||win.webkitAudioContext;
       if(!Ctor){say('当前浏览器不支持声音合成');return;}
       try{
-        if(!context)context=new Ctor({sampleRate:SR});
+        if(!context){
+          context=new Ctor({sampleRate:SR});
+          if(context.addEventListener)context.addEventListener('statechange',()=>{
+            if(context.state!=='running'&&enabled){
+              enabled=false;cancelQueued('audio suspended');stopNow('audio suspended');
+              say('浏览器已暂停音频 · 请点击牧场恢复');refresh();
+            }
+          });
+        }
         await context.resume();
         if(context.state!=='running')throw Error('Suspended');
-        enabled=true;say('已开启，等待下一个整点');refresh();win.setTimeout(prepareUpcoming,0);
+        enabled=true;settings.desired=true;save();say('已开启，将由音频时钟提前安排整点');refresh();win.setTimeout(queueUpcoming,0);
       }catch(_){enabled=false;say('浏览器禁止自动播放，请再次点击开启');}
     }
     function openPanel(value){panel.hidden=!value;toggle.setAttribute('aria-expanded',String(value));if(value)refresh();}
@@ -209,27 +264,33 @@
     arm.addEventListener('click',enable);
     preview.addEventListener('click',async()=>{if(!enabled)await enable();if(enabled)playHour(new Date(),true);});
     stop.addEventListener('click',()=>stopNow('user'));
+    const restoreOnGesture=e=>{if(settings.desired&&!enabled&&!disposed&&(!e||!area.contains(e.target)))enable();};
+    doc.addEventListener('pointerdown',restoreOnGesture,{passive:true});
+    doc.addEventListener('keydown',restoreOnGesture);
+    const coreFrame=doc.getElementById('pastureCore');
+    if(coreFrame){const bindCore=()=>{try{coreFrame.contentDocument?.addEventListener('pointerdown',restoreOnGesture,{passive:true});}catch(_){}};coreFrame.addEventListener('load',bindCore);bindCore();}
     volume.addEventListener('input',()=>{
       settings.volume=Number(volume.value)/100;
       if(active&&context)active.gain.gain.setTargetAtTime(settings.volume,context.currentTime,.12);
       save();
+      if(enabled&&queued){cancelQueued('volume changed');queueUpcoming();}
     });
-    quiet.addEventListener('change',()=>{settings.quiet=quiet.checked;save();refresh();});
+    quiet.addEventListener('change',()=>{settings.quiet=quiet.checked;save();cancelQueued('quiet changed');refresh();if(enabled)queueUpcoming();});
     doc.addEventListener('visibilitychange',()=>{
-      if(doc.hidden){stopNow('hidden');if(enabled)say('牧场处于后台，已暂停报时；返回后等待下一次整点');return;}
-      schedule();if(enabled)prepareUpcoming();
+      // Keep scheduled audio in background tabs. Browser sleep can still suspend it.
+      if(!doc.hidden){schedule();if(enabled)queueUpcoming();}
     });
-    win.addEventListener('pageshow',schedule);
-    win.addEventListener('pagehide',()=>stopNow('pagehide'));
+    win.addEventListener('pageshow',()=>{schedule();if(enabled)queueUpcoming();});
+    win.addEventListener('pagehide',()=>{cancelQueued('pagehide');stopNow('pagehide');});
     doc.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){openPanel(false);toggle.focus();}});
-    schedule();say('尚未开启 · 每次打开牧场都须点击「开启整点赞美」');
+    schedule();say(settings.desired?'已记住开启偏好 · 点击牧场恢复声音':'尚未开启 · 点击「开启整点赞美」');
     return Object.freeze({
-      get state(){return{enabled,volume:settings.volume,quiet:settings.quiet,playing:!!active,nextHour:scheduling};},
-      disable(){enabled=false;stopNow('disabled');refresh();},
-      dispose(){disposed=true;if(timer!==null)win.clearTimeout(timer);stopNow('disposed');if(context)context.close();}
+      get state(){return{enabled,desired:settings.desired,volume:settings.volume,quiet:settings.quiet,playing:!!active,queuedHour:queued?.hourMs||null,nextHour:scheduling,contextState:context?.state||'not-started'};},
+      disable(){enabled=false;settings.desired=false;save();cancelQueued('disabled');stopNow('disabled');refresh();},
+      dispose(){disposed=true;if(timer!==null)win.clearTimeout(timer);cancelQueued('disposed');stopNow('disposed');if(context)context.close();}
     });
   }
-  return Object.freeze({songIndex,isQuietHour,isAcceptableClockTick,nextLocalHour,normalizeSettings,decodeVoice,cycleSeconds,renderOnePass,init});
+  return Object.freeze({songIndex,isQuietHour,isAcceptableClockTick,audioStartAt,nextLocalHour,normalizeSettings,decodeVoice,cycleSeconds,renderOnePass,init});
 });
 if(typeof window!=='undefined'&&typeof document!=='undefined'){
   window.addEventListener('DOMContentLoaded',()=>{

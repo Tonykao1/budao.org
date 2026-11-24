@@ -35,9 +35,10 @@ test('clock gate tolerates brief foreground throttling but never delayed backgro
   assert.equal(hourly.isAcceptableClockTick(due+12001,due),false);
   assert.equal(hourly.isAcceptableClockTick(due-1000,due),false);
 });
-test('pasture clearly requires re-authorization after reload',()=>{
+test('pasture remembers desired state while requiring a gesture after reload',()=>{
   const s=fs.readFileSync(path.join(root,'pasture-hourly-hymns.js'),'utf8');
-  assert.match(s,/每次打开牧场都须点击/);
+  assert.match(s,/已记住开启偏好/);
+  assert.match(s,/restoreOnGesture/);
   assert.match(s,/dataset\.hourlyEnabled=String\(enabled\)/);
 });
 test('local-hour rollover and 22:00-07:00 quiet hours',()=>{
@@ -47,9 +48,10 @@ test('local-hour rollover and 22:00-07:00 quiet hours',()=>{
     assert.equal(hourly.isQuietHour(new Date(2026,10,24,h)),h>=22||h<7);
 });
 test('opt-in safe volume and night settings',()=>{
-  assert.deepEqual(hourly.normalizeSettings(null),{volume:.32,quiet:true});
-  assert.deepEqual(hourly.normalizeSettings({volume:4,quiet:false}),{volume:1,quiet:false});
-  assert.deepEqual(hourly.normalizeSettings({volume:-1}),{volume:0,quiet:true});
+  assert.deepEqual(hourly.normalizeSettings(null),{volume:.32,quiet:true,desired:false});
+  assert.deepEqual(hourly.normalizeSettings({volume:4,quiet:false}),{volume:1,quiet:false,desired:false});
+  assert.deepEqual(hourly.normalizeSettings({volume:-1}),{volume:0,quiet:true,desired:false});
+  assert.deepEqual(hourly.normalizeSettings({desired:true,volume:.4}),{volume:.4,quiet:true,desired:true});
 });
 test('realtime SID renderer preserves audible notes without invalid samples',()=>{
   let captured;
@@ -58,6 +60,16 @@ test('realtime SID renderer preserves audible notes without invalid samples',()=
   assert.ok(Math.abs(b.length/32000-hourly.cycleSeconds(songs[0]))<.01);
   assert.ok(captured.some(v=>v!==0));
   assert.ok(captured.every(v=>Number.isFinite(v)&&Math.abs(v)<=1));
+});
+test('audio clock schedules a full hour ahead even if the tab is in background',()=>{
+  assert.equal(hourly.audioStartAt(15,100000,3700000),3615);
+  assert.equal(hourly.audioStartAt(15,100000,100001),15.06);
+  const src=fs.readFileSync(path.join(root,'pasture-hourly-hymns.js'),'utf8');
+  assert.match(src,/source\.start\(when\)/);
+  assert.match(src,/win\.setTimeout\(queueUpcoming,0\)/);
+  assert.doesNotMatch(src,/\|\|doc\.hidden\|\|!context/);
+  assert.doesNotMatch(src,/stopNow\('hidden'\)/);
+  assert.match(src,/settings\.desired=true;save\(\)/);
 });
 test('both pasture entrypoints link independent sound panel without changing core',()=>{
   for(const p of ['tonglu.html','pasture-live.html']){
@@ -69,4 +81,49 @@ test('both pasture entrypoints link independent sound panel without changing cor
     assert.ok(h.indexOf('pasture-hourly-last-score.js')<h.indexOf('pasture-hourly-hymns.js'));
     assert.match(h,/id="pastureCore"/);
   }
+});
+
+test('enabled hourly playback is queued on the audio clock while the tab is hidden',async()=>{
+  const jobs=[],createdSources=[],listeners={};
+  const node=(name)=>({
+    dataset:{},hidden:name==='stop'||name==='panel',value:'32',checked:true,
+    addEventListener(type,fn){listeners[name+':'+type]=fn;},
+    setAttribute(){},focus(){},textContent:'',title:''
+  });
+  const names=['toggle','panel','arm','preview','stop','volume','quiet','next','status'];
+  const nodes=Object.fromEntries(names.map(k=>[k,node(k)]));
+  const attrs={'[data-hourly-toggle]':'toggle','[data-hourly-panel]':'panel',
+    '[data-hourly-arm]':'arm','[data-hourly-preview]':'preview','[data-hourly-stop]':'stop',
+    '[data-hourly-volume]':'volume','[data-hourly-quiet]':'quiet',
+    '[data-hourly-next]':'next','[data-hourly-status]':'status'};
+  const area={querySelector:k=>nodes[attrs[k]],contains:()=>false};
+  const doc={hidden:true,getElementById:id=>id==='pastureHymnControl'?area:null,
+    addEventListener(){}};
+  class FakeAudio{
+    constructor(){this.state='running';this.currentTime=5;this.destination={};}
+    resume(){return Promise.resolve();}
+    close(){return Promise.resolve();}
+    createBuffer(){return{copyToChannel(){}};}
+    createBufferSource(){
+      const s={connect(){},disconnect(){},start(time){this.startAt=time;},
+        stop(time){this.stopAt=time;}};
+      createdSources.push(s);return s;
+    }
+    createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},
+      setTargetAtTime(){}},connect(){},disconnect(){}};}
+  }
+  const win={AudioContext:FakeAudio,localStorage:{getItem:()=>null,setItem(){}},
+    addEventListener(){},dispatchEvent(){},
+    setTimeout(fn,delay){jobs.push({fn,delay});return jobs.length;},
+    clearTimeout(){}};
+  const engine=hourly.init({window:win,document:doc,scores:songs});
+  await listeners['arm:click']();
+  for(const j of jobs.filter(j=>j.delay===0))j.fn();
+  assert.equal(engine.state.enabled,true);
+  assert.equal(engine.state.desired,true);
+  assert.ok(engine.state.queuedHour>Date.now());
+  assert.equal(createdSources.length,1);
+  assert.ok(createdSources[0].startAt>5);
+  assert.ok(createdSources[0].stopAt>createdSources[0].startAt);
+  engine.dispose();
 });
