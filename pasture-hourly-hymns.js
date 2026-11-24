@@ -10,6 +10,9 @@
 })(typeof window !== 'undefined' ? window : null, function () {
   'use strict';
   const STORAGE = 'budao:pasture-hourly-hymns:v1';
+  // A visible tab may suffer small timer delays during browser scheduling or GC.
+  // Never backfill an hour after a long sleep or while the tab is hidden.
+  const VISIBLE_TICK_GRACE_MS = 12000;
   const SR = 32000;
   const AMPS = [.095, .073, .082, .086];
   const ALPHAS = [.22, .35, .20, .18];
@@ -17,6 +20,10 @@
   const WAVES = ['pulse', 'triangle', 'saw', 'pulse'];
   function songIndex(d) { return d.getHours() % 12; }
   function isQuietHour(d) { const h = d.getHours(); return h >= 22 || h < 7; }
+  function isAcceptableClockTick(actualMs, scheduledMs) {
+    const lag=actualMs-scheduledMs;
+    return lag>=-120 && lag<=VISIBLE_TICK_GRACE_MS;
+  }
   function nextLocalHour(date) {
     const d = new Date(date.getTime());
     d.setMinutes(0,0,0);
@@ -118,6 +125,8 @@
       next.textContent=String(date.getHours()).padStart(2,'0')+':00 · '+score.zh+(settings.quiet&&isQuietHour(date)?'（静默）':'');
       arm.textContent=enabled?'关闭整点赞美':'开启整点赞美';
       toggle.setAttribute('aria-label',enabled?'时辰赞美，已开启':'时辰赞美，未开启');
+      toggle.setAttribute('aria-pressed',String(enabled));
+      toggle.title=enabled?'时辰赞美 · 已开启':'时辰赞美 · 未开启（点击后再开启）';
       volume.value=String(Math.round(settings.volume*100));
       quiet.checked=settings.quiet;
     }
@@ -137,7 +146,8 @@
       timer=win.setTimeout(()=>{
         timer=null;
         const current=scheduling;
-        if(Date.now()-current>=-120&&Date.now()-current<=1500)playHour(new Date(current),false);
+        if(isAcceptableClockTick(Date.now(),current))playHour(new Date(current),false);
+        else if(enabled&&!doc.hidden) say('浏览器计时延迟，本次整点已错过；等待下一次整点');
         schedule();
         win.setTimeout(prepareUpcoming,10);
       },Math.max(50,hour.getTime()-now.getTime()));
@@ -206,20 +216,20 @@
     });
     quiet.addEventListener('change',()=>{settings.quiet=quiet.checked;save();refresh();});
     doc.addEventListener('visibilitychange',()=>{
-      if(doc.hidden){stopNow('hidden');return;}
+      if(doc.hidden){stopNow('hidden');if(enabled)say('牧场处于后台，已暂停报时；返回后等待下一次整点');return;}
       schedule();if(enabled)prepareUpcoming();
     });
     win.addEventListener('pageshow',schedule);
     win.addEventListener('pagehide',()=>stopNow('pagehide'));
     doc.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){openPanel(false);toggle.focus();}});
-    schedule();say('默认静音 · 点击开启整点赞美');
+    schedule();say('尚未开启 · 每次打开牧场都须点击「开启整点赞美」');
     return Object.freeze({
       get state(){return{enabled,volume:settings.volume,quiet:settings.quiet,playing:!!active,nextHour:scheduling};},
       disable(){enabled=false;stopNow('disabled');refresh();},
       dispose(){disposed=true;if(timer!==null)win.clearTimeout(timer);stopNow('disposed');if(context)context.close();}
     });
   }
-  return Object.freeze({songIndex,isQuietHour,nextLocalHour,normalizeSettings,decodeVoice,cycleSeconds,renderOnePass,init});
+  return Object.freeze({songIndex,isQuietHour,isAcceptableClockTick,nextLocalHour,normalizeSettings,decodeVoice,cycleSeconds,renderOnePass,init});
 });
 if(typeof window!=='undefined'&&typeof document!=='undefined'){
   window.addEventListener('DOMContentLoaded',()=>{
