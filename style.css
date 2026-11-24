@@ -1290,3 +1290,9 @@ footer .footer-sister-links .spark-link {
     transform: none;
   }
 }
+
+/* MANNA ministry link, separate from the unchanged twin archive/sparks links. */
+footer .manna-home-entry{display:table;margin:-7px auto 28px;padding:6px 8px;text-decoration:none;color:#607568;font-size:12px;font-weight:400;letter-spacing:.075em;transition:color .2s ease}
+footer .manna-home-entry:hover{color:#2f5d3c;text-decoration:underline;text-underline-offset:5px}
+footer .manna-home-entry:focus-visible{outline:2px solid #8e7659;outline-offset:5px}
+@media(max-width:620px){footer .manna-home-entry{margin:0 auto 20px;font-size:11px}}
