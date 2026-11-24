@@ -125,7 +125,7 @@
       next.textContent=String(date.getHours()).padStart(2,'0')+':00 · '+score.zh+(settings.quiet&&isQuietHour(date)?'（静默）':'');
       arm.textContent=enabled?'关闭整点赞美':'开启整点赞美';
       toggle.setAttribute('aria-label',enabled?'时辰赞美，已开启':'时辰赞美，未开启');
-      toggle.setAttribute('aria-pressed',String(enabled));
+      toggle.dataset.hourlyEnabled=String(enabled);
       toggle.title=enabled?'时辰赞美 · 已开启':'时辰赞美 · 未开启（点击后再开启）';
       volume.value=String(Math.round(settings.volume*100));
       quiet.checked=settings.quiet;
