@@ -25,7 +25,7 @@ test('MANNA: linked pages exist and are marked demo',()=>{
 });
 test('MANNA: preview clearly non-transactional and no personal information capture',()=>{
  assert.match(home,/暂未开售/);
- assert.match(home,/不会产生订单、付款或个人资料记录/);
+ assert.match(home,/不产生订单、付款或个人资料记录/);
  assert.doesNotMatch(home,/type="email"|type="password"|<form\b/i);
  assert.doesNotMatch(js,/localStorage|sessionStorage|document\.cookie|fetch\(/);
 });
@@ -77,9 +77,26 @@ test('MANNA: the five sections have visible, consistent 01–05 navigation',()=>
   }
   const numbers=Array.from(home.matchAll(/<span class="chapter-no">([0-9]{2} [/] 05)<[/]span>/g)).map(m=>m[1]);
   assert.deepEqual(numbers,['01 / 05','02 / 05','03 / 05','04 / 05','05 / 05']);
-  assert.ok(home.includes('<span class="chapter-no">尾声</span> 归途'));
+  assert.ok(!home.includes('<section class="closing-section"'));
   assert.ok(!home.includes('00 / 05'));
   assert.ok(css.includes('.space-directory{position:sticky'));
   assert.ok(css.includes('@media(max-width:1050px){.space-directory'));
   assert.ok(js.includes('querySelectorAll(".rail-item, .space-jump")'));
+});
+
+test('MANNA: visitor pages show real interface content, not internal design discussions',()=>{
+ const pages=['manna/index.html','manna/goods/index.html','manna/about/index.html',
+   'manna/goods/sample-01/index.html','manna/goods/sample-02/index.html','manna/goods/sample-03/index.html'];
+ const forbidden=['不是流量入口','不是为购买制造理由','完整商品说明的概念样本',
+   '下面展示未来商品详情页','这件商品值得买','买拿先学会','商业机制、合作条款',
+   'DEMONSTRATION OBJECT','概念预览 · 不可下单'];
+ for(const page of pages){
+  const source=read(page);
+  for(const sentence of forbidden)assert.ok(!source.includes(sentence),page+': '+sentence);
+  assert.ok(source.includes('manna-logo-transparent.png'),page+' missing logo');
+ }
+ for(const sentence of ['工艺与劳动得到适当报酬','不因身份、身体条件','属灵身份替代法定','真正的购买前'])
+  assert.ok(!js.includes(sentence),'interactive copy still exposes discussion: '+sentence);
+ assert.ok(home.includes('模拟数据'));
+ assert.ok(home.includes('预览 · 暂未开售'));
 });
