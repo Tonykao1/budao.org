@@ -100,3 +100,17 @@ test('MANNA: visitor pages show real interface content, not internal design disc
  assert.ok(home.includes('模拟数据'));
  assert.ok(home.includes('预览 · 暂未开售'));
 });
+
+test('MANNA: one clear five-space navigation; no duplicated top-level link row',()=>{
+ const pages=['manna/index.html','manna/goods/index.html','manna/about/index.html',
+   'manna/goods/sample-01/index.html','manna/goods/sample-02/index.html','manna/goods/sample-03/index.html'];
+ for(const page of pages){
+   const source=read(page);
+   assert.doesNotMatch(source,/class="top-nav"/);
+   assert.match(source,/class="wordmark"/);
+   assert.match(source,/class="back-to-budao"/);
+ }
+ assert.equal((home.match(/class="space-jump(?: active)?" href="#/g)||[]).length,5);
+ assert.match(home,/href="\/manna\/goods\/"/);
+ assert.match(home,/href="\/manna\/about\/"/);
+});
