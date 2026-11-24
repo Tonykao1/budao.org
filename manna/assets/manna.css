@@ -92,3 +92,60 @@
 .portal .portal-actions .light-button{justify-content:center}
 @media(max-width:760px){.portal .hero-declaration{font-size:clamp(25px,4.5vw,38px);margin-top:54px;margin-bottom:26px;letter-spacing:0}}
 @media(max-width:380px){.portal .hero-declaration{font-size:25px;letter-spacing:-.012em;margin-top:45px}}
+
+/* MANNA 001 flagship product. Editorial, not a simulated purchase widget. */
+.manna-first-product{max-width:1330px;margin:55px auto 0;display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);background:#f1eee5;border:1px solid #dcd9cf;overflow:hidden}
+.manna-first-photo{display:flex;align-items:center;justify-content:center;min-height:560px;padding:25px 30px;background:#dddcd7;text-decoration:none}
+.manna-first-photo img{display:block;height:auto;width:min(100%,420px);aspect-ratio:4/5;object-fit:contain;filter:drop-shadow(0 24px 22px rgba(19,35,24,.12))}
+.manna-first-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:clamp(30px,5.3vw,82px)}
+.manna-first-index,.manna-product-overline,.manna-product-eyebrow{font:11px sans-serif;letter-spacing:.12em;color:#536957}
+.manna-first-copy h3,.manna-first-copy h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,3.1vw,49px);line-height:1.36;color:#233a2e;margin:20px 0 25px}
+.manna-first-copy p{font-size:15px;line-height:2;color:#5b6b60;margin:0 0 15px}
+.manna-first-quiet{font-size:14px!important}
+.manna-first-facts,.manna-product-brief{display:flex;flex-wrap:wrap;gap:8px 18px;color:#5c6e60;font-size:12px;margin:17px 0}
+.manna-first-facts span+span:before{content:"/";color:#a7afa3;margin-right:15px}
+.manna-first-price{display:flex;align-items:baseline;gap:18px;margin:14px 0 27px}
+.manna-first-price strong{font:40px Georgia,serif;font-weight:400;color:#20382a}
+.manna-first-price span{font-size:12px;color:#6a766a}
+.manna-first-link{color:#204c33;font-size:14px;line-height:2;text-underline-offset:7px}
+.manna-first-status{font-size:11px!important;line-height:1.9!important;margin-top:21px!important;max-width:390px}
+.manna-list-note{font-size:13px;color:#617163;margin:0 0 20px}
+.manna-first-product-list{margin:0}
+.manna-product-shell{background:#f3f1e9;padding:clamp(35px,5vw,85px) clamp(20px,5vw,95px);color:#203a2c}
+.manna-product-overline{max-width:1320px;margin:0 auto 28px}
+.manna-product-layout{max-width:1320px;margin:auto;display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(25px,5vw,95px);align-items:start}
+.manna-product-gallery-main,.manna-product-gallery-pair figure{margin:0;background:#deddd8}
+.manna-product-gallery-main img{width:100%;height:auto;max-height:680px;aspect-ratio:4/5;object-fit:contain;display:block}
+.manna-product-gallery figcaption{padding:11px 15px;font-size:11px;color:#5a6c60;background:#e4e3dc;letter-spacing:.025em}
+.manna-product-gallery-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.manna-product-gallery-pair img{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;display:block}
+.manna-product-info{padding:20px 0}
+.manna-product-info h1{font-family:var(--serif);font-size:clamp(34px,3.2vw,55px);font-weight:400;line-height:1.45;margin:20px 0;color:#1c3427}
+.manna-product-info h1 em{font-style:normal}
+.manna-product-price{font:45px Georgia,serif;border-top:1px solid #c9d0c6;padding-top:24px;margin:28px 0}
+.manna-product-price small{font:13px sans-serif;color:#758072;vertical-align:middle;margin-left:14px}
+.manna-product-prose{margin:35px 0}
+.manna-product-prose p{font-size:15px;line-height:2.25;color:#45594b;margin:0 0 12px}
+.manna-product-disabled{background:#e8ece5;border:1px solid #ccd7cb;padding:23px;margin-top:31px}
+.manna-product-disabled strong{font-size:13px;font-weight:500}
+.manna-product-disabled p{color:#637266;font-size:12px;line-height:1.9;margin:9px 0 0}
+.manna-product-ethos{margin:31px 0;font-size:12px;color:#5a6a5b}
+.manna-product-descriptive,.manna-size-section{max-width:1320px;margin:70px auto 0;border-top:1px solid #c8d3c7;padding-top:43px}
+.manna-product-descriptive h2,.manna-size-heading h2{font:400 clamp(28px,3vw,40px) var(--serif);margin:0 0 32px}
+.manna-product-specs{display:grid;grid-template-columns:1fr 1fr;column-gap:40px;margin:0}
+.manna-product-specs div{display:grid;grid-template-columns:115px 1fr;gap:14px;padding:19px 0;border-bottom:1px solid #d6ded2}
+.manna-product-specs dt{color:#778377;font-size:12px}
+.manna-product-specs dd{margin:0;font-size:13px;line-height:1.8}
+.manna-size-heading span{font:10px Georgia,serif;letter-spacing:.15em;color:#607466}
+.manna-size-heading h2{margin:9px 0}
+.manna-size-heading p{font-size:12px;color:#7a897b}
+.manna-size-scroll{overflow:auto;max-width:100%;border-radius:6px;margin-top:30px}
+.manna-size-table{border-collapse:collapse;width:100%;min-width:700px;text-align:center;font-size:14px;background:#fffdf8}
+.manna-size-table th,.manna-size-table td{padding:20px 10px;border:1px solid #d9dfd6;white-space:nowrap}
+.manna-size-table thead th{background:#234332;color:#fff;font-weight:400}
+.manna-size-table tbody th{background:#e5ece3;font-weight:400}
+.manna-size-table tbody tr:nth-child(even) td{background:#f4f3ec}
+.manna-size-note{font-size:12px;line-height:1.9;color:#667666;margin:24px 0}
+.manna-back-link{max-width:1320px;margin:70px auto 10px;font-size:13px}
+.manna-back-link a{color:#2c583b}
+@media(max-width:850px){.manna-first-product,.manna-product-layout{grid-template-columns:1fr}.manna-first-photo{min-height:0;padding:40px 28px}.manna-first-photo img{width:min(100%,340px)}.manna-first-copy{padding:33px 28px 45px}.manna-product-specs{grid-template-columns:1fr}.manna-product-info{padding:0}.manna-product-layout{gap:24px}.manna-product-shell{padding-inline:18px}}
