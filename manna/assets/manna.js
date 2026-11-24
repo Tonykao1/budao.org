@@ -1,9 +1,9 @@
 (() => {
   "use strict";
   const samples = [
-    {name:"收纳织物",desc:"从材质、做工与实际用途开始认识一件东西。",link:"/manna/goods/sample-01/"},
-    {name:"日用器皿",desc:"一件日用品，应当经得起日常使用与清楚的品质说明。",link:"/manna/goods/sample-02/"},
-    {name:"书写纸品",desc:"让来源、纸张与制作环节，比促销话语更先被看见。",link:"/manna/goods/sample-03/"}
+    {name:"收纳织物",desc:"收纳与随行。",link:"/manna/goods/sample-01/"},
+    {name:"日用器皿",desc:"日常使用。",link:"/manna/goods/sample-02/"},
+    {name:"书写纸品",desc:"记录与书写。",link:"/manna/goods/sample-03/"}
   ];
   const sampleButtons = Array.from(document.querySelectorAll("[data-sample]"));
   const sampleName = document.getElementById("sample-name");
@@ -21,7 +21,7 @@
       document.getElementById("sample-desc").textContent = sample.desc;
       document.getElementById("sample-link").href = sample.link;
       document.querySelector("#sample-caption small").textContent =
-        "概念样品 " + String(index+1).padStart(2,"0") + " / 非上架商品";
+        "展示样品 · " + String(index+1).padStart(2,"0");
     });
   });
 
@@ -46,12 +46,12 @@
   }
 
   const tasks = [
-    ["选品：对顾客负责","查证来源、品质与用途，先问这件商品是否真的值得推荐。"],
-    ["制作：让技能有价值","工艺与劳动得到适当报酬，不因身份、身体条件或信仰被压低价值。"],
-    ["品控：以诚实守护信任","检查承诺与实物是否一致，发现问题便改正，不将缺陷转嫁给顾客。"],
-    ["整理：在细节里尽责","分拣、包装、记录和内容整理，同样是应被尊重和计酬的劳动。"],
-    ["交付：答应的就认真完成","准确告知运费、时间、运送风险与履约责任，不用夸大承诺催促成交。"],
-    ["售后：交易完成，责任仍在","按照公示规则处理退换货、退款与投诉，让顾客知道谁来负责。"]
+    ["选品","确认商品来源、用途和质量。"],
+    ["制作","制作与工艺工作。"],
+    ["品控","检查品质与商品描述。"],
+    ["整理","分拣、包装和资料整理。"],
+    ["交付","安排发货与物流。"],
+    ["售后","处理退换货和服务问题。"]
   ];
   const workButtons = Array.from(document.querySelectorAll("[data-work]"));
   if (workButtons.length) workButtons.forEach((button) => {
@@ -90,10 +90,10 @@
   const dialog=document.getElementById("purchase-demo");
   if(dialog && typeof dialog.showModal==="function") {
     const stages=[
-      {title:"先认识商品",body:"示例：收纳织物。真正的购买前，你应当看到真实照片、材质、规格、来源和库存。目前这里只是设计样品，没有真实货品。"},
-      {title:"先看清应付什么",body:"演示价 ¥128 不是真实售价。正式交易必须明确商品价格、运费、税费（如适用）、支付币种和总应付金额；不得在最后一步偷偷添加费用。"},
-      {title:"再确认由谁负责",body:"正式商店必须在付款前展示真实经营主体、发货与退换货条件、隐私说明及联系方式。买拿不会拿属灵身份替代法定的售后责任。"},
-      {title:"你可以选择不购买",body:"演示结束。这里不会生成订单、收取货款或保存信息。真实交易系统只有在商户、支付、库存和售后全部验收后才会启用。"}
+      {title:"商品信息",body:"商品名称、实物图片、规格、来源与库存。"},
+      {title:"价格与费用",body:"售价、配送费用及最终应付金额。"},
+      {title:"交付与售后",body:"经营主体、预计交付、退换货与联系方式。"},
+      {title:"自由确认",body:"可以购买，也可以离开。当前仅为流程演示，不产生订单或付款。"}
     ];
     let step=0;
     const content=document.getElementById("demo-content");
@@ -107,7 +107,7 @@
       content.append(title,body);
       stepBadges.forEach((node,i)=>node.classList.toggle("current",i===step));
       back.disabled=step===0;
-      next.textContent=step===stages.length-1?"结束演示":"我理解，继续 →";
+      next.textContent=step===stages.length-1?"完成":"下一步 →";
     };
     document.getElementById("open-purchase-demo")?.addEventListener("click",()=>{step=0;render();dialog.showModal();});
     document.getElementById("demo-close")?.addEventListener("click",()=>dialog.close());
