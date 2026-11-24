@@ -245,7 +245,15 @@
       const Ctor=win.AudioContext||win.webkitAudioContext;
       if(!Ctor){say('当前浏览器不支持声音合成');return;}
       try{
-        if(!context)context=new Ctor({sampleRate:SR});
+        if(!context){
+          context=new Ctor({sampleRate:SR});
+          if(context.addEventListener)context.addEventListener('statechange',()=>{
+            if(context.state!=='running'&&enabled){
+              enabled=false;cancelQueued('audio suspended');stopNow('audio suspended');
+              say('浏览器已暂停音频 · 请点击牧场恢复');refresh();
+            }
+          });
+        }
         await context.resume();
         if(context.state!=='running')throw Error('Suspended');
         enabled=true;settings.desired=true;save();say('已开启，将由音频时钟提前安排整点');refresh();win.setTimeout(queueUpcoming,0);
@@ -265,18 +273,19 @@
       settings.volume=Number(volume.value)/100;
       if(active&&context)active.gain.gain.setTargetAtTime(settings.volume,context.currentTime,.12);
       save();
+      if(enabled&&queued){cancelQueued('volume changed');queueUpcoming();}
     });
     quiet.addEventListener('change',()=>{settings.quiet=quiet.checked;save();cancelQueued('quiet changed');refresh();if(enabled)queueUpcoming();});
     doc.addEventListener('visibilitychange',()=>{
       // Keep scheduled audio in background tabs. Browser sleep can still suspend it.
       if(!doc.hidden){schedule();if(enabled)queueUpcoming();}
     });
-    win.addEventListener('pageshow',schedule);
+    win.addEventListener('pageshow',()=>{schedule();if(enabled)queueUpcoming();});
     win.addEventListener('pagehide',()=>{cancelQueued('pagehide');stopNow('pagehide');});
     doc.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){openPanel(false);toggle.focus();}});
     schedule();say(settings.desired?'已记住开启偏好 · 点击牧场恢复声音':'尚未开启 · 点击「开启整点赞美」');
     return Object.freeze({
-      get state(){return{enabled,volume:settings.volume,quiet:settings.quiet,playing:!!active,nextHour:scheduling};},
+      get state(){return{enabled,desired:settings.desired,volume:settings.volume,quiet:settings.quiet,playing:!!active,queuedHour:queued?.hourMs||null,nextHour:scheduling,contextState:context?.state||'not-started'};},
       disable(){enabled=false;settings.desired=false;save();cancelQueued('disabled');stopNow('disabled');refresh();},
       dispose(){disposed=true;if(timer!==null)win.clearTimeout(timer);cancelQueued('disposed');stopNow('disposed');if(context)context.close();}
     });
