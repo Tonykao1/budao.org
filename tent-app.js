@@ -304,13 +304,14 @@
         return body;
       });
     }).then(function (result) {
-      currentUserEmail = emailForSlot(result.slot);
-      if (!currentUserEmail) throw loginError("invalid_slot", 401);
+      currentUserEmail = String(result.leader || "").trim().toLowerCase();
+      if (!currentUserEmail) throw loginError("unauthorized", 401);
       entryForm.reset();
       loginMessage.textContent = "";
       presence.classList.add("entrance-open");
       presence.classList.remove("route-open", "word-open");
-      loadOwnedRouteForCurrentUser();
+      // Published routes are managed by the shared authenticated editor.
+      // Do not hydrate the obsolete slot-based form after login.
     }).catch(function (error) {
       currentUserEmail = "";
       loginMessage.textContent = loginFailureText(error);
@@ -338,8 +339,9 @@
       const path = choice.getAttribute("data-tent-path");
 
       if (path === "step") {
-        presence.classList.add("route-open");
-        presence.classList.remove("word-open", "path-hover");
+        // The public three-slot projection is not a leader's route library.
+        // Reuse the same stable-ID editor on desktop and mobile.
+        window.location.assign("/mobile-tent.html");
         return;
       }
 

@@ -189,3 +189,15 @@ test("country / province / city produce exactly one canonical uneditable locatio
   assert.equal(location.parseLegacy("中国北京顺义"), null);
   assert.equal(location.parseLegacy("中国 · 北京 · 顺义 · 后沙峪"), null);
 });
+
+test("desktop Tent uses the same authenticated all-owned route editor", () => {
+  const desktop = fs.readFileSync(path.join(__dirname, "..", "tent-app.js"), "utf8");
+  const mobile = fs.readFileSync(path.join(__dirname, "..", "mobile-tent.js"), "utf8");
+  const publishSource = fs.readFileSync(path.join(__dirname, "..", "api/publish-route-v2.js"), "utf8");
+  assert.match(desktop, /window\.location\.assign\("\/mobile-tent\.html"\)/);
+  assert.match(desktop, /currentUserEmail = String\(result\.leader/);
+  assert.doesNotMatch(desktop, /\n\s*loadOwnedRouteForCurrentUser\(\);/);
+  assert.match(mobile, /session\.leader !== leader/);
+  assert.match(mobile, /"X-Budao-Expected-Leader": leader/);
+  assert.match(publishSource, /expectedLeader !== publisher\.username/);
+});

@@ -590,6 +590,12 @@
       payload.routeId = routeId(selectedRoute);
     }
     try {
+      const session = await requestJson("/api/auth/session");
+      if (!session || session.leader !== leader) {
+        const error = new Error("账号已切换，请重新登录并选择线路。");
+        error.status = 401;
+        throw error;
+      }
       const newCover = coverFile.files && coverFile.files[0];
       const newQr = qrFile.files && qrFile.files[0];
       status($("#publishMessage"), "正在保存图片与线路，请保持页面开启…");
@@ -609,7 +615,8 @@
       }
       status($("#publishMessage"), "正在写入步道线路库…");
       const published = await postJson("/api/publish-route-v2", payload, {
-        "X-Budao-Mobile-Tent": "1"
+        "X-Budao-Mobile-Tent": "1",
+        "X-Budao-Expected-Leader": leader
       });
       if (!published || !published.ok || !published.route || !routeId(published.route) ||
           (!published.idempotent && !published.commit)) {

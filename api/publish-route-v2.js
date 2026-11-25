@@ -21,6 +21,10 @@ module.exports = async function handler(request, response) {
 
   const publisher = getAuthenticatedPublisher(request);
   if (!publisher) return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  const expectedLeader = String(request.headers && request.headers["x-budao-expected-leader"] || "").trim();
+  if (expectedLeader && expectedLeader !== publisher.username) {
+    return sendJson(response, 401, { ok: false, reason: "unauthorized" });
+  }
   const environmentError = routeWriteBlockReason(branch);
   if (environmentError) return sendJson(response, 403, { ok: false, reason: environmentError });
   if (!consume("publish:" + publisher.id + ":" + clientIp(request), 10, 60_000)) {
