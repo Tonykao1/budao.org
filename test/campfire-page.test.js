@@ -429,3 +429,28 @@ test("舞彩浅山十张实拍全部入库、原始画幅保留且有技术评�
   assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
   assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
 });
+
+
+test("二十里长山七张实拍完整保留并拥有首页评分", () => {
+  const album = archive.albums.find((item) => item.id === "260328");
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published);
+  assert.equal(album.title, "二十里长山");
+  assert.equal(album.date, "2026-03-28");
+  assert.equal(album.photos.length, 7);
+  for (const [i, photo] of album.photos.entries()) {
+    const imagePath = `/campfire-photos/260328/260328-${String(i + 1).padStart(2, "0")}.webp`;
+    assert.equal(photo.src, imagePath);
+    assert.ok(exists(photo.src), "must store the original uncut image: " + photo.src);
+    const bytes = fs.readFileSync(path.join(root, photo.src.slice(1)));
+    assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+    assert.equal(photo.approved, true);
+    assert.equal(photo.frameMode, "uncropped");
+    assert.equal(photo.frameRatio, "4/3");
+    assert.ok(photo.alt && photo.caption);
+    assert.ok(Number.isInteger(quality.scores[photo.src]), "hero quality missing: " + photo.src);
+  }
+  assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
+});
