@@ -518,7 +518,7 @@ test("雁栖西山勘线7张实拍完整保留，含路线图及昆虫特写", (
   assert.equal(album.photos.length, 7);
   assert.deepEqual(album.photos.map(p => p.frameRatio), ["16/9", "16/9", "9/16", "16/9", "16/9", "16/9", "9/16"]);
   const index = archive.albums.indexOf(album);
-  assert.equal(archive.albums[index + 1].id, "260404");
+  assert.ok(index < archive.albums.findIndex(a => a.id === "260404"), "260420 must precede 260404; allow intervening historical albums");
   for (const [i, photo] of album.photos.entries()) {
     assert.equal(photo.src, "/campfire-photos/260420/260420-" + String(i + 1).padStart(2, "0") + ".webp");
     assert.ok(exists(photo.src));
@@ -545,9 +545,10 @@ test("东华山5张实拍完整保留，与雁栖西山勘线独立归档", () =
   assert.equal(album.date, "2026-04-11");
   assert.equal(album.photos.length, 5);
   const i = archive.albums.indexOf(album);
-  assert.equal(archive.albums[i-1].id, "260420");
-  assert.equal(archive.albums[i-1].photos.length, 7);
-  assert.equal(archive.albums[i+1].id, "260404");
+  const yanqiIndex = archive.albums.findIndex(a => a.id === "260420");
+  const yaoziyuIndex = archive.albums.findIndex(a => a.id === "260404");
+  assert.ok(yanqiIndex >= 0 && yanqiIndex < i && i < yaoziyuIndex);
+  assert.equal(archive.albums[yanqiIndex].photos.length, 7);
   for (const [j, photo] of album.photos.entries()) {
     assert.equal(photo.src, "/campfire-photos/260411/260411-" + String(j+1).padStart(2,"0") + ".webp");
     assert.ok(exists(photo.src));
