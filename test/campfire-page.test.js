@@ -564,3 +564,27 @@ test("东华山5张实拍完整保留，与雁栖西山勘线独立归档", () =
   assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
   assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
 });
+
+
+test("峪口同行3张实拍完整保留，按活动日期独立归档", () => {
+  const album = archive.albums.find(a => a.id === "260418");
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published);
+  assert.equal(album.title, "峪口同行");
+  assert.equal(album.date, "2026-04-18");
+  assert.equal(album.photos.length, 3);
+  assert.deepEqual(album.photos.map(p => p.frameRatio), ["9/16", "9/16", "16/9"]);
+  const i = archive.albums.indexOf(album);
+  assert.ok(archive.albums.findIndex(a => a.id === "260420") < i && i < archive.albums.findIndex(a => a.id === "260411"));
+  for (const [j, photo] of album.photos.entries()) {
+    assert.equal(photo.src, "/campfire-photos/260418/260418-" + String(j+1).padStart(2,"0") + ".webp");
+    assert.ok(exists(photo.src));
+    const bytes = fs.readFileSync(path.join(root, photo.src.slice(1)));
+    assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+    assert.equal(photo.approved, true);
+    assert.equal(photo.frameMode, "uncropped");
+    assert.ok(photo.alt && photo.caption);
+    assert.ok(Number.isInteger(quality.scores[photo.src]));
+  }
+});

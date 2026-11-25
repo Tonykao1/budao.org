@@ -925,6 +925,42 @@
       ]
     },
     {
+      "id": "260418",
+      "date": "2026-04-18",
+      "title": "峪口同行",
+      "location": "峪口",
+      "description": "四月的峪口，山脊之间新绿渐深。同行者走过碎石小径，也穿过萌芽的林间草地；驻足俯身，还能看见松针间微小的生命。三张影像，留下这一次春日同行。",
+      "published": true,
+      "publishedOn": "2026-11-26",
+      "editorialNote": "用户提供2026-04-18峪口同行3张实拍，按提交顺序完整收录；不推断实际拍摄时序及昆虫具体种属。WebP保留原始画幅并清除EXIF；frameMode=uncropped。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260418/260418-01.webp",
+          "alt": "群山与新绿林木之间，几位同行者沿着碎石山脊小径行走",
+          "caption": "青山之间，同行的脚步",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260418/260418-02.webp",
+          "alt": "几位同行者沿着草地小径走来，身旁是春日萌芽的树木",
+          "caption": "穿过春日的林间小路",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260418/260418-03.webp",
+          "alt": "石块与落下的松针之间，一条浅色昆虫幼虫的近景",
+          "caption": "俯身看见微小的生命",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        }
+      ]
+    },
+    {
       "id": "260411",
       "date": "2026-04-11",
       "title": "东华山",
