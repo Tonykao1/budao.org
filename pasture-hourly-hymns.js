@@ -31,6 +31,15 @@
     d.setHours(d.getHours()+1);
     return d;
   }
+  // The next half-hour boundary, in the visitor's local time zone.
+  function nextLocalSlot(date) {
+    const d=new Date(date.getTime());
+    if(d.getMinutes()<30){d.setMinutes(30,0,0);return d;}
+    d.setMinutes(0,0,0);d.setHours(d.getHours()+1);return d;
+  }
+  function slotKind(d){return d.getMinutes()===30?'half':'hour';}
+  function slotClock(d){return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+  function slotIndex(d){return d.getHours()%12;}
   function normalizeSettings(obj) {
     const a = obj && typeof obj === 'object' ? obj : {};
     return {volume:Number.isFinite(Number(a.volume)) ? Math.max(0,Math.min(1,Number(a.volume))) : .32,
@@ -91,6 +100,12 @@
     }
     if(!totalNotes)throw Error('Empty hymn');
     for(let n=0;n<buffer.length;n++) buffer[n]=Math.tanh(buffer[n]*1.45);
+    // Approved Volume II masters were peak-normalised to 0.40, without any added instrument.
+    // Preserve the established unnormalised Volume I renderer exactly as before.
+    if(song.masterPeak){
+      let peak=0;for(let i=0;i<buffer.length;i++)peak=Math.max(peak,Math.abs(buffer[i]));
+      if(peak>0){const gain=song.masterPeak/peak;for(let i=0;i<buffer.length;i++)buffer[i]*=gain;}
+    }
     const audio=ctx.createBuffer(1,buffer.length,SR);
     audio.copyToChannel(buffer,0);
     return audio;
@@ -99,7 +114,12 @@
     const cfg=options||{};
     const win=cfg.window||window, doc=cfg.document||document;
     const scores=cfg.scores||win.BudaoPastureHymnScores;
-    if(!Array.isArray(scores)||scores.length!==12)throw Error('Expected twelve validated source hymns');
+    const halfScores=cfg.halfScores||win.BudaoPastureHalfHourScores;
+    if(!Array.isArray(scores)||scores.length!==12)throw Error('Expected twelve validated hourly hymns');
+    if(!Array.isArray(halfScores)||halfScores.length!==12||halfScores.some((s,i)=>s.number!==i+13||s.parts?.length!==4))
+      throw Error('Expected twelve approved half-hour SATB hymns');
+    const songAt=d=>(slotKind(d)==='half'?halfScores:scores)[slotIndex(d)];
+    const cacheKey=d=>slotKind(d)+':'+slotIndex(d);
     const area=doc.getElementById('pastureHymnControl');
     if(!area)throw Error('Missing hourly hymn controls');
     const toggle=area.querySelector('[data-hourly-toggle]');
@@ -114,17 +134,16 @@
     let settings;
     try{settings=normalizeSettings(JSON.parse(win.localStorage.getItem(STORAGE)));}catch(_){settings=normalizeSettings(null);}
     let context=null,enabled=false,active=null,queued=null,prepared=null,scheduling=null;
-    let lastHour=null,timer=null,busy=false,disposed=false;
+    let lastSlot=null,timer=null,busy=false,disposed=false;
     const say=t=>{status.textContent=t;};
     function save(){try{win.localStorage.setItem(STORAGE,JSON.stringify(settings));}catch(_){}}
     function emit(kind,detail){
       try{win.dispatchEvent(new CustomEvent('budao:hourly-hymn:'+kind,{detail}));}catch(_){}
     }
     function refresh(){
-      const date=nextLocalHour(new Date());
-      const score=scores[songIndex(date)];
-      next.textContent=String(date.getHours()).padStart(2,'0')+':00 · '+score.zh+(settings.quiet&&isQuietHour(date)?'（静默）':'');
-      arm.textContent=enabled?'关闭整点赞美':'开启整点赞美';
+      const date=nextLocalSlot(new Date()),score=songAt(date);
+      next.textContent=slotClock(date)+' · '+score.zh+(settings.quiet&&isQuietHour(date)?'（静默）':'');
+      arm.textContent=enabled?'关闭时辰赞美':'开启时辰赞美';
       toggle.setAttribute('aria-label',enabled?'时辰赞美，已开启':'时辰赞美，未开启');
       toggle.dataset.hourlyEnabled=String(enabled);
       toggle.dataset.hourlyWanted=String(settings.desired);
@@ -138,29 +157,29 @@
       try{old.source.stop();old.source.disconnect();old.gain.disconnect();}catch(_){}
       stop.hidden=true;
       emit('stop',{reason,index:old.index});
-      if(enabled)say('等待下一个整点');
+      if(enabled)say('等待下一次整点或半点');
     }
     function cancelQueued(reason){
       if(!queued)return;
       const old=queued;queued=null;
       try{old.source.stop();old.source.disconnect();old.gain.disconnect();}catch(_){}
-      if(lastHour===old.hourMs&&Date.now()<old.hourMs)lastHour=null;
-      emit('cancel',{reason,hour:old.hourMs});
+      if(lastSlot===old.slotMs&&Date.now()<old.slotMs)lastSlot=null;
+      emit('cancel',{reason,hour:old.slotMs});
     }
     function queueUpcoming(){
       if(!enabled||disposed||!context||context.state!=='running')return;
-      const hour=nextLocalHour(new Date()),hourMs=hour.getTime();
-      if(queued?.hourMs===hourMs)return;
-      if(queued&&queued.hourMs<=Date.now()){active=queued;queued=null;}
+      const slot=nextLocalSlot(new Date()),slotMs=slot.getTime();
+      if(queued?.slotMs===slotMs)return;
+      if(queued&&queued.slotMs<=Date.now()){active=queued;queued=null;}
       if(queued)cancelQueued('reschedule');
-      if(settings.quiet&&isQuietHour(hour))return;
-      const index=songIndex(hour),song=scores[index];
+      if(settings.quiet&&isQuietHour(slot))return;
+      const index=slotIndex(slot),song=songAt(slot),key=cacheKey(slot);
       let buffer;
-      try{buffer=prepared?.index===index?prepared.buffer:renderOnePass(context,song);}
+      try{buffer=prepared?.key===key?prepared.buffer:renderOnePass(context,song);}
       catch(_){say('下一首音乐准备失败，请点击试听检查');return;}
       prepared=null;
       const duration=cycleSeconds(song)*song.stanzas;
-      const when=audioStartAt(context.currentTime,Date.now(),hourMs);
+      const when=audioStartAt(context.currentTime,Date.now(),slotMs);
       try{
         const source=context.createBufferSource(),gain=context.createGain();
         source.buffer=buffer;source.loop=true;source.connect(gain);gain.connect(context.destination);
@@ -169,57 +188,57 @@
         gain.gain.setValueAtTime(settings.volume,when+Math.max(2,duration-2));
         gain.gain.linearRampToValueAtTime(0,when+duration);
         source.start(when);source.stop(when+duration);
-        const item={hourMs,source,gain,index,duration};
-        queued=item;lastHour=hourMs;
+        const item={slotMs,source,gain,index,key,duration,kind:slotKind(slot)};
+        queued=item;lastSlot=slotMs;
         source.onended=()=>{
           if(queued?.source===source)queued=null;
-          if(active?.source===source){active=null;stop.hidden=true;say('本小时赞美结束，等待下一次整点');}
+          if(active?.source===source){active=null;stop.hidden=true;say('本次赞美结束，等待下一次整点或半点');}
           try{source.disconnect();gain.disconnect();}catch(_){}
         };
-        say('已提前排程 '+String(hour.getHours()).padStart(2,'0')+':00 · '+song.zh);
-        emit('queued',{index,hour:hourMs,duration});
-      }catch(_){say('无法安排整点音频，请点击重新开启');}
+        say('已提前排程 '+slotClock(slot)+' · '+song.zh);
+        emit('queued',{index,kind:slotKind(slot),hour:slotMs,slot:slotMs,duration});
+      }catch(_){say('无法安排时辰音频，请点击重新开启');}
     }
     function schedule(){
       if(timer!==null){win.clearTimeout(timer);timer=null;}
       if(disposed)return;
-      const now=new Date(),hour=nextLocalHour(now);
-      scheduling=hour.getTime();
+      const now=new Date(),slot=nextLocalSlot(now);
+      scheduling=slot.getTime();
       timer=win.setTimeout(()=>{
         timer=null;
-        const current=scheduling;
-        if(queued?.hourMs===current){
+        const current=scheduling,at=new Date(current);
+        if(queued?.slotMs===current){
           const item=queued;queued=null;active=item;
-          stop.hidden=false;say('整点：'+scores[item.index].zh+' · '+scores[item.index].stanzas+'节');
-          emit('start',{index:item.index,title:scores[item.index].zh,duration:item.duration});
-        }else if(lastHour!==current&&isAcceptableClockTick(Date.now(),current)){
-          playHour(new Date(current),false);
-        }else if(lastHour!==current&&enabled)say('浏览器暂停后台计时，本次整点可能错过');
+          stop.hidden=false;say((item.kind==='half'?'半点：':'整点：')+songAt(at).zh+' · '+songAt(at).stanzas+'节');
+          emit('start',{index:item.index,kind:item.kind,title:songAt(at).zh,duration:item.duration});
+        }else if(lastSlot!==current&&isAcceptableClockTick(Date.now(),current)){
+          playHour(at,false);
+        }else if(lastSlot!==current&&enabled)say('浏览器暂停后台计时，本次赞美可能错过');
         schedule();
         win.setTimeout(queueUpcoming,10);
-      },Math.max(50,hour.getTime()-now.getTime()));
+      },Math.max(50,slot.getTime()-now.getTime()));
       refresh();
     }
     function prepareUpcoming(){
       if(!enabled||disposed||busy||!context)return;
-      const index=songIndex(nextLocalHour(new Date()));
-      if(prepared?.index===index)return;
+      const date=nextLocalSlot(new Date()),key=cacheKey(date);
+      if(prepared?.key===key)return;
       busy=true;
-      try{prepared={index,buffer:renderOnePass(context,scores[index])};}
+      try{prepared={key,buffer:renderOnePass(context,songAt(date))};}
       catch(_){prepared=null;say('音乐准备失败，请重新开启');}
       finally{busy=false;}
     }
     function playHour(hour,manual){
       if(!enabled||disposed||!context)return;
       if(!manual&&settings.quiet&&isQuietHour(hour))return;
-      if(!manual&&lastHour===hour.getTime())return;
-      if(!manual)lastHour=hour.getTime();
+      if(!manual&&lastSlot===hour.getTime())return;
+      if(!manual)lastSlot=hour.getTime();
       if(context.state!=='running'){
         enabled=false;cancelQueued('suspended');stopNow('suspended');say('浏览器已暂停声音，请点击牧场恢复');refresh();return;
       }
-      const index=songIndex(hour),song=scores[index];
+      const index=slotIndex(hour),song=songAt(hour),key=cacheKey(hour);
       let buffer;
-      try{buffer=prepared?.index===index?prepared.buffer:renderOnePass(context,song);}
+      try{buffer=prepared?.key===key?prepared.buffer:renderOnePass(context,song);}
       catch(_){say('无法解析音乐数据，请稍后重试');return;}
       prepared=null;
       stopNow('next-song');
@@ -231,14 +250,14 @@
       gain.gain.setValueAtTime(settings.volume,at+Math.max(2,duration-2));
       gain.gain.linearRampToValueAtTime(0,at+duration);
       source.start(at);source.stop(at+duration);
-      active={source,gain,index};
+      active={source,gain,index,key};
       source.onended=()=>{
-        if(active?.source===source){active=null;stop.hidden=true;emit('stop',{reason:'ended',index});say('等待下一个整点');}
+        if(active?.source===source){active=null;stop.hidden=true;emit('stop',{reason:'ended',index,kind:slotKind(hour)});say('等待下一次整点或半点');}
         try{source.disconnect();gain.disconnect();}catch(_){}
       };
       stop.hidden=false;
-      say((manual?'试听：':'整点：')+song.zh+' · '+song.stanzas+'节');
-      emit('start',{index,title:song.zh,duration});
+      say((manual?'试听：':slotKind(hour)==='half'?'半点：':'整点：')+song.zh+' · '+song.stanzas+'节');
+      emit('start',{index,kind:slotKind(hour),title:song.zh,duration});
     }
     async function enable(){
       if(enabled){enabled=false;settings.desired=false;save();cancelQueued('disabled');stopNow('disabled');say('已关闭，点击可重新开启');refresh();return;}
@@ -256,13 +275,13 @@
         }
         await context.resume();
         if(context.state!=='running')throw Error('Suspended');
-        enabled=true;settings.desired=true;save();say('已开启，将由音频时钟提前安排整点');refresh();win.setTimeout(queueUpcoming,0);
+        enabled=true;settings.desired=true;save();say('已开启，将由音频时钟提前安排整点与半点');refresh();win.setTimeout(queueUpcoming,0);
       }catch(_){enabled=false;say('浏览器禁止自动播放，请再次点击开启');}
     }
     function openPanel(value){panel.hidden=!value;toggle.setAttribute('aria-expanded',String(value));if(value)refresh();}
     toggle.addEventListener('click',()=>openPanel(panel.hidden));
     arm.addEventListener('click',enable);
-    preview.addEventListener('click',async()=>{if(!enabled)await enable();if(enabled)playHour(new Date(),true);});
+    preview.addEventListener('click',async()=>{if(!enabled)await enable();if(enabled)playHour(nextLocalSlot(new Date()),true);});
     stop.addEventListener('click',()=>stopNow('user'));
     const restoreOnGesture=e=>{if(settings.desired&&!enabled&&!disposed&&(!e||!area.contains(e.target)))enable();};
     doc.addEventListener('pointerdown',restoreOnGesture,{passive:true});
@@ -285,12 +304,12 @@
     doc.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){openPanel(false);toggle.focus();}});
     schedule();say(settings.desired?'已记住开启偏好 · 点击牧场恢复声音':'尚未开启 · 点击「开启整点赞美」');
     return Object.freeze({
-      get state(){return{enabled,desired:settings.desired,volume:settings.volume,quiet:settings.quiet,playing:!!active,queuedHour:queued?.hourMs||null,nextHour:scheduling,contextState:context?.state||'not-started'};},
+      get state(){return{enabled,desired:settings.desired,volume:settings.volume,quiet:settings.quiet,playing:!!active,queuedHour:queued?.slotMs||null,queuedSlot:queued?.slotMs||null,nextHour:scheduling,nextSlot:scheduling,contextState:context?.state||'not-started'};},
       disable(){enabled=false;settings.desired=false;save();cancelQueued('disabled');stopNow('disabled');refresh();},
       dispose(){disposed=true;if(timer!==null)win.clearTimeout(timer);cancelQueued('disposed');stopNow('disposed');if(context)context.close();}
     });
   }
-  return Object.freeze({songIndex,isQuietHour,isAcceptableClockTick,audioStartAt,nextLocalHour,normalizeSettings,decodeVoice,cycleSeconds,renderOnePass,init});
+  return Object.freeze({songIndex,slotIndex,slotKind,slotClock,isQuietHour,isAcceptableClockTick,audioStartAt,nextLocalHour,nextLocalSlot,normalizeSettings,decodeVoice,cycleSeconds,renderOnePass,init});
 });
 if(typeof window!=='undefined'&&typeof document!=='undefined'){
   window.addEventListener('DOMContentLoaded',()=>{

@@ -89,11 +89,11 @@
   </button>
   <div id="pastureHymnPanel" class="hourly-hymn-panel" data-hourly-panel hidden>
     <div class="hourly-hymn-title">时辰赞美</div>
-    <div class="hourly-hymn-sub">每逢整点 · 十二首SID圣诗轮值</div>
+    <div class="hourly-hymn-sub">每逢整点与半点 · 两辑24首SID圣诗轮值</div>
     <p class="hourly-hymn-next">下一次：<strong data-hourly-next></strong></p>
     <div class="hourly-hymn-controlrow">
-      <button type="button" data-hourly-arm>开启整点赞美</button>
-      <button type="button" data-hourly-preview>试听当前赞美</button>
+      <button type="button" data-hourly-arm>开启时辰赞美</button>
+      <button type="button" data-hourly-preview>试听下一首赞美</button>
       <button type="button" data-hourly-stop hidden>停止</button>
     </div>
     <div class="hourly-hymn-controlrow"><label for="pastureHymnVolume">音量</label><input id="pastureHymnVolume" data-hourly-volume type="range" min="0" max="100" value="32" aria-label="赞美诗音量"></div>
@@ -104,6 +104,7 @@
 </section>
 <script src="/pasture-hourly-scores.js"></script>
 <script src="/pasture-hourly-last-score.js"></script>
+<script src="/pasture-half-hour-scores.js"></script>
 <script src="/pasture-hourly-hymns.js"></script>
 </body>
 </html>

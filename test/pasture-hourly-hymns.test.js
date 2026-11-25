@@ -4,9 +4,10 @@ const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.join(__dirname,'..');
 const hourly=require(path.join(root,'pasture-hourly-hymns.js'));
 const scope={window:{}};
-for(const name of ['pasture-hourly-scores.js','pasture-hourly-last-score.js'])
+for(const name of ['pasture-hourly-scores.js','pasture-hourly-last-score.js','pasture-half-hour-scores.js'])
   vm.runInNewContext(fs.readFileSync(path.join(root,name),'utf8'),scope,{filename:name});
 const songs=scope.window.BudaoPastureHymnScores;
+const halfSongs=scope.window.BudaoPastureHalfHourScores;
 const counts=[127,219,194,197,188,337,240,292,245,270,163,257];
 
 test('exact 12 hymn set and twice-daily 12-hour rotation',()=>{
@@ -78,7 +79,9 @@ test('both pasture entrypoints link independent sound panel without changing cor
     assert.match(h,/data-hourly-arm/);
     assert.match(h,/pasture-hourly-hymns.css/);
     assert.ok(h.indexOf('pasture-hourly-scores.js')<h.indexOf('pasture-hourly-last-score.js'));
-    assert.ok(h.indexOf('pasture-hourly-last-score.js')<h.indexOf('pasture-hourly-hymns.js'));
+    assert.ok(h.indexOf('pasture-hourly-last-score.js')<h.indexOf('pasture-half-hour-scores.js'));
+    assert.ok(h.indexOf('pasture-half-hour-scores.js')<h.indexOf('pasture-hourly-hymns.js'));
+    assert.match(h,/每逢整点与半点/);
     assert.match(h,/id="pastureCore"/);
   }
 });
@@ -117,7 +120,7 @@ test('enabled hourly playback is queued on the audio clock while the tab is hidd
     addEventListener(){},dispatchEvent(){},
     setTimeout(fn,delay){jobs.push({fn,delay});return jobs.length;},
     clearTimeout(){}};
-  const engine=hourly.init({window:win,document:doc,scores:songs});
+  const engine=hourly.init({window:win,document:doc,scores:songs,halfScores:halfSongs});
   await listeners['arm:click']();
   for(const j of jobs.filter(j=>j.delay===0))j.fn();
   assert.equal(engine.state.enabled,true);
@@ -127,4 +130,47 @@ test('enabled hourly playback is queued on the audio clock while the tab is hidd
   assert.ok(createdSources[0].startAt>5);
   assert.ok(createdSources[0].stopAt>createdSources[0].startAt);
   engine.dispose();
+});
+
+// Volume II: 12 user-approved tracks at every local HH:30. Never replace Vol I.
+test('every local half-hour is next slot and hourly rotation remains untouched',()=>{
+  const tests=[
+    [new Date(2026,10,25,0,1),0,30],
+    [new Date(2026,10,25,11,29,59),11,30],
+    [new Date(2026,10,25,11,30),12,0],
+    [new Date(2026,10,25,23,59),0,0]
+  ];
+  tests.forEach(([input,h,m])=>{const slot=hourly.nextLocalSlot(input);assert.equal(slot.getHours(),h);assert.equal(slot.getMinutes(),m);assert.equal(slot.getSeconds(),0);});
+  for(let h=0;h<24;h++){
+    const hour=new Date(2026,10,25,h,0),half=new Date(2026,10,25,h,30);
+    assert.equal(hourly.slotKind(hour),'hour');assert.equal(hourly.slotKind(half),'half');
+    assert.equal(hourly.slotIndex(hour),h%12);assert.equal(hourly.slotIndex(half),h%12);
+    assert.equal(hourly.songIndex(hour),h%12);
+  }
+});
+test('exactly twelve approved Volume II SATB hymn scores with correct tune names',()=>{
+  assert.equal(halfSongs.length,12);
+  assert.deepEqual(Array.from(halfSongs,s=>s.number),Array.from({length:12},(_,i)=>i+13));
+  assert.deepEqual(Array.from(halfSongs,s=>s.tune),['OLD 100TH','LOBE DEN HERREN','PASSION CHORALE','NUN DANKET','HAMBURG','ST. ANNE','CORONATION','EASTER HYMN','HYFRYDOL','SAGINA','DIADEMATA','AURELIA']);
+  halfSongs.forEach(s=>{
+    assert.equal(s.stanzas,1);
+    assert.equal(s.scoreType,'SATB');
+    assert.equal(s.parts.length,4);
+    assert.equal(s.masterPeak,.4);
+    assert.ok(s.source.length>20);
+    let n=0;
+    for(const part of s.parts){const events=hourly.decodeVoice(part);n+=events.length;assert.ok(events.length>=12);assert.ok(events.every(e=>e.tick+e.duration<=s.cycleTicks));}
+    assert.ok(n>=90,s.en);
+    assert.ok(hourly.cycleSeconds(s)>15&&hourly.cycleSeconds(s)<75,s.en);
+  });
+});
+test('half-hour SID timbre is identical to existing waveforms and capped to approved peak',()=>{
+  let samples;
+  const audio=hourly.renderOnePass({createBuffer:(n,length,sr)=>({n,length,sr,copyToChannel(a){samples=a}})},halfSongs[0]);
+  assert.equal(audio.sr,32000);
+  assert.ok(samples.some(v=>v!==0));
+  assert.ok(samples.every(Number.isFinite));
+  assert.ok(Math.abs(Math.max(...samples.slice(0,10000).map(Math.abs)))<=.401);
+  let peak=0;for(const sample of samples)peak=Math.max(peak,Math.abs(sample));
+  assert.ok(peak>=.399&&peak<=.401,'the approved 0.40 mastering target');
 });
