@@ -465,7 +465,7 @@ test("鹞子峪勘线11张实拍完整保留、画幅和技术评分正确", () 
   assert.equal(album.photos.length, 11);
   assert.deepEqual(album.photos.map(p => p.frameRatio), ["9/16", "16/9", "16/9", "16/9", "9/16", "16/9", "16/9", "16/9", "9/16", "9/16", "16/9"]);
   const index = archive.albums.indexOf(album);
-  assert.equal(archive.albums[index + 1].id, "260328");
+  assert.ok(archive.albums.findIndex(item => item.id === "260328") > index);
   for (const [i, photo] of album.photos.entries()) {
     assert.equal(photo.src, "/campfire-photos/260330/260330-" + String(i + 1).padStart(2, "0") + ".webp");
     assert.ok(exists(photo.src));
@@ -490,8 +490,8 @@ test("鹞子峪6张实拍完整保留，并与勘线独立归档", () => {
   assert.equal(album.date, "2026-04-04");
   assert.equal(album.photos.length, 6);
   const index = archive.albums.indexOf(album);
-  assert.equal(archive.albums[index + 1].id, "260330");
-  assert.equal(archive.albums[index + 1].photos.length, 11);
+  assert.ok(archive.albums.findIndex(item => item.id === "260330") > index);
+  assert.equal(archive.albums.find(item => item.id === "260330").photos.length, 11);
   for (const [i, photo] of album.photos.entries()) {
     assert.equal(photo.src, "/campfire-photos/260404/260404-" + String(i + 1).padStart(2, "0") + ".webp");
     assert.ok(exists(photo.src));
@@ -518,7 +518,7 @@ test("雁栖西山勘线7张实拍完整保留，含路线图及昆虫特写", (
   assert.equal(album.photos.length, 7);
   assert.deepEqual(album.photos.map(p => p.frameRatio), ["16/9", "16/9", "9/16", "16/9", "16/9", "16/9", "9/16"]);
   const index = archive.albums.indexOf(album);
-  assert.equal(archive.albums[index + 1].id, "260404");
+  assert.ok(archive.albums.findIndex(item => item.id === "260404") > index);
   for (const [i, photo] of album.photos.entries()) {
     assert.equal(photo.src, "/campfire-photos/260420/260420-" + String(i + 1).padStart(2, "0") + ".webp");
     assert.ok(exists(photo.src));
@@ -545,8 +545,8 @@ test("东华山5张实拍完整保留并按活动日期独立归档", () => {
   assert.equal(album.date, "2026-04-11");
   assert.equal(album.photos.length, 5);
   const index = archive.albums.indexOf(album);
-  assert.equal(archive.albums[index - 1].id, "260420");
-  assert.equal(archive.albums[index + 1].id, "260404");
+  assert.ok(archive.albums.findIndex(item => item.id === "260420") >= 0 && archive.albums.findIndex(item => item.id === "260420") < index);
+  assert.ok(archive.albums.findIndex(item => item.id === "260404") > index);
   for (const [i, photo] of album.photos.entries()) {
     assert.equal(photo.src, "/campfire-photos/260411/260411-" + String(i + 1).padStart(2, "0") + ".webp");
     assert.ok(exists(photo.src));
@@ -559,4 +559,11 @@ test("东华山5张实拍完整保留并按活动日期独立归档", () => {
     assert.ok(photo.alt && photo.caption);
     assert.ok(Number.isInteger(quality.scores[photo.src]));
   }
+});
+
+
+test("historical campfire albums remain in descending activity-date order", () => {
+  const dates = archive.albums.map(item => item.date);
+  assert.deepEqual(dates, [...dates].sort().reverse());
+  assert.equal(new Set(archive.albums.map(item => item.id)).size, archive.albums.length);
 });
