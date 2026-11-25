@@ -857,6 +857,106 @@
       "publishedOn": "2026-11-10"
     },
     {
+      "id": "260330",
+      "date": "2026-03-30",
+      "title": "鹞子峪勘线",
+      "location": "鹞子峪",
+      "description": "三月的鹞子峪，山花沿着古老的城墙悄然开放。由山谷望向远山，从砖石拱门望见春光；一湾碧水、层层山脊与山间村落，留在这次勘线的记忆中。",
+      "published": true,
+      "publishedOn": "2026-11-25",
+      "editorialNote": "用户提供2026-03-30鹞子峪勘线11张实拍，按提交顺序收录，不推断实际拍摄时序。WebP保留完整原始16:9或9:16构图，清除EXIF；frameMode=uncropped。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260330/260330-01.webp",
+          "alt": "山谷间弯曲的青绿色水面，远近山坡遍布浅色春花，近处花枝映着天空",
+          "caption": "山花深处，一湾碧水",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-02.webp",
+          "alt": "春花枝条间望见起伏的山脊与山顶敌楼，天空湛蓝",
+          "caption": "春山与古城",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-03.webp",
+          "alt": "古长城敌楼的砖石拱门及沿山脊延伸的城墙，近处山花开放",
+          "caption": "古墙旁的春意",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-04.webp",
+          "alt": "碎石铺就的长城沿山脊蜿蜒，远处有行人，两侧山坡开着春花",
+          "caption": "山脊上的长城",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-05.webp",
+          "alt": "蓝天下古城墙沿山坡起伏，墙外春花点缀山谷",
+          "caption": "古城与山花",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-06.webp",
+          "alt": "俯瞰山谷村落与远处山峰，近处有松林和山花",
+          "caption": "山谷间的人家",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-07.webp",
+          "alt": "仰望古城敌楼砖墙上的拱门，右上角阳光照入画面",
+          "caption": "光照古老的砖石",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-08.webp",
+          "alt": "残存敌楼内部的砖石拱券和碎石地面，上方露出蓝天",
+          "caption": "岁月留下的拱门",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-09.webp",
+          "alt": "从砖石拱门内眺望远山、松林及开花的山坡",
+          "caption": "一窗春山",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-10.webp",
+          "alt": "山脊上的窄石路通往残存的敌楼，路两旁有春花与松树",
+          "caption": "山脊间的古道",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260330/260330-11.webp",
+          "alt": "疏朗的树木与山间土路，远处山脊可见长城敌楼",
+          "caption": "山脚下的春日小径",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        }
+      ]
+    },
+    {
       "id": "260328",
       "date": "2026-03-28",
       "title": "二十里长山",
