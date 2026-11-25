@@ -925,6 +925,58 @@
       ]
     },
     {
+      "id": "260411",
+      "date": "2026-04-11",
+      "title": "东华山",
+      "location": "东华山",
+      "description": "四月的东华山，浅色岩石间透出新绿，晴空之下山脊向远方延伸。同行者沿崎岖的山路一步一步前行，在高低起伏之间留下共同走过的记忆。",
+      "published": true,
+      "publishedOn": "2026-11-25",
+      "editorialNote": "用户提供2026-04-11东华山5张实拍，按提交顺序收录，不推断实际拍摄时序。WebP保持1152×2048原始完整构图并清除EXIF；frameMode=uncropped。技术评分由图像亮度、对比度与清晰度启发式计算。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260411/260411-01.webp",
+          "alt": "晴空下几位行者沿岩石与灌木交错的山坡行走，近处是背着背包的同行者",
+          "caption": "晴空下的山坡",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260411/260411-02.webp",
+          "alt": "行者分布在浅色岩石和绿灌木之间，背后是湛蓝天空",
+          "caption": "山坡上的同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260411/260411-03.webp",
+          "alt": "几位行者沿浅色岩石构成的山脊行进，远处是平原与树林",
+          "caption": "穿过山脊的脚步",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260411/260411-04.webp",
+          "alt": "几位行者在山坡小径旁前行，背后可见起伏的山坡与岩层",
+          "caption": "循着山路前行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260411/260411-05.webp",
+          "alt": "几位同行者沿岩石小径向上行走，远处山顶有观景平台",
+          "caption": "一步一步走向高处",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        }
+      ]
+    },
+    {
       "id": "260404",
       "date": "2026-04-04",
       "title": "鹞子峪",
