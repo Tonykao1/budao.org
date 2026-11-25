@@ -238,6 +238,16 @@
     "type": "budao",
     "source": "tent",
     "slot": "",
+    "routeId": "budao-leader-leo-2026-11-28-ecf36d5abbec",
+    "title": "京味胡同City walk",
+    "status": "scheduled",
+    "cancelCode": ""
+  },
+  {
+    "date": "2026-11-28",
+    "type": "budao",
+    "source": "tent",
+    "slot": "",
     "routeId": "budao-leader-tony-2026-11-28-8fb6f40d96dd",
     "title": "花博园午间漫步",
     "status": "scheduled",
