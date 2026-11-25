@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "items": [
     {
+      "id": "pasture-hourly-praise-2026-11-25",
+      "type": "milestone",
+      "title": "数字牧场 · 时辰赞美正式开启",
+      "description": "24首经典圣诗，整点与半点，昼夜相续。让赞美成为生活的节律。",
+      "url": "/tonglu.html",
+      "icon": "♫",
+      "published": true
+    },
+    {
       "id": "home-languages-2026-11-es-ko",
       "title": "步道国际版 · 新语种上线",
       "description": "Español · 한국어，现已加入步道首页",
