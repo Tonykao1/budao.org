@@ -518,7 +518,7 @@ test("雁栖西山勘线7张实拍完整保留，含路线图及昆虫特写", (
   assert.equal(album.photos.length, 7);
   assert.deepEqual(album.photos.map(p => p.frameRatio), ["16/9", "16/9", "9/16", "16/9", "16/9", "16/9", "9/16"]);
   const index = archive.albums.indexOf(album);
-  assert.equal(archive.albums[index + 1].id, "260404");
+  assert.ok(index < archive.albums.findIndex(a => a.id === "260404"), "260420 must precede 260404; allow intervening historical albums");
   for (const [i, photo] of album.photos.entries()) {
     assert.equal(photo.src, "/campfire-photos/260420/260420-" + String(i + 1).padStart(2, "0") + ".webp");
     assert.ok(exists(photo.src));
@@ -532,6 +532,35 @@ test("雁栖西山勘线7张实拍完整保留，含路线图及昆虫特写", (
   }
   assert.match(album.photos[2].alt, /总平面图/);
   assert.match(album.photos[6].alt, /昆虫幼虫/);
+  assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
+});
+
+
+test("东华山5张实拍完整保留，与雁栖西山勘线独立归档", () => {
+  const album = archive.albums.find(a => a.id === "260411");
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published);
+  assert.equal(album.title, "东华山");
+  assert.equal(album.date, "2026-04-11");
+  assert.equal(album.photos.length, 5);
+  const i = archive.albums.indexOf(album);
+  const yanqiIndex = archive.albums.findIndex(a => a.id === "260420");
+  const yaoziyuIndex = archive.albums.findIndex(a => a.id === "260404");
+  assert.ok(yanqiIndex >= 0 && yanqiIndex < i && i < yaoziyuIndex);
+  assert.equal(archive.albums[yanqiIndex].photos.length, 7);
+  for (const [j, photo] of album.photos.entries()) {
+    assert.equal(photo.src, "/campfire-photos/260411/260411-" + String(j+1).padStart(2,"0") + ".webp");
+    assert.ok(exists(photo.src));
+    const bytes = fs.readFileSync(path.join(root, photo.src.slice(1)));
+    assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+    assert.equal(photo.approved, true);
+    assert.equal(photo.frameMode, "uncropped");
+    assert.equal(photo.frameRatio, "9/16");
+    assert.ok(photo.alt && photo.caption);
+    assert.ok(Number.isInteger(quality.scores[photo.src]));
+  }
   assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
   assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
 });
