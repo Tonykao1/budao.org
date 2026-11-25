@@ -112,7 +112,7 @@ test('enabled hourly playback is queued on the audio clock while the tab is hidd
     createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},
       setTargetAtTime(){}},connect(){},disconnect(){}};}
   }
-  const win={AudioContext:FakeAudio,localStorage:{getItem:()=>null,setItem(){}},
+  // This test exercises background scheduling independent of real-world quiet hours.\n   const win={AudioContext:FakeAudio,localStorage:{getItem:()=>JSON.stringify({quiet:false}),setItem(){}},
     addEventListener(){},dispatchEvent(){},
     setTimeout(fn,delay){jobs.push({fn,delay});return jobs.length;},
     clearTimeout(){}};
