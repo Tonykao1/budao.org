@@ -857,6 +857,66 @@
       "publishedOn": "2026-11-10"
     },
     {
+      "id": "260404",
+      "date": "2026-04-04",
+      "title": "鹞子峪",
+      "location": "鹞子峪",
+      "description": "四月的鹞子峪，春花点缀山间，古老的城墙在晴空下沿山脊延伸。行者沿着崎岖的石路前行，在敌楼旁驻足，在山坡上相遇。那些一步一步走过的路，留下了同行的记忆。",
+      "published": true,
+      "publishedOn": "2026-11-25",
+      "editorialNote": "用户提供2026-04-04鹞子峪6张实拍，按提交顺序收录，不推断实际拍摄时序及人员身份或数量。WebP保留原始1152×2048完整构图并清除EXIF；frameMode=uncropped。本辑与260330勘线独立归档。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260404/260404-01.webp",
+          "alt": "古长城敌楼下的碎石坡道上，几位同行者在砖石拱门旁驻足",
+          "caption": "古城脚下的相聚",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260404/260404-02.webp",
+          "alt": "远处行者沿山脊石路前行，山坡间点缀春花，背后群山起伏",
+          "caption": "春山间的队伍",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260404/260404-03.webp",
+          "alt": "众多行者沿碎石铺就的长城坡道上下行走，远处可见敌楼",
+          "caption": "一段崎岖的同行路",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260404/260404-04.webp",
+          "alt": "一位戴遮阳帽的行者在碎石路上举起双手，身后是沿坡道行走的人群",
+          "caption": "路上的招呼",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260404/260404-05.webp",
+          "alt": "身着不同颜色户外服装的行者依次沿长城碎石坡道下行",
+          "caption": "一步一步，走在一起",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260404/260404-06.webp",
+          "alt": "几位行者沿敌楼前的狭窄石路下行，近处行者手持登山杖",
+          "caption": "古道上的脚步",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        }
+      ]
+    },
+    {
       "id": "260330",
       "date": "2026-03-30",
       "title": "鹞子峪勘线",
