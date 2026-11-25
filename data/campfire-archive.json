@@ -857,6 +857,74 @@
       "publishedOn": "2026-11-10"
     },
     {
+      "id": "260328",
+      "date": "2026-03-28",
+      "title": "二十里长山",
+      "location": "二十里长山",
+      "description": "春日的山谷里，浅色岩壁露出层层纹理，脚下的路穿过枯草与山坡。我们沿石壁前行，在山脊上眺望远方，也在相聚与伸展的片刻感受同行的喜乐。一路的风景之外，更值得记念的是并肩走过的每一步。",
+      "published": true,
+      "publishedOn": "2026-11-25",
+      "editorialNote": "用户于2026-11-25提供2026-03-28「二十里长山」7张实拍，全部按提交顺序收录。WebP在不空间裁切的前提下优化，EXIF不随图发布，所有图片采用原始4:3完整构图、frameMode=uncropped。编排为展示顺序，并不推断实际拍摄时间。其他影集与互动功能保持不变。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260328/260328-01.webp",
+          "alt": "队伍沿巨大浅色岩壁下的山间小路行进，近处几位同伴背着行囊",
+          "caption": "沿着石壁，一起出发",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260328/260328-02.webp",
+          "alt": "远处多位同行者分散行走在石壁环绕的干草山谷中",
+          "caption": "山谷间的同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260328/260328-03.webp",
+          "alt": "众人在山间石铺活动场地停留交流，背后是树木与山岩",
+          "caption": "在山间驻足相聚",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260328/260328-04.webp",
+          "alt": "背着登山包的同行者沿山坡小道向浅色岩壁方向行走",
+          "caption": "草坡上的脚步",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260328/260328-05.webp",
+          "alt": "行者分布于陡峭的浅色岩层山脊上，远处山谷在薄雾中延伸",
+          "caption": "在高处望见远方",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260328/260328-06.webp",
+          "alt": "一群同行者在露天石铺场地集体伸展手臂，背后是山石",
+          "caption": "一同伸展，满怀活力",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        },
+        {
+          "src": "/campfire-photos/260328/260328-07.webp",
+          "alt": "队伍依次穿过山坡黄草，身后是层叠的浅色岩层",
+          "caption": "沿山势继续同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "4/3"
+        }
+      ]
+    },
+    {
       "id": "260321",
       "date": "2026-03-21",
       "title": "舞彩浅山",
