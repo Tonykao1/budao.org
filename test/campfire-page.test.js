@@ -454,3 +454,29 @@ test("二十里长山七张实拍完整保留并拥有首页评分", () => {
   assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
   assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
 });
+
+
+test("鹞子峪勘线11张实拍完整保留、画幅和技术评分正确", () => {
+  const album = archive.albums.find((item) => item.id === "260330");
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published);
+  assert.equal(album.title, "鹞子峪勘线");
+  assert.equal(album.date, "2026-03-30");
+  assert.equal(album.photos.length, 11);
+  assert.deepEqual(album.photos.map(p => p.frameRatio), ["9/16", "16/9", "16/9", "16/9", "9/16", "16/9", "16/9", "16/9", "9/16", "9/16", "16/9"]);
+  const index = archive.albums.indexOf(album);
+  assert.equal(archive.albums[index + 1].id, "260328");
+  for (const [i, photo] of album.photos.entries()) {
+    assert.equal(photo.src, "/campfire-photos/260330/260330-" + String(i + 1).padStart(2, "0") + ".webp");
+    assert.ok(exists(photo.src));
+    const bytes = fs.readFileSync(path.join(root, photo.src.slice(1)));
+    assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+    assert.equal(photo.approved, true);
+    assert.equal(photo.frameMode, "uncropped");
+    assert.ok(photo.alt && photo.caption);
+    assert.ok(Number.isInteger(quality.scores[photo.src]));
+  }
+  assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
+});
