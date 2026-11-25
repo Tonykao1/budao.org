@@ -93,8 +93,11 @@
         (x.type !== 'music' || (typeof x.track === 'string' && x.track.startsWith('music/') &&
           x.track.endsWith('.mp3'))) && x.published === true);
     const music = staticItems.filter(item => item.type === 'music').slice(0, 1);
-    const other = staticItems.filter(item => item.type !== 'music');
-    items = [...music, ...albumNews(archiveData), ...other, ...routeNews(routes)].slice(0, 50);
+    const milestones = staticItems.filter(item => item.type === 'milestone');
+    const other = staticItems.filter(item => item.type !== 'music' && item.type !== 'milestone');
+    const regular = [...music, ...albumNews(archiveData), ...other, ...routeNews(routes)];
+    // Keep every published milestone in the archive; preserve the normal feed limit.
+    items = [...milestones, ...regular.slice(0, Math.max(0, 50 - milestones.length))];
     if (!items.length) { root.remove(); return; }
     open = items.some(item => !seen.includes(item.id));
     render();
