@@ -480,3 +480,30 @@ test("鹞子峪勘线11张实拍完整保留、画幅和技术评分正确", () 
   assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
   assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
 });
+
+
+test("鹞子峪6张实拍完整保留，并与勘线独立归档", () => {
+  const album = archive.albums.find((item) => item.id === "260404");
+  const quality = JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published);
+  assert.equal(album.title, "鹞子峪");
+  assert.equal(album.date, "2026-04-04");
+  assert.equal(album.photos.length, 6);
+  const index = archive.albums.indexOf(album);
+  assert.equal(archive.albums[index + 1].id, "260330");
+  assert.equal(archive.albums[index + 1].photos.length, 11);
+  for (const [i, photo] of album.photos.entries()) {
+    assert.equal(photo.src, "/campfire-photos/260404/260404-" + String(i + 1).padStart(2, "0") + ".webp");
+    assert.ok(exists(photo.src));
+    const bytes = fs.readFileSync(path.join(root, photo.src.slice(1)));
+    assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+    assert.equal(photo.approved, true);
+    assert.equal(photo.frameMode, "uncropped");
+    assert.equal(photo.frameRatio, "9/16");
+    assert.ok(photo.alt && photo.caption);
+    assert.ok(Number.isInteger(quality.scores[photo.src]));
+  }
+  assert.match(script, /frameMode:item\.frameMode === "uncropped"/);
+  assert.match(css, /\.camp-photo-grid \.camp-photo-card--uncropped \.camp-photo-visual img,[\s\S]*?object-fit:\s*contain/);
+});
