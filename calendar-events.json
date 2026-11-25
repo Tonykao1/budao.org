@@ -232,5 +232,15 @@
     "title": "箭杆岭一线天小环线",
     "status": "scheduled",
     "cancelCode": ""
+  },
+  {
+    "date": "2026-11-28",
+    "type": "budao",
+    "source": "tent",
+    "slot": "",
+    "routeId": "budao-leader-tony-2026-11-28-8fb6f40d96dd",
+    "title": "花博园午间漫步",
+    "status": "scheduled",
+    "cancelCode": ""
   }
 ]
