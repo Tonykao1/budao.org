@@ -310,6 +310,7 @@
       loginMessage.textContent = "";
       presence.classList.add("entrance-open");
       presence.classList.remove("route-open", "word-open");
+      window.dispatchEvent(new Event("budao-tent-authenticated"));
       // Published routes are managed by the shared authenticated editor.
       // Do not hydrate the obsolete slot-based form after login.
     }).catch(function (error) {
