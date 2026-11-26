@@ -42,6 +42,17 @@ function dbReady(sql) {
       key_hash TEXT PRIMARY KEY, window_started_at TIMESTAMPTZ NOT NULL,
       count INTEGER NOT NULL DEFAULT 1
     )`;
+    await sql`CREATE TABLE IF NOT EXISTS coworker_identity_reviews (
+      response_id UUID PRIMARY KEY REFERENCES coworker_calling_responses(id),
+      state TEXT NOT NULL CHECK (state IN ('APPROVED','REVOKED')),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_by TEXT NOT NULL
+    )`;
+    await sql`CREATE TABLE IF NOT EXISTS coworker_identity_review_events (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      response_id UUID NOT NULL REFERENCES coworker_calling_responses(id),
+      state TEXT NOT NULL CHECK (state IN ('APPROVED','REVOKED')),
+      operator_id TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`;
     await sql`CREATE INDEX IF NOT EXISTS coworker_calling_visible_idx
       ON coworker_calling_responses (status, created_at DESC)`;
   })().catch(e => { setupPromise = null; throw e; });
@@ -204,8 +215,17 @@ module.exports = async function callingHandler(req,res) {
       }
       if (view === "admin") {
         if (!admin(req)) return sendJson(res,401,{ok:false,reason:"unauthorized"});
-        const rows = await sql`SELECT * FROM coworker_calling_responses ORDER BY created_at DESC LIMIT 250`;
-        return sendJson(res,200,{ok:true,items:rows.map(mapped)});
+        const rows = await sql`SELECT r.*,v.state AS review_state,v.updated_at AS reviewed_at
+          FROM coworker_calling_responses r LEFT JOIN coworker_identity_reviews v ON v.response_id=r.id
+          ORDER BY r.created_at DESC LIMIT 250`;
+        return sendJson(res,200,{ok:true,items:rows.map(row=>({...mapped(row),reviewState:row.review_state||"PENDING",reviewedAt:row.reviewed_at||null}))});
+      }
+      if (view === "review-history") {
+        if (!admin(req)) return sendJson(res,401,{ok:false,reason:"unauthorized"});
+        const rows = await sql`SELECT e.id,e.response_id,e.state,e.operator_id,e.created_at,r.display_name
+          FROM coworker_identity_review_events e JOIN coworker_calling_responses r ON r.id=e.response_id
+          ORDER BY e.created_at DESC,e.id DESC LIMIT 250`;
+        return sendJson(res,200,{ok:true,items:rows});
       }
       if (view !== "public") return sendJson(res,400,{ok:false,reason:"invalid_view"});
       const rows = await sql`SELECT id,country,province,city,display_name,created_at
@@ -234,6 +254,26 @@ module.exports = async function callingHandler(req,res) {
     const operator = admin(req);
     if (!operator) return sendJson(res,401,{ok:false,reason:"unauthorized"});
     if (!/^[a-f0-9-]{36}$/i.test(String(body.id||""))) return sendJson(res,400,{ok:false,reason:"invalid_id"});
+    if (body.action === "approve_identity" || body.action === "revoke_identity") {
+      const next = body.action === "approve_identity" ? "APPROVED" : "REVOKED";
+      const expected = body.expectedState;
+      if ((next === "APPROVED" && !["PENDING","REVOKED"].includes(expected)) ||
+          (next === "REVOKED" && expected !== "APPROVED") ||
+          (next === "APPROVED" && body.confirmed !== true)) return sendJson(res,400,{ok:false,reason:"invalid_review"});
+      // State change and append-only event are one atomic statement. Public visibility is independent.
+      const rows = expected === "PENDING" ? await sql`WITH changed AS (
+        INSERT INTO coworker_identity_reviews(response_id,state,updated_by)
+        SELECT id,${next},${operator.id} FROM coworker_calling_responses WHERE id=${body.id}::uuid
+        ON CONFLICT(response_id) DO NOTHING RETURNING response_id,state
+      ) INSERT INTO coworker_identity_review_events(response_id,state,operator_id)
+        SELECT response_id,state,${operator.id} FROM changed RETURNING id`
+      : await sql`WITH changed AS (
+        UPDATE coworker_identity_reviews SET state=${next},updated_by=${operator.id},updated_at=NOW()
+        WHERE response_id=${body.id}::uuid AND state=${expected} RETURNING response_id,state
+      ) INSERT INTO coworker_identity_review_events(response_id,state,operator_id)
+        SELECT response_id,state,${operator.id} FROM changed RETURNING id`;
+      return sendJson(res,rows.length?200:409,{ok:rows.length>0,reason:rows.length?undefined:"review_conflict"});
+    }
     if (body.action === "edit") {
       const data = fields(body);
       if (!data) return sendJson(res,400,{ok:false,reason:"invalid_fields"});
