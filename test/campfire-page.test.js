@@ -588,3 +588,26 @@ test("峪口同行3张实拍完整保留，按活动日期独立归档", () => {
     assert.ok(Number.isInteger(quality.scores[photo.src]));
   }
 });
+
+
+test("孟良洞勘线13张照片独立归档，不覆盖同日峪口同行", () => {
+  const album=archive.albums.find(a=>a.id==="260418-mengliangdong");
+  const existing=archive.albums.find(a=>a.id==="260418");
+  const quality=JSON.parse(read("data/campfire-hero-quality.json"));
+  assert.ok(album && album.published && existing && existing.published);
+  assert.equal(album.title,"孟良洞勘线");
+  assert.equal(album.date,"2026-04-18");
+  assert.equal(album.photos.length,13);
+  assert.equal(existing.photos.length,3);
+  assert.deepEqual(album.photos.map(p=>p.frameRatio),["9/16","9/16","16/9","16/9","9/16","9/16","16/9","16/9","9/16","16/9","16/9","16/9","9/16"]);
+  for (const [j,p] of album.photos.entries()) {
+    assert.equal(p.src,"/campfire-photos/260418-mengliangdong/260418-mengliangdong-"+String(j+1).padStart(2,"0")+".webp");
+    assert.ok(exists(p.src));
+    const bytes=fs.readFileSync(path.join(root,p.src.slice(1)));
+    assert.equal(bytes.toString("ascii",0,4),"RIFF");
+    assert.equal(bytes.toString("ascii",8,12),"WEBP");
+    assert.equal(p.approved,true);
+    assert.equal(p.frameMode,"uncropped");
+    assert.ok(Number.isInteger(quality.scores[p.src]));
+  }
+});

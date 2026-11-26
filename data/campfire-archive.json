@@ -925,6 +925,122 @@
       ]
     },
     {
+      "id": "260418-mengliangdong",
+      "date": "2026-04-18",
+      "title": "孟良洞勘线",
+      "location": "孟良洞",
+      "description": "四月的孟良洞，林间小路、山脊远景与岩壁地貌交替出现。沿途有新绿、山间紫花与连绵山势。勘线之中，既记下路径，也记下山野的细节。",
+      "published": true,
+      "publishedOn": "2026-11-26",
+      "editorialNote": "用户提交13张现场照片并要求公开上线，保留提交顺序与原始画幅，不推断具体植物种属、岩缝性质及人工设施用途。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-01.webp",
+          "alt": "浅色山路从松树旁弯入林间，树木吐出新绿",
+          "caption": "松影旁，山路转入林间",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-02.webp",
+          "alt": "落叶间紫色野花的黄色花心",
+          "caption": "山野之间，一朵紫花",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-03.webp",
+          "alt": "林间空地上两条土路分开延伸",
+          "caption": "林间岔口",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-04.webp",
+          "alt": "薄雾中的群山与近处新绿枝叶",
+          "caption": "向远处望去，山势连绵",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-05.webp",
+          "alt": "狭窄土径穿过枝叶交错的树林",
+          "caption": "窄径穿过春日林木",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-06.webp",
+          "alt": "岩石之间一道狭长裂缝，周围有枯草和灌木",
+          "caption": "岩石之间的裂隙",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-07.webp",
+          "alt": "高处俯瞰连绵群山和山谷",
+          "caption": "高处远眺，群山展开",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-08.webp",
+          "alt": "陡峭山崖顶部立有方格状人造标识",
+          "caption": "崖顶的方格标识",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-09.webp",
+          "alt": "蓝天下山顶标识从绿色枝叶上方露出",
+          "caption": "隔着新绿，再望山顶",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-10.webp",
+          "alt": "山脊岩壁与深浅不一的绿色山体",
+          "caption": "岩壁与春色并行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-11.webp",
+          "alt": "近处山崖突起，远山渐隐在薄雾中",
+          "caption": "群山层层退远",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-12.webp",
+          "alt": "薄雾下的山体和前景嫩叶",
+          "caption": "雾中的山",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260418-mengliangdong/260418-mengliangdong-13.webp",
+          "alt": "枝干交错、落叶铺地的林间细窄小径",
+          "caption": "林间小径",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        }
+      ]
+    },
+    {
       "id": "260418",
       "date": "2026-04-18",
       "title": "峪口同行",
