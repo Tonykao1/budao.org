@@ -9,6 +9,7 @@ const { createSessionCookie } = require("../api/_security/auth");
 
 const rows = [];
 const limits = new Map();
+const reviews = new Map(), reviewEvents = [];
 let counter = 0;
 
 function fakeSql(strings, ...values) {
@@ -32,7 +33,18 @@ function fakeSql(strings, ...values) {
     rows.push(record);
     return [record];
   }
+  if (/^WITH changed AS/i.test(q)) {
+    const insert=q.includes("INSERT INTO coworker_identity_reviews");
+    const state=values[0], operator=values[1], id=values[2];
+    if (!rows.some(r=>r.id===id)) return [];
+    if (insert ? reviews.has(id) : reviews.get(id)?.state!==values[3]) return [];
+    reviews.set(id,{state,updated_at:new Date().toISOString()});
+    reviewEvents.unshift({id:"event-"+(reviewEvents.length+1),response_id:id,state,operator_id:operator,created_at:new Date().toISOString(),display_name:rows.find(r=>r.id===id).display_name});
+    return [{id:reviewEvents[0].id}];
+  }
   if (/^SELECT /i.test(q)) {
+    if(q.includes("FROM coworker_identity_review_events")) return reviewEvents.slice(0,250);
+    if(q.includes("LEFT JOIN coworker_identity_reviews")) return rows.slice().reverse().slice(0,250).map(r=>({...r,review_state:reviews.get(r.id)?.state,reviewed_at:reviews.get(r.id)?.updated_at}));
     if (q.includes("WHERE status='VISIBLE'")) {
       return rows.filter(r=>r.status==="VISIBLE").slice().reverse().slice(0,80).map(r=>({
         id:r.id,country:r.country,province:r.province,city:r.city,
@@ -174,4 +186,29 @@ test("same-origin enforcement and rate limits protect public submissions", async
   }
   const sixth=await invoke("POST",ENDPOINT,bad,{"x-forwarded-for":fixed});
   assert.equal(sixth.statusCode,429);
+});
+
+test("steward identity approvals are separate from public visibility and account creation", async()=>{
+ const c=await invoke("GET",ENDPOINT+"&view=captcha");
+ const created=await invoke("POST",ENDPOINT,responsePayload(c.body.captcha,"中国","Review Test"));
+ const id=created.body.item.id, cookie=session("tony"), leader=session("andre");
+ const approve={action:"approve_identity",id,expectedState:"PENDING",confirmed:true};
+ assert.equal((await invoke("POST",ENDPOINT,approve,{cookie:leader})).statusCode,401);
+ assert.equal((await invoke("POST",ENDPOINT,approve,{cookie,origin:"https://evil.example"})).statusCode,403);
+ assert.equal((await invoke("POST",ENDPOINT,{...approve,confirmed:false},{cookie})).statusCode,400);
+ const accepted=await invoke("POST",ENDPOINT,approve,{cookie});
+ assert.equal(accepted.statusCode,200);
+ assert.equal(accepted.headers["set-cookie"],undefined);
+ assert.equal((await invoke("POST",ENDPOINT,approve,{cookie})).statusCode,409);
+ const listing=await invoke("GET",ENDPOINT+"&view=admin",undefined,{cookie});
+ assert.equal(listing.body.items.find(x=>x.id===id).reviewState,"APPROVED");
+ const publicList=await invoke("GET",ENDPOINT+"&view=public");
+ assert.equal(publicList.body.items.find(x=>x.id===id).reviewState,undefined);
+ assert.equal((await invoke("POST",ENDPOINT,{action:"withdraw",id},{cookie})).statusCode,200);
+ const hidden=await invoke("GET",ENDPOINT+"&view=admin",undefined,{cookie});
+ assert.equal(hidden.body.items.find(x=>x.id===id).reviewState,"APPROVED");
+ assert.equal((await invoke("POST",ENDPOINT,{action:"revoke_identity",id,expectedState:"APPROVED"},{cookie})).statusCode,200);
+ assert.equal((await invoke("GET",ENDPOINT+"&view=review-history",undefined,{cookie:leader})).statusCode,401);
+ const history=await invoke("GET",ENDPOINT+"&view=review-history",undefined,{cookie});
+ assert.deepEqual(history.body.items.filter(x=>x.response_id===id).map(x=>x.state),["REVOKED","APPROVED"]);
 });
