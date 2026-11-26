@@ -8,6 +8,21 @@
     <link rel="stylesheet" href="tent-word.css">
     <link rel="stylesheet" href="tent-prayer.css?v=20261116-prayer-glass">
     <style>
+      #coworkerEntry[hidden],#coworkerDivider[hidden]{display:none!important}
+      .tent-entrance:has(#coworkerEntry:not([hidden])){gap:clamp(5px,2.3vh,18px);max-height:86svh;overflow:auto}
+      .tent-entrance:has(#coworkerEntry:not([hidden])) .path-choice span{font-size:clamp(32px,7vh,56px)}
+      #coworkerRoom{box-sizing:border-box;width:min(92vw,760px);max-height:88svh;overflow:auto;color:#eee5d5;background:#211f1d;border:1px solid #706656;border-radius:12px;padding:clamp(16px,4vw,32px);font:inherit}
+      #coworkerRoom::backdrop{background:#080808c9}
+      #coworkerRoom header,#coworkerRoom nav,#coworkerRoom .coworker-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+      #coworkerRoom header{justify-content:space-between}
+      #coworkerRoom h1{margin:0;font-size:2rem}
+      #coworkerRoom button{font:inherit;color:inherit;background:transparent;border:1px solid #887b66;border-radius:5px;padding:8px 12px;cursor:pointer}
+      #coworkerRoom button:disabled{opacity:.5;cursor:default}
+      #coworkerRoom button[aria-current=true]{background:#65553f}
+      #coworkerRoom article{border-top:1px solid #5e554a;padding:16px 0;overflow-wrap:anywhere}
+      #coworkerRoom article h2{font-size:1.1rem;margin:0 0 8px}
+      #coworkerRoom p{line-height:1.6}
+
       .publish-card-wrap {
         --preview-scale: 0.78;
         transform: translateY(76px) scale(0.76);
@@ -85,7 +100,7 @@
           <p class="login-message" aria-live="polite"></p>
         </form>
 
-        <section class="tent-entrance" aria-label="步与道">
+        <section class="tent-entrance" aria-label="帐篷功能">
           <button class="path-choice" type="button" data-tent-path="step">
             <span>步</span>
             <small>让身体出发</small>
@@ -104,7 +119,18 @@
             <span>祷</span>
             <small>在路上彼此守望</small>
           </button>
+          <div id="coworkerDivider" class="path-divider" hidden aria-hidden="true"></div>
+          <button id="coworkerEntry" class="path-choice" type="button" hidden aria-haspopup="dialog">
+            <span>工</span><small>同工与授权管理</small>
+          </button>
         </section>
+        <dialog id="coworkerRoom" aria-labelledby="coworkerTitle">
+          <header><h1 id="coworkerTitle">工</h1><button id="coworkerClose" type="button">返回帐篷</button></header>
+          <p>同工与授权管理</p>
+          <p>同工身份审批独立于帐篷账号；审批不会自动开通或撤销登录、发布权限。</p>
+          <nav aria-label="同工管理"><button type="button" data-coworker-view="pending">回应呼召</button><button type="button" data-coworker-view="approved">正式同工</button><button type="button" data-coworker-view="accounts">账号与权限</button><button type="button" data-coworker-view="history">授权档案</button><button id="coworkerRefresh" type="button">刷新</button></nav>
+          <p id="coworkerMessage" role="status"></p><div id="coworkerRecords"></div>
+        </dialog>
 
         <section class="prayer-room" aria-label="代祷清单">
           <header class="prayer-room-head">
@@ -437,7 +463,8 @@
     </script>
     <script src="tent-image-pipeline.js?v=20260813"></script>
     <script src="tent-draft-images.js?v=20260814"></script>
-    <script src="tent-app.js?v=20261125-route-library"></script>
+    <script src="tent-coworker.js?v=20261126-review"></script>
+    <script src="tent-app.js?v=20261126-coworker"></script>
     <script src="tent-prayer.js?v=20260928"></script>
     <script src="tent-meeting-module.js?v=20260717"></script>
     <script src="tent-word.js"></script>
