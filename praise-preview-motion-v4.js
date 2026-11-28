@@ -163,6 +163,28 @@ function footPenalty(p,o,g,bank){const z=topFromFoot(o,p,g),b=bounds(p.y,g,bank)
  if(g.mode==='landscape'&&p.y>263&&p.x<50)q+=Math.min(p.y-263,50-p.x);return q}
 function legalFoot(p,o,g,bank){return footPenalty(p,o,g,bank)<1e-6}
 function metric(a,b){return Math.hypot(a.x-b.x,(a.y-b.y)*1.45)}
+function segmentDistance(a,b,c,d){const x=a.x-c.x,y=(a.y-c.y)*1.45,dx=b.x-d.x-x,dy=(b.y-d.y)*1.45-y,t=clamp(-(x*dx+y*dy)/Math.max(1e-9,dx*dx+dy*dy),0,1);return Math.hypot(x+t*dx,y+t*dy)}
+function routeAround(a,state,g,sep){
+ const start={...a.p},goal=a.g,grid=3,bank=a.bank;
+ const others=state.filter(b=>b!==a),clearance=others.map(b=>Math.min(sep(a,b),metric(start,b.p)));
+ function valid(p,prev=start){if(footPenalty(p,a.o,g,bank)>footPenalty(prev,a.o,g,bank)+1e-6)return false;
+  return others.every((b,i)=>segmentDistance(prev,p,b.p,b.p)+1e-6>=Math.min(clearance[i],metric(prev,b.p)))}
+ const key=(x,y)=>x+','+y,open=[],cost=new Map(),prev=new Map(),pts=new Map(),sk=key(0,0);
+ function push(v){open.push(v);let i=open.length-1;while(i){let p=(i-1)>>1;if(open[p].f<=v.f)break;open[i]=open[p];i=p}open[i]=v}
+ function pop(){let r=open[0],v=open.pop();if(open.length){let i=0;while(i*2+1<open.length){let c=i*2+1;if(c+1<open.length&&open[c+1].f<open[c].f)c++;if(open[c].f>=v.f)break;open[i]=open[c];i=c}open[i]=v}return r}
+ cost.set(sk,0);pts.set(sk,start);push({ix:0,iy:0,k:sk,c:0,f:metric(start,goal)});
+ let end=null,near=metric(start,goal),best=sk;
+ for(let count=0;open.length&&count<18000;count++){const n=pop();if(n.c!==cost.get(n.k))continue;const p=pts.get(n.k),d=metric(p,goal);
+ if(d<near){near=d;best=n.k}
+ if(d<grid*1.8&&valid(goal,p)){end=n.k;break}
+ for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;const ix=n.ix+dx,iy=n.iy+dy,k=key(ix,iy),q={x:start.x+ix*grid,y:start.y+iy*grid/1.45},c=n.c+grid*Math.hypot(dx,dy);
+ if(c>=(cost.get(k)??Infinity)||!valid(q,p))continue;cost.set(k,c);prev.set(k,n.k);pts.set(k,q);push({ix,iy,k,c,f:c+metric(q,goal)})}
+ }
+ if(end===null&&near>metric(start,goal)-2)return [];
+ let k=end??best,path=[];while(k!==sk&&prev.has(k)){path.unshift(pts.get(k));k=prev.get(k)}
+ if(end!==null)path.push({...goal});
+ return path;
+}
 function line(a,b,n=22){return Array.from({length:n},(_,i)=>{let t=i/(n-1);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]})}
 function polyline(vertices,n=20){return vertices.slice(1).flatMap((p,i)=>line(vertices[i],p,n))}
 function strokes(kind){
@@ -208,23 +230,35 @@ function buildShape(layout,g,hour){
  const baseline=new Map();for(let i=0;i<state.length;i++)for(let j=0;j<i;j++)baseline.set(i+':'+j,metric(state[i].p,state[j].p));
  function sep(a,b){return Math.max(3.8,Math.min(12,(a.o.s+b.o.s)*5.5))}
  function valid(a,p){return footPenalty(p,a.o,g,a.bank)<=footPenalty(a.p,a.o,g,a.bank)+1e-6}
- let stable=0;
- for(let step=0;step<220;step++){
-  let changes=0;
+ let stable=0,bestError=Infinity,stale=0;
+ for(let step=0;step<160;step++){
+  let changes=0;const beforeStep=state.map(a=>({...a.p}));
   const order=state.map((a,i)=>i).sort((i,j)=>metric(state[j].p,state[j].g)-metric(state[i].p,state[i].g)||((i+step)%state.length)-((j+step)%state.length));
   for(const i of order){const a=state[i],d=metric(a.p,a.g);if(d<.65)continue;
    const angle=Math.atan2((a.g.y-a.p.y)*1.45,a.g.x-a.p.x);
    let best=null,bscore=-Infinity;
    for(const speed of [Math.min(2.8,d),Math.min(1.3,d),Math.min(.5,d)])for(const rot of [0,.35,-.35,.7,-.7,1.05,-1.05,1.45,-1.45,1.9,-1.9,2.6,-2.6]){
     const p={x:a.p.x+speed*Math.cos(angle+rot),y:a.p.y+speed*Math.sin(angle+rot)/1.45};if(!valid(a,p))continue;
-    let ok=true,near=0;for(let j=0;j<state.length;j++){if(j===i)continue;const b=state[j],before=metric(a.p,b.p),after=metric(p,b.p),limit=Math.min(sep(a,b),baseline.get(Math.max(i,j)+':'+Math.min(i,j)));if(after+1e-6<Math.min(before,limit)){ok=false;break}if(after<limit+5)near+=(limit+5-after)*.04}
+    let ok=true,near=0;for(let j=0;j<state.length;j++){if(j===i)continue;const b=state[j],before=metric(a.p,b.p),after=metric(p,b.p),limit=Math.min(sep(a,b),baseline.get(Math.max(i,j)+':'+Math.min(i,j)));if(after+1e-6<Math.min(before,limit)||segmentDistance(beforeStep[i],p,beforeStep[j],b.p)+1e-6<Math.min(metric(beforeStep[i],beforeStep[j]),limit)){ok=false;break}if(after<limit+5)near+=(limit+5-after)*.04}
     if(!ok)continue;const score=d-metric(p,a.g)-near+.08*Math.cos(rot);if(score>bscore){bscore=score;best=p}
    }
    if(best&&bscore>-.85){a.p=best;changes++}
   }
   for(const a of state)a.path.push({...a.p});
   if(state.every(a=>metric(a.p,a.g)<1.5))break;
-  stable=changes===0?stable+1:0;if(stable>3)break;
+  stable=changes===0?stable+1:0;const err=state.reduce((v,a)=>v+metric(a.p,a.g),0);if(err<bestError-.5){bestError=err;stale=0}else stale++;if(stable>3||stale>18)break;
+ }
+ // Detour through free ground for sheep blocked by a bank or a stationary member.
+ for(let pass=0;pass<2;pass++){
+  const pending=state.filter(a=>metric(a.p,a.g)>1.5).sort((a,b)=>metric(b.p,b.g)-metric(a.p,a.g));
+  for(const a of pending){const path=routeAround(a,state,g,sep);for(const p of path){a.p={...p};for(const b of state)b.path.push({...b.p})}}
+ }
+ // A sheep already on its target still takes a short physical step and returns.
+ for(const a of state.filter(a=>a.path.every(p=>metric(p,a.o.home)<=.5))){
+  const old={...a.p};let found=null;
+  for(let j=0;j<32&&!found;j++){const q={x:old.x+1.2*Math.cos(j*Math.PI/16),y:old.y+1.2*Math.sin(j*Math.PI/16)/1.45};
+   if(valid(a,q)&&state.every(b=>b===a||segmentDistance(old,q,b.p,b.p)+1e-6>=Math.min(metric(old,b.p),sep(a,b))))found=q}
+  if(found){a.p=found;for(const b of state)b.path.push({...b.p});a.p=old;for(const b of state)b.path.push({...b.p})}
  }
  const error=state.map(a=>metric(a.p,a.g));const reached=error.filter(v=>v<=5).length;
  const moves=Object.fromEntries(state.map(a=>[a.o.id,{o:a.o,path:a.path,target:a.g,x:a.p.x,y:a.p.y}]));
