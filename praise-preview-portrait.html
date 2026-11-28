@@ -123,10 +123,10 @@ function sheepBody(x,y,s,f,h,flip=false,graze=false){
 function drawSheep(o,i){
  const phase=i*29+11,dx=Math.sin((tick+phase)/260)*(o.wander||0);
  const breath=Math.sin((tick+phase)/95)>.80?1:0;
- const m=window.parent.__budaoPreviewMotion?.(o.x/W,o.y/H,i,false,o.s);const x=Math.round(o.x+(m?m.dx:dx)),y=Math.round(o.y+(m?m.dy:-breath));
+ const m=window.parent.__budaoPreviewMotion?.(o.x/W,o.y/H,i,false,o.s,'portrait');const x=Math.round(o.x+(m?m.dx:dx)),y=Math.round(o.y+(m?m.dy:-breath));
  const pair=o.f&&o.h?[o.f,o.h]:sheepColors[i%sheepColors.length];
  rect(x-2*o.s,y+18*o.s,28*o.s,2*o.s,'rgba(56,93,54,.18)');
- sheepBody(x,y,o.s,pair[0],pair[1],o.flip,o.graze);
+ sheepBody(x,y,o.s,pair[0],pair[1],m?.flip??o.flip,m?false:o.graze);
 }
 function tree(x,y,s=1){
  rect(x+5*s,y+12*s,3*s,10*s,C.trunk);
@@ -440,6 +440,7 @@ function drawPortrait(){
  occupied.push(creatureBox(special,true));
 
  // Adults and lambs share one depth order so a distant lamb can no longer be painted on top of a nearer adult.
+ window.parent.__budaoPreviewLayout?.('portrait',W,H,adults.map((o,i)=>({...o,id:i,lamb:false})).concat(placedLambs.map((o,i)=>({...o,id:i+26,lamb:true}))));
  const creatures=[];
  adults.forEach((o,i)=>creatures.push({kind:'adult',o,i,depth:o.y+20*o.s}));
  placedLambs.forEach((o,i)=>creatures.push({kind:'lamb',o,i,depth:o.y+14*o.s}));
@@ -450,9 +451,9 @@ function drawPortrait(){
    }else{
     const o=c.o,i=c.i;
     const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
-    const bob=Math.sin((tick+i*41)/110)>.82?1:0,m=window.parent.__budaoPreviewMotion?.(o.x/W,o.y/H,i+26,false,o.s),x=o.x+(m?m.dx:dx),y=o.y+(m?m.dy:-bob);
+    const bob=Math.sin((tick+i*41)/110)>.82?1:0,m=window.parent.__budaoPreviewMotion?.(o.x/W,o.y/H,i+26,false,o.s,'portrait'),x=o.x+(m?m.dx:dx),y=o.y+(m?m.dy:-bob);
     rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-    drawLamb(x,y,o.s,o.flip,o.style);
+    drawLamb(x,y,o.s,m?.flip??o.flip,o.style);
    }
  });
 }
@@ -618,7 +619,7 @@ if(!embedded){
  refresh();
  setInterval(refresh,600000);
 }
-setInterval(draw,120);
+setInterval(draw,60);
 })();
 </script>
 </body>

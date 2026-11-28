@@ -30,6 +30,7 @@ const portraitFrame=document.getElementById('portraitFrame');
 const environmentLayer=document.getElementById('environmentLayer');
 let pastureReady=false;
 window.__budaoPreviewMotion=(...args)=>{try{return parent.__budaoPreviewMotion?.(...args)||null}catch(e){return null}};
+window.__budaoPreviewLayout=(...args)=>{try{parent.__budaoPreviewLayout?.(...args)}catch(e){}};
 let portraitMode=false;
 
 function sendPortraitEnvironment(){
@@ -244,13 +245,14 @@ function buildDesktopLambLayout(){
 }
 function drawDesktopLambs(){
   const lambs=buildDesktopLambLayout();
+  const adults=frame.contentWindow?.__tongluAdultLayout||[];window.__budaoPreviewLayout('landscape',480,300,adults.map((o,i)=>({...o,id:i,lamb:false})).concat(lambs.map((o,i)=>({...o,id:i+26,lamb:true}))));
   lambs.forEach((o,i)=>{
     const dx=!o.rest&&o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
     const bob=!o.rest&&Math.sin((tick+i*41)/110)>.82?1:0;
     const m=window.__budaoPreviewMotion(o.x/480,o.y/300,i+26,o.rest,o.s);
     const x=o.x+(m?m.dx:dx),y=o.y+(m?m.dy:-bob);
     rect(x-1.5*o.s,y+(o.rest?10:13)*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-    o.rest?drawDesktopRestingLamb(x,y,o.s,o.flip,o.style,i*41):drawDesktopLamb(x,y,o.s,o.flip,o.style);
+    o.rest?drawDesktopRestingLamb(x,y,o.s,o.flip,o.style,i*41):drawDesktopLamb(x,y,o.s,m?.flip??o.flip,o.style);
   });
 }
 let returnTwigHover=false;
@@ -536,7 +538,7 @@ syncComposition();
 refresh();
 setInterval(refresh,600000);
 setInterval(refreshSkyState,45000);
-setInterval(()=>{if(!portraitMode)draw()},120);
+setInterval(()=>{if(!portraitMode)draw()},60);
 })();
 </script>
 </body>
