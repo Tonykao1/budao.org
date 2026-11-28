@@ -5,7 +5,7 @@
 <div class="controls"><select id="song" aria-label="选择赞美诗"></select><button class="primary" id="play">播放</button><button id="stop">停止</button><button id="prev">上一首</button><button id="next">下一首</button><label><input type="checkbox" id="full">完整节数</label><label><input type="checkbox" id="auto">连续试听</label><label>音量<input type="range" id="volume" min="0" max="100" value="32"></label></div>
 <p class="heading" id="formation">队形：等待播放</p><progress class="progress" id="progress" value="0" max="1"></progress><p class="status" id="status" role="status">请选择一首赞美诗，再点击播放。默认试听一节，可切换完整节数。</p>
 <div class="heading">24个整点 · 点击即试听</div><div class="tracks" id="tracks"></div><p class="foot">预览不注册居民、不更改正式牧场设置、不触发整点或半点报时。全员参与；卧姿羊起立，结束恢复初始位置和姿态。队形按牧场地形分区适配，不强行穿越河道。实际音色采用原时辰赞美合成器。</p>
-</main><script src="/pasture-hourly-scores.js"></script><script src="/pasture-hourly-last-score.js"></script><script src="/pasture-half-hour-scores.js"></script><script src="/pasture-hourly-hymns.js"></script><script src="/praise-preview-motion.js?v=3"></script><script>
+</main><script src="/pasture-hourly-scores.js"></script><script src="/pasture-hourly-last-score.js"></script><script src="/pasture-half-hour-scores.js"></script><script src="/pasture-hourly-hymns.js"></script><script src="/praise-preview-motion.js?v=3.1"></script><script>
 'use strict';
 const $=id=>document.getElementById(id),api=window.BudaoHourlyHymns,motion=window.BudaoPraisePreview;
 const songs=Array.from({length:24},(_,h)=>window.BudaoPastureHymnScores[h%12]);

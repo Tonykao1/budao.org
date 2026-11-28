@@ -126,17 +126,17 @@ function fitGroup(pool,all,g,kind,variant=0){
  }
  return best;
 }
-function build(layout,g,hour){
+function buildAttempt(layout,g,hour,attempt=0){
  const p=program(hour),all=layout.filter(o=>Number.isFinite(o.x)&&Number.isFinite(o.y)&&o.s>0),squads=[],assigned=Object.create(null),blocked=new Set();
- const regions=[0,1,2,3,4,5];if(p.variant)regions.reverse();
+ const regions=[0,1,2,3,4,5];if(p.variant)regions.reverse();for(let i=0;i<attempt%6;i++)regions.push(regions.shift());
  for(const region of regions){let pool=all.filter(o=>zone(o,g)===region);
   while(pool.length>=3){const obstacles=all.concat(squads.flatMap(s=>s.moves.map(m=>({...m.o,id:1000+m.o.id,x:m.x,y:m.y}))));
-   const moves=fitGroup(pool,obstacles,g,p.kind,p.variant);if(!moves.length||!routeOK(squads.flatMap(s=>s.moves).concat(moves),all,g))break;
+   const moves=fitGroup(pool,obstacles,g,p.kind,p.variant);const combined=squads.flatMap(s=>s.moves).concat(moves),combinedMap=Object.fromEntries(combined.map(m=>[m.o.id,m]));if(!moves.length||!routeOK(combined,all,g)||!combined.every(m=>candidateOK(m,all,combinedMap,g)))break;
    squads.push({region,kind:p.kind,moves});moves.forEach(m=>{blocked.add(m.o.id);assigned[m.o.id]={...m,region,kind:p.kind}});pool=pool.filter(o=>!blocked.has(o.id));
   }
  }
  for(const o of all.filter(o=>!blocked.has(o.id)).sort((a,b)=>b.s-a.s||a.id-b.id)){
-  const region=zone(o,g),dir=p.kind*Math.PI/6+(p.variant?.34:0)+(region%3-1)*.55;
+  const region=zone(o,g),dir=p.kind*Math.PI/6+(p.variant?.34:0)+(region%3-1)*.55+attempt*.31;
   let best=null,bestScore=-Infinity;
   for(const len of [Math.min(30,12+o.s*16),22,16,11,7,4,2,1,.5]){for(let j=0;j<16;j++){const a=dir+(j%2===0?1:-1)*Math.ceil(j/2)*Math.PI/8,m={o,x:o.x+Math.cos(a)*len,y:o.y+Math.sin(a)*len*.53,region,kind:p.kind};if(!candidateOK(m,all,assigned,g))continue;const v=len-j*.45;if(v>bestScore){best=m;bestScore=v}}
    if(best&&bestScore>len-4)break;
@@ -144,6 +144,7 @@ function build(layout,g,hour){
  }
  return {program:p,squads,moves:assigned,count:all.length,moving:Object.values(assigned).filter(m=>Math.hypot(m.x-m.o.x,m.y-m.o.y)>.1).length,formed:blocked.size};
 }
+function build(layout,g,hour){let best=buildAttempt(layout,g,hour);for(let attempt=1;best.moving<best.count&&attempt<=5;attempt++){const p=buildAttempt(layout,g,hour,attempt);if(p.moving>best.moving||p.moving===best.moving&&p.formed>best.formed)best=p}return best}
 function cue(model,elapsed,duration=model.cycle){
  const t=((elapsed%model.cycle)+model.cycle)%model.cycle;let i=0;while(i+1<model.cues.length-1&&t>=model.cues[i+1])i++;
  const start=model.cues[i],end=model.cues[i+1],p=clamp((t-start)/(end-start),0,1),verse=Math.floor(elapsed/model.cycle),entrance=Math.min(model.cues[1]||8,duration*.27),exit=Math.min(model.cycle-(model.cues.at(-2)||0),duration*.27);
