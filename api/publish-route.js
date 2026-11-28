@@ -13,6 +13,10 @@ module.exports = async function handler(request, response) {
     return require('./_security/campfire-handler')(request, response);
   }
 
+  if (url.searchParams.get('service') === 'tent-media') {
+    return require('./_security/tent-media-handler')(request, response);
+  }
+
   const pathname = url.pathname;
   if (pathname === "/api/publish") {
     response.status(410).json({ ok: false, reason: "endpoint_disabled" });

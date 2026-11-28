@@ -44,6 +44,7 @@
   function safeImage(value) {
     if (typeof value !== "string" || value.length > 500) return "";
     if (/^\/(?:campfire-photos|images|route-assets)\/[a-zA-Z0-9/_\-.]+\.(?:jpg|jpeg|png|webp|avif)$/i.test(value)) return value;
+    if (/^\/api\/tent-media\?photo=[0-9a-f-]{36}$/.test(value)) return value;
     // Existing site route images are published as GitHub raw URLs.
     if (/^https:\/\/raw\.githubusercontent\.com\/Tonykao1\/budao\.org\/main\/route-assets\/[a-zA-Z0-9/_\-.]+\.(?:jpg|jpeg|png|webp)$/i.test(value)) return value;
     return "";
@@ -595,6 +596,9 @@
       quoteList = normalizeQuotes(data);
       // Actual photos must be explicitly approved, not inferred from calendar covers.
       gallery = normalizeAlbums(data.albums);
+      const extra = await fetch("/api/tent-media?feed=published", {cache:"no-store"})
+        .then(r => r.ok ? r.json() : {}).catch(() => ({}));
+      gallery = gallery.concat(normalizeAlbums(extra.albums)).sort((a,b) => b.date.localeCompare(a.date));
     } catch (error) {
       console.warn("Campfire editorial archive unavailable.", error);
       quoteList = fallbackQuotes;
