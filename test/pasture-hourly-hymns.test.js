@@ -174,3 +174,54 @@ test('half-hour SID timbre is identical to existing waveforms and capped to appr
   let peak=0;for(const sample of samples)peak=Math.max(peak,Math.abs(sample));
   assert.ok(peak>=.399&&peak<=.401,'the approved 0.40 mastering target');
 });
+
+
+test('approved V4.1 motion and rendering are byte-identical to frozen preview blobs',()=>{
+ const crypto=require('node:crypto');
+ for(const [name,expected] of [['pasture-praise-motion.js','73e0edc9166240945740dec90bf1fd341f45a725'],['pasture-praise-render.js','1cf47453db38aa1d86289a6148af2512690c5eee']]){
+  const bytes=fs.readFileSync(path.join(root,name));
+  const hash=crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  assert.equal(hash,expected,name);
+ }
+});
+function praiseBridgeFixture(){
+ let time=0;
+ const layout=Array.from({length:44},(_,id)=>({id,x:id*3,y:180,s:.5,rest:id===0}));
+ const plan={count:44,moving:43,formed:42};
+ const calls=[];
+ const w={performance:{now:()=>time},setTimeout(){},addEventListener(){},
+  BudaoHourlyHymns:{},BudaoPastureHymnScores:[{}],BudaoPastureHalfHourScores:[{}],
+  __budaoPastureHourlyHymns:{playback:null},
+  BudaoPraisePreview:{
+   prepare:()=>({beat:.5}),buildShape:()=>plan,
+   formationFactor:()=>.8,timing:()=>({edge:10}),
+   formationPose:(_m,t,d,_p,id)=>({gx:80+id,gy:180,stand:1,step:.8,head:0,sway:0,t,d}),
+   halfPose:(_m,t,d,o,g)=>{calls.push([t,d,o.id,g.mode]);return {gx:o.x,gy:o.y,stand:o.rest?0:1,step:.8,head:1,sway:1}},
+   pathPose:(_p,id,f)=>({gx:id*3+f*100,gy:180,stand:1,step:.8,head:0,sway:0})
+  }};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'pasture-praise-live.js'),'utf8'),{window:w,console});
+ return {w,layout,calls,frame:(l=layout,mode='landscape')=>w.BudaoPasturePraise.frame(mode,480,300,l),
+  play:(kind,elapsed,id=1)=>{w.__budaoPastureHourlyHymns.playback={id,kind,index:0,hour:21,elapsed,duration:60}},
+  stop:()=>{w.__budaoPastureHourlyHymns.playback=null},time:t=>{time=t}};
+}
+test('V4.1 bridge accepts same 44-member path plan as approved preview',()=>{
+ const f=praiseBridgeFixture();f.play('hour',.5);const frame=f.frame();
+ assert.equal(Object.keys(frame.poses).length,44);
+ assert.equal(frame.poses[0].t,.5);assert.equal(frame.poses[0].d,60);
+});
+test('half-hour joins after audio begins, retries incomplete flock, samples exact approved halfPose',()=>{
+ const f=praiseBridgeFixture();f.play('half',2.2);
+ assert.equal(f.frame(f.layout.slice(0,43)),null);
+ const frame=f.frame();assert.equal(Object.keys(frame.poses).length,44);
+ assert.deepEqual(f.calls[0],[2.2,60,0,'landscape']);
+ assert.equal(frame.poses[0].head,1);
+ f.stop();f.frame();f.time(125);assert.equal(f.frame().poses[0].head,.75);
+ f.time(500);assert.equal(f.frame(),null);
+});
+test('late hourly frame starts at home and converges on original approved path without teleporting',()=>{
+ const f=praiseBridgeFixture();f.play('hour',3);
+ assert.equal(f.frame().poses[0].gx,0);
+ f.play('hour',8);assert.equal(f.frame().poses[0].gx,40);
+ f.play('hour',13);assert.equal(f.frame().poses[0].gx,80);
+ f.stop();f.frame();f.time(1000);assert.ok(f.frame().poses[0].gx<80);
+});
