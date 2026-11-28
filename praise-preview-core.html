@@ -247,7 +247,7 @@ function buildDesktopLambLayout(){
 function drawDesktopLambs(){
  const lambs=buildDesktopLambLayout(),adults=frame.contentWindow?.__tongluAdultLayout||[];
  const layout=adults.map((o,i)=>({...o,id:i,lamb:false})).concat(lambs.map((o,i)=>({...o,id:i+26,lamb:true})));
- if(layout.length!==44)return;
+ if(!layout.length)return;
  window.__budaoPreviewLayout('landscape',480,300,layout);
  window.BudaoPreviewRender.drawFlock(ctx,layout,480,300,'landscape',window.__budaoPreviewMotion);
 }

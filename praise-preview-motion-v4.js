@@ -209,7 +209,7 @@ function shapeSlots(n,g,bank,kind,variant){
  const yr=[g.minY+17,g.H-12],span=yr[1]-yr[0];
  const map=([u,v])=>{if(variant){const a=.20,xx=u-.5,yy=v-.5;u=.5+xx*Math.cos(a)-yy*Math.sin(a);v=.5+xx*Math.sin(a)+yy*Math.cos(a)}v=clamp(v,.03,.97);u=clamp(u,.03,.97);const y=yr[0]+v*span,b=bounds(y,g,bank);return {x:b[0]+u*Math.max(1,b[1]-b[0]),y}};
  // Narrow bank contributes a disciplined column, not a distorted copy of the main silhouette.
- const paths=(bank===1&&g.mode==='landscape'?[[[.73,.05],[.73,.95]],[[.22,.05],[.22,.95]]].map(v=>line(v[0],v[1],45)):strokes(kind));
+ const paths=(bank===1&&(g.mode==='landscape'||kind===0)?[[[.73,.05],[.73,.95]],[[.22,.05],[.22,.95]]].map(v=>line(v[0],v[1],45)):strokes(kind));
  const src=paths.flatMap(p=>p.map(map)).filter(p=>!(g.mode==='landscape'&&bank===1&&p.y>184&&p.y<232&&p.x<452)&&!(g.mode==='landscape'&&p.y>263&&p.x<50));
  if(src.length<n)return [];
  let chosen=[src[0]];const used=new Set([0]);
