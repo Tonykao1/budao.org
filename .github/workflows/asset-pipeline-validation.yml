@@ -1,0 +1,22 @@
+name: Asset Pipeline V1 validation
+on:
+  push:
+    branches: ["feat/asset-pipeline-v1-20261128"]
+    paths:
+      - scripts/campfire-bundle-ingest.py
+      - test/campfire_bundle_ingest_test.py
+      - .github/workflows/asset-pipeline-validation.yml
+permissions:
+  contents: read
+jobs:
+  bundle-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - run: |
+          python3 -m venv .asset-test-venv
+          .asset-test-venv/bin/python -m pip install Pillow==11.3.0
+          .asset-test-venv/bin/python -m unittest discover -s test -p campfire_bundle_ingest_test.py -v
