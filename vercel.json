@@ -11,6 +11,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/tent-media",
+      "destination": "/api/publish-route?service=tent-media"
+    },
+    {
       "source": "/api/pasture-auth",
       "destination": "/api/publish-route?service=pasture"
     },

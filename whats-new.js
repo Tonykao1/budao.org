@@ -80,7 +80,7 @@
         title: '营火之地 · ' + album.title,
         description: '新影集上线，点击查看',
         url: '/yhzd.html?album=' + encodeURIComponent(album.id),
-        thumbnail: album.photos.find(p => p && p.approved === true && typeof p.src === 'string' && /^\/campfire-photos\/[a-zA-Z0-9/_\-.]+$/.test(p.src))?.src,
+        thumbnail: album.photos.find(p => p && p.approved === true && typeof p.src === 'string' && (/^\/api\/tent-media\?photo=[0-9a-f-]{36}$/.test(p.src) || /^\/campfire-photos\/[a-zA-Z0-9/_\-.]+$/.test(p.src)))?.src,
         icon: '✧'
       }));
   }
@@ -145,6 +145,7 @@
       if (!r.ok) throw new Error('routes_unavailable');
       return r.json();
     }).catch(() => []),
-    fetch(albumFeedUrl, {cache:'no-store'}).then(r => r.ok ? r.json() : {albums: []}).catch(() => ({albums: []}))
-  ]).then(([feed, routes, albums]) => applyNews(feed, routes, albums)).catch(() => root.remove());
+    fetch(albumFeedUrl, {cache:'no-store'}).then(r => r.ok ? r.json() : {albums: []}).catch(() => ({albums: []})),
+    fetch('/api/tent-media?feed=published',{cache:'no-store'}).then(r => r.ok ? r.json() : {}).catch(() => ({}))
+  ]).then(([feed, routes, albums, media]) => applyNews(feed, routes, {albums:[...(media.albums || []), ...(albums.albums || [])]})).catch(() => root.remove());
 })();

@@ -1,0 +1,33 @@
+name: Tent media acceptance
+on:
+  pull_request:
+    paths:
+      - 'api/_security/tent-media*'
+      - 'db/migrations/*tent_media*'
+      - 'tent-media.*'
+      - 'test/tent-media*'
+      - '.github/workflows/tent-media.yml'
+permissions:
+  contents: read
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: fixture
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test test/tent-media*.test.js test/vercel-function-budget.test.js test/campfire-release-integrity.test.js
+        env:
+          TENT_MEDIA_TEST_DATABASE_URL: postgres://postgres:fixture@127.0.0.1:5432/postgres

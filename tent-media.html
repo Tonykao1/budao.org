@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-Hans"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>媒体管理 · BUDAO 帐篷</title>
+<style>
+*{box-sizing:border-box}body{margin:auto;padding:24px;max-width:860px;background:#faf8f3;color:#25382d;font:16px/1.6 system-ui}header,nav,form,article{display:flex;gap:12px;align-items:center;flex-wrap:wrap}header{justify-content:space-between}a{color:#254f3b}section{padding:20px 0;border-top:1px solid #cacec2}label{display:grid;gap:3px}input,button{font:inherit;border:1px solid #829787;border-radius:5px;padding:7px;max-width:100%}button{color:#fff;background:#345744;cursor:pointer}button:disabled{opacity:.5}article img{width:90px;height:72px;object-fit:contain}article{margin:12px 0}p[role=status]{min-height:1.6em;color:#754a2e}
+</style>
+<header><h1>媒体管理</h1><a href="/tent.html">返回帐篷</a></header><p role="status" id="status"></p>
+<main hidden><section><h2>新建活动相册</h2><form id="create"><label>活动名称<input name="title" maxlength="120" required></label><label>地点<input name="location" maxlength="100" required></label><label>活动日期<input name="date" type="date" required></label><button>建立草稿</button></form></section><div id="albums"></div></main>
+<template id="upload"><form><label>照片（最大 2 MiB）<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" required></label><label>照片说明<input name="alt" maxlength="150" required></label><label><span><input type="checkbox" required> 已取得公开展示授权，涉及未成年人时已获监护人同意</span></label><button>上传照片</button></form></template>
+<script src="/tent-media.js" defer></script></html>

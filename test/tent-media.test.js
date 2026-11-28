@@ -1,0 +1,73 @@
+const {test} = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const crypto = require("node:crypto");
+const sharp = require("sharp");
+const {PGlite} = require("@electric-sql/pglite");
+const {handler} = require("../api/_security/tent-media-handler");
+const {createSessionCookie} = require("../api/_security/auth");
+
+test("private upload, moderation, atomic public feed and withdrawal", async t => {
+  const db = new PGlite();
+  t.after(()=>db.close());
+  for (const migration of ["foundation","objects"]) await db.exec(fs.readFileSync("db/migrations/20261128_tent_media_"+migration+".sql","utf8"));
+  process.env.BUDAO_SESSION_SECRET = crypto.randomBytes(32).toString("hex");
+  const api = handler(()=>({query:db.query.bind(db),connect:async()=>({query:db.query.bind(db),release(){}})}));
+  const cookie = username=>createSessionCookie({id:username,username}).split(";")[0];
+  const owner=cookie("leader"), reviewer=cookie("tony"), other=cookie("another");
+  async function call(session,body,query="",origin="https://test.invalid") {
+    const res = {headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.code=n;return this;},json(v){this.body=v;},send(v){this.body=v;}};
+    await api({method:body?"POST":"GET",url:"/api/tent-media"+query,headers:{cookie:session,origin,host:"test.invalid","content-type":"application/json"},body},res);
+    return res;
+  }
+  const album = {action:"create",title:"测试相册",location:"测试地点",date:"2026-01-01"};
+  assert.equal((await call("",album)).code,401);
+  assert.equal((await call(owner,album,"","https://other.invalid")).code,403);
+  let r = await call(owner,album);
+  assert.equal(r.code,200,JSON.stringify(r.body));
+  const id=r.body.id;
+  let rev=r.body.revision;
+  async function act(who,action,extra={},expected=200) {
+    const result=await call(who,{album:id,revision:rev,action,...extra});
+    assert.equal(result.code,expected,JSON.stringify(result.body));
+    if(expected===200) rev=result.body.revision;
+  }
+  const png=await sharp({create:{width:180,height:130,channels:3,background:"white"}}).png().withMetadata().toBuffer();
+  const photo={data:png.toString("base64"),sha256:crypto.createHash("sha256").update(png).digest("hex"),alt:"测试影像",consent:true};
+  await act(other,"upload",photo,403);
+  await act(owner,"upload",{...photo,sha256:"wrong"},400);
+  await act(owner,"upload",{...photo,consent:false},400);
+  await act(owner,"upload",photo);
+  await act(owner,"upload",photo,409);
+  await act(owner,"submit",{revision:rev-1},409);
+  assert.equal((await call(other)).body.albums.length,0);
+  const asset=(await call(owner)).body.albums[0].photos[0].id;
+  const preview="?preview="+asset, pub="?photo="+asset, feed="?feed=published";
+  assert.equal((await call("",null,preview)).code,401);
+  assert.equal((await call(other,null,preview)).code,404);
+  assert.equal((await call("",null,pub)).code,404);
+  assert.deepEqual((await call("",null,feed)).body.albums,[]);
+  const display=(await call(owner,null,preview)).body;
+  const info=await sharp(display).metadata();
+  assert.equal(info.format,"webp");
+  assert.equal(info.exif,undefined);
+  await act(owner,"submit");
+  await act(owner,"review",{asset,approved:true},403);
+  await act(reviewer,"approve",{},403);
+  await act(reviewer,"review",{asset,approved:true});
+  await act(reviewer,"return");
+  await act(owner,"submit");
+  await act(reviewer,"approve",{},403);
+  await act(reviewer,"review",{asset,approved:true});
+  await act(reviewer,"approve");
+  await act(reviewer,"publish");
+  const published=(await call("",null,feed)).body.albums[0];
+  assert.equal(published.photos[0].src,"/api/tent-media"+pub);
+  assert.equal(published.owner_id,undefined);
+  assert.deepEqual((await call("",null,pub)).body,display);
+  await act(reviewer,"withdraw");
+  assert.equal((await call("",null,pub)).code,404);
+  assert.deepEqual((await call("",null,feed)).body.albums,[]);
+  const {rows}=await db.query("SELECT count(*) AS n FROM tent_media_audit WHERE album_id=$1",[id]);
+  assert.equal(+rows[0].n,rev);
+});
