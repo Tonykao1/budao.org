@@ -857,6 +857,122 @@
       "publishedOn": "2026-11-10"
     },
     {
+      "id": "260502",
+      "date": "2026-05-02",
+      "title": "舞彩浅山领袖行军",
+      "location": "舞彩浅山",
+      "description": "五月的舞彩浅山，山花盛开，群山苍翠。同行者穿过灌木，攀越岩石，沿着起伏的山脊一步步前行。这是一次领袖行军，也是一段共同面对挑战、彼此守望的同行记忆。",
+      "published": true,
+      "publishedOn": "2026-11-28",
+      "editorialNote": "用户确认本次提供的13张照片为全部素材，按上传顺序完整保留，不裁切，转换WebP并清除隐私元数据。展示顺序不代表实际拍摄时间。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260502/260502-01.webp",
+          "alt": "同行者沿开满浅色山花的山坡攀登",
+          "caption": "山花间的攀登",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-02.webp",
+          "alt": "数位行者沿山间土路前行，远方群山与云层相接",
+          "caption": "群山间的同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-03.webp",
+          "alt": "两位行者扶着岩石和灌木攀上陡坡，身后是层叠山谷",
+          "caption": "一步一步向上",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-04.webp",
+          "alt": "蓝衣行者手扶岩石攀登，背景为绿色山脊和平原",
+          "caption": "翻越山脊",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-05.webp",
+          "alt": "队伍沿狭窄山脊小径分散行进，前方是一座岩石山峰",
+          "caption": "山脊上的队伍",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-06.webp",
+          "alt": "两位行者在裸露岩石间攀行",
+          "caption": "岩石之间",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-07.webp",
+          "alt": "两位行者沿绿意盎然的山脊走来，远处平原上空云层低垂",
+          "caption": "云下同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "3/4"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-08.webp",
+          "alt": "数位同行者站在山坡上向镜头挥手",
+          "caption": "山间合影",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-09.webp",
+          "alt": "山脊上散布着同行者，远方是村庄和平原",
+          "caption": "回望来路",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-10.webp",
+          "alt": "几位行者从山坡小径走向前景岩石",
+          "caption": "继续攀登",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-11.webp",
+          "alt": "同行者沿山脊上坡，山脚下田野与村庄清晰可见",
+          "caption": "绿意中的行进",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-12.webp",
+          "alt": "队伍沿陡峭土坡攀登，身后小路通往石阶",
+          "caption": "向着山脊前行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260502/260502-13.webp",
+          "alt": "数位行者手扶地面或借助登山杖攀上土坡，远处有凉亭和石阶",
+          "caption": "山路上的脚步",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        }
+      ]
+    },
+    {
       "id": "260421",
       "date": "2026-04-21",
       "title": "神堂峪备线",
