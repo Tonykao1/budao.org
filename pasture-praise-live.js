@@ -16,25 +16,28 @@ function register(mode,W,H,layout){
 function makeSession(p,s){
  const score=(p.kind==='half'?root.BudaoPastureHalfHourScores:root.BudaoPastureHymnScores)?.[p.index];if(!score)return null;
  const model=M.prepare(score,api,p.hour),plan=p.kind==='hour'?planFor(s,p.hour):null;
- if(p.kind==='hour'&&(!plan||plan.count!==44||plan.moving!==44||plan.formed!==44)){console.warn('[BUDAO] praise formation constrained; leave natural flock');return null}
- return {id:p.id,mode:s.mode,scene:s,model,plan,duration:p.duration,lastT:0,lastPoses:null};
+ // Match the approved preview: a complete 44-member safe path plan is sufficient.
+ if(p.kind==='hour'&&(!plan||plan.count!==44)){console.warn('[BUDAO] praise formation unavailable');return null}
+ return {id:p.id,mode:s.mode,scene:s,model,plan,duration:p.duration,lastT:0,lastPoses:null,joinedAt:p.elapsed>1.2?p.elapsed:null};
 }
 function sample(s,t){
- const poses={};for(const o of s.scene.layout){const p=s.plan?M.formationPose(s.model,t,s.duration,s.plan,o.id):M.halfPose(s.model,t,s.duration,o,s.scene.g);
+ const poses={};for(const o of s.scene.layout){let p=s.plan?M.formationPose(s.model,t,s.duration,s.plan,o.id):M.halfPose(s.model,t,s.duration,o,s.scene.g);
+ // A late renderer joins on the same approved safe path, never teleporting into formation.
+ if(p&&s.plan&&s.joinedAt!==null){const f=M.formationFactor(s.model,t,s.duration),q=smooth((t-s.joinedAt)/Math.max(1,M.timing(s.model,s.duration).edge));if(q<1){const pose=M.pathPose(s.plan,o.id,f*q,1,t,s.model.beat);if(pose){pose.stand=o.rest?p.stand*q:1;p=pose}}}
  if(p)poses[o.id]=p}
  return {layout:s.scene.layout,poses};
 }
 function beginReturn(s){
  if(!s.lastPoses)return;
  if(s.lastT>=s.duration-.65)return;
- const f=s.plan?M.formationFactor(s.model,s.lastT,s.duration):0;
- returning={...s,start:now(),ms:s.plan?Math.max(650,M.timing(s.model,s.duration).edge*1000*f):500,f};
+ const f=s.plan?M.formationFactor(s.model,s.lastT,s.duration)*(s.joinedAt===null?1:smooth((s.lastT-s.joinedAt)/Math.max(1,M.timing(s.model,s.duration).edge))):0;
+ returning={...s,start:now(),ms:s.plan?Math.max(1000,Math.min(12000,M.timing(s.model,s.duration).edge*1000*f)):500,f};
 }
 function returnFrame(r){
- const q=smooth((now()-r.start)/r.ms);if(q>=1){returning=null;return null}
+ const raw=Math.max(0,Math.min(1,(now()-r.start)/r.ms)),q=smooth(raw);if(raw>=1){returning=null;return null}
  const poses={};for(const o of r.scene.layout){const old=r.lastPoses[o.id];if(!old)continue;
- if(r.plan){const p=M.pathPose(r.plan,o.id,r.f*(1-q),1,0,r.model.beat);if(!p)continue;p.stand=o.rest?old.stand*(1-q):1;p.step=old.step*(1-q);poses[o.id]=p}
- else poses[o.id]={...old,step:old.step*(1-q),head:old.head*(1-q),sway:old.sway*(1-q)};
+ if(r.plan){const p=M.pathPose(r.plan,o.id,r.f*(1-q),1,0,r.model.beat);if(!p)continue;p.stand=o.rest?old.stand*(1-q):1;p.step=old.step*(1-raw);poses[o.id]=p}
+ else poses[o.id]={...old,step:old.step*(1-raw),head:old.head*(1-raw),sway:old.sway*(1-raw)};
  }return {layout:r.scene.layout,poses}
 }
 function frame(mode,W,H,layout){
@@ -44,8 +47,8 @@ function frame(mode,W,H,layout){
  if(!p)return null;if(p.id===ignoredId)return null;
  if(session&&session.mode!==mode)return null;
  if(!session){
-  // Do not teleport an already-running choreography into a newly opened or resized scene.
-  if(p.elapsed>1.2||layout.length!==44){ignoredId=p.id;return null}
+  // A temporarily incomplete layout can become ready during playback; retry rather than discard the slot.
+  if(layout.length!==44)return null;
   try{session=makeSession(p,s)}catch(e){console.warn('[BUDAO] praise bridge:',e.message)}
   if(!session){ignoredId=p.id;return null}
  }
