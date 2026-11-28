@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>牧场 · 步道</title>
+<meta name="theme-color" content="#9fe8ff">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fe8ff}
+body{touch-action:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+</style>
+</head>
+<body>
+<canvas id="pasture" aria-label="牧场"></canvas>
+<script src="/pasture-sky-engine.js"></script>
+<script src="/pasture-sun-moon-track.js"></script>
+<script src="/pasture-nature-events.js"></script>
+<script>
+(()=>{
+const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');
+const natureEvents=window.BudaoPastureNature?.createController();
+ctx.imageSmoothingEnabled=false;
+
+const C={
+ sky:'#9fe8ff',sky2:'#dff9ff',sun:'#fff1a0',sunHalo:'#fff8c7',
+ mountainFar:'#a7c1d5',mountain:'#789cbb',hill:'#9bd878',hill2:'#7dc85d',
+ grass:'#83d75f',grass2:'#62b94a',grass3:'#4d9d3a',
+ river:'#79dbff',riverLight:'#c9f5ff',riverDark:'#5fc1ea',
+ trunk:'#77644f',tree1:'#6fbe56',tree2:'#95dc74',
+ flower1:'#fff1a0',flower2:'#ffd2ee',flower3:'#d9f6ae',
+ ink:'#564d47',wood:'#795a40',woodDark:'#6f543d',
+ self:'#bfd7a4',selfHead:'#776d60'
+};
+const PAIRS=[
+ ['#f4ecdc','#8d836e'],['#d8d7ce','#756d66'],['#f1d7bf','#987b68'],['#bfd8da','#806f67'],
+ ['#c7d5b5','#78806d'],['#dec9c8','#866f70'],['#d5c7a8','#81745d'],['#eee8dc','#746d65'],
+ ['#f2e3b3','#917d62'],['#bfd8da','#776d66'],['#f3ead7','#887e6e'],['#d8d7ce','#756d66'],
+ ['#f1d7bf','#947966'],['#c7d5b5','#747c68'],['#dec9c8','#806a6c'],['#f3ead7','#897f70'],
+ ['#d5c7a8','#80725c'],['#bfd8da','#756d68'],['#f2e3b3','#8b785f'],['#dec9c8','#816b6d'],
+ ['#f3ead7','#857b6c'],[C.self,C.selfHead],['#c7d5b5','#727a66'],['#d8d7ce','#716a64'],['#f1d7bf','#907461']
+];
+let sheepColors=PAIRS.slice();
+sheepColors[21]=[C.self,C.selfHead];
+
+let W=480,H=300,portrait=false,tick=0,state=null,twigHover=false;
+function flockDateKey(){
+ const tz=state?.location?.timezone||'Asia/Shanghai';
+ try{
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const o=Object.fromEntries(p.map(x=>[x.type,x.value]));
+  return o.year+'-'+o.month+'-'+o.day;
+ }catch(e){return new Date().toISOString().slice(0,10)}
+}
+function flockHash(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function flockRand(seed){return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function portraitDailyRand(label){return flockRand(flockHash('budao-'+label+'-'+flockDateKey()))}
+
+const embedded=window.parent!==window;
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin)return;
+ const d=e.data;
+ if(d&&d.type==='tonglu-environment-v1'&&d.state){
+  state=d.state;
+  draw();
+ }
+});
+function rect(x,y,w,h,c,a=1){ctx.save();ctx.globalAlpha=a;ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));ctx.restore()}
+function poly(points,c){ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fill()}
+function cloud(x,y,s,a=1,col='#fff'){rect(x,y,18*s,5*s,col,a);rect(x+6*s,y-4*s,11*s,9*s,col,a);rect(x+15*s,y+1*s,16*s,4*s,col,a)}
+function mixHex(a,b,t){
+ const pa=[parseInt(a.slice(1,3),16),parseInt(a.slice(3,5),16),parseInt(a.slice(5,7),16)];
+ const pb=[parseInt(b.slice(1,3),16),parseInt(b.slice(3,5),16),parseInt(b.slice(5,7),16)];
+ return '#'+pa.map((v,i)=>Math.round(v+(pb[i]-v)*t).toString(16).padStart(2,'0')).join('');
+}
+function effectiveCloudCover(){
+ const c=state?.current||{},code=Number(c.weatherCode)||0;
+ let cloud=Math.max(0,Math.min(100,Number(c.cloudCover)||0));
+ const type=weatherKind(code);
+ if(type==='fog')cloud=Math.max(cloud,92);
+ else if(type==='rain'||type==='snow')cloud=Math.max(cloud,88);
+ else if(code===3)cloud=Math.max(cloud,85);
+ else if(code===2)cloud=Math.max(cloud,55);
+ else if(code===1)cloud=Math.max(cloud,25);
+ return cloud;
+}
+function portraitSky(){
+ const cloud=effectiveCloudCover(),t=Math.pow(cloud/100,.9);
+ return{
+  top:mixHex('#9fe8ff','#819ba7',t),
+  bottom:mixHex('#dff9ff','#b5c6cb',t),
+  cloud,
+  tone:mixHex('#ffffff','#dce4e6',Math.max(0,(cloud-35)/65))
+ };
+}
+function drawPortraitWeatherClouds(skyBand){
+ const s=portraitSky(),cl=s.cloud;
+ const count=cl<12?1:cl<30?2:cl<50?3:cl<68?5:cl<84?7:9;
+ const seeds=[[12,.24,.72,.78,19],[52,.43,.92,.88,27],[96,.20,.68,.68,34],[132,.52,1.00,.90,42],[174,.29,.78,.78,49],[210,.56,1.08,.92,58],[246,.18,.70,.72,67],[276,.46,.92,.86,76],[116,.12,.62,.64,88]];
+ for(let i=0;i<count;i++){
+  const p=seeds[i],drift=(tick/(p[4]*5))%(W+60);
+  const x=((p[0]+drift+W+60)%(W+60))-30;
+  const y=Math.max(14,skyBand*p[1]);
+  cloud(x,y,p[2],p[3],s.tone);
+ }
+}
+function jagged(baseY,step,amp,c,bottom,phase=0){
+ const p=[[0,bottom],[0,baseY]];
+ for(let x=0,k=0;x<=W+step;x+=step,k++)p.push([x,baseY-((k*7+phase*3)%5)*amp]);
+ p.push([W,bottom]);poly(p,c);
+}
+function sheepBody(x,y,s,f,h,flip=false,graze=false){
+ ctx.save();
+ if(flip){ctx.translate(x+30*s,0);ctx.scale(-1,1);x=0}
+ const g=graze&&Math.sin((tick+x+y)/72)>.58?4:0;
+ rect(x,y,24*s,12*s,f);rect(x+4*s,y-5*s,17*s,19*s,f);rect(x+8*s,y-8*s,10*s,22*s,f);
+ rect(x+19*s,y+2*s+g,10*s,10*s,h);rect(x+27*s,y+4*s+g,3*s,4*s,h);
+ rect(x+17*s,y+3*s+g,3*s,3*s,h);rect(x+24*s,y+4*s+g,1.5*s,1.5*s,C.ink);
+ rect(x+5*s,y+12*s,3*s,8*s,'#5d5851');rect(x+16*s,y+12*s,3*s,8*s,'#5d5851');
+ ctx.restore();
+}
+function drawSheep(o,i){
+ const phase=i*29+11,dx=Math.sin((tick+phase)/260)*(o.wander||0);
+ const breath=Math.sin((tick+phase)/95)>.80?1:0;
+ const m=window.parent.__budaoPreviewMotion?.(o.x/W,o.y/H,i,false,o.s);const x=Math.round(o.x+(m?m.dx:dx)),y=Math.round(o.y+(m?m.dy:-breath));
+ const pair=o.f&&o.h?[o.f,o.h]:sheepColors[i%sheepColors.length];
+ rect(x-2*o.s,y+18*o.s,28*o.s,2*o.s,'rgba(56,93,54,.18)');
+ sheepBody(x,y,o.s,pair[0],pair[1],o.flip,o.graze);
+}
+function tree(x,y,s=1){
+ rect(x+5*s,y+12*s,3*s,10*s,C.trunk);
+ rect(x,y+5*s,13*s,5*s,C.tree1);rect(x+2*s,y,9*s,6*s,C.tree2);rect(x+3*s,y+9*s,7*s,5*s,'#79ca5f');
+}
+function drawRiver(sourceX,sourceY,endX,endY,wideEnd){
+ const left=[],right=[],innerL=[],innerR=[];
+ const steps=18;
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,y=sourceY+(endY-sourceY)*t;
+  const wave=Math.sin(t*Math.PI*2.2)*Math.min(15,W*.045)*t;
+  const cx=sourceX+(endX-sourceX)*t+wave;
+  const wd=5+(wideEnd-5)*Math.pow(t,1.25);
+  left.push([cx-wd,y]);right.unshift([cx+wd,y]);
+  innerL.push([cx-wd*.72,y]);innerR.unshift([cx+wd*.72,y]);
+ }
+ poly(left.concat(right),C.riverDark);poly(innerL.concat(innerR),C.river);
+ // waterfall, same coarse pixel language
+ rect(sourceX-5,sourceY-12,10,4,'#eefcff');rect(sourceX-3,sourceY-8,8,6,C.riverLight);
+ rect(sourceX-5,sourceY-2,10,8,'#dff8ff');rect(sourceX-7,sourceY+6,14,4,'#f4ffff');
+ const wf=Math.floor(tick/8)%6;
+ rect(sourceX-2+(wf>2?2:0),sourceY-7+(wf%3)*2,2,2,'#f7ffff');
+ // glints
+ for(let j=0;j<5;j++){
+  const t=.28+j*.14,y=sourceY+(endY-sourceY)*t;
+  const wave=Math.sin(t*Math.PI*2.2)*Math.min(15,W*.045)*t;
+  const cx=sourceX+(endX-sourceX)*t+wave;
+  rect(cx-3+(j%2),y,6+j,1,j%2?C.riverLight:'#dff8ff',.65);
+ }
+}
+function drawBridge(y,centerX){
+ const widths=[11,13,14,14],cols=['#6f543d','#795a40','#816046','#76573f'];
+ let x=centerX-25;
+ for(let i=0;i<4;i++){rect(x,y-i*.6,widths[i],3.3,cols[i]);x+=widths[i]-1}
+ rect(centerX-20,y-1,10,1,'#b88b61');rect(centerX+3,y-2,9,1,'#b88b61');
+}
+function grassTexture(top){
+ const span=Math.max(1,H-top);
+ for(let i=0;i<90;i++){
+  const x=(i*71+23)%W,y=top+((i*37+19)%span);
+  rect(x,y,1+(i%3===0),2+(i%4===0),i%2?C.grass3:'#6fc355');
+ }
+ const flowers=[C.flower1,C.flower2,C.flower3];
+ for(let i=0;i<18;i++){
+  const x=(i*97+31)%W,y=top+18+((i*43)%Math.max(1,span-24));
+  rect(x,y,2,2,flowers[i%3]);
+ }
+}
+function drawLandscape(){
+ const horizon=152,farBottom=177;
+ rect(0,0,W,96,C.sky);rect(0,96,W,48,C.sky2);
+ jagged(128,20,3,C.mountainFar,166,1);jagged(151,27,3,C.mountain,farBottom,3);
+ rect(0,158,W,H-158,C.hill);rect(0,185,W,H-185,C.hill2);rect(0,214,W,H-214,C.grass);rect(0,264,W,H-264,C.grass2);
+ const sx=W*.74,ex=W*.78;
+ drawRiver(sx,153,ex,H+8,Math.max(18,W*.035));
+ drawBridge(221,sx+18);
+ tree(W*.88,189,.85);
+ grassTexture(218);
+ const slots=[];
+ const rows=[
+  {y:169,n:7,s:[.34,.47]},{y:202,n:7,s:[.52,.70]},{y:239,n:6,s:[.72,.94]},{y:274,n:5,s:[.95,1.16]}
+ ];
+ let idx=0;
+ rows.forEach((r,ri)=>{
+  for(let j=0;j<r.n;j++){
+   const x=18+(W-50)*(j+.35+(ri%2)*.24)/r.n;
+   if(Math.abs(x-sx)<28&&ri<2)continue;
+   slots.push({x,y:r.y+(j%2)*6,s:r.s[0]+(r.s[1]-r.s[0])*(j/Math.max(1,r.n-1)),flip:(j+ri)%3===0,graze:(j+ri)%4===0,wander:.6});
+  }
+ });
+ while(slots.length<25)slots.push({x:20+(slots.length*53)%Math.max(40,W-60),y:245+(slots.length%3)*14,s:.85,flip:slots.length%2===0,wander:.5});
+ slots.slice(0,25).forEach(drawSheep);
+}
+function portraitRiverCenter(t){
+ const anchors=[
+  [0,.75],[.16,.68],[.34,.77],[.53,.55],[.72,.70],[.88,.43],[1,.58]
+ ];
+ for(let i=0;i<anchors.length-1;i++){
+  const a=anchors[i],b=anchors[i+1];
+  if(t>=a[0]&&t<=b[0]){
+   let q=(t-a[0])/(b[0]-a[0]);
+   q=q*q*(3-2*q);
+   return W*(a[1]+(b[1]-a[1])*q);
+  }
+ }
+ return W*.58;
+}
+function portraitRiverHalfWidthAtY(y,sourceY){
+ const t=Math.max(0,Math.min(1,(y-sourceY)/(H+8-sourceY)));
+ return 5+(W*.115-5)*Math.pow(t,1.18);
+}
+function keepCreatureOnBank(x,y,s,sourceY,isLamb=false){
+ const t=Math.max(0,Math.min(1,(y-sourceY)/(H+8-sourceY)));
+ const rx=portraitRiverCenter(t);
+ const riverHalf=portraitRiverHalfWidthAtY(y,sourceY);
+ const bodyHalf=(isLamb?10.5:15)*s;
+ const safety=riverHalf+bodyHalf+5;
+ let center=x+bodyHalf;
+ if(Math.abs(center-rx)<safety){
+  center=rx+(center<rx?-safety:safety);
+  x=center-bodyHalf;
+ }
+ const visualWidth=(isLamb?21:30)*s;
+ return Math.max(3,Math.min(W-visualWidth-3,x));
+}
+function drawPortraitRiver(sourceY){
+ const left=[],right=[],innerL=[],innerR=[];
+ const bottomY=H+8,steps=34;
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,y=sourceY+(bottomY-sourceY)*t,cx=portraitRiverCenter(t);
+  const wd=5+(W*.115-5)*Math.pow(t,1.18);
+  left.push([cx-wd,y]);right.unshift([cx+wd,y]);
+  innerL.push([cx-wd*.74,y]);innerR.unshift([cx+wd*.74,y]);
+ }
+ poly(left.concat(right),C.riverDark);
+ poly(innerL.concat(innerR),C.river);
+
+ // distant waterfall: its maximum width is now tied to the river source
+ const sx=portraitRiverCenter(0);
+ const riverSourceW=Math.max(8,Math.round(portraitRiverHalfWidthAtY(sourceY,sourceY)*2));
+ const fallW=Math.max(6,Math.round(riverSourceW*.82));
+ const fallTop=sourceY-21;
+ rect(sx-riverSourceW/2,fallTop,riverSourceW,3,'#eefcff');
+ rect(sx-fallW/2,fallTop+3,fallW,7,C.riverLight);
+ rect(sx-fallW/2,fallTop+10,fallW,9,'#dff8ff');
+ rect(sx-riverSourceW/2,sourceY-2,riverSourceW,3,'#f4ffff');
+ const wf=Math.floor(tick/8)%6;
+ rect(sx-1+(wf>2?1:0),fallTop+5+(wf%3)*2,2,2,'#f7ffff');
+ if((Math.floor(tick/12)%2)===0){rect(sx-riverSourceW/2,sourceY-1,3,1,'#fff');rect(sx+riverSourceW/2-3,sourceY-1,3,1,'#fff')}
+
+ // restrained moving glints following the full S curve
+ for(let j=0;j<7;j++){
+  const t=.13+j*.12,y=sourceY+(bottomY-sourceY)*t,cx=portraitRiverCenter(t);
+  rect(cx-4+(j%2),y,7+j,1,j%2?C.riverLight:'#dff8ff',.65);
+ }
+}
+function drawPortraitBridge(sourceY){
+ const t=.43,y=sourceY+(H+8-sourceY)*t,cx=portraitRiverCenter(t);
+ // slight diagonal, positioned on the first strong return of the S
+ const x=cx-27;
+ rect(x,y+1,13,3,'#6f543d');
+ rect(x+12,y,14,4,'#795a40');
+ rect(x+25,y-1,14,4,'#816046');
+ rect(x+38,y-2,15,4,'#76573f');
+ rect(x+4,y,11,1,'#b88b61');
+ rect(x+28,y-1,10,1,'#b88b61');
+ rect(x+48,y-2,5,1,'#a67a55');
+}
+function portraitSkyBottom(){return H*.255}
+// One ridge geometry for the distant mountains and the sky-only celestial mask.
+function portraitFarRidge(farY){
+ return [[0,farY+8],[25,farY+1],[48,farY+12],[72,farY-8],[98,farY+5],[122,farY-2],[148,farY+14],[177,farY-3],[205,farY+9],[232,farY-6],[258,farY+11],[300,farY-2]];
+}
+function clipPortraitCelestialSky(skyBottom){
+ ctx.beginPath();ctx.rect(0,0,W,Math.round(skyBottom));ctx.clip();
+ if(!portrait)return;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);
+ const ridge=portraitFarRidge(skyBottom);
+ for(let i=ridge.length-1;i>=0;i--)ctx.lineTo(ridge[i][0],ridge[i][1]);
+ ctx.closePath();ctx.clip();
+}
+function drawPortraitMountains(sourceY){
+ const farY=portraitSkyBottom(),midY=H*.315,nearY=H*.365;
+ const ws=portraitSky();
+ rect(0,0,W,farY+20,ws.top);
+ rect(0,farY,W,52,ws.bottom);
+ drawPortraitWeatherClouds(farY+12);
+
+ // broad, asymmetrical ranges inspired by the approved portrait composition
+ poly([[0,farY+28],...portraitFarRidge(farY),[300,midY+34],[0,midY+34]],C.mountainFar);
+ poly([[0,midY+25],[0,midY+6],[24,midY+1],[48,midY+13],[76,midY-11],[102,midY+2],[127,midY-15],[154,midY+7],[181,midY-5],[208,midY+10],[234,midY-9],[261,midY+7],[300,midY-12],[300,nearY+30],[0,nearY+30]],C.mountain);
+ poly([[0,nearY+20],[0,nearY+6],[31,nearY-2],[58,nearY+11],[88,nearY-12],[118,nearY+8],[149,nearY-6],[178,nearY+11],[210,nearY-8],[240,nearY+6],[270,nearY-10],[300,nearY+3],[300,nearY+54],[0,nearY+54]],'#6f98b6');
+
+ // low green foothills leading into the waterfall valley
+ poly([[0,H*.405],[0,H*.385],[32,H*.374],[65,H*.395],[96,H*.371],[130,H*.398],[166,H*.378],[201,H*.397],[235,H*.376],[270,H*.394],[300,H*.382],[300,H*.455],[0,H*.455]],'#6eae61');
+}
+function creatureBox(o,isLamb=false){
+ const w=(isLamb?21:30)*o.s;
+ const h=(isLamb?20:28)*o.s;
+ return {l:o.x-2*o.s,r:o.x+w+2*o.s,t:o.y-8*o.s,b:o.y+h};
+}
+function boxesOverlap(a,b,pad=3){
+ return !(a.r+pad<b.l||a.l-pad>b.r||a.b+pad<b.t||a.t-pad>b.b);
+}
+function findOpenFlockSpot(o,sourceY,occupied,isLamb=false){
+ const minY=sourceY+(isLamb?6:10),maxY=H-(isLamb?24:36);
+ const dx=[0,12,-12,24,-24,36,-36,48,-48,60,-60,72,-72,84,-84,96,-96,108,-108,120,-120];
+ const dy=isLamb?[0,-5,5,-10,10,-15,15,-20,20,-25,25,-30,30,-36,36,-42,42]:
+                 [0,-4,4,-8,8,-12,12,-16,16,-20,20,-24,24,-28,28,-32,32];
+ const pads=isLamb?[6,4,2,0]:[7,5,3,0];
+ for(const pad of pads){
+  for(const oy of dy){
+   const y=Math.max(minY,Math.min(maxY,o.y+oy));
+   for(const ox of dx){
+    const x=keepCreatureOnBank(o.x+ox,y,o.s,sourceY,isLamb);
+    const test={x,y,s:o.s};
+    const box=creatureBox(test,isLamb);
+    if(!occupied.some(b=>boxesOverlap(box,b,pad)))return{x,y};
+   }
+  }
+ }
+ return null;
+}
+function placeAdultAvoidingFlock(o,sourceY,occupied){
+ const p=findOpenFlockSpot(o,sourceY,occupied,false);
+ if(p)return p;
+ return{x:keepCreatureOnBank(o.x,o.y,o.s,sourceY,false),y:Math.max(sourceY+10,Math.min(H-36,o.y))};
+}
+function placeLambAvoidingFlock(o,sourceY,occupied){
+ const p=findOpenFlockSpot(o,sourceY,occupied,true);
+ if(p)return p;
+ return{x:keepCreatureOnBank(o.x,o.y,o.s,sourceY,true),y:Math.max(sourceY+6,Math.min(H-24,o.y))};
+}
+function drawLamb(x,y,s,flip=false,style='normal'){
+ const bw=style==='blackwhite';
+ const f=bw?'#eeeae2':'#f6ead7',h=bw?'#302d2a':'#b98f79';
+ ctx.save();
+ if(flip){ctx.translate(x+21*s,0);ctx.scale(-1,1);x=0}
+ rect(x,y,16*s,8*s,f);rect(x+3*s,y-4*s,11*s,13*s,f);rect(x+6*s,y-6*s,7*s,15*s,f);
+ if(bw){rect(x+3*s,y-2*s,5*s,5*s,'#4a4642');rect(x+9*s,y+2*s,5*s,4*s,'#4a4642')}
+ rect(x+13*s,y+2*s,7*s,7*s,h);rect(x+19*s,y+4*s,2*s,3*s,h);
+ rect(x+12*s,y+3*s,2*s,2*s,h);rect(x+17*s,y+4*s,1,1,C.ink);
+ rect(x+4*s,y+8*s,2*s,6*s,'#5d5851');rect(x+11*s,y+8*s,2*s,6*s,'#5d5851');
+ ctx.restore();
+}
+function drawPortrait(){
+ // Native portrait composition + daily deterministic flock.
+ const sourceY=Math.round(H*.405);
+ const hillY=Math.round(H*.43),hill2Y=Math.round(H*.50),grassY=Math.round(H*.555),frontY=Math.round(H*.80);
+ const rand=portraitDailyRand('portrait-flock');
+
+ drawPortraitMountains(sourceY);
+ rect(0,hillY,W,H-hillY,C.hill);
+ rect(0,hill2Y,W,H-hill2Y,C.hill2);
+ rect(0,grassY,W,H-grassY,C.grass);
+ rect(0,frontY,W,H-frontY,C.grass2);
+
+ drawPortraitRiver(sourceY);
+ drawPortraitBridge(sourceY);
+ tree(Math.round(W*.08),Math.round(H*.56),.9);
+ grassTexture(grassY+12);
+
+ // 25 original adults, now with a date-seeded daily positional variation.
+ const rows=[
+  {y:H*.445,n:4,min:.33,max:.41,jx:9,jy:4},
+  {y:H*.515,n:5,min:.42,max:.54,jx:11,jy:5},
+  {y:H*.595,n:5,min:.55,max:.69,jx:13,jy:6},
+  {y:H*.685,n:4,min:.70,max:.84,jx:15,jy:7},
+  {y:H*.785,n:4,min:.85,max:1.00,jx:17,jy:8},
+  {y:H*.895,n:3,min:1.00,max:1.14,jx:18,jy:8}
+ ];
+ const adults=[],adultOccupied=[];
+ rows.forEach((r,ri)=>{
+  for(let j=0;j<r.n;j++){
+   const q=j/Math.max(1,r.n-1),s=r.min+(r.max-r.min)*q;
+   let x=12+(W-44)*(j+.48+(ri%2)*.31)/(r.n+.05)+(rand()-.5)*2*r.jx;
+   let y=r.y+(j%2)*5+(rand()-.5)*2*r.jy;
+   const base={x,y,s,flip:rand()<.38,graze:rand()<.27,wander:.42+ri*.06};
+   const p=placeAdultAvoidingFlock(base,sourceY,adultOccupied);
+   base.x=p.x;base.y=p.y;
+   adults.push(base);adultOccupied.push(creatureBox(base,false));
+  }
+ });
+
+ // 26th adult: one large black sheep. Its side changes by day, but it remains an ordinary member of the flock.
+ const blackLeft=rand()<.5;
+ let black={x:blackLeft?W*.16:W*.78,y:H*(.73+rand()*.10),s:1.02,flip:rand()<.5,graze:false,wander:.95,f:'#494642',h:'#292725',black:true};
+ let bp=placeAdultAvoidingFlock(black,sourceY,adultOccupied);black.x=bp.x;black.y=bp.y;
+ adults.push(black);adultOccupied.push(creatureBox(black,false));
+
+ const occupied=adultOccupied.slice();
+
+ // 17 original lambs, with a smaller date-seeded shift so perspective remains stable.
+ const lambs=[
+  {x:W*.16,y:H*.468,s:.23},{x:W*.31,y:H*.485,s:.25},
+  {x:W*.53,y:H*.472,s:.24},{x:W*.86,y:H*.492,s:.26},
+  {x:W*.18,y:H*.585,s:.36},{x:W*.28,y:H*.615,s:.39},
+  {x:W*.42,y:H*.628,s:.40},{x:W*.57,y:H*.585,s:.37},
+  {x:W*.73,y:H*.625,s:.41},{x:W*.90,y:H*.655,s:.44},
+  {x:W*.13,y:H*.695,s:.45},
+  {x:W*.23,y:H*.775,s:.55},{x:W*.40,y:H*.825,s:.59},
+  {x:W*.56,y:H*.765,s:.54},{x:W*.76,y:H*.835,s:.62},
+  {x:W*.18,y:H*.895,s:.65},{x:W*.84,y:H*.925,s:.67}
+ ];
+ const placedLambs=[];
+ lambs.forEach((o,i)=>{
+   const depth=(o.y/H),jx=depth>.75?13:9,jy=depth>.75?7:5;
+   const base={x:o.x+(rand()-.5)*2*jx,y:o.y+(rand()-.5)*2*jy,s:o.s,flip:rand()<.5,style:'normal'};
+   const p=placeLambAvoidingFlock(base,sourceY,occupied);
+   const final={x:p.x,y:p.y,s:o.s,flip:base.flip,style:'normal'};
+   placedLambs.push(final);occupied.push(creatureBox(final,true));
+ });
+
+ // 18th lamb: black-and-white, always on the opposite side from the black adult.
+ const specialBase={
+   x:black.x<W/2?W*.86:W*.10,
+   y:H*(.72+rand()*.13),
+   s:.57,
+   flip:rand()<.5,
+   style:'blackwhite'
+ };
+ let sp=placeLambAvoidingFlock(specialBase,sourceY,occupied);
+ let special={x:sp.x,y:sp.y,s:specialBase.s,flip:specialBase.flip,style:'blackwhite'};
+ // Hard separation guard: they should never read as a pair.
+ if(Math.hypot((special.x+10*special.s)-black.x,(special.y+8*special.s)-black.y)<W*.36){
+   const farBase={...specialBase,x:black.x<W/2?W*.88:W*.08,y:special.y};
+   const far=placeLambAvoidingFlock(farBase,sourceY,occupied);
+   special.x=far.x;special.y=far.y;
+ }
+ placedLambs.push(special);
+ occupied.push(creatureBox(special,true));
+
+ // Adults and lambs share one depth order so a distant lamb can no longer be painted on top of a nearer adult.
+ const creatures=[];
+ adults.forEach((o,i)=>creatures.push({kind:'adult',o,i,depth:o.y+20*o.s}));
+ placedLambs.forEach((o,i)=>creatures.push({kind:'lamb',o,i,depth:o.y+14*o.s}));
+ creatures.sort((a,b)=>a.depth-b.depth||a.o.s-b.o.s);
+ creatures.forEach(c=>{
+   if(c.kind==='adult'){
+    drawSheep(c.o,c.i);
+   }else{
+    const o=c.o,i=c.i;
+    const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
+    const bob=Math.sin((tick+i*41)/110)>.82?1:0,m=window.parent.__budaoPreviewMotion?.(o.x/W,o.y/H,i+26,false,o.s),x=o.x+(m?m.dx:dx),y=o.y+(m?m.dy:-bob);
+    rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
+    drawLamb(x,y,o.s,o.flip,o.style);
+   }
+ });
+}
+function drawTwig(){
+ const x0=12,y0=H-39;
+ const main=twigHover?'#8b694b':'#795a40',dark=twigHover?'#7a5b42':'#6f543d',light=twigHover?'#b88b61':'#a67a55';
+ rect(x0+15,y0+8,3,19,dark);rect(x0+17,y0+5,3,22,main);rect(x0+18,y0+2,2,7,main);
+ rect(x0+12,y0+7,6,3,main);rect(x0+8,y0+5,6,3,main);rect(x0+4,y0+3,6,3,main);
+ rect(x0+1,y0+1,5,3,dark);rect(x0,y0,3,2,dark);rect(x0,y0+4,3,2,dark);
+ rect(x0+6,y0+3,8,1,light);rect(x0+17,y0+9,1,10,light);
+}
+function weatherKind(code){
+ code=Number(code)||0;if(code===45||code===48)return'fog';
+ if((code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99))return'rain';
+ if((code>=71&&code<=77)||(code>=85&&code<=86))return'snow';return'clear';
+}
+function sunAlpha(code,cloud){
+ code=Number(code)||0;cloud=Number(cloud)||0;
+ const type=weatherKind(code);
+ if(type==='rain'||type==='snow'||type==='fog')return 0;
+ if(code===3||cloud>=85)return 0;
+ if(code===2||cloud>=65)return .28;
+ if(code===1||cloud>=40)return .58;
+ return 1;
+}
+function moon(cx,cy,phase,p,visual){
+  const r=8,a=phase*Math.PI*2,side=Math.abs(Math.sin(a)),lz=-Math.cos(a);
+  const lx=side*(p?.lightX||0),ly=side*(p?.lightY||0);
+  const brightAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(visual?.brightAlpha))?Number(visual.brightAlpha):1));
+  const darkAlpha=Math.max(0,Math.min(1,Number.isFinite(Number(visual?.darkAlpha))?Number(visual.darkAlpha):1));
+  for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){
+    const nx=x/(r+.2),ny=y/(r+.2),rr=nx*nx+ny*ny;
+    if(rr>1)continue;
+    const nz=Math.sqrt(Math.max(0,1-rr));
+    const lit=(nx*lx+ny*ly+nz*lz)>0,alpha=lit?brightAlpha:darkAlpha;
+    if(alpha<=0)continue;
+    rect(cx+x,cy+y,1,1,lit?'rgba(255,241,184,'+alpha+')':'rgba(82,97,123,'+alpha+')');
+  }
+}
+function drawSharedCelestial(now,cloud,c){
+ const sky=window.BudaoPastureSky,shared=state?.skyState;
+ if(!sky||!shared)return;
+ const skyBottom=portrait?portraitSkyBottom():96;
+ const project=o=>sky.projectHorizontal({altitudeDeg:o.altitudeDeg,azimuthDeg:o.azimuthDeg,centerAzimuthDeg:shared.centerAzimuthDeg,width:W,skyTop:0,skyBottom});
+ ctx.save();clipPortraitCelestialSky(skyBottom);
+ const segment=window.BudaoPastureTrack?.segmentAt(now,state.astronomy);
+ const sunXY=segment?.body==='sun'?window.BudaoPastureTrack.positionAt({
+  progress:segment.progress,width:W,skyBottom,radiusPx:13
+ }):null,sa=sunAlpha(c.weatherCode,cloud);
+ if(sunXY&&sa>0){ctx.save();ctx.globalAlpha=sa;rect(sunXY.x-13,sunXY.y-13,26,26,'rgba(255,248,199,.72)');rect(sunXY.x-9,sunXY.y-9,18,18,C.sun);ctx.restore()}
+ for(const star of shared.stars||[]){
+  if(!(star.visibility>0.015))continue;
+  const p=project(star);if(!p)continue;
+  const alpha=Math.max(0,Math.min(1,star.visibility*sky.starTwinkle({visibility:star.visibility,altitudeDeg:star.altitudeDeg,visualMagnitude:star.visualMagnitude,timeMs:now,seed:star.twinkleSeed})));
+  if(alpha<=0.015)continue;
+  const ci=Number(star.colorIndex),warm=Number.isFinite(ci)&&ci>0.65,cool=Number.isFinite(ci)&&ci<-.05,col=warm?'#fff1c8':cool?'#e7f4ff':'#f5f7f2';
+  ctx.save();ctx.globalAlpha=alpha;const size=star.magnitudeClass===0?2:1;rect(Math.round(p.x)-(size>1?1:0),Math.round(p.y),size,size,col);if(star.magnitudeClass===0&&alpha>.55){ctx.globalAlpha=alpha*.18;rect(Math.round(p.x)-2,Math.round(p.y),5,1,col)}ctx.restore();
+ }
+ const mf=sky.meteorFrame(state?.meteorEvent,now);
+ if(mf){const cloudOpacity=sky.cloudOpacityAt({xNorm:mf.x,yNorm:mf.y,cloudCover:cloud,weatherCode:c.weatherCode,timeMs:now});const visibility=sky.meteorVisibility({sunAltitudeDeg:shared.sun.altitudeDeg,cloudOpacity,moon:shared.moon});const alpha=mf.alpha*visibility;if(alpha>.02){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#f7fbff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mf.tailX*W,mf.tailY*skyBottom);ctx.lineTo(mf.x*W,mf.y*skyBottom);ctx.stroke();rect(mf.x*W,mf.y*skyBottom,1,1,'#ffffff');ctx.restore()}}
+ const moonXY=segment?.body==='moon'?window.BudaoPastureTrack.positionAt({
+  progress:segment.progress,width:W,skyBottom,radiusPx:8
+ }):null;
+ if(moonXY){const mv=sky.moonVisualProfile(shared.sun.altitudeDeg);moon(Math.round(moonXY.x),Math.round(moonXY.y),Number(shared.moon.phase)||0,shared.moon,mv)}
+ ctx.restore();
+}
+function weatherOverlay(){
+ if(!state)return;
+ const now=Date.now(),a=state.astronomy,c=state.current;
+ const sunrise=+a.sunriseToday||0,sunset=+a.sunsetToday||0,prev=+a.sunsetYesterday||0,next=+a.sunriseTomorrow||0;
+ const day=sunrise&&sunset&&now>=sunrise&&now<=sunset;let darkness=0,progress=.5;
+ if(day){progress=Math.max(0,Math.min(1,(now-sunrise)/(sunset-sunrise)));const edge=Math.min(progress,1-progress);if(edge<.12)rect(0,0,W,H,'rgba(244,177,112,'+((.12-edge)*.75)+')')}
+ else{
+  let ns,ne;if(now<sunrise){ns=prev;ne=sunrise}else{ns=sunset;ne=next}
+  if(ns&&ne&&ne>ns){progress=Math.max(0,Math.min(1,(now-ns)/(ne-ns)));const edge=Math.min(progress,1-progress);darkness=Math.max(.20,Math.min(.62,.62*(edge/.22)))}else darkness=.52;
+  rect(0,0,W,H,'rgba(18,34,70,'+darkness+')');
+ }
+ const cloud=effectiveCloudCover();
+ const skyBottom=portraitSkyBottom();
+ drawSharedCelestial(now,cloud,c);
+ const kind=weatherKind(c.weatherCode);
+ if(kind==='fog'){ctx.save();ctx.globalAlpha=.18;for(let i=0;i<Math.ceil(H/80);i++)rect(((i*117+tick*2)%(W+180))-90,H*.34+i*18,130,5,'#fff');ctx.restore()}
+ if(kind==='rain'){const n=Math.round((32+Math.min(42,cloud/2))*W*H/(480*300));ctx.save();ctx.globalAlpha=.48;for(let i=0;i<n;i++)rect((i*71+tick*7)%W,(i*43+tick*11)%H,1,3,i%4===0?'#dff7ff':'#b9def1');ctx.restore()}
+ if(kind==='snow'){const n=Math.round((36+Math.min(30,cloud/3))*W*H/(480*300));ctx.save();ctx.globalAlpha=.8;for(let i=0;i<n;i++)rect((i*83+tick*(i%3+1))%W,(i*37+tick*3)%H,i%7===0?2:1,i%7===0?2:1,'#f5fbff');ctx.restore()}
+}
+function draw(){
+ tick++;ctx.clearRect(0,0,W,H);
+ if(portrait)drawPortrait();else drawLandscape();
+ weatherOverlay();
+ // Fireflies must remain luminous after the night tint, without changing that tint.
+ if(state&&natureEvents)natureEvents.draw(ctx,{now:Date.now(),width:W,height:H,scene:portrait?'portrait':'landscape',state,skyState:state.skyState});
+ drawTwig();
+}
+function resize(){
+ const vw=Math.max(1,innerWidth),vh=Math.max(1,innerHeight);
+ portrait=vh>vw*1.08;
+ if(portrait){W=300;H=Math.max(430,Math.round(W*vh/vw))}
+ else{H=300;W=Math.max(390,Math.round(H*vw/vh))}
+ canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;
+ if(natureEvents)natureEvents.reset(); // discard coordinates from the previous viewport aspect ratio
+ draw();
+}
+function twigHit(cx,cy){
+ const r=canvas.getBoundingClientRect(),x=(cx-r.left)/r.width*W,y=(cy-r.top)/r.height*H;
+ return x>=6&&x<=45&&y>=H-48&&y<=H-2;
+}
+canvas.addEventListener('pointermove',e=>{const h=twigHit(e.clientX,e.clientY);if(h!==twigHover){twigHover=h;canvas.style.cursor=h?'pointer':'default';draw()}});
+canvas.addEventListener('pointerleave',()=>{twigHover=false;canvas.style.cursor='default';draw()});
+canvas.addEventListener('click',e=>{if(twigHit(e.clientX,e.clientY))top.location.assign('/home.html')});
+
+function build(raw,lat,lon,source){
+ const offset=Number(raw.utc_offset_seconds||0),epoch=v=>{if(!v)return null;const t=Date.parse(v+'Z');return Number.isFinite(t)?t-offset*1000:null};
+ const rise=raw.daily?.sunrise||[],set=raw.daily?.sunset||[],now=Date.now(),syn=29.53058867,known=Date.UTC(2000,0,6,18,14,0);
+ return{location:{latitude:lat,longitude:lon,timezone:raw.timezone||'UTC'},current:{weatherCode:raw.current?.weather_code??0,cloudCover:raw.current?.cloud_cover??0},astronomy:{sunsetYesterday:epoch(set[0]),sunriseToday:epoch(rise[1]),sunsetToday:epoch(set[1]),sunriseTomorrow:epoch(rise[2]),moonPhase:((((now-known)/86400000)/syn)%1+1)%1},source};
+}
+async function weatherAt(lat,lon,source){
+ const u=new URL('https://api.open-meteo.com/v1/forecast');u.searchParams.set('latitude',lat);u.searchParams.set('longitude',lon);u.searchParams.set('current','weather_code,cloud_cover,wind_speed_10m,is_day');u.searchParams.set('daily','sunrise,sunset');u.searchParams.set('timezone','auto');u.searchParams.set('past_days','1');u.searchParams.set('forecast_days','2');
+ const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('weather');state=build(await r.json(),lat,lon,source);draw();
+}
+const LOCATION_KEY='budao:pasture-location:v1';
+const LOCATION_MAX_AGE=24*60*60*1000;
+function validLocation(v){
+ return v&&Number.isFinite(+v.latitude)&&Number.isFinite(+v.longitude)&&Math.abs(+v.latitude)<=90&&Math.abs(+v.longitude)<=180;
+}
+function readSavedLocation(){
+ try{
+  const v=JSON.parse(localStorage.getItem(LOCATION_KEY)||'null');
+  if(!validLocation(v)||!Number.isFinite(+v.savedAt)||Date.now()-Number(v.savedAt)>LOCATION_MAX_AGE)return null;
+  return{latitude:+v.latitude,longitude:+v.longitude,accuracy:Number(v.accuracy)||null};
+ }catch(e){return null}
+}
+function saveLocation(pos){
+ try{localStorage.setItem(LOCATION_KEY,JSON.stringify({latitude:+pos.latitude,longitude:+pos.longitude,accuracy:Number(pos.accuracy)||null,savedAt:Date.now()}))}catch(e){}
+}
+async function getDeviceLocation(){
+ if(!navigator.geolocation)return null;
+ if(navigator.permissions){
+  try{const p=await navigator.permissions.query({name:'geolocation'});if(p.state==='denied')return null}catch(e){}
+ }
+ return await new Promise(resolve=>{
+  navigator.geolocation.getCurrentPosition(
+   pos=>resolve({latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy}),
+   ()=>resolve(null),
+   {maximumAge:300000,timeout:6000,enableHighAccuracy:true}
+  );
+ });
+}
+async function refresh(){
+ const device=await getDeviceLocation();
+ if(validLocation(device)){
+  saveLocation(device);
+  try{await weatherAt(device.latitude,device.longitude,'device');return}catch(e){}
+ }
+ const saved=readSavedLocation();
+ if(validLocation(saved)){
+  try{await weatherAt(saved.latitude,saved.longitude,'saved');return}catch(e){}
+ }
+ try{await weatherAt(39.9042,116.4074,'fallback')}catch(_){}
+}
+addEventListener('resize',resize,{passive:true});
+resize();
+if(!embedded){
+ refresh();
+ setInterval(refresh,600000);
+}
+setInterval(draw,120);
+})();
+</script>
+</body>
+</html>
