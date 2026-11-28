@@ -17,6 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 <script src="/pasture-sky-engine.js"></script>
 <script src="/pasture-sun-moon-track.js"></script>
 <script src="/pasture-nature-events.js"></script>
+<script src="/praise-preview-render-v4.js?v=4"></script>
 <script>
 (()=>{
 const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');
@@ -439,23 +440,9 @@ function drawPortrait(){
  placedLambs.push(special);
  occupied.push(creatureBox(special,true));
 
- // Adults and lambs share one depth order so a distant lamb can no longer be painted on top of a nearer adult.
- window.parent.__budaoPreviewLayout?.('portrait',W,H,adults.map((o,i)=>({...o,id:i,lamb:false})).concat(placedLambs.map((o,i)=>({...o,id:i+26,lamb:true}))));
- const creatures=[];
- adults.forEach((o,i)=>creatures.push({kind:'adult',o,i,depth:o.y+20*o.s}));
- placedLambs.forEach((o,i)=>creatures.push({kind:'lamb',o,i,depth:o.y+14*o.s}));
- creatures.sort((a,b)=>a.depth-b.depth||a.o.s-b.o.s);
- creatures.forEach(c=>{
-   if(c.kind==='adult'){
-    drawSheep(c.o,c.i);
-   }else{
-    const o=c.o,i=c.i;
-    const dx=o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
-    const bob=Math.sin((tick+i*41)/110)>.82?1:0,m=window.parent.__budaoPreviewMotion?.(o.x/W,o.y/H,i+26,false,o.s,'portrait'),x=o.x+(m?m.dx:dx),y=o.y+(m?m.dy:-bob);
-    rect(x-1.5*o.s,y+13*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-    drawLamb(x,y,o.s,m?.flip??o.flip,o.style);
-   }
- });
+ const layout=adults.map((o,i)=>({...o,id:i,lamb:false,f:o.f||sheepColors[i%sheepColors.length][0],h:o.h||sheepColors[i%sheepColors.length][1]})).concat(placedLambs.map((o,i)=>({...o,id:i+26,lamb:true})));
+ window.parent.__budaoPreviewLayout?.('portrait',W,H,layout);
+ window.BudaoPreviewRender.drawFlock(ctx,layout,W,H,'portrait',window.parent.__budaoPreviewMotion);
 }
 function drawTwig(){
  const x0=12,y0=H-39;
@@ -619,7 +606,7 @@ if(!embedded){
  refresh();
  setInterval(refresh,600000);
 }
-setInterval(draw,60);
+setInterval(draw,33);
 })();
 </script>
 </body>

@@ -16,13 +16,14 @@ body{touch-action:none}
 </style>
 </head>
 <body>
-<iframe id="pastureFrame" src="/praise-preview-landscape.html?v=20261128v3" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<iframe id="pastureFrame" src="/praise-preview-landscape.html?v=20261128v4" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
 <iframe id="portraitFrame" title="牧场竖屏" tabindex="-1" aria-hidden="true"></iframe>
 <canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script src="/pasture-stars.js"></script>
 <script src="/pasture-sky-engine.js"></script>
 <script src="/pasture-sun-moon-track.js"></script>
 <script src="/pasture-nature-events.js"></script>
+<script src="/praise-preview-render-v4.js?v=4"></script>
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
@@ -69,7 +70,7 @@ function syncComposition(){
   portraitMode=nextPortrait;
   if(portraitMode){
     if(!portraitFrame.dataset.initialized){
-      portraitFrame.src='/praise-preview-portrait.html?v=20261128v3';
+      portraitFrame.src='/praise-preview-portrait.html?v=20261128v4';
       portraitFrame.dataset.initialized='1';
     }
     portraitFrame.style.display='block';
@@ -114,7 +115,7 @@ function revealPastureWhenReady(){
       clearInterval(pastureWatchTimer);
       frame.style.opacity='0';
       setTimeout(()=>{
-        frame.src='/praise-preview-landscape.html?v=20261128v3-'+Date.now();
+        frame.src='/praise-preview-landscape.html?v=20261128v4-'+Date.now();
       },800);
     }
   },100);
@@ -244,16 +245,11 @@ function buildDesktopLambLayout(){
   return placed;
 }
 function drawDesktopLambs(){
-  const lambs=buildDesktopLambLayout();
-  const adults=frame.contentWindow?.__tongluAdultLayout||[];window.__budaoPreviewLayout('landscape',480,300,adults.map((o,i)=>({...o,id:i,lamb:false})).concat(lambs.map((o,i)=>({...o,id:i+26,lamb:true}))));
-  lambs.forEach((o,i)=>{
-    const dx=!o.rest&&o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
-    const bob=!o.rest&&Math.sin((tick+i*41)/110)>.82?1:0;
-    const m=window.__budaoPreviewMotion(o.x/480,o.y/300,i+26,o.rest,o.s);
-    const x=o.x+(m?m.dx:dx),y=o.y+(m?m.dy:-bob);
-    rect(x-1.5*o.s,y+(o.rest&&!m?.stand?10:13)*o.s,21*o.s,2*o.s,'rgba(56,93,54,.15)');
-    o.rest&&!m?.stand?drawDesktopRestingLamb(x,y,o.s,o.flip,o.style,i*41):drawDesktopLamb(x,y,o.s,m?.flip??o.flip,o.style);
-  });
+ const lambs=buildDesktopLambLayout(),adults=frame.contentWindow?.__tongluAdultLayout||[];
+ const layout=adults.map((o,i)=>({...o,id:i,lamb:false})).concat(lambs.map((o,i)=>({...o,id:i+26,lamb:true})));
+ if(layout.length!==44)return;
+ window.__budaoPreviewLayout('landscape',480,300,layout);
+ window.BudaoPreviewRender.drawFlock(ctx,layout,480,300,'landscape',window.__budaoPreviewMotion);
 }
 let returnTwigHover=false;
 function drawReturnTwig(){
@@ -538,7 +534,7 @@ syncComposition();
 refresh();
 setInterval(refresh,600000);
 setInterval(refreshSkyState,45000);
-setInterval(()=>{if(!portraitMode)draw()},60);
+setInterval(()=>{if(!portraitMode)draw()},33);
 })();
 </script>
 </body>
