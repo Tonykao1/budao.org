@@ -857,6 +857,66 @@
       "publishedOn": "2026-11-10"
     },
     {
+      "id": "260421",
+      "date": "2026-04-21",
+      "title": "神堂峪备线",
+      "location": "神堂峪",
+      "description": "四月的神堂峪，林荫、溪水和岩壁伴随木栈道展开。同行者沿溪谷行走，踏过水上的石阶，留下春日备线的记忆。",
+      "published": true,
+      "publishedOn": "2026-11-28",
+      "editorialNote": "用户于2026-11-28重新提供6张现场照片并要求公开发布。依本次上传顺序完整保留，不裁切，转换为WebP并清除元数据。展示顺序不代表实际拍摄时间。",
+      "photos": [
+        {
+          "src": "/campfire-photos/260421/260421-01.webp",
+          "alt": "两位同行者沿林荫木栈道向前，树冠遮蔽道路",
+          "caption": "绿荫下的同行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260421/260421-02.webp",
+          "alt": "木栈道沿溪谷转弯，两位行者走向前方",
+          "caption": "沿着溪谷继续前行",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260421/260421-03.webp",
+          "alt": "溪水流过散落的岩石，两岸树木青翠",
+          "caption": "溪水与春色",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260421/260421-04.webp",
+          "alt": "山石旁的木栈道上，两位行者向镜头方向走来",
+          "caption": "山石之间的步道",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "16/9"
+        },
+        {
+          "src": "/campfire-photos/260421/260421-05.webp",
+          "alt": "木栈道依岩壁延伸，远方群山起伏",
+          "caption": "沿着岩壁走向远山",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        },
+        {
+          "src": "/campfire-photos/260421/260421-06.webp",
+          "alt": "数位同行者踏过溪流上的石阶",
+          "caption": "一步一步，踏过溪水",
+          "approved": true,
+          "frameMode": "uncropped",
+          "frameRatio": "9/16"
+        }
+      ]
+    },
+    {
       "id": "260420",
       "date": "2026-04-20",
       "title": "雁栖西山勘线",
