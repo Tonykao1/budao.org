@@ -134,7 +134,7 @@
     let settings;
     try{settings=normalizeSettings(JSON.parse(win.localStorage.getItem(STORAGE)));}catch(_){settings=normalizeSettings(null);}
     let context=null,enabled=false,active=null,queued=null,prepared=null,scheduling=null;
-    let lastSlot=null,timer=null,busy=false,disposed=false;
+    let lastSlot=null,timer=null,busy=false,disposed=false,playbackSerial=0;
     const say=t=>{status.textContent=t;};
     function save(){try{win.localStorage.setItem(STORAGE,JSON.stringify(settings));}catch(_){}}
     function emit(kind,detail){
@@ -188,11 +188,11 @@
         gain.gain.setValueAtTime(settings.volume,when+Math.max(2,duration-2));
         gain.gain.linearRampToValueAtTime(0,when+duration);
         source.start(when);source.stop(when+duration);
-        const item={slotMs,source,gain,index,key,duration,kind:slotKind(slot)};
+        const item={slotMs,source,gain,index,key,duration,kind:slotKind(slot),hour:slot.getHours(),audioAt:when,playbackId:++playbackSerial,manual:false};
         queued=item;lastSlot=slotMs;
         source.onended=()=>{
           if(queued?.source===source)queued=null;
-          if(active?.source===source){active=null;stop.hidden=true;say('本次赞美结束，等待下一次整点或半点');}
+          if(active?.source===source){active=null;stop.hidden=true;emit('stop',{reason:'ended',index,kind:slotKind(slot)});say('本次赞美结束，等待下一次整点或半点');}
           try{source.disconnect();gain.disconnect();}catch(_){}
         };
         say('已提前排程 '+slotClock(slot)+' · '+song.zh);
@@ -250,7 +250,7 @@
       gain.gain.setValueAtTime(settings.volume,at+Math.max(2,duration-2));
       gain.gain.linearRampToValueAtTime(0,at+duration);
       source.start(at);source.stop(at+duration);
-      active={source,gain,index,key};
+      active={source,gain,index,key,duration,kind:slotKind(hour),hour:hour.getHours(),slotMs:hour.getTime(),audioAt:at,playbackId:++playbackSerial,manual:!!manual};
       source.onended=()=>{
         if(active?.source===source){active=null;stop.hidden=true;emit('stop',{reason:'ended',index,kind:slotKind(hour)});say('等待下一次整点或半点');}
         try{source.disconnect();gain.disconnect();}catch(_){}
@@ -304,6 +304,14 @@
     doc.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){openPanel(false);toggle.focus();}});
     schedule();say(settings.desired?'已记住开启偏好 · 点击牧场恢复声音':'尚未开启 · 点击「开启整点赞美」');
     return Object.freeze({
+      get playback(){
+        if(!context||context.state!=='running')return null;
+        let time=context.currentTime;
+        try{const ts=context.getOutputTimestamp?.();if(ts&&ts.performanceTime>0&&win.performance)time=Math.min(time,ts.contextTime+Math.max(0,win.performance.now()-ts.performanceTime)/1000);else time=Math.max(0,time-(context.outputLatency||0));}catch(_){}
+        const item=active||queued;if(!item||time<item.audioAt||time>=item.audioAt+item.duration)return null;
+        return {id:item.playbackId,kind:item.kind,index:item.index,hour:item.hour,slotMs:item.slotMs,manual:item.manual,elapsed:time-item.audioAt,duration:item.duration};
+      },
+      get upcoming(){return queued?{hour:queued.hour,kind:queued.kind,slotMs:queued.slotMs}:null;},
       get state(){return{enabled,desired:settings.desired,volume:settings.volume,quiet:settings.quiet,playing:!!active,queuedHour:queued?.slotMs||null,queuedSlot:queued?.slotMs||null,nextHour:scheduling,nextSlot:scheduling,contextState:context?.state||'not-started'};},
       disable(){enabled=false;settings.desired=false;save();cancelQueued('disabled');stopNow('disabled');refresh();},
       dispose(){disposed=true;if(timer!==null)win.clearTimeout(timer);cancelQueued('disposed');stopNow('disposed');if(context)context.close();}

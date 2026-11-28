@@ -16,13 +16,14 @@ body{touch-action:none}
 </style>
 </head>
 <body>
-<iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20261005freeflock" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
+<iframe id="pastureFrame" src="/tonglu-pasture-v20.html?v=20261128praise41" title="牧场" tabindex="-1" aria-hidden="true"></iframe>
 <iframe id="portraitFrame" title="牧场竖屏" tabindex="-1" aria-hidden="true"></iframe>
 <canvas id="environmentLayer" width="480" height="300" aria-hidden="true"></canvas>
 <script src="/pasture-stars.js"></script>
 <script src="/pasture-sky-engine.js"></script>
 <script src="/pasture-sun-moon-track.js"></script>
 <script src="/pasture-nature-events.js"></script>
+<script src="/pasture-praise-render.js?v=20261128praise41"></script>
 <script>
 (()=>{
 const frame=document.getElementById('pastureFrame');
@@ -30,6 +31,8 @@ const portraitFrame=document.getElementById('portraitFrame');
 const environmentLayer=document.getElementById('environmentLayer');
 let pastureReady=false;
 let portraitMode=false;
+window.__budaoPraiseFrame=(...args)=>{try{return parent.BudaoPasturePraise?.frame(...args)||null}catch(_){return null}};
+let praiseBackgroundOnly=false;
 
 function sendPortraitEnvironment(){
   if(state&&portraitFrame.contentWindow){
@@ -67,7 +70,7 @@ function syncComposition(){
   portraitMode=nextPortrait;
   if(portraitMode){
     if(!portraitFrame.dataset.initialized){
-      portraitFrame.src='/tonglu-pasture-portrait.html?v=20261124horizon1';
+      portraitFrame.src='/tonglu-pasture-portrait.html?v=20261128praise41';
       portraitFrame.dataset.initialized='1';
     }
     portraitFrame.style.display='block';
@@ -112,7 +115,7 @@ function revealPastureWhenReady(){
       clearInterval(pastureWatchTimer);
       frame.style.opacity='0';
       setTimeout(()=>{
-        frame.src='/tonglu-pasture-v20.html?v=20261005freeflock-'+Date.now();
+        frame.src='/tonglu-pasture-v20.html?v=20261128praise41-'+Date.now();
       },800);
     }
   },100);
@@ -243,6 +246,12 @@ function buildDesktopLambLayout(){
 }
 function drawDesktopLambs(){
   const lambs=buildDesktopLambLayout();
+  const adults=frame.contentWindow?.__tongluAdultLayout||[];
+  const layout=adults.map((o,i)=>({...o,id:i,lamb:false})).concat(lambs.map((o,i)=>({...o,id:i+26,lamb:true})));
+  const show=window.BudaoPreviewRender?window.__budaoPraiseFrame('landscape',480,300,layout):null;
+  const on=!!show;
+  if(on!==praiseBackgroundOnly){try{frame.contentWindow.__budaoPraiseBackgroundOnly=on;frame.contentWindow.__budaoPraiseRedraw?.();praiseBackgroundOnly=on}catch(_){}}
+  if(show){window.BudaoPreviewRender.drawFlock(ctx,show.layout,480,300,'landscape',(_x,_y,id)=>show.poses[id]);return;}
   lambs.forEach((o,i)=>{
     const dx=!o.rest&&o.style==='blackwhite'?Math.sin((tick+i*41+173)/180)*1.25:0;
     const bob=!o.rest&&Math.sin((tick+i*41)/110)>.82?1:0;
@@ -534,7 +543,7 @@ syncComposition();
 refresh();
 setInterval(refresh,600000);
 setInterval(refreshSkyState,45000);
-setInterval(()=>{if(!portraitMode)draw()},120);
+setInterval(()=>{if(!portraitMode)draw()},33);
 })();
 </script>
 </body>

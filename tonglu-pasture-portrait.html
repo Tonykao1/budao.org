@@ -17,6 +17,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 <script src="/pasture-sky-engine.js"></script>
 <script src="/pasture-sun-moon-track.js"></script>
 <script src="/pasture-nature-events.js"></script>
+<script src="/pasture-praise-render.js?v=20261128praise41"></script>
 <script>
 (()=>{
 const canvas=document.getElementById('pasture'),ctx=canvas.getContext('2d');
@@ -439,6 +440,9 @@ function drawPortrait(){
  placedLambs.push(special);
  occupied.push(creatureBox(special,true));
 
+ const praiseLayout=adults.map((o,i)=>({...o,id:i,lamb:false,f:o.f||sheepColors[i%sheepColors.length][0],h:o.h||sheepColors[i%sheepColors.length][1]})).concat(placedLambs.map((o,i)=>({...o,id:i+26,lamb:true})));
+ let praiseFrame=null;try{praiseFrame=window.BudaoPreviewRender&&window.parent.__budaoPraiseFrame?.('portrait',W,H,praiseLayout)}catch(_){}
+ if(praiseFrame){window.BudaoPreviewRender.drawFlock(ctx,praiseFrame.layout,W,H,'portrait',(_x,_y,id)=>praiseFrame.poses[id]);return}
  // Adults and lambs share one depth order so a distant lamb can no longer be painted on top of a nearer adult.
  const creatures=[];
  adults.forEach((o,i)=>creatures.push({kind:'adult',o,i,depth:o.y+20*o.s}));
@@ -618,7 +622,7 @@ if(!embedded){
  refresh();
  setInterval(refresh,600000);
 }
-setInterval(draw,120);
+setInterval(draw,33);
 })();
 </script>
 </body>

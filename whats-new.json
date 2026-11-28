@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "items": [
     {
+      "id": "pasture-all-creation-praise-2026-11-28",
+      "type": "milestone",
+      "title": "数字牧场 · 万物同颂",
+      "description": "整点，羊群编队赞美；半点，分声部原地律动。赞美结束，原野复归宁静。",
+      "url": "/tonglu.html",
+      "icon": "♫",
+      "published": true
+    },
+    {
       "id": "pasture-hourly-praise-2026-11-25",
       "type": "milestone",
       "title": "数字牧场 · 时辰赞美正式开启",
