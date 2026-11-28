@@ -1,0 +1,50 @@
+name: Campfire bundle intake 260421
+on:
+  push:
+    branches: ["feat/asset-pipeline-intake-260421"]
+    paths: ["260421-release.zip"]
+permissions:
+  contents: write
+concurrency:
+  group: campfire-intake-260421
+  cancel-in-progress: false
+jobs:
+  validate-and-prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout approved intake branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Verify exact approved release bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "fb9572a2d5ef132e9e393efcc1edccca484ef91bd15594723d26e474305f378d  260421-release.zip" | sha256sum -c -
+          cp 260421-release.zip "$RUNNER_TEMP/260421-release.zip"
+          cp scripts/campfire-bundle-ingest.py "$RUNNER_TEMP/campfire-bundle-ingest.py"
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Configure Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install image processing tools
+        run: python -m pip install "Pillow==11.3.0" "CairoSVG==2.8.2"
+      - name: Import into isolated release branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout -b feat/asset-pipeline-release-260421 4e3934043108d33789e8009c58dc9f330fe5cf62
+          python "$RUNNER_TEMP/campfire-bundle-ingest.py" "$RUNNER_TEMP/260421-release.zip" --apply --root "$PWD"
+          npm run test:release-integrity
+          node -e 'const a=require("./data/campfire-archive.json"),q=require("./data/campfire-hero-quality.json");const m=a.albums.filter(x=>x.id==="260421");if(m.length!==1||m[0].photos.length!==6||a.albums.length!==23||a.albums.flatMap(x=>x.photos).length!==175||Object.keys(q.scores).length!==175)process.exit(1)'
+          git add -- campfire-photos/260421/ campfire-watermarked/260421/ data/campfire-archive.json data/campfire-hero-quality.json
+          git diff --cached --stat
+          git config user.name "budao-asset-intake"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "content(campfire): publish approved 260421 Shentangyu album assets"
+          git push origin HEAD:refs/heads/feat/asset-pipeline-release-260421
